@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stickify/app/theme.dart';
 import 'package:stickify/counter/counter.dart';
 import 'package:stickify/l10n/l10n.dart';
 
@@ -8,12 +9,9 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(
-        appBarTheme: AppBarTheme(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        ),
-        useMaterial3: true,
-      ),
+      title: 'Stickify Industrial Canvas',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: const CounterPage(),

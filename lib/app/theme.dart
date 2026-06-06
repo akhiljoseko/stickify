@@ -161,21 +161,24 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4),
-          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+          side: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: lightSurfaceContainerLow,
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),
-          borderSide: const BorderSide(color: Color(0xFF727781), width: 1),
+          borderSide: const BorderSide(color: Color(0xFF727781)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),
-          borderSide: const BorderSide(color: Color(0xFFC2C6D1), width: 1),
+          borderSide: const BorderSide(color: Color(0xFFC2C6D1)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),
@@ -183,7 +186,7 @@ class AppTheme {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),
-          borderSide: const BorderSide(color: Color(0xFFBA1A1A), width: 1),
+          borderSide: const BorderSide(color: Color(0xFFBA1A1A)),
         ),
         labelStyle: TextStyle(
           fontFamily: _fontInter,
@@ -211,7 +214,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: lightColorScheme.primary,
-          side: BorderSide(color: lightColorScheme.primary, width: 1),
+          side: BorderSide(color: lightColorScheme.primary),
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: RoundedRectangleBorder(
@@ -239,21 +242,24 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4),
-          side: const BorderSide(color: Color(0xFF424750), width: 1),
+          side: const BorderSide(color: Color(0xFF424750)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: darkSurfaceContainerLow,
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),
-          borderSide: const BorderSide(color: Color(0xFF8C919D), width: 1),
+          borderSide: const BorderSide(color: Color(0xFF8C919D)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),
-          borderSide: const BorderSide(color: Color(0xFF424750), width: 1),
+          borderSide: const BorderSide(color: Color(0xFF424750)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),
@@ -261,7 +267,7 @@ class AppTheme {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),
-          borderSide: const BorderSide(color: Color(0xFFFFB4AB), width: 1),
+          borderSide: const BorderSide(color: Color(0xFFFFB4AB)),
         ),
         labelStyle: TextStyle(
           fontFamily: _fontInter,
@@ -289,7 +295,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: darkColorScheme.primary,
-          side: BorderSide(color: darkColorScheme.primary, width: 1),
+          side: BorderSide(color: darkColorScheme.primary),
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: RoundedRectangleBorder(
@@ -306,13 +312,28 @@ class AppTheme {
   }
 }
 
-/// Extension helper to get custom Material 3 surface container colors from ColorScheme.
+/// Extension helper to get custom Material 3 surface container colors
+/// from [ColorScheme].
 extension ContainerColors on ColorScheme {
-  Color get surfaceDim => brightness == Brightness.light ? AppTheme.lightSurfaceDim : AppTheme.darkSurfaceDim;
-  Color get surfaceBright => brightness == Brightness.light ? AppTheme.lightSurfaceBright : AppTheme.darkSurfaceBright;
-  Color get containerLowest => brightness == Brightness.light ? AppTheme.lightSurfaceContainerLowest : AppTheme.darkSurfaceContainerLowest;
-  Color get containerLow => brightness == Brightness.light ? AppTheme.lightSurfaceContainerLow : AppTheme.darkSurfaceContainerLow;
-  Color get container => brightness == Brightness.light ? AppTheme.lightSurfaceContainer : AppTheme.darkSurfaceContainer;
-  Color get containerHigh => brightness == Brightness.light ? AppTheme.lightSurfaceContainerHigh : AppTheme.darkSurfaceContainerHigh;
-  Color get containerHighest => brightness == Brightness.light ? AppTheme.lightSurfaceContainerHighest : AppTheme.darkSurfaceContainerHighest;
+  Color get surfaceDim => brightness == Brightness.light
+      ? AppTheme.lightSurfaceDim
+      : AppTheme.darkSurfaceDim;
+  Color get surfaceBright => brightness == Brightness.light
+      ? AppTheme.lightSurfaceBright
+      : AppTheme.darkSurfaceBright;
+  Color get containerLowest => brightness == Brightness.light
+      ? AppTheme.lightSurfaceContainerLowest
+      : AppTheme.darkSurfaceContainerLowest;
+  Color get containerLow => brightness == Brightness.light
+      ? AppTheme.lightSurfaceContainerLow
+      : AppTheme.darkSurfaceContainerLow;
+  Color get container => brightness == Brightness.light
+      ? AppTheme.lightSurfaceContainer
+      : AppTheme.darkSurfaceContainer;
+  Color get containerHigh => brightness == Brightness.light
+      ? AppTheme.lightSurfaceContainerHigh
+      : AppTheme.darkSurfaceContainerHigh;
+  Color get containerHighest => brightness == Brightness.light
+      ? AppTheme.lightSurfaceContainerHighest
+      : AppTheme.darkSurfaceContainerHighest;
 }

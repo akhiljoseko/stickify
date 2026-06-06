@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:stickify/app/theme.dart';
-import 'package:stickify/counter/counter.dart';
 import 'package:stickify/l10n/l10n.dart';
 
 class App extends StatelessWidget {
@@ -14,7 +13,6 @@ class App extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const CounterPage(),
     );
   }
 }

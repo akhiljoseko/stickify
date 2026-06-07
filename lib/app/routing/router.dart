@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stickify/app/routing/app_shell.dart';
 import 'package:stickify/auth/auth.dart';
-import 'package:stickify/screens/screens.dart';
+import 'package:stickify/presentation/dashboard/dashboard_screen.dart';
+import 'package:stickify/presentation/forgot_password/forgot_password_screen.dart';
+import 'package:stickify/presentation/login/login_screen.dart';
+import 'package:stickify/presentation/products/product_details_screen.dart';
+import 'package:stickify/presentation/products/product_management_screen.dart';
+import 'package:stickify/presentation/registration/register_screen.dart';
+import 'package:stickify/presentation/settings/settings_screen.dart';
+import 'package:stickify/presentation/template_management/template_management_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PART DIRECTIVE
@@ -122,7 +129,6 @@ class ForgotPasswordRoute extends GoRouteData with $ForgotPasswordRoute {
     ),
   ],
 )
-
 /// Route data class for the StatefulShellRoute shell itself.
 ///
 /// Its [builder] method is called by GoRouter with the live

@@ -13,7 +13,6 @@ import 'package:stickify/presentation/features/dashboard/widgets/connectivity_st
 import 'package:stickify/presentation/features/dashboard/widgets/frequent_product_row.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/quick_action_card.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/recent_print_card.dart';
-import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -73,38 +72,43 @@ class _DashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: AdaptiveScrollWrapper(
-        builder: (context, controller) => CustomScrollView(
-          controller: controller,
-          slivers: [
-            SliverPadding(
-              padding: AdaptiveValue<EdgeInsets>(
-                context,
-                defaultValue: const EdgeInsets.all(16),
-                tablet: const EdgeInsets.all(24),
-                desktop: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 28,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1440),
+          child: AdaptiveScrollWrapper(
+            builder: (context, controller) => CustomScrollView(
+              controller: controller,
+              slivers: [
+                SliverPadding(
+                  padding: AdaptiveValue<EdgeInsets>(
+                    context,
+                    defaultValue: const EdgeInsets.all(16),
+                    tablet: const EdgeInsets.all(24),
+                    desktop: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 28,
+                    ),
+                  ).value,
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // ── Hero Header ─────────────────────────────────────────
+                      const _HeroHeader(),
+                      const SizedBox(height: 32),
+                      // ── Quick Actions Grid ──────────────────────────────────
+                      const _QuickActionsSection(),
+                      const SizedBox(height: 32),
+                      // ── Recently Printed Labels ─────────────────────────────
+                      const _RecentPrintsSection(),
+                      const SizedBox(height: 32),
+                      // ── Frequent Products Table ─────────────────────────────
+                      const _FrequentProductsSection(),
+                      const SizedBox(height: 32),
+                    ]),
+                  ),
                 ),
-              ).value,
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  // ── Hero Header ─────────────────────────────────────────
-                  const _HeroHeader(),
-                  const SizedBox(height: 32),
-                  // ── Quick Actions Grid ──────────────────────────────────
-                  const _QuickActionsSection(),
-                  const SizedBox(height: 32),
-                  // ── Recently Printed Labels ─────────────────────────────
-                  const _RecentPrintsSection(),
-                  const SizedBox(height: 32),
-                  // ── Frequent Products Table ─────────────────────────────
-                  const _FrequentProductsSection(),
-                  const SizedBox(height: 32),
-                ]),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -123,30 +127,32 @@ class _HeroHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleFontSize = AdaptiveValue<double>(
-      context,
-      defaultValue: 24,  // mobile: design.md Display LG → 24px
-      desktop: 32,       // desktop: full 32px Display LG token
-    ).value;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 600;
+        final titleFontSize = isCompact ? 24.0 : 32.0;
 
-    return AdaptiveLayoutSwitcher(
-      mobile: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _TitleBlock(fontSize: titleFontSize),
-          const SizedBox(height: 16),
-          const ConnectivityStatusChip(isOnline: true),
-        ],
-      ),
-      desktop: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(child: _TitleBlock(fontSize: titleFontSize)),
-          const SizedBox(width: 24),
-          const ConnectivityStatusChip(isOnline: true),
-        ],
-      ),
+        if (isCompact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _TitleBlock(fontSize: titleFontSize),
+              const SizedBox(height: 16),
+              const ConnectivityStatusChip(isOnline: true),
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(child: _TitleBlock(fontSize: titleFontSize)),
+            const SizedBox(width: 24),
+            const ConnectivityStatusChip(isOnline: true),
+          ],
+        );
+      },
     );
   }
 }
@@ -211,36 +217,46 @@ class _QuickActionsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final crossAxisCount = AdaptiveValue<int>(
-      context,
-      defaultValue: 1,
-      tablet: 2,
-      desktop: 4,
-    ).value;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final int crossAxisCount;
+        final double targetHeight;
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: AdaptiveValue<double>(
-          context,
-          defaultValue: 1.8,
-          tablet: 1.5,
-          desktop: 1.3,
-        ).value,
-      ),
-      itemCount: _actions.length,
-      itemBuilder: (context, i) {
-        final action = _actions[i];
-        return QuickActionCard(
-          icon: action.icon,
-          title: action.title,
-          subtitle: action.subtitle,
-          isPrimary: action.isPrimary,
-          onTap: () {/* navigation wired in Phase 2 */},
+        if (w < 540) {
+          crossAxisCount = 1;
+          targetHeight = 150;
+        } else if (w < 960) {
+          crossAxisCount = 2;
+          targetHeight = 160;
+        } else {
+          crossAxisCount = 4;
+          targetHeight = 160;
+        }
+
+        final itemWidth = (w - (crossAxisCount - 1) * 16) / crossAxisCount;
+        final childAspectRatio = itemWidth / targetHeight;
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: childAspectRatio,
+          ),
+          itemCount: _actions.length,
+          itemBuilder: (context, i) {
+            final action = _actions[i];
+            return QuickActionCard(
+              icon: action.icon,
+              title: action.title,
+              subtitle: action.subtitle,
+              isPrimary: action.isPrimary,
+              onTap: () {/* navigation wired in Phase 2 */},
+            );
+          },
         );
       },
     );
@@ -279,8 +295,15 @@ class _RecentPrintsSection extends StatelessWidget {
           children: [
             Icon(Icons.update, color: colorScheme.primary, size: 20),
             const SizedBox(width: 8),
-            Text('Recently Printed Labels', style: textTheme.titleSmall),
-            const Spacer(),
+            Expanded(
+              child: Text(
+                'Recently Printed Labels',
+                style: textTheme.titleSmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
             TextButton(
               onPressed: () {},
               child: Text(
@@ -319,7 +342,7 @@ class _RecentPrintsCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 280,
+      height: 340,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: jobs.length,
@@ -348,40 +371,53 @@ class _FrequentProductsSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Table header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Row(
-              children: [
-                Icon(Icons.star_outline, color: colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text('Frequent Products', style: textTheme.titleSmall),
-              ],
-            ),
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          // Column headers (desktop only — hidden on mobile to save space)
-          AdaptiveLayoutSwitcher(
-            mobile: const SizedBox.shrink(),
-            desktop: _TableColumnHeaders(colorScheme: colorScheme, textTheme: textTheme),
-          ),
-          // Cubit-driven rows
-          BlocBuilder<FrequentProductsCubit, FrequentProductsState>(
-            builder: (context, state) => switch (state) {
-              FrequentProductsInitial() || FrequentProductsLoading() =>
-                const _SectionLoadingIndicator(),
-              FrequentProductsLoaded(:final products) =>
-                _FrequentProductsTable(products: products),
-              FrequentProductsError(:final message) => _SectionErrorView(
-                  message: message,
-                  onRetry: context.read<FrequentProductsCubit>().loadFrequentProducts,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 960;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Table header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: Row(
+                  children: [
+                    Icon(Icons.star_outline, color: colorScheme.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Frequent Products',
+                        style: textTheme.titleSmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
-            },
-          ),
-        ],
+              ),
+              Divider(height: 1, color: colorScheme.outlineVariant),
+              // Column headers (desktop only — hidden on mobile to save space)
+              if (!isCompact) ...[
+                _TableColumnHeaders(colorScheme: colorScheme, textTheme: textTheme),
+              ],
+              // Cubit-driven rows
+              BlocBuilder<FrequentProductsCubit, FrequentProductsState>(
+                builder: (context, state) => switch (state) {
+                  FrequentProductsInitial() || FrequentProductsLoading() =>
+                    const _SectionLoadingIndicator(),
+                  FrequentProductsLoaded(:final products) => isCompact
+                      ? _MobileProductList(products: products)
+                      : _DesktopProductTable(products: products),
+                  FrequentProductsError(:final message) => _SectionErrorView(
+                      message: message,
+                      onRetry: context.read<FrequentProductsCubit>().loadFrequentProducts,
+                    ),
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -443,24 +479,10 @@ class _HeaderCell extends StatelessWidget {
             color: colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w500,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
-    );
-  }
-}
-
-/// The actual rows of the Frequent Products table.
-class _FrequentProductsTable extends StatelessWidget {
-  const _FrequentProductsTable({required this.products});
-
-  final List<Product> products;
-
-  @override
-  Widget build(BuildContext context) {
-    // On mobile, degrade to a simple list instead of a wide table
-    return AdaptiveLayoutSwitcher(
-      mobile: _MobileProductList(products: products),
-      desktop: _DesktopProductTable(products: products),
     );
   }
 }

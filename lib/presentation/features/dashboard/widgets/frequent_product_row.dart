@@ -96,6 +96,8 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
                         color: colorScheme.onSurfaceVariant,
                         fontSize: 11,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -111,6 +113,8 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),
@@ -157,6 +161,7 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurface,
                         ),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

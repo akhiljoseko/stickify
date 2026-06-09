@@ -122,7 +122,11 @@ class _QuickActionCardState extends State<QuickActionCard> {
                       ? colorScheme.primary
                       : colorScheme.onSurface,
                 ),
-                child: Text(widget.title),
+                child: Text(
+                  widget.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               const SizedBox(height: 4),
               // Subtitle
@@ -132,6 +136,8 @@ class _QuickActionCardState extends State<QuickActionCard> {
                   color: colorScheme.onSurfaceVariant,
                   height: 1.3,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

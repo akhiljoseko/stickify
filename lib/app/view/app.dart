@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/routing/routing.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/auth/auth.dart';
+import 'package:stickify/core/utils/app_breakpoints.dart';
 import 'package:stickify/l10n/l10n.dart';
 
 /// Root application widget.
@@ -75,6 +77,15 @@ class _AppViewState extends State<_AppView> {
       // ── Router ───────────────────────────────────────────────────────────
       // routerConfig is the modern API — it accepts a GoRouter directly.
       routerConfig: _router,
+
+      // ── Responsive Framework ─────────────────────────────────────────────
+      // Registers the canonical breakpoint definitions from AppBreakpoints
+      // so that AdaptiveLayoutSwitcher and AdaptiveValue work in every widget
+      // without any per-screen setup.
+      builder: (context, child) => ResponsiveBreakpoints.builder(
+        child: child!,
+        breakpoints: AppBreakpoints.breakpoints,
+      ),
     );
   }
 }

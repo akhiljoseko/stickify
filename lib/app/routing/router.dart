@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stickify/app/routing/app_shell.dart';
 import 'package:stickify/auth/auth.dart';
-import 'package:stickify/presentation/dashboard/dashboard_screen.dart';
+import 'package:stickify/presentation/features/dashboard/pages/dashboard_screen.dart';
 import 'package:stickify/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:stickify/presentation/login/login_screen.dart';
 import 'package:stickify/presentation/products/product_details_screen.dart';
@@ -187,7 +187,7 @@ class DashboardRoute extends GoRouteData with $DashboardRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const DashboardScreen();
+    return const DashboardPage();
   }
 }
 

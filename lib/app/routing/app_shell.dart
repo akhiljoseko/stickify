@@ -1,64 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CUSTOM NAVIGATION RAIL
+// NAVIGATION DESTINATIONS
 //
-// A reusable, stateless widget that renders the desktop left-side navigation
-// rail. Keeping this separate from [AppShell] means:
-//   • It can be tested in isolation.
-//   • It can be swapped for a [NavigationDrawer] on smaller screens without
-//     touching the shell layout logic.
-//   • It has a clean, declarative API — it knows nothing about routing.
+// A single source of truth for both the NavigationRail (desktop) and the
+// BottomNavigationBar (mobile). Keeping them co-located ensures that the
+// label, icon, and index always stay in sync across both layouts.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// The destinations shown in the navigation rail, in branch index order.
-///
-/// The index of each entry **must** match the branch index declared in the
-/// `@TypedStatefulShellRoute` annotation inside `router.dart`. If you add or
-/// reorder branches, update this list to match.
-const List<NavigationRailDestination> _kDestinations = [
-  NavigationRailDestination(
-    icon: Icon(Icons.dashboard_outlined),
-    selectedIcon: Icon(Icons.dashboard),
-    label: Text('Dashboard'),
+/// One navigation destination shared by both the desktop rail and mobile bar.
+class _NavDestination {
+  const _NavDestination({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+}
+
+const List<_NavDestination> _kDestinations = [
+  _NavDestination(
+    icon: Icons.dashboard_outlined,
+    selectedIcon: Icons.dashboard,
+    label: 'Dashboard',
   ),
-  NavigationRailDestination(
-    icon: Icon(Icons.inventory_2_outlined),
-    selectedIcon: Icon(Icons.inventory_2),
-    label: Text('Products'),
+  _NavDestination(
+    icon: Icons.inventory_2_outlined,
+    selectedIcon: Icons.inventory_2,
+    label: 'Products',
   ),
-  NavigationRailDestination(
-    icon: Icon(Icons.layers_outlined),
-    selectedIcon: Icon(Icons.layers),
-    label: Text('Templates'),
+  _NavDestination(
+    icon: Icons.layers_outlined,
+    selectedIcon: Icons.layers,
+    label: 'Templates',
   ),
-  NavigationRailDestination(
-    icon: Icon(Icons.settings_outlined),
-    selectedIcon: Icon(Icons.settings),
-    label: Text('Settings'),
+  _NavDestination(
+    icon: Icons.settings_outlined,
+    selectedIcon: Icons.settings,
+    label: 'Settings',
   ),
 ];
 
-/// A reusable, stateless navigation rail for the desktop shell layout.
+// ─────────────────────────────────────────────────────────────────────────────
+// DESKTOP NAVIGATION RAIL
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Desktop left-side navigation rail.
+///
+/// Rendered exclusively on Tablet and Desktop breakpoints via
+/// [AdaptiveLayoutSwitcher] inside [AppShell]. Never shown on Mobile.
 ///
 /// Accepts the currently active [currentIndex] and an [onDestinationSelected]
-/// callback. It renders a [NavigationRail] styled with the app's [ColorScheme]
-/// tokens.
-///
-/// ## Responsibilities
-///
-/// This widget owns **only** the visual rendering of the rail. Branch switching
-/// logic lives in [AppShell] which calls [StatefulNavigationShell.goBranch].
-///
-/// ## Example
-///
-/// ```dart
-/// CustomNavigationRail(
-///   currentIndex: navigationShell.currentIndex,
-///   onDestinationSelected: (i) => navigationShell.goBranch(i),
-/// )
-/// ```
+/// callback so this widget remains stateless and testable in isolation.
 class CustomNavigationRail extends StatelessWidget {
   const CustomNavigationRail({
     required this.currentIndex,
@@ -96,36 +94,34 @@ class CustomNavigationRail extends StatelessWidget {
       selectedIndex: currentIndex,
 
       // ── Layout ────────────────────────────────────────────────────────────
-      // Show labels for all destinations (desktop has space).
       labelType: NavigationRailLabelType.all,
-      // Extended rails show a full-width label next to the icon.
-      // Set to false here to keep it compact; flip to true if you want a
-      // sidebar-style rail.
 
       // ── Leading widget (app logo / branding) ──────────────────────────────
       leading: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.sticky_note_2_rounded,
-                color: colorScheme.onPrimaryContainer,
-                size: 22,
-              ),
-            ),
-          ],
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            Icons.sticky_note_2_rounded,
+            color: colorScheme.onPrimaryContainer,
+            size: 22,
+          ),
         ),
       ),
 
       // ── Destinations ──────────────────────────────────────────────────────
-      destinations: _kDestinations,
+      destinations: _kDestinations.map((d) {
+        return NavigationRailDestination(
+          icon: Icon(d.icon),
+          selectedIcon: Icon(d.selectedIcon),
+          label: Text(d.label),
+        );
+      }).toList(),
 
       // ── Callback ──────────────────────────────────────────────────────────
       onDestinationSelected: onDestinationSelected,
@@ -134,90 +130,159 @@ class CustomNavigationRail extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// MOBILE BOTTOM NAVIGATION BAR
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Mobile bottom navigation bar.
+///
+/// Rendered exclusively on the Mobile breakpoint via [AdaptiveLayoutSwitcher]
+/// inside [AppShell]. Never shown on Tablet or Desktop.
+class _MobileBottomNav extends StatelessWidget {
+  const _MobileBottomNav({
+    required this.currentIndex,
+    required this.onDestinationSelected,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onDestinationSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return NavigationBar(
+      selectedIndex: currentIndex,
+      onDestinationSelected: onDestinationSelected,
+      backgroundColor: colorScheme.surfaceContainerLow,
+      indicatorColor: colorScheme.primaryContainer,
+      labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+      destinations: _kDestinations.map((d) {
+        return NavigationDestination(
+          icon: Icon(d.icon),
+          selectedIcon: Icon(d.selectedIcon, color: colorScheme.primary),
+          label: d.label,
+        );
+      }).toList(),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // APP SHELL
 //
-// [AppShell] is the persistent layout widget rendered by [AppShellRouteData].
-// It owns the outer [Scaffold] with [CustomNavigationRail] on the left and
-// the active branch widget on the right.
+// The shell is stateless — all state lives in StatefulNavigationShell (which
+// branch is active) and in each branch's own Navigator stack.
 //
-// ## Why StatelessWidget?
-//
-// The shell itself is stateless — all state lives either in:
-//   • [StatefulNavigationShell] (which branch is active)
-//   • The branch navigators themselves (scroll position, form data, etc.)
-//
-// The shell just wires everything together.
+// Layout strategy (via AdaptiveLayoutSwitcher — no inline bp.isDesktop):
+//   - Mobile:  Scaffold with bottomNavigationBar = NavigationBar
+//   - Desktop: Scaffold with body = Row[ NavigationRail | content ]
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// The root layout scaffold for authenticated users.
 ///
-/// Renders a [CustomNavigationRail] on the left and the currently active
-/// branch widget (provided by [StatefulNavigationShell]) on the right.
-///
-/// ## Branch Switching
-///
-/// Tab switching is handled by [StatefulNavigationShell.goBranch]:
-///
-/// ```dart
-/// navigationShell.goBranch(
-///   index,
-///   // initialLocation: true  ← pass this to return to branch root when
-///   //                          tapping the already-active tab (optional UX).
-/// );
-/// ```
-///
-/// `goBranch` is smarter than a raw `context.go(...)`: it preserves the
-/// branch's own navigator stack, so switching away from a tab and back
-/// keeps any nested routes you pushed inside that tab intact.
+/// Uses [AdaptiveLayoutSwitcher] to switch between the desktop
+/// [CustomNavigationRail] + content [Row] layout and the mobile
+/// [NavigationBar] + content [Column] layout — with zero inline
+/// breakpoint conditionals in this widget's [build] method.
 class AppShell extends StatelessWidget {
   const AppShell({
     required this.navigationShell,
     super.key,
   });
 
-  /// The live shell provided by [GoRouter] containing the active branch widget
-  /// and branch-switching API.
+  /// The live shell provided by [GoRouter] containing the active branch
+  /// widget and the branch-switching API.
   final StatefulNavigationShell navigationShell;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdaptiveLayoutSwitcher(
+      // ── Mobile: bottom nav layout ─────────────────────────────────────────
+      mobile: _MobileShell(
+        navigationShell: navigationShell,
+        onDestinationSelected: _onDestinationSelected,
+      ),
+      // ── Tablet: compact rail (labels on selected only) ────────────────────
+      tablet: _DesktopShell(
+        navigationShell: navigationShell,
+        onDestinationSelected: _onDestinationSelected,
+      ),
+      // ── Desktop: full rail with all labels ────────────────────────────────
+      desktop: _DesktopShell(
+        navigationShell: navigationShell,
+        onDestinationSelected: _onDestinationSelected,
+      ),
+    );
+  }
+
+  /// Switches to [index], resetting to branch root when the already-active
+  /// tab is tapped — a standard mobile and desktop UX pattern.
+  void _onDestinationSelected(int index) {
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PRIVATE LAYOUT VARIANTS
+// Extracted into separate stateless widgets so each variant is const and
+// only the active one is ever in the widget tree.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Desktop shell: NavigationRail on the left, content on the right.
+class _DesktopShell extends StatelessWidget {
+  const _DesktopShell({
+    required this.navigationShell,
+    required this.onDestinationSelected,
+  });
+
+  final StatefulNavigationShell navigationShell;
+  final ValueChanged<int> onDestinationSelected;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Row(
         children: [
-          // ── Left rail ─────────────────────────────────────────────────────
+          // Left navigation rail
           CustomNavigationRail(
             currentIndex: navigationShell.currentIndex,
-            onDestinationSelected: _onDestinationSelected,
+            onDestinationSelected: onDestinationSelected,
           ),
-
-          // ── Vertical divider between rail and content ──────────────────────
+          // Vertical divider
           VerticalDivider(
             width: 1,
             thickness: 1,
             color: Theme.of(context).colorScheme.outlineVariant,
           ),
-
-          // ── Content area — the currently active branch ─────────────────────
-          // [Expanded] takes all remaining horizontal space. [navigationShell]
-          // renders the active branch's widget tree.
+          // Active branch content
           Expanded(child: navigationShell),
         ],
       ),
     );
   }
+}
 
-  /// Switches the active branch to [index].
-  ///
-  /// Passes `initialLocation: index == navigationShell.currentIndex` so that
-  /// tapping the already-active tab resets it to its root route — a common
-  /// UX pattern on mobile that also works well on desktop.
-  void _onDestinationSelected(int index) {
-    navigationShell.goBranch(
-      index,
-      // When the user taps the tab they're already on, jump back to the
-      // branch's initial route (e.g. from ProductDetails back to
-      // ProductManagement). Remove this flag if you prefer to stay put.
-      initialLocation: index == navigationShell.currentIndex,
+/// Mobile shell: content fills the body, NavigationBar at the bottom.
+class _MobileShell extends StatelessWidget {
+  const _MobileShell({
+    required this.navigationShell,
+    required this.onDestinationSelected,
+  });
+
+  final StatefulNavigationShell navigationShell;
+  final ValueChanged<int> onDestinationSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: navigationShell,
+      bottomNavigationBar: _MobileBottomNav(
+        currentIndex: navigationShell.currentIndex,
+        onDestinationSelected: onDestinationSelected,
+      ),
     );
   }
 }

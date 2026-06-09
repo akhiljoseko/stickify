@@ -504,7 +504,24 @@ class _DesktopProductTable extends StatelessWidget {
       itemBuilder: (context, i) => FrequentProductRow(
         product: products[i],
         isEvenRow: i.isEven,
-        onQuickPrint: () {},
+        onQuickPrint: () {
+          final colorScheme = Theme.of(context).colorScheme;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: colorScheme.inverseSurface,
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: colorScheme.tertiaryContainer),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text('Print job sent: 15 labels queued for ${products[i].name}'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -530,25 +547,31 @@ class _MobileProductList extends StatelessWidget {
       ),
       itemBuilder: (context, i) {
         final p = products[i];
-        final stationDotColor = switch (p.stationStatus) {
-          StationStatus.online  => const Color(0xFF10B981),
-          StationStatus.warning => const Color(0xFFF59E0B),
-          StationStatus.offline => const Color(0xFFEF4444),
-        };
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
           title: Text(p.name, style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
           subtitle: Text(p.sku, style: textTheme.labelSmall?.copyWith(fontSize: 11, color: colorScheme.onSurfaceVariant)),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 8, height: 8,
-                decoration: BoxDecoration(color: stationDotColor, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 6),
-              Text('${p.totalPrints}', style: textTheme.labelMedium?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.w700)),
-            ],
+          trailing: IconButton(
+            icon: const Icon(Icons.print_outlined),
+            color: colorScheme.primary,
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: colorScheme.inverseSurface,
+                  content: Row(
+                    children: [
+                      Icon(Icons.check_circle, color: colorScheme.tertiaryContainer),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text('Print job sent: 15 labels queued for ${p.name}'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            tooltip: 'Quick Print',
           ),
         );
       },

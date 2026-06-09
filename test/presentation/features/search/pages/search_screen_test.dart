@@ -152,8 +152,33 @@ void main() {
 
       // Verify list cards and buttons are present
       expect(find.text('Artisanal Toasted Almonds - 150g Pouch'), findsOneWidget);
-      expect(find.text('Print Label'), findsNWidgets(2)); // One active, one disabled card buttons
-      expect(find.text('Queue New'), findsOneWidget);
+      expect(find.byIcon(Icons.print_outlined), findsNWidgets(2)); // One active, one disabled card buttons
+      expect(find.byIcon(Icons.sync), findsOneWidget);
+    });
+
+    testWidgets('renders table with icon buttons on tablet viewport', (tester) async {
+      await tester.pumpApp(
+        SearchPage(
+          initialQuery: 'Almonds',
+          searchRepository: testRepo,
+        ),
+        size: const Size(650, 800), // Tablet size
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Verify Table IS rendered on tablet
+      expect(find.byType(Table), findsOneWidget);
+
+      // Verify list items are present in the table
+      expect(find.text('Artisanal Toasted Almonds - 150g Pouch'), findsOneWidget);
+      
+      // Verify actions are rendered as icon buttons (no full button text, icons present)
+      expect(find.text('Print Label'), findsNothing);
+      expect(find.text('Queue New'), findsNothing);
+      expect(find.byIcon(Icons.print_outlined), findsNWidgets(2));
+      expect(find.byIcon(Icons.sync), findsOneWidget);
     });
   });
 }

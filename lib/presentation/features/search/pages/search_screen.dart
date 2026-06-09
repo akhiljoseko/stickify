@@ -744,7 +744,7 @@ class _ResultsGrid extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: bp.isMobile ? 1.6 : 0.82,
+            childAspectRatio: bp.isMobile ? 3.4 : 0.82,
           ),
           itemCount: results.length,
           itemBuilder: (context, i) {
@@ -940,107 +940,98 @@ class _ResultCardState extends State<_ResultCard> {
 
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left image container
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Image.network(
-                    widget.item.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Icon(
-                      widget.item.category == 'Templates'
-                          ? Icons.description_outlined
-                          : widget.item.category == 'Stations'
-                              ? Icons.settings_input_component_outlined
-                              : Icons.sticky_note_2_outlined,
-                      size: 24,
-                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                    ),
-                  ),
+          // Left image container
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: Image.network(
+                widget.item.imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Icon(
+                  widget.item.category == 'Templates'
+                      ? Icons.description_outlined
+                      : widget.item.category == 'Stations'
+                          ? Icons.settings_input_component_outlined
+                          : Icons.sticky_note_2_outlined,
+                  size: 24,
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                 ),
               ),
-              const SizedBox(width: 12),
-              // Right content details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Right content details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                          child: Text(
-                            widget.item.category,
-                            style: textTheme.bodySmall?.copyWith(
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onPrimaryContainer,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '${(widget.item.relevanceScore * 100).toInt()}% match',
-                          style: textTheme.bodySmall?.copyWith(
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.tertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      widget.item.title,
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontFamily: 'Hanken Grotesk',
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    if (widget.item.sku != null)
-                      Text(
-                        'SKU: ${widget.item.sku}',
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: Text(
+                        widget.item.category,
                         style: textTheme.bodySmall?.copyWith(
-                          fontSize: 11,
-                          fontFamily: 'JetBrains Mono',
-                          color: colorScheme.primary,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onPrimaryContainer,
                         ),
                       ),
+                    ),
+                    Text(
+                      '${(widget.item.relevanceScore * 100).toInt()}% match',
+                      style: textTheme.bodySmall?.copyWith(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.tertiary,
+                      ),
+                    ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 6),
+                Text(
+                  widget.item.title,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontFamily: 'Hanken Grotesk',
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                if (widget.item.sku != null)
+                  Text(
+                    'SKU: ${widget.item.sku}',
+                    style: textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      fontFamily: 'JetBrains Mono',
+                      color: colorScheme.primary,
+                    ),
+                  ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          // Action Button full width on mobile
-          SizedBox(
-            width: double.infinity,
-            height: 36,
-            child: _buildSearchActionButton(context, widget.item),
-          ),
+          const SizedBox(width: 8),
+          // Action button as icon button on mobile
+          _buildSearchActionButton(context, widget.item, isMini: true),
         ],
       ),
     );
@@ -1460,7 +1451,11 @@ class _ResultsTable extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           child: Align(
                             alignment: Alignment.centerRight,
-                            child: _buildSearchActionButton(context, item),
+                            child: _buildSearchActionButton(
+                              context,
+                              item,
+                              isMini: !ResponsiveBreakpoints.of(context).isDesktop,
+                            ),
                           ),
                         ),
                       ],
@@ -1476,8 +1471,74 @@ class _ResultsTable extends StatelessWidget {
   }
 }
 
-Widget _buildSearchActionButton(BuildContext context, SearchItem item) {
+Widget _buildSearchActionButton(BuildContext context, SearchItem item, {bool isMini = false}) {
   final colorScheme = Theme.of(context).colorScheme;
+
+  if (isMini) {
+    // Mini (Icon Button) mode for smaller viewports
+
+    // Disabled Case (Smoked Honey Almonds - ALM-SH-250P)
+    if (item.sku == 'ALM-SH-250P') {
+      return const Opacity(
+        opacity: 0.5,
+        child: IconButton(
+          onPressed: null,
+          icon: Icon(Icons.print_outlined),
+          tooltip: 'Print Label (Disabled)',
+        ),
+      );
+    }
+
+    // Queue New Case (Bulk Raw Almonds - ALM-RW-5KG)
+    if (item.sku == 'ALM-RW-5KG') {
+      return IconButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: colorScheme.inverseSurface,
+              content: Row(
+                children: [
+                  Icon(Icons.sync, color: colorScheme.primaryContainer),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text('Queued new print job for ${item.title}'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+        icon: const Icon(Icons.sync),
+        color: colorScheme.secondary,
+        tooltip: 'Queue New',
+      );
+    }
+
+    // Active Print Case (All others)
+    return IconButton(
+      onPressed: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: colorScheme.inverseSurface,
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: colorScheme.tertiaryContainer),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('Print job sent: 15 labels queued for ${item.title}'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      icon: const Icon(Icons.print_outlined),
+      color: colorScheme.primary,
+      tooltip: 'Print Label',
+    );
+  }
 
   Widget button;
 

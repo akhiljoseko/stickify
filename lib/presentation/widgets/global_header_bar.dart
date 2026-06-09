@@ -64,18 +64,15 @@ class GlobalHeaderBar extends StatelessWidget implements PreferredSizeWidget {
               ],
               const SizedBox(width: 12),
               // Profile container with vertical divider
-              Container(
-                height: 32,
-                decoration: BoxDecoration(
-                  border: Border(
-                    left: BorderSide(
-                      color: colorScheme.outlineVariant,
-                    ),
-                  ),
+              if (!isMobile) ...[
+                Container(
+                  width: 1,
+                  height: 32,
+                  color: colorScheme.outlineVariant,
                 ),
-                padding: const EdgeInsets.only(left: 12),
-                child: const ProfileActionButton(),
-              ),
+                const SizedBox(width: 12),
+              ],
+              const ProfileActionButton(),
             ],
           ),
         ],

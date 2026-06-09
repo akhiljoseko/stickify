@@ -145,111 +145,117 @@ class _CustomSidebar extends StatelessWidget {
       width: isExtended ? 280 : 72,
       color: colorScheme.surfaceContainerLow,
       padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Column(
-        crossAxisAlignment: isExtended
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
-        children: [
-          // ── Header Branding ────────────────────────────────────────────────
-          if (isExtended) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'LabelFlow Pro',
-                    style: textTheme.headlineSmall?.copyWith(
-                      fontFamily: 'Hanken Grotesk',
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Warehouse Admin',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ] else ...[
-            Center(
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.sticky_note_2_rounded,
-                  color: colorScheme.onPrimaryContainer,
-                  size: 22,
-                ),
-              ),
-            ),
-          ],
-          const SizedBox(height: 40),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final showText = constraints.maxWidth > 200;
 
-          // ── Navigation Items ───────────────────────────────────────────────
-          Expanded(
-            child: ListView.builder(
-              itemCount: _kDestinations.length,
-              itemBuilder: (context, i) {
-                final d = _kDestinations[i];
-                final isSelected = selectedIndex == i;
-
-                return _SidebarItem(
-                  icon: d.icon,
-                  selectedIcon: d.selectedIcon,
-                  label: d.label,
-                  isExtended: isExtended,
-                  isSelected: isSelected,
-                  onTap: () => onDestinationSelected(i),
-                );
-              },
-            ),
-          ),
-
-          // ── Bottom Actions ─────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: isExtended
-                ? FilledButton.icon(
-                    onPressed: () {},
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      minimumSize: const Size(double.infinity, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+          return Column(
+            crossAxisAlignment: showText
+                ? CrossAxisAlignment.start
+                : CrossAxisAlignment.center,
+            children: [
+              // ── Header Branding ────────────────────────────────────────────────
+              if (showText) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'LabelFlow Pro',
+                        style: textTheme.headlineSmall?.copyWith(
+                          fontFamily: 'Hanken Grotesk',
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
                       ),
-                    ),
-                    icon: const Icon(Icons.print_outlined, size: 18),
-                    label: Text(
-                      'Start New Print',
-                      style: textTheme.titleSmall?.copyWith(
-                        color: colorScheme.onPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(height: 4),
+                      Text(
+                        'Warehouse Admin',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                  )
-                : FloatingActionButton(
-                    onPressed: () {},
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
+                    ],
+                  ),
+                ),
+              ] else ...[
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.print_outlined),
+                    child: Icon(
+                      Icons.sticky_note_2_rounded,
+                      color: colorScheme.onPrimaryContainer,
+                      size: 22,
+                    ),
                   ),
-          ),
-        ],
+                ),
+              ],
+              const SizedBox(height: 40),
+
+              // ── Navigation Items ───────────────────────────────────────────────
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _kDestinations.length,
+                  itemBuilder: (context, i) {
+                    final d = _kDestinations[i];
+                    final isSelected = selectedIndex == i;
+
+                    return _SidebarItem(
+                      icon: d.icon,
+                      selectedIcon: d.selectedIcon,
+                      label: d.label,
+                      isExtended: showText,
+                      isSelected: isSelected,
+                      onTap: () => onDestinationSelected(i),
+                    );
+                  },
+                ),
+              ),
+
+              // ── Bottom Actions ─────────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: showText
+                    ? FilledButton.icon(
+                        onPressed: () {},
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          minimumSize: const Size(double.infinity, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        icon: const Icon(Icons.print_outlined, size: 18),
+                        label: Text(
+                          'Start New Print',
+                          style: textTheme.titleSmall?.copyWith(
+                            color: colorScheme.onPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                    : FloatingActionButton(
+                        onPressed: () {},
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.print_outlined),
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

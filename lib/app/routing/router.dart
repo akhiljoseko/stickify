@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:stickify/app/routing/app_shell.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/presentation/features/dashboard/pages/dashboard_screen.dart';
+import 'package:stickify/presentation/features/search/pages/search_screen.dart';
 import 'package:stickify/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:stickify/presentation/login/login_screen.dart';
 import 'package:stickify/presentation/products/product_details_screen.dart';
@@ -98,7 +99,12 @@ class ForgotPasswordRoute extends GoRouteData with $ForgotPasswordRoute {
     // Branch 0 — Dashboard
     TypedStatefulShellBranch<DashboardBranchData>(
       routes: [
-        TypedGoRoute<DashboardRoute>(path: '/dashboard'),
+        TypedGoRoute<DashboardRoute>(
+          path: '/dashboard',
+          routes: [
+            TypedGoRoute<SearchRoute>(path: 'search'),
+          ],
+        ),
       ],
     ),
     // Branch 1 — Product Management (with a nested sub-route for details)
@@ -188,6 +194,19 @@ class DashboardRoute extends GoRouteData with $DashboardRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return const DashboardPage();
+  }
+}
+
+/// Route data for the Search results screen (Branch 0, nested absolute path).
+@immutable
+class SearchRoute extends GoRouteData with $SearchRoute {
+  const SearchRoute({this.q});
+
+  final String? q;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return SearchPage(initialQuery: q);
   }
 }
 

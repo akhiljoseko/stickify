@@ -9,5 +9,7 @@ library;
 
 export 'entities/print_job.dart';
 export 'entities/product.dart';
+export 'entities/search_item.dart';
 export 'repositories/print_job_repository.dart';
 export 'repositories/product_repository.dart';
+export 'repositories/search_repository.dart';

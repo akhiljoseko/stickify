@@ -8,3 +8,4 @@ library;
 
 export 'repositories/mock_print_job_repository.dart';
 export 'repositories/mock_product_repository.dart';
+export 'repositories/mock_search_repository.dart';

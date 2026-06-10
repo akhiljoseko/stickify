@@ -6,7 +6,12 @@ class ShapeElementRenderer implements LabelElementRenderer {
   const ShapeElementRenderer();
 
   @override
-  Widget render(BuildContext context, ElementBlueprint blueprint, {Product? product}) {
+  Widget render(
+    BuildContext context,
+    ElementBlueprint blueprint, {
+    Product? product,
+    ProductVariant? variant,
+  }) {
     final bp = blueprint as ShapeElementBlueprint;
 
     return SizedBox(

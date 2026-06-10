@@ -29,7 +29,12 @@ class _FallbackRenderer implements LabelElementRenderer {
   const _FallbackRenderer();
 
   @override
-  Widget render(BuildContext context, ElementBlueprint blueprint, {Product? product}) {
+  Widget render(
+    BuildContext context,
+    ElementBlueprint blueprint, {
+    Product? product,
+    ProductVariant? variant,
+  }) {
     return SizedBox(
       width: blueprint.width,
       height: blueprint.height,

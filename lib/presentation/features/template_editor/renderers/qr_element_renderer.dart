@@ -12,10 +12,11 @@ class QrElementRenderer implements LabelElementRenderer {
     BuildContext context,
     ElementBlueprint blueprint, {
     Product? product,
+    ProductVariant? variant,
   }) {
     final bp = blueprint as QrElementBlueprint;
     final qrData = bp.isDynamic
-        ? TextElementRenderer.resolveToken(bp.data, product)
+        ? TextElementRenderer.resolveToken(bp.data, product, variant)
         : bp.data;
 
     // Fallback if data is empty

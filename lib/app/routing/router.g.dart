@@ -112,6 +112,14 @@ RouteBase get $appShellRouteData => StatefulShellRouteData.$route(
               path: ':id',
               factory: $ProductDetailsRoute._fromState,
             ),
+            GoRouteData.$route(
+              path: ':productId/variants/:variantSku/print/templates',
+              factory: $PrintTemplateSelectRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: ':productId/variants/:variantSku/print/setup/:templateId',
+              factory: $PrintSetupRoute._fromState,
+            ),
           ],
         ),
       ],
@@ -235,6 +243,62 @@ mixin $ProductDetailsRoute on GoRouteData {
   @override
   String get location =>
       GoRouteData.$location('/products/${Uri.encodeComponent(_self.id)}');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $PrintTemplateSelectRoute on GoRouteData {
+  static PrintTemplateSelectRoute _fromState(GoRouterState state) =>
+      PrintTemplateSelectRoute(
+        productId: state.pathParameters['productId']!,
+        variantSku: state.pathParameters['variantSku']!,
+      );
+
+  PrintTemplateSelectRoute get _self => this as PrintTemplateSelectRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/products/${Uri.encodeComponent(_self.productId)}/variants/${Uri.encodeComponent(_self.variantSku)}/print/templates',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $PrintSetupRoute on GoRouteData {
+  static PrintSetupRoute _fromState(GoRouterState state) => PrintSetupRoute(
+    productId: state.pathParameters['productId']!,
+    variantSku: state.pathParameters['variantSku']!,
+    templateId: state.pathParameters['templateId']!,
+  );
+
+  PrintSetupRoute get _self => this as PrintSetupRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/products/${Uri.encodeComponent(_self.productId)}/variants/${Uri.encodeComponent(_self.variantSku)}/print/setup/${Uri.encodeComponent(_self.templateId)}',
+  );
 
   @override
   void go(BuildContext context) => context.go(location);

@@ -12,10 +12,11 @@ class BarcodeElementRenderer implements LabelElementRenderer {
     BuildContext context,
     ElementBlueprint blueprint, {
     Product? product,
+    ProductVariant? variant,
   }) {
     final bp = blueprint as BarcodeElementBlueprint;
     final barcodeData = bp.isDynamic
-        ? TextElementRenderer.resolveToken(bp.data, product)
+        ? TextElementRenderer.resolveToken(bp.data, product, variant)
         : bp.data;
 
     // Fallback data if empty to prevent widget crashes

@@ -8,5 +8,6 @@ abstract interface class LabelElementRenderer {
     BuildContext context,
     ElementBlueprint blueprint, {
     Product? product,
+    ProductVariant? variant,
   });
 }

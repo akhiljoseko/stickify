@@ -21,19 +21,21 @@ class SearchPage extends StatelessWidget {
   const SearchPage({
     super.key,
     this.initialQuery,
-    this.searchRepository = const MockSearchRepository(),
+    this.searchRepository,
   });
 
   /// The initial query parameter extracted from route.
   final String? initialQuery;
   
   /// The repository to query search items from.
-  final SearchRepository searchRepository;
+  final SearchRepository? searchRepository;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => SearchCubit(searchRepository: searchRepository),
+      create: (blocContext) => SearchCubit(
+        searchRepository: searchRepository ?? blocContext.read<SearchRepository>(),
+      ),
       child: _SearchView(initialQuery: initialQuery),
     );
   }

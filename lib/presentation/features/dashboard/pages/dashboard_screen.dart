@@ -3,10 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/utils/adaptive_value.dart';
-import 'package:stickify/data/repositories/mock_print_job_repository.dart';
-import 'package:stickify/data/repositories/mock_product_repository.dart';
-import 'package:stickify/domain/entities/print_job.dart';
-import 'package:stickify/domain/entities/product.dart';
+import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/recent_print_jobs_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/connectivity_status_chip.dart';
@@ -25,7 +22,7 @@ import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 ///
 /// Responsibilities (DI only, zero layout code):
 /// - Creates [RecentPrintJobsCubit] and [FrequentProductsCubit] via [BlocProvider].
-/// - Injects the mock repositories (swap for real implementations later).
+/// - Injects the real repositories.
 /// - Triggers initial data loads.
 /// - Returns [_DashboardView] as the sole child.
 class DashboardPage extends StatelessWidget {
@@ -36,18 +33,18 @@ class DashboardPage extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) {
+          create: (blocContext) {
             final cubit = RecentPrintJobsCubit(
-              printJobRepository: const MockPrintJobRepository(),
+              printJobRepository: blocContext.read<PrintJobRepository>(),
             );
             unawaited(cubit.loadRecentJobs());
             return cubit;
           },
         ),
         BlocProvider(
-          create: (_) {
+          create: (blocContext) {
             final cubit = FrequentProductsCubit(
-              productRepository: const MockProductRepository(),
+              productRepository: blocContext.read<ProductRepository>(),
             );
             unawaited(cubit.loadFrequentProducts());
             return cubit;

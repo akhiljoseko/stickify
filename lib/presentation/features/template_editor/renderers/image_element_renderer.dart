@@ -7,7 +7,12 @@ class ImageElementRenderer implements LabelElementRenderer {
   const ImageElementRenderer();
 
   @override
-  Widget render(BuildContext context, ElementBlueprint blueprint, {Product? product}) {
+  Widget render(
+    BuildContext context,
+    ElementBlueprint blueprint, {
+    Product? product,
+    ProductVariant? variant,
+  }) {
     final bp = blueprint as ImageElementBlueprint;
 
     final boxFit = switch (bp.fit) {

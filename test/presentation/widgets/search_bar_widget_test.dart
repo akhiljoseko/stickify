@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stickify/data/repositories/mock_search_repository.dart';
+import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/widgets/search_bar_widget.dart';
 
 import '../../helpers/helpers.dart';
@@ -8,7 +11,10 @@ void main() {
   group('SearchBarWidget', () {
     testWidgets('renders inline text field on desktop/tablet viewports', (tester) async {
       await tester.pumpApp(
-        const Scaffold(body: SearchBarWidget()),
+        RepositoryProvider<SearchRepository>.value(
+          value: const MockSearchRepository(),
+          child: const Scaffold(body: SearchBarWidget()),
+        ),
         size: const Size(1000, 800),
       );
 
@@ -20,7 +26,10 @@ void main() {
 
     testWidgets('renders search icon button on mobile viewports', (tester) async {
       await tester.pumpApp(
-        const Scaffold(body: SearchBarWidget()),
+        RepositoryProvider<SearchRepository>.value(
+          value: const MockSearchRepository(),
+          child: const Scaffold(body: SearchBarWidget()),
+        ),
         size: const Size(400, 800),
       );
 
@@ -35,7 +44,10 @@ void main() {
 
     testWidgets('opens full-screen search overlay on mobile tap', (tester) async {
       await tester.pumpApp(
-        const Scaffold(body: SearchBarWidget()),
+        RepositoryProvider<SearchRepository>.value(
+          value: const MockSearchRepository(),
+          child: const Scaffold(body: SearchBarWidget()),
+        ),
         size: const Size(400, 800),
       );
 
@@ -59,7 +71,10 @@ void main() {
 
     testWidgets('closes mobile search overlay on text submit', (tester) async {
       await tester.pumpApp(
-        const Scaffold(body: SearchBarWidget()),
+        RepositoryProvider<SearchRepository>.value(
+          value: const MockSearchRepository(),
+          child: const Scaffold(body: SearchBarWidget()),
+        ),
         size: const Size(400, 800),
       );
 

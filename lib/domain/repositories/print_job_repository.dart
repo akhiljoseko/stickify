@@ -13,4 +13,7 @@ abstract interface class PrintJobRepository {
 
   /// Returns all print jobs associated with a specific product [sku].
   Future<List<PrintJob>> getJobsBySku(String sku);
+
+  /// Saves a print job to the repository database.
+  Future<void> savePrintJob(PrintJob job);
 }

@@ -6,8 +6,11 @@ import 'package:stickify/app/routing/routing.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/core/utils/app_breakpoints.dart';
-import 'package:stickify/data/repositories/mock_product_repository.dart';
-import 'package:stickify/data/repositories/mock_template_repository.dart';
+import 'package:stickify/core/services/document_database.dart';
+import 'package:stickify/data/repositories/database_product_repository.dart';
+import 'package:stickify/data/repositories/database_template_repository.dart';
+import 'package:stickify/data/repositories/database_print_job_repository.dart';
+import 'package:stickify/data/repositories/database_search_repository.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/l10n/l10n.dart';
 
@@ -18,24 +21,50 @@ import 'package:stickify/l10n/l10n.dart';
 /// ```dart
 /// App
 /// └── MultiRepositoryProvider
+///     ├── RepositoryProvider<DocumentDatabase>
 ///     ├── RepositoryProvider<ProductRepository>
-///     └── RepositoryProvider<TemplateRepository>
+///     ├── RepositoryProvider<TemplateRepository>
+///     ├── RepositoryProvider<PrintJobRepository>
+///     └── RepositoryProvider<SearchRepository>
 ///         └── BlocProvider<AuthCubit>   // provides auth state to the whole tree
 ///             └── _AppView              // builds the router and MaterialApp
 /// ```
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({super.key});
+
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  late final DocumentDatabase _database;
+  late final ProductRepository _productRepository;
+  late final TemplateRepository _templateRepository;
+  late final PrintJobRepository _printJobRepository;
+  late final SearchRepository _searchRepository;
+
+  @override
+  void initState() {
+    super.initState();
+    _database = DocumentDatabase();
+    _productRepository = DatabaseProductRepository(database: _database);
+    _templateRepository = DatabaseTemplateRepository(database: _database);
+    _printJobRepository = DatabasePrintJobRepository(database: _database);
+    _searchRepository = DatabaseSearchRepository(
+      productRepository: _productRepository,
+      templateRepository: _templateRepository,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<ProductRepository>(
-          create: (_) => const MockProductRepository(),
-        ),
-        RepositoryProvider<TemplateRepository>(
-          create: (_) => MockTemplateRepository(),
-        ),
+        RepositoryProvider<DocumentDatabase>.value(value: _database),
+        RepositoryProvider<ProductRepository>.value(value: _productRepository),
+        RepositoryProvider<TemplateRepository>.value(value: _templateRepository),
+        RepositoryProvider<PrintJobRepository>.value(value: _printJobRepository),
+        RepositoryProvider<SearchRepository>.value(value: _searchRepository),
       ],
       child: BlocProvider(
         // Create the AuthCubit once for the entire app lifetime.

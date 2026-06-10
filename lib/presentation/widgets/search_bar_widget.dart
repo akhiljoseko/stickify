@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:stickify/data/repositories/mock_search_repository.dart';
+import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/search/cubits/search_cubit.dart';
 import 'package:stickify/presentation/features/search/cubits/search_state.dart';
 
@@ -132,6 +132,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
   Future<void> _showMobileSearchOverlay(BuildContext context) async {
     final mobileController = TextEditingController(text: _controller.text);
+    final searchRepository = context.read<SearchRepository>();
 
     await showGeneralDialog<void>(
       context: context,
@@ -139,7 +140,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       barrierLabel: 'Search',
       pageBuilder: (dialogContext, animation, secondaryAnimation) {
         return BlocProvider(
-          create: (_) => SearchCubit(searchRepository: const MockSearchRepository())
+          create: (_) => SearchCubit(searchRepository: searchRepository)
             ..onQueryChanged(mobileController.text),
           child: Builder(
             builder: (blocContext) {

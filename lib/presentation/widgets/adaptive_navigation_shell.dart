@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/presentation/widgets/global_header_bar.dart';
+import 'package:stickify/presentation/features/print/widgets/product_variant_selection_dialog.dart';
 
 /// The active navigation destinations.
 class _NavDestination {
@@ -223,7 +224,7 @@ class _CustomSidebar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: showText
                     ? FilledButton.icon(
-                        onPressed: () {},
+                        onPressed: () => ProductVariantSelectionDialog.show(context),
                         style: FilledButton.styleFrom(
                           backgroundColor: colorScheme.primary,
                           foregroundColor: colorScheme.onPrimary,
@@ -243,7 +244,7 @@ class _CustomSidebar extends StatelessWidget {
                         ),
                       )
                     : FloatingActionButton(
-                        onPressed: () {},
+                        onPressed: () => ProductVariantSelectionDialog.show(context),
                         backgroundColor: colorScheme.primary,
                         foregroundColor: colorScheme.onPrimary,
                         elevation: 0,

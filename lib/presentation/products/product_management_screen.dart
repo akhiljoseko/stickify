@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/core/utils/adaptive_value.dart';
 import 'package:stickify/domain/entities/ingredient.dart';
@@ -1970,7 +1971,12 @@ class _ProductDetailView extends StatelessWidget {
                                 children: [
                                   IconButton(
                                     icon: const Icon(Icons.print_outlined, size: 18),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      PrintTemplateSelectRoute(
+                                        productId: product.id,
+                                        variantSku: v.sku,
+                                      ).go(context);
+                                    },
                                     tooltip: 'Print Label',
                                   ),
                                 ],

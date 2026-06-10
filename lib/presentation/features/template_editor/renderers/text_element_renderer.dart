@@ -5,41 +5,72 @@ import 'package:stickify/presentation/features/template_editor/core/label_elemen
 class TextElementRenderer implements LabelElementRenderer {
   const TextElementRenderer();
 
-  static String resolveToken(String template, Product? product) {
-    if (product == null) return template;
-    return template.replaceAllMapped(RegExp(r'\{\{product\.([a-zA-Z0-9_]+)\}\}'), (match) {
-      final field = match.group(1);
-      switch (field) {
-        case 'id':
-          return product.id;
-        case 'name':
-          return product.name;
-        case 'sku':
-          return product.sku;
-        case 'category':
-          return product.category ?? '';
-        case 'totalPrints':
-          return product.totalPrints.toString();
-        case 'lastPrintedAt':
-          return product.lastPrintedAt.toIso8601String();
-        case 'assignedStation':
-          return product.assignedStation;
-        case 'shelfLifeDays':
-          return product.shelfLifeDays?.toString() ?? '';
-        case 'storageConditions':
-          return product.storageConditions ?? '';
-        case 'imageUrl':
-          return product.imageUrl ?? '';
-        default:
-          return match.group(0) ?? '';
-      }
-    });
+  static String resolveToken(String template, Product? product, [ProductVariant? variant]) {
+    var result = template;
+    if (product != null) {
+      result = result.replaceAllMapped(RegExp(r'\{\{product\.([a-zA-Z0-9_]+)\}\}'), (match) {
+        final field = match.group(1);
+        switch (field) {
+          case 'id':
+            return product.id;
+          case 'name':
+            return product.name;
+          case 'sku':
+            return variant != null ? variant.sku : product.sku;
+          case 'category':
+            return product.category ?? '';
+          case 'totalPrints':
+            return product.totalPrints.toString();
+          case 'lastPrintedAt':
+            return product.lastPrintedAt.toIso8601String();
+          case 'assignedStation':
+            return product.assignedStation;
+          case 'shelfLifeDays':
+            return product.shelfLifeDays?.toString() ?? '';
+          case 'storageConditions':
+            return product.storageConditions ?? '';
+          case 'imageUrl':
+            return product.imageUrl ?? '';
+          default:
+            return match.group(0) ?? '';
+        }
+      });
+    }
+    if (variant != null) {
+      result = result.replaceAllMapped(RegExp(r'\{\{variant\.([a-zA-Z0-9_]+)\}\}'), (match) {
+        final field = match.group(1);
+        switch (field) {
+          case 'name':
+            return variant.name;
+          case 'sku':
+            return variant.sku;
+          case 'quantity':
+            return variant.quantity % 1 == 0
+                ? variant.quantity.toInt().toString()
+                : variant.quantity.toString();
+          case 'unit':
+            return variant.unit;
+          case 'wholesale':
+            return variant.wholesale.toStringAsFixed(2);
+          case 'mrp':
+            return variant.mrp.toStringAsFixed(2);
+          default:
+            return match.group(0) ?? '';
+        }
+      });
+    }
+    return result;
   }
 
   @override
-  Widget render(BuildContext context, ElementBlueprint blueprint, {Product? product}) {
+  Widget render(
+    BuildContext context,
+    ElementBlueprint blueprint, {
+    Product? product,
+    ProductVariant? variant,
+  }) {
     final bp = blueprint as TextElementBlueprint;
-    final text = bp.isDynamic ? resolveToken(bp.content, product) : bp.content;
+    final text = bp.isDynamic ? resolveToken(bp.content, product, variant) : bp.content;
 
     final fontWeight = FontWeight.values.firstWhere(
       (w) => w.value == bp.fontWeightValue,

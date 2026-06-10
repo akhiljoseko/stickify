@@ -15,6 +15,8 @@ import 'package:stickify/presentation/products/product_management_screen.dart';
 import 'package:stickify/presentation/registration/register_screen.dart';
 import 'package:stickify/presentation/settings/settings_screen.dart';
 import 'package:stickify/presentation/template_management/template_management_screen.dart';
+import 'package:stickify/presentation/features/print/pages/print_setup_page.dart';
+import 'package:stickify/presentation/features/print/pages/template_selection_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PART DIRECTIVE
@@ -119,8 +121,13 @@ class ForgotPasswordRoute extends GoRouteData with $ForgotPasswordRoute {
           routes: [
             // Sub-route demonstrating type-safe path parameters.
             // The `:id` segment is mapped to the `id` field of
-            // ProductDetailsRoute by the code generator.
             TypedGoRoute<ProductDetailsRoute>(path: ':id'),
+            TypedGoRoute<PrintTemplateSelectRoute>(
+              path: ':productId/variants/:variantSku/print/templates',
+            ),
+            TypedGoRoute<PrintSetupRoute>(
+              path: ':productId/variants/:variantSku/print/setup/:templateId',
+            ),
           ],
         ),
       ],
@@ -259,6 +266,47 @@ class ProductDetailsRoute extends GoRouteData with $ProductDetailsRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return ProductDetailsScreen(id: id);
+  }
+}
+
+@immutable
+class PrintTemplateSelectRoute extends GoRouteData with $PrintTemplateSelectRoute {
+  const PrintTemplateSelectRoute({
+    required this.productId,
+    required this.variantSku,
+  });
+
+  final String productId;
+  final String variantSku;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return TemplateSelectionPage(
+      productId: productId,
+      variantSku: variantSku,
+    );
+  }
+}
+
+@immutable
+class PrintSetupRoute extends GoRouteData with $PrintSetupRoute {
+  const PrintSetupRoute({
+    required this.productId,
+    required this.variantSku,
+    required this.templateId,
+  });
+
+  final String productId;
+  final String variantSku;
+  final String templateId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return PrintSetupPage(
+      productId: productId,
+      variantSku: variantSku,
+      templateId: templateId,
+    );
   }
 }
 

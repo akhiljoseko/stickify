@@ -73,4 +73,10 @@ class MockPrintJobRepository implements PrintJobRepository {
     await Future<void>.delayed(const Duration(milliseconds: 400));
     return _mockJobs.where((j) => j.sku == sku).toList();
   }
+
+  @override
+  Future<void> savePrintJob(PrintJob job) async {
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    _mockJobs.insert(0, job);
+  }
 }

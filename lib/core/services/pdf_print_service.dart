@@ -40,6 +40,7 @@ class PdfPrintService implements PrintService {
     await Printing.layoutPdf(
       name: '${product.name}_${variant.name}_labels',
       onLayout: (format) async => pdfBytes,
+      dynamicLayout: false,
     );
   }
 

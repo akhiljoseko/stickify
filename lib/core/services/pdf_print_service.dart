@@ -74,7 +74,7 @@ class PdfPrintService implements PrintService {
           try {
             final data = await rootBundle.load(bp.assetPath!);
             imageCache[bp.assetPath!] = data.buffer.asUint8List();
-          } on FlutterError catch (_) {
+          } on Object catch (_) {
             // Safe fallback if Flutter asset load fails
           }
         }

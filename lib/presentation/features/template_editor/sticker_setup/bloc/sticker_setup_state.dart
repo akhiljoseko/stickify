@@ -25,9 +25,9 @@ class StickerSetupEditing extends StickerSetupState {
     required this.paddingBottom,
     required this.paddingLeft,
     required this.paddingRight,
-    this.isCustomPolygon = false,
     required this.polygonPoints,
     required this.polygonPointIds,
+    this.isCustomPolygon = false,
   });
 
   final double widthMm;

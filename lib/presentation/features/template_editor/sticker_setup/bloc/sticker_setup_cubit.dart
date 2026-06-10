@@ -27,7 +27,7 @@ class StickerSetupCubit extends Cubit<StickerSetupState> {
         final paddingBottom = config.heightMm - br.y;
 
         // Verify if it is standard rectangle
-        bool isCustom = true;
+        var isCustom = true;
         if (config.printableArea.length == 4) {
           final p0 = config.printableArea[0];
           final p1 = config.printableArea[1];
@@ -80,7 +80,6 @@ class StickerSetupCubit extends Cubit<StickerSetupState> {
           paddingBottom: 4,
           paddingLeft: 4,
           paddingRight: 4,
-          isCustomPolygon: false,
           polygonPoints: const [
             StickerPoint(4, 4),
             StickerPoint(96, 4),
@@ -90,7 +89,7 @@ class StickerSetupCubit extends Cubit<StickerSetupState> {
           polygonPointIds: pointIds,
         ));
       }
-    } catch (e) {
+    } on Object catch (e) {
       emit(StickerSetupError(e.toString()));
     }
   }
@@ -139,12 +138,12 @@ class StickerSetupCubit extends Cubit<StickerSetupState> {
     ));
   }
 
-  void toggleCustomPolygon(bool val) {
+  void toggleCustomPolygon({required bool enabled}) {
     final currentState = state;
     if (currentState is! StickerSetupEditing) return;
 
     final List<StickerPoint> points;
-    if (val) {
+    if (enabled) {
       // If turning on, initialize with current rect points
       points = [
         StickerPoint(currentState.paddingLeft, currentState.paddingTop),
@@ -168,7 +167,7 @@ class StickerSetupCubit extends Cubit<StickerSetupState> {
     );
 
     emit(currentState.copyWith(
-      isCustomPolygon: val,
+      isCustomPolygon: enabled,
       polygonPoints: points,
       polygonPointIds: pointIds,
     ));
@@ -191,8 +190,8 @@ class StickerSetupCubit extends Cubit<StickerSetupState> {
 
     final list = List<StickerPoint>.from(currentState.polygonPoints);
     final ids = List<String>.from(currentState.polygonPointIds);
-    double newX = currentState.widthMm / 2;
-    double newY = currentState.heightMm / 2;
+    var newX = currentState.widthMm / 2;
+    var newY = currentState.heightMm / 2;
     if (list.isNotEmpty) {
       final last = list.last;
       newX = (last.x + 10.0).clamp(0.0, currentState.widthMm);
@@ -247,7 +246,7 @@ class StickerSetupCubit extends Cubit<StickerSetupState> {
       final config = currentState.toConfig();
       await _templateRepository.saveStickerConfig(templateId, config);
       emit(StickerSetupSaved(templateId));
-    } catch (e) {
+    } on Object catch (e) {
       emit(StickerSetupError(e.toString()));
       emit(currentState);
     }

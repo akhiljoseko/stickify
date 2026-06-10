@@ -166,7 +166,7 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                   subtitle: const Text('Define an arbitrary safe design shape via coordinate points'),
                   value: state.isCustomPolygon,
                   onChanged: (val) {
-                    context.read<StickerSetupCubit>().toggleCustomPolygon(val);
+                    context.read<StickerSetupCubit>().toggleCustomPolygon(enabled: val);
                   },
                 ),
                 

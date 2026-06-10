@@ -75,8 +75,9 @@ class _SetupNumberFieldState extends State<SetupNumberField> {
   @override
   void dispose() {
     _controller.dispose();
-    _focusNode.removeListener(_onFocusChange);
-    _focusNode.dispose();
+    _focusNode
+      ..removeListener(_onFocusChange)
+      ..dispose();
     super.dispose();
   }
 
@@ -160,8 +161,9 @@ class _SetupIntFieldState extends State<SetupIntField> {
   @override
   void dispose() {
     _controller.dispose();
-    _focusNode.removeListener(_onFocusChange);
-    _focusNode.dispose();
+    _focusNode
+      ..removeListener(_onFocusChange)
+      ..dispose();
     super.dispose();
   }
 

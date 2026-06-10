@@ -1,7 +1,7 @@
 import 'package:stickify/core/services/document_database.dart';
-import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
+import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 
@@ -91,14 +91,17 @@ class DatabaseProductRepository implements ProductRepository {
         final m = item as Map<String, dynamic>;
         return Ingredient(name: m['name'] as String, percentage: (m['percentage'] as num).toDouble());
       }).toList(),
-      nutritionFacts: json['nutritionFacts'] == null ? null : NutritionFacts(
-        calories: (json['nutritionFacts']['calories'] as num).toDouble(),
-        protein: (json['nutritionFacts']['protein'] as num).toDouble(),
-        totalFat: (json['nutritionFacts']['totalFat'] as num).toDouble(),
-        saturatedFat: (json['nutritionFacts']['saturatedFat'] as num).toDouble(),
-        totalCarbs: (json['nutritionFacts']['totalCarbs'] as num).toDouble(),
-        fiber: (json['nutritionFacts']['fiber'] as num).toDouble(),
-      ),
+      nutritionFacts: json['nutritionFacts'] == null ? null : () {
+        final nf = json['nutritionFacts'] as Map<String, dynamic>;
+        return NutritionFacts(
+          calories: (nf['calories'] as num).toDouble(),
+          protein: (nf['protein'] as num).toDouble(),
+          totalFat: (nf['totalFat'] as num).toDouble(),
+          saturatedFat: (nf['saturatedFat'] as num).toDouble(),
+          totalCarbs: (nf['totalCarbs'] as num).toDouble(),
+          fiber: (nf['fiber'] as num).toDouble(),
+        );
+      }(),
       variants: (json['variants'] as List? ?? []).map((item) {
         final m = item as Map<String, dynamic>;
         return ProductVariant(

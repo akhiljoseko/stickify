@@ -1,7 +1,7 @@
 import 'package:stickify/domain/entities/search_item.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
-import 'package:stickify/domain/repositories/template_repository.dart';
 import 'package:stickify/domain/repositories/search_repository.dart';
+import 'package:stickify/domain/repositories/template_repository.dart';
 
 class DatabaseSearchRepository implements SearchRepository {
   DatabaseSearchRepository({

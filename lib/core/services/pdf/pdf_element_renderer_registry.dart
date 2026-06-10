@@ -1,6 +1,6 @@
+import 'package:stickify/core/services/pdf/pdf_element_renderer.dart';
+import 'package:stickify/core/services/pdf/pdf_element_renderers.dart';
 import 'package:stickify/domain/domain.dart';
-import 'pdf_element_renderer.dart';
-import 'pdf_element_renderers.dart';
 
 /// Registry mapping [ElementBlueprint] types to their corresponding [PdfElementRenderer] Strategy.
 class PdfElementRendererRegistry {

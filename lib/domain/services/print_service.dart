@@ -1,3 +1,6 @@
+// The Domain Service pattern defines clean single-purpose service boundaries.
+// ignore_for_file: one_member_abstracts
+
 import 'package:stickify/domain/domain.dart';
 
 /// Abstract service interface for printing dynamic labels to physical/system printers.

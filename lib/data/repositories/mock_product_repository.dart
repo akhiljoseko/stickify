@@ -1,7 +1,7 @@
-import 'package:stickify/domain/entities/product.dart';
-import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
+import 'package:stickify/domain/entities/product.dart';
+import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 
 /// Mock implementation of [ProductRepository].
@@ -127,7 +127,7 @@ class MockProductRepository implements ProductRepository {
       variants: const [
         ProductVariant(name: '150g Pouch', quantity: 150, unit: 'gm', wholesale: 8.50, mrp: 12.50, sku: 'ALM-150P-001'),
         ProductVariant(name: '500g Jar', quantity: 500, unit: 'gm', wholesale: 24.99, mrp: 34.99, sku: 'ALM-500J-002'),
-        ProductVariant(name: '1kg Bulk Box', quantity: 1, unit: 'kg', wholesale: 42.00, mrp: 59.00, sku: 'ALM-1000B-003'),
+        ProductVariant(name: '1kg Bulk Box', quantity: 1, unit: 'kg', wholesale: 42, mrp: 59, sku: 'ALM-1000B-003'),
       ],
     ),
   ];

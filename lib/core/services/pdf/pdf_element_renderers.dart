@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:stickify/core/services/pdf/pdf_element_renderer.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/renderers/text_element_renderer.dart';
-import 'pdf_element_renderer.dart';
 
 /// Concrete Strategy for rendering [TextElementBlueprint] into PDF [pw.Text].
 class PdfTextElementRenderer implements PdfElementRenderer<TextElementBlueprint> {
@@ -158,7 +158,7 @@ class PdfImageElementRenderer implements PdfElementRenderer<ImageElementBlueprin
     if (bytes != null) {
       try {
         return pw.Image(pw.MemoryImage(bytes), fit: pdfBoxFit);
-      } catch (_) {}
+      } on Object catch (_) {}
     }
 
     // Fallback gray container if image cannot be loaded

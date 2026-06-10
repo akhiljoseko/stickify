@@ -16,8 +16,8 @@ class DatabasePrintJobRepository implements PrintJobRepository {
   @override
   Future<List<PrintJob>> getRecentJobs({int limit = 10}) async {
     final allData = await _db.getAll(_collection);
-    final list = allData.map(_jobFromJson).toList();
-    list.sort((a, b) => b.printedAt.compareTo(a.printedAt));
+    final list = allData.map(_jobFromJson).toList()
+      ..sort((a, b) => b.printedAt.compareTo(a.printedAt));
     return list.take(limit).toList();
   }
 

@@ -1,3 +1,6 @@
+// The Strategy pattern relies on classes implementing a single rendering method.
+// ignore_for_file: one_member_abstracts
+
 import 'dart:typed_data';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:stickify/domain/domain.dart';

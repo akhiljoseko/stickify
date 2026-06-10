@@ -53,7 +53,7 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
           _sampleProduct = products.first;
         });
       }
-    } catch (_) {
+    } on Exception catch (_) {
       // Fallback sample product if repository loading fails
       if (mounted) {
         setState(() {
@@ -111,7 +111,8 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
 
           final propertiesPanelWidget = PropertiesPanel(
             selectedElement: state.selectedElement,
-            onBack: () => StickerSetupRoute(templateId: cubit.templateId).go(context),
+            onBack: () =>
+                StickerSetupRoute(templateId: cubit.templateId).go(context),
             onNext: cubit.saveAndContinue,
           );
 
@@ -150,7 +151,7 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
                         icon: const Icon(Icons.add_circle_outline),
                         label: const Text('Add Elements'),
                         onPressed: () {
-                          showModalBottomSheet<void>(
+                          final _ = showModalBottomSheet<void>(
                             context: context,
                             builder: (dialogContext) => BlocProvider.value(
                               value: cubit,
@@ -168,10 +169,11 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
                             : () {
                                 showModalBottomSheet<void>(
                                   context: context,
-                                  builder: (dialogContext) => BlocProvider.value(
-                                    value: cubit,
-                                    child: propertiesPanelWidget,
-                                  ),
+                                  builder: (dialogContext) =>
+                                      BlocProvider.value(
+                                        value: cubit,
+                                        child: propertiesPanelWidget,
+                                      ),
                                 );
                               },
                       ),

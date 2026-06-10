@@ -85,8 +85,8 @@ class EditorCubit extends Cubit<EditorState> {
     final element = currentState.elements[elementIndex];
 
     // 1. Calculate proposed position
-    double newX = element.x + dx;
-    double newY = element.y + dy;
+    var newX = element.x + dx;
+    var newY = element.y + dy;
 
     // Sticker boundaries
     const mmToPx = 4;

@@ -12,7 +12,7 @@ class TemplateListCubit extends Cubit<TemplateListState> {
     try {
       final templates = await _templateRepository.fetchTemplates();
       emit(TemplateListLoaded(templates));
-    } catch (e) {
+    } on Object catch (e) {
       emit(TemplateListError(e.toString()));
     }
   }
@@ -21,7 +21,7 @@ class TemplateListCubit extends Cubit<TemplateListState> {
     try {
       await _templateRepository.deleteTemplate(id);
       await loadTemplates();
-    } catch (e) {
+    } on Object catch (e) {
       emit(TemplateListError(e.toString()));
     }
   }
@@ -31,7 +31,7 @@ class TemplateListCubit extends Cubit<TemplateListState> {
       final template = await _templateRepository.createTemplate(name);
       await loadTemplates();
       return template;
-    } catch (e) {
+    } on Object catch (e) {
       emit(TemplateListError(e.toString()));
       return null;
     }

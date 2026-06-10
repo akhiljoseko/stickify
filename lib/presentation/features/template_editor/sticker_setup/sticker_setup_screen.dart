@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
@@ -18,10 +19,14 @@ class StickerSetupScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => StickerSetupCubit(
-        context.read<TemplateRepository>(),
-        templateId,
-      )..load(),
+      create: (context) {
+        final cubit = StickerSetupCubit(
+          context.read<TemplateRepository>(),
+          templateId,
+        );
+        unawaited(cubit.load());
+        return cubit;
+      },
       child: const _StickerSetupView(),
     );
   }

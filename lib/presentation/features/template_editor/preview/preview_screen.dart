@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
@@ -18,10 +19,14 @@ class PreviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => PreviewCubit(
-        context.read<TemplateRepository>(),
-        templateId,
-      )..loadPreview(),
+      create: (context) {
+        final cubit = PreviewCubit(
+          context.read<TemplateRepository>(),
+          templateId,
+        );
+        unawaited(cubit.loadPreview());
+        return cubit;
+      },
       child: const _PreviewView(),
     );
   }
@@ -40,7 +45,7 @@ class _PreviewViewState extends State<_PreviewView> {
   @override
   void initState() {
     super.initState();
-    _loadSampleProduct();
+    unawaited(_loadSampleProduct());
   }
 
   Future<void> _loadSampleProduct() async {
@@ -52,7 +57,7 @@ class _PreviewViewState extends State<_PreviewView> {
           _sampleProduct = products.first;
         });
       }
-    } catch (_) {
+    } on Object catch (_) {
       // Fallback sample product
       if (mounted) {
         setState(() {
@@ -112,7 +117,7 @@ class _PreviewViewState extends State<_PreviewView> {
           final sticker = template.stickerConfig ??
               const StickerConfig(widthMm: 100, heightMm: 60, cornerRadiusMm: 4, printableArea: []);
           final sheets = template.sheetConfig ??
-              const SheetConfig(pageWidth: 210.0, pageHeight: 297.0, marginTop: 10, marginBottom: 10, marginLeft: 10, marginRight: 10, columns: 2, rows: 4, columnGap: 5, rowGap: 5);
+              const SheetConfig(pageWidth: 210, pageHeight: 297, marginTop: 10, marginBottom: 10, marginLeft: 10, marginRight: 10, columns: 2, rows: 4, columnGap: 5, rowGap: 5);
 
           // Convert sticker dimensions to pixels (1mm = 4px)
           const mmToPx = 4;

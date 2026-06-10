@@ -24,7 +24,7 @@ class PreviewCubit extends Cubit<PreviewState> {
     try {
       await _templateRepository.finalizeTemplate(templateId);
       emit(const PreviewFinalized());
-    } catch (e) {
+    } on Object catch (e) {
       emit(PreviewError(e.toString()));
       // Reload preview to recover
       await loadPreview();

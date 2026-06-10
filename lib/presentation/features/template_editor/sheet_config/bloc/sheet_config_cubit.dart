@@ -16,8 +16,8 @@ class SheetConfigCubit extends Cubit<SheetConfigState> {
       final config =
           template.sheetConfig ??
           const SheetConfig(
-            pageWidth: 210.0,
-            pageHeight: 297.0,
+            pageWidth: 210,
+            pageHeight: 297,
             marginTop: 10,
             marginBottom: 10,
             marginLeft: 10,
@@ -48,7 +48,7 @@ class SheetConfigCubit extends Cubit<SheetConfigState> {
         currentState.config,
       );
       emit(SheetConfigSaved(templateId));
-    } catch (e) {
+    } on Object catch (e) {
       emit(SheetConfigError(e.toString()));
       // Restore editing state with previous config
       emit(SheetConfigEditing(currentState.config));

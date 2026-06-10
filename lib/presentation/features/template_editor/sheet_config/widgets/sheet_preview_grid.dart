@@ -14,8 +14,8 @@ class SheetPreviewGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Parse paper dimensions in mm
-        final double paperWidth = config.pageWidth;
-        final double paperHeight = config.pageHeight;
+        final paperWidth = config.pageWidth;
+        final paperHeight = config.pageHeight;
 
         // Fit page aspect ratio into container
         final containerW = constraints.maxWidth - 32;

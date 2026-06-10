@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 class TemplateCardSkeleton extends StatefulWidget {
@@ -18,7 +19,8 @@ class _TemplateCardSkeletonState extends State<TemplateCardSkeleton>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
+    );
+    unawaited(_controller.repeat(reverse: true));
     _opacityAnimation = Tween<double>(begin: 0.4, end: 0.8).animate(_controller);
   }
 

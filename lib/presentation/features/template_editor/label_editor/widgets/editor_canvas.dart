@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
-import 'package:stickify/presentation/features/template_editor/sticker_setup/widgets/polygon_painter.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/widgets/canvas_element_widget.dart';
+import 'package:stickify/presentation/features/template_editor/sticker_setup/widgets/polygon_painter.dart';
 
 class EditorCanvas extends StatefulWidget {
   const EditorCanvas({
@@ -65,12 +65,16 @@ class _EditorCanvasState extends State<EditorCanvas> {
     final safeBottom = br.y * mmToPx;
 
     // Compute alignment guide lines
-    final List<Guideline> guidelines = [];
+    final guidelines = <Guideline>[];
     if (widget.selectedElementId != null) {
-      final selectedIndex = widget.elements.indexWhere((e) => e.id == widget.selectedElementId);
+      final selectedIndex = widget.elements.indexWhere(
+        (e) => e.id == widget.selectedElementId,
+      );
       if (selectedIndex != -1) {
         final D = widget.elements[selectedIndex];
-        final tolerance = 3.0 / widget.zoomLevel; // tolerance in canvas pixels (3.0 screen pixels)
+        final tolerance =
+            3.0 /
+            widget.zoomLevel; // tolerance in canvas pixels (3.0 screen pixels)
 
         final dl = D.x;
         final dc = D.x + D.width / 2;
@@ -106,8 +110,12 @@ class _EditorCanvasState extends State<EditorCanvas> {
             if ((match.$1 - match.$2).abs() < tolerance) {
               final xVal = match.$3;
               final startY = D.y < E.y ? D.y : E.y;
-              final endY = (D.y + D.height) > (E.y + E.height) ? (D.y + D.height) : (E.y + E.height);
-              guidelines.add(Guideline(Offset(xVal, startY), Offset(xVal, endY)));
+              final endY = (D.y + D.height) > (E.y + E.height)
+                  ? (D.y + D.height)
+                  : (E.y + E.height);
+              guidelines.add(
+                Guideline(Offset(xVal, startY), Offset(xVal, endY)),
+              );
             }
           }
 
@@ -128,24 +136,36 @@ class _EditorCanvasState extends State<EditorCanvas> {
             if ((match.$1 - match.$2).abs() < tolerance) {
               final yVal = match.$3;
               final startX = D.x < E.x ? D.x : E.x;
-              final endX = (D.x + D.width) > (E.x + E.width) ? (D.x + D.width) : (E.x + E.width);
-              guidelines.add(Guideline(Offset(startX, yVal), Offset(endX, yVal)));
+              final endX = (D.x + D.width) > (E.x + E.width)
+                  ? (D.x + D.width)
+                  : (E.x + E.width);
+              guidelines.add(
+                Guideline(Offset(startX, yVal), Offset(endX, yVal)),
+              );
             }
           }
         }
 
         // Align with safe area margins
         if ((dl - safeLeft).abs() < tolerance) {
-          guidelines.add(Guideline(Offset(dl, safeTop), Offset(dl, safeBottom)));
+          guidelines.add(
+            Guideline(Offset(dl, safeTop), Offset(dl, safeBottom)),
+          );
         }
         if ((dr - safeRight).abs() < tolerance) {
-          guidelines.add(Guideline(Offset(dr, safeTop), Offset(dr, safeBottom)));
+          guidelines.add(
+            Guideline(Offset(dr, safeTop), Offset(dr, safeBottom)),
+          );
         }
         if ((dt - safeTop).abs() < tolerance) {
-          guidelines.add(Guideline(Offset(safeLeft, dt), Offset(safeRight, dt)));
+          guidelines.add(
+            Guideline(Offset(safeLeft, dt), Offset(safeRight, dt)),
+          );
         }
         if ((db - safeBottom).abs() < tolerance) {
-          guidelines.add(Guideline(Offset(safeLeft, db), Offset(safeRight, db)));
+          guidelines.add(
+            Guideline(Offset(safeLeft, db), Offset(safeRight, db)),
+          );
         }
       }
     }
@@ -186,7 +206,9 @@ class _EditorCanvasState extends State<EditorCanvas> {
               Positioned.fill(
                 child: CustomPaint(
                   painter: _DotPatternPainter(
-                    dotColor: colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
+                    dotColor: colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.12,
+                    ),
                   ),
                 ),
               ),
@@ -263,7 +285,9 @@ class _EditorCanvasState extends State<EditorCanvas> {
                               painter: PolygonPainter(
                                 points: widget.stickerConfig.printableArea,
                                 scale: mmToPx * widget.zoomLevel,
-                                color: Colors.red.shade300.withValues(alpha: 0.45),
+                                color: Colors.red.shade300.withValues(
+                                  alpha: 0.45,
+                                ),
                               ),
                             ),
                           ),
@@ -291,7 +315,9 @@ class _EditorCanvasState extends State<EditorCanvas> {
                                 painter: AlignmentGuidesPainter(
                                   guidelines: guidelines,
                                   zoomLevel: widget.zoomLevel,
-                                  color: const Color(0xFFFF00FF), // Dashed magenta
+                                  color: const Color(
+                                    0xFFFF00FF,
+                                  ), // Dashed magenta
                                 ),
                               ),
                             ),
@@ -310,21 +336,20 @@ class _EditorCanvasState extends State<EditorCanvas> {
 }
 
 class Guideline {
+  const Guideline(this.start, this.end);
   final Offset start;
   final Offset end;
-  const Guideline(this.start, this.end);
 }
 
 class AlignmentGuidesPainter extends CustomPainter {
-  final List<Guideline> guidelines;
-  final double zoomLevel;
-  final Color color;
-
   AlignmentGuidesPainter({
     required this.guidelines,
     required this.zoomLevel,
     required this.color,
   });
+  final List<Guideline> guidelines;
+  final double zoomLevel;
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -358,7 +383,7 @@ class AlignmentGuidesPainter extends CustomPainter {
       // Horizontal line
       final startX = p1.dx < p2.dx ? p1.dx : p2.dx;
       final endX = p1.dx < p2.dx ? p2.dx : p1.dx;
-      double x = startX;
+      var x = startX;
       while (x < endX) {
         final nextX = (x + dashLimit).clamp(startX, endX);
         canvas.drawLine(Offset(x, p1.dy), Offset(nextX, p1.dy), paint);
@@ -369,7 +394,8 @@ class AlignmentGuidesPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant AlignmentGuidesPainter oldDelegate) {
-    return oldDelegate.zoomLevel != zoomLevel || oldDelegate.guidelines != guidelines;
+    return oldDelegate.zoomLevel != zoomLevel ||
+        oldDelegate.guidelines != guidelines;
   }
 }
 

@@ -42,18 +42,23 @@ class PropertiesPanel extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          
+
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: selectedElement == null
                   ? _buildNoSelectionPlaceholder(textTheme, colorScheme)
-                  : _buildPropertiesForm(context, selectedElement!, textTheme, colorScheme),
+                  : _buildPropertiesForm(
+                      context,
+                      selectedElement!,
+                      textTheme,
+                      colorScheme,
+                    ),
             ),
           ),
 
           const Divider(height: 1),
-          
+
           // Navigation Actions in Footer
           Padding(
             padding: const EdgeInsets.all(16),
@@ -76,7 +81,10 @@ class PropertiesPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildNoSelectionPlaceholder(TextTheme textTheme, ColorScheme colorScheme) {
+  Widget _buildNoSelectionPlaceholder(
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -120,7 +128,10 @@ class PropertiesPanel extends StatelessWidget {
       children: [
         // Type Label
         Text(
-          bp.runtimeType.toString().replaceAll('ElementBlueprint', '').toUpperCase(),
+          bp.runtimeType
+              .toString()
+              .replaceAll('ElementBlueprint', '')
+              .toUpperCase(),
           style: textTheme.bodySmall?.copyWith(
             color: colorScheme.primary,
             fontWeight: FontWeight.bold,
@@ -138,7 +149,8 @@ class PropertiesPanel extends StatelessWidget {
               child: RealTimeNumberField(
                 label: 'Width',
                 value: bp.width,
-                onChanged: (val) => cubit.updateElementProperty(bp.id, bp.copyWith(width: val)),
+                onChanged: (val) =>
+                    cubit.updateElementProperty(bp.id, bp.copyWith(width: val)),
               ),
             ),
             const SizedBox(width: 8),
@@ -146,7 +158,10 @@ class PropertiesPanel extends StatelessWidget {
               child: RealTimeNumberField(
                 label: 'Height',
                 value: bp.height,
-                onChanged: (val) => cubit.updateElementProperty(bp.id, bp.copyWith(height: val)),
+                onChanged: (val) => cubit.updateElementProperty(
+                  bp.id,
+                  bp.copyWith(height: val),
+                ),
               ),
             ),
           ],
@@ -158,7 +173,8 @@ class PropertiesPanel extends StatelessWidget {
               child: RealTimeNumberField(
                 label: 'X',
                 value: bp.x,
-                onChanged: (val) => cubit.updateElementProperty(bp.id, bp.copyWith(x: val)),
+                onChanged: (val) =>
+                    cubit.updateElementProperty(bp.id, bp.copyWith(x: val)),
               ),
             ),
             const SizedBox(width: 8),
@@ -166,7 +182,8 @@ class PropertiesPanel extends StatelessWidget {
               child: RealTimeNumberField(
                 label: 'Y',
                 value: bp.y,
-                onChanged: (val) => cubit.updateElementProperty(bp.id, bp.copyWith(y: val)),
+                onChanged: (val) =>
+                    cubit.updateElementProperty(bp.id, bp.copyWith(y: val)),
               ),
             ),
           ],
@@ -175,21 +192,42 @@ class PropertiesPanel extends StatelessWidget {
         RealTimeNumberField(
           label: 'Rotation (deg)',
           value: bp.rotation,
-          onChanged: (val) => cubit.updateElementProperty(bp.id, bp.copyWith(rotation: val)),
+          onChanged: (val) =>
+              cubit.updateElementProperty(bp.id, bp.copyWith(rotation: val)),
         ),
         const SizedBox(height: 20),
 
         // Type-Specific Fields
-        if (bp is TextElementBlueprint) TextPropertiesWidget(blueprint: bp, cubit: cubit, textTheme: textTheme, colorScheme: colorScheme),
-        if (bp is BarcodeElementBlueprint) BarcodePropertiesWidget(blueprint: bp, cubit: cubit, textTheme: textTheme, colorScheme: colorScheme),
-        if (bp is QrElementBlueprint) QrPropertiesWidget(blueprint: bp, cubit: cubit, textTheme: textTheme, colorScheme: colorScheme),
-        if (bp is ImageElementBlueprint) ..._buildImageProperties(context, bp, textTheme, colorScheme),
-        if (bp is ShapeElementBlueprint) ..._buildShapeProperties(context, bp, textTheme, colorScheme),
+        if (bp is TextElementBlueprint)
+          TextPropertiesWidget(
+            blueprint: bp,
+            cubit: cubit,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
+        if (bp is BarcodeElementBlueprint)
+          BarcodePropertiesWidget(
+            blueprint: bp,
+            cubit: cubit,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
+        if (bp is QrElementBlueprint)
+          QrPropertiesWidget(
+            blueprint: bp,
+            cubit: cubit,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
+        if (bp is ImageElementBlueprint)
+          ..._buildImageProperties(context, bp, textTheme, colorScheme),
+        if (bp is ShapeElementBlueprint)
+          ..._buildShapeProperties(context, bp, textTheme, colorScheme),
 
         const SizedBox(height: 24),
         const Divider(),
         const SizedBox(height: 12),
-        
+
         // Delete Action
         SizedBox(
           width: double.infinity,
@@ -218,7 +256,7 @@ class PropertiesPanel extends StatelessWidget {
     return [
       Text('Image Settings', style: textTheme.titleSmall),
       const SizedBox(height: 12),
-      
+
       // Image source Picker (Local file picker)
       ElevatedButton.icon(
         icon: const Icon(Icons.file_open),
@@ -252,9 +290,18 @@ class PropertiesPanel extends StatelessWidget {
           border: OutlineInputBorder(),
         ),
         items: const [
-          DropdownMenuItem(value: BlueprintBoxFit.contain, child: Text('Contain')),
-          DropdownMenuItem(value: BlueprintBoxFit.cover, child: Text('Cover (Crop)')),
-          DropdownMenuItem(value: BlueprintBoxFit.fill, child: Text('Fill / Stretch')),
+          DropdownMenuItem(
+            value: BlueprintBoxFit.contain,
+            child: Text('Contain'),
+          ),
+          DropdownMenuItem(
+            value: BlueprintBoxFit.cover,
+            child: Text('Cover (Crop)'),
+          ),
+          DropdownMenuItem(
+            value: BlueprintBoxFit.fill,
+            child: Text('Fill / Stretch'),
+          ),
         ],
         onChanged: (val) {
           if (val != null) {
@@ -275,9 +322,12 @@ class PropertiesPanel extends StatelessWidget {
     return [
       Text('Shape Styling', style: textTheme.titleSmall),
       const SizedBox(height: 12),
-      
+
       // Corner radius slider
-      Text('Corner Radius: ${bp.cornerRadius.toInt()} px', style: textTheme.bodySmall),
+      Text(
+        'Corner Radius: ${bp.cornerRadius.toInt()} px',
+        style: textTheme.bodySmall,
+      ),
       Slider(
         max: 30,
         value: bp.cornerRadius,
@@ -287,7 +337,10 @@ class PropertiesPanel extends StatelessWidget {
       ),
 
       // Stroke width slider
-      Text('Stroke Width: ${bp.strokeWidth.toInt()} px', style: textTheme.bodySmall),
+      Text(
+        'Stroke Width: ${bp.strokeWidth.toInt()} px',
+        style: textTheme.bodySmall,
+      ),
       Slider(
         max: 10,
         value: bp.strokeWidth,
@@ -420,15 +473,17 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
   void _insertToken(String token) {
     final text = _contentController.text;
     final selection = _contentController.selection;
-    
-    final int start = selection.isValid ? selection.start : text.length;
-    final int end = selection.isValid ? selection.end : text.length;
-    
+
+    final start = selection.isValid ? selection.start : text.length;
+    final end = selection.isValid ? selection.end : text.length;
+
     final newText = text.replaceRange(start, end, token);
     _contentController.text = newText;
-    
-    _contentController.selection = TextSelection.collapsed(offset: start + token.length);
-    
+
+    _contentController.selection = TextSelection.collapsed(
+      offset: start + token.length,
+    );
+
     widget.cubit.updateElementProperty(
       widget.blueprint.id,
       widget.blueprint.copyWith(
@@ -453,13 +508,13 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
   @override
   Widget build(BuildContext context) {
     final bp = widget.blueprint;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Text Formatting', style: widget.textTheme.titleSmall),
         const SizedBox(height: 12),
-        
+
         TextFormField(
           controller: _contentController,
           decoration: const InputDecoration(
@@ -485,7 +540,6 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
-          value: null,
           hint: const Text('Select field to insert'),
           items: _productFields.entries.map((entry) {
             return DropdownMenuItem<String>(
@@ -502,24 +556,36 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
         const SizedBox(height: 16),
 
         // Font size slider
-        Text('Font Size: ${bp.fontSize.toInt()} px', style: widget.textTheme.bodySmall),
+        Text(
+          'Font Size: ${bp.fontSize.toInt()} px',
+          style: widget.textTheme.bodySmall,
+        ),
         Slider(
           min: 6,
           max: 72,
           value: bp.fontSize,
           onChanged: (val) {
-            widget.cubit.updateElementProperty(bp.id, bp.copyWith(fontSize: val));
+            widget.cubit.updateElementProperty(
+              bp.id,
+              bp.copyWith(fontSize: val),
+            );
           },
         ),
 
         // Letter spacing slider
-        Text('Letter Spacing: ${bp.letterSpacing.toStringAsFixed(1)}', style: widget.textTheme.bodySmall),
+        Text(
+          'Letter Spacing: ${bp.letterSpacing.toStringAsFixed(1)}',
+          style: widget.textTheme.bodySmall,
+        ),
         Slider(
           min: -2,
           max: 10,
           value: bp.letterSpacing,
           onChanged: (val) {
-            widget.cubit.updateElementProperty(bp.id, bp.copyWith(letterSpacing: val));
+            widget.cubit.updateElementProperty(
+              bp.id,
+              bp.copyWith(letterSpacing: val),
+            );
           },
         ),
 
@@ -556,7 +622,10 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
               2 => BlueprintTextAlign.right,
               _ => BlueprintTextAlign.left,
             };
-            widget.cubit.updateElementProperty(bp.id, bp.copyWith(textAlign: align));
+            widget.cubit.updateElementProperty(
+              bp.id,
+              bp.copyWith(textAlign: align),
+            );
           },
           children: const [
             Icon(Icons.format_align_left, size: 18),
@@ -599,9 +668,7 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,
-          border: isSelected
-              ? Border.all(color: Colors.white, width: 2)
-              : null,
+          border: isSelected ? Border.all(color: Colors.white, width: 2) : null,
           boxShadow: isSelected
               ? [const BoxShadow(color: Colors.black26, blurRadius: 4)]
               : null,
@@ -626,7 +693,8 @@ class BarcodePropertiesWidget extends StatefulWidget {
   final ColorScheme colorScheme;
 
   @override
-  State<BarcodePropertiesWidget> createState() => _BarcodePropertiesWidgetState();
+  State<BarcodePropertiesWidget> createState() =>
+      _BarcodePropertiesWidgetState();
 }
 
 class _BarcodePropertiesWidgetState extends State<BarcodePropertiesWidget> {
@@ -657,14 +725,16 @@ class _BarcodePropertiesWidgetState extends State<BarcodePropertiesWidget> {
   void _insertToken(String token) {
     final text = _dataController.text;
     final selection = _dataController.selection;
-    
-    final int start = selection.isValid ? selection.start : text.length;
-    final int end = selection.isValid ? selection.end : text.length;
-    
+
+    final start = selection.isValid ? selection.start : text.length;
+    final end = selection.isValid ? selection.end : text.length;
+
     final newText = text.replaceRange(start, end, token);
     _dataController.text = newText;
-    _dataController.selection = TextSelection.collapsed(offset: start + token.length);
-    
+    _dataController.selection = TextSelection.collapsed(
+      offset: start + token.length,
+    );
+
     widget.cubit.updateElementProperty(
       widget.blueprint.id,
       widget.blueprint.copyWith(
@@ -689,7 +759,7 @@ class _BarcodePropertiesWidgetState extends State<BarcodePropertiesWidget> {
   @override
   Widget build(BuildContext context) {
     final bp = widget.blueprint;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -720,7 +790,6 @@ class _BarcodePropertiesWidgetState extends State<BarcodePropertiesWidget> {
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
-          value: null,
           hint: const Text('Select field to insert'),
           items: _productFields.entries.map((entry) {
             return DropdownMenuItem<String>(
@@ -753,7 +822,10 @@ class _BarcodePropertiesWidgetState extends State<BarcodePropertiesWidget> {
           ],
           onChanged: (val) {
             if (val != null) {
-              widget.cubit.updateElementProperty(bp.id, bp.copyWith(barcodeType: val));
+              widget.cubit.updateElementProperty(
+                bp.id,
+                bp.copyWith(barcodeType: val),
+              );
             }
           },
         ),
@@ -764,7 +836,10 @@ class _BarcodePropertiesWidgetState extends State<BarcodePropertiesWidget> {
             Switch(
               value: bp.showLabel,
               onChanged: (val) {
-                widget.cubit.updateElementProperty(bp.id, bp.copyWith(showLabel: val));
+                widget.cubit.updateElementProperty(
+                  bp.id,
+                  bp.copyWith(showLabel: val),
+                );
               },
             ),
           ],
@@ -820,14 +895,16 @@ class _QrPropertiesWidgetState extends State<QrPropertiesWidget> {
   void _insertToken(String token) {
     final text = _dataController.text;
     final selection = _dataController.selection;
-    
-    final int start = selection.isValid ? selection.start : text.length;
-    final int end = selection.isValid ? selection.end : text.length;
-    
+
+    final start = selection.isValid ? selection.start : text.length;
+    final end = selection.isValid ? selection.end : text.length;
+
     final newText = text.replaceRange(start, end, token);
     _dataController.text = newText;
-    _dataController.selection = TextSelection.collapsed(offset: start + token.length);
-    
+    _dataController.selection = TextSelection.collapsed(
+      offset: start + token.length,
+    );
+
     widget.cubit.updateElementProperty(
       widget.blueprint.id,
       widget.blueprint.copyWith(
@@ -852,7 +929,7 @@ class _QrPropertiesWidgetState extends State<QrPropertiesWidget> {
   @override
   Widget build(BuildContext context) {
     final bp = widget.blueprint;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -883,7 +960,6 @@ class _QrPropertiesWidgetState extends State<QrPropertiesWidget> {
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
-          value: null,
           hint: const Text('Select field to insert'),
           items: _productFields.entries.map((entry) {
             return DropdownMenuItem<String>(

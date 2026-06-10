@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
@@ -15,9 +16,13 @@ class TemplateManagementScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => TemplateListCubit(
-        context.read<TemplateRepository>(),
-      )..loadTemplates(),
+      create: (context) {
+        final cubit = TemplateListCubit(
+          context.read<TemplateRepository>(),
+        );
+        unawaited(cubit.loadTemplates());
+        return cubit;
+      },
       child: const _TemplateManagementView(),
     );
   }
@@ -37,7 +42,7 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
   void _showCreateTemplateDialog(BuildContext context) {
     final textController = TextEditingController();
 
-    showDialog<void>(
+    unawaited(showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
@@ -73,7 +78,7 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
           ],
         );
       },
-    );
+    ));
   }
 
   @override
@@ -198,7 +203,7 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                                     },
                                     onDelete: () {
                                       // Delete template
-                                      context.read<TemplateListCubit>().deleteTemplate(template.id);
+                                      unawaited(context.read<TemplateListCubit>().deleteTemplate(template.id));
                                     },
                                   );
                                 },
@@ -306,4 +311,3 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
     );
   }
 }
-

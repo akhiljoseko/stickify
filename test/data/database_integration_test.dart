@@ -28,7 +28,7 @@ void main() {
   });
 
   tearDown(() async {
-    if (await tempDir.exists()) {
+    if (tempDir.existsSync()) {
       await tempDir.delete(recursive: true);
     }
   });
@@ -82,8 +82,6 @@ void main() {
         assignedStation: 'Station #01',
         stationStatus: StationStatus.online,
         category: 'Dry Goods',
-        ingredients: const [],
-        variants: const [],
       );
 
       await productRepository.saveProduct(newProduct);
@@ -105,8 +103,6 @@ void main() {
         lastPrintedAt: DateTime.now(),
         assignedStation: 'Station #01',
         stationStatus: StationStatus.online,
-        ingredients: const [],
-        variants: const [],
       );
       final p2 = Product(
         id: 'prod-2',
@@ -116,8 +112,6 @@ void main() {
         lastPrintedAt: DateTime.now(),
         assignedStation: 'Station #01',
         stationStatus: StationStatus.online,
-        ingredients: const [],
-        variants: const [],
       );
       final p3 = Product(
         id: 'prod-3',
@@ -127,8 +121,6 @@ void main() {
         lastPrintedAt: DateTime.now(),
         assignedStation: 'Station #01',
         stationStatus: StationStatus.online,
-        ingredients: const [],
-        variants: const [],
       );
       await productRepository.saveProduct(p1);
       await productRepository.saveProduct(p2);
@@ -235,8 +227,6 @@ void main() {
         lastPrintedAt: DateTime.now(),
         assignedStation: 'Station #01',
         stationStatus: StationStatus.online,
-        ingredients: const [],
-        variants: const [],
       );
       await productRepository.saveProduct(p1);
 
@@ -254,12 +244,10 @@ void main() {
         lastPrintedAt: DateTime.now(),
         assignedStation: 'Station #01',
         stationStatus: StationStatus.online,
-        ingredients: const [],
-        variants: const [],
       );
       await productRepository.saveProduct(p1);
 
-      final t1 = await templateRepository.createTemplate('Search Template');
+      await templateRepository.createTemplate('Search Template');
 
       final productsOnly = await searchRepository.search('', categories: {'Products'});
       final templatesOnly = await searchRepository.search('', categories: {'Templates'});

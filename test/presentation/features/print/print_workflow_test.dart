@@ -36,11 +36,10 @@ void main() {
         lastPrintedAt: DateTime(2026),
         assignedStation: '',
         stationStatus: StationStatus.offline,
-        variants: [],
       ),
     );
     registerFallbackValue(
-      ProductVariant(
+      const ProductVariant(
         name: 'Fallback',
         quantity: 0,
         unit: '',
@@ -50,10 +49,9 @@ void main() {
       ),
     );
     registerFallbackValue(
-      LabelTemplate(
+      const LabelTemplate(
         id: 'fallback-temp',
         name: 'Fallback',
-        elements: [],
       ),
     );
   });
@@ -68,25 +66,25 @@ void main() {
     name: 'Dynamic Product',
     sku: 'PROD-SKU',
     totalPrints: 10,
-    lastPrintedAt: DateTime(2026, 1, 1),
+    lastPrintedAt: DateTime(2026),
     assignedStation: 'Station #01',
     stationStatus: StationStatus.online,
-    variants: [
+    variants: const [
       ProductVariant(
         name: 'Pack of 10',
         quantity: 10,
         unit: 'pcs',
-        wholesale: 150.0,
-        mrp: 200.0,
+        wholesale: 150,
+        mrp: 200,
         sku: 'PROD-VAR-SKU',
       ),
     ],
   );
 
-  final testTemplate = LabelTemplate(
+  const testTemplate = LabelTemplate(
     id: 'temp-test',
     name: 'A4 Shipping Label',
-    sheetConfig: const SheetConfig(
+    sheetConfig: SheetConfig(
       pageWidth: 210,
       pageHeight: 297,
       marginTop: 10,
@@ -98,13 +96,13 @@ void main() {
       columnGap: 5,
       rowGap: 5,
     ),
-    stickerConfig: const StickerConfig(
+    stickerConfig: StickerConfig(
       widthMm: 95,
       heightMm: 50,
       cornerRadiusMm: 2,
       printableArea: [],
     ),
-    elements: const [
+    elements: [
       TextElementBlueprint(
         id: 'txt-1',
         x: 10,
@@ -153,7 +151,7 @@ void main() {
 
   group('Token Resolution Tests', () {
     test('resolves product and variant tokens correctly', () {
-      final input = 'Product: {{product.name}}, Variant SKU: {{variant.sku}}, MRP: ₹{{variant.mrp}}';
+      const input = 'Product: {{product.name}}, Variant SKU: {{variant.sku}}, MRP: ₹{{variant.mrp}}';
       final resolved = TextElementRenderer.resolveToken(
         input,
         testProduct,

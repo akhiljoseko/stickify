@@ -5,7 +5,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/presentation/products/product_management_screen.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 import '../../../../helpers/pump_app.dart';
 
 class MockProductRepository extends Mock implements ProductRepository {}

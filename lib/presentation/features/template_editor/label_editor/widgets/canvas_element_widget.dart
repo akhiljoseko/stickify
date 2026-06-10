@@ -46,7 +46,7 @@ class CanvasElementWidget extends StatelessWidget {
             // Factor in zoom level when calculating position update
             final dx = details.delta.dx / zoomLevel;
             final dy = details.delta.dy / zoomLevel;
-            context.read<EditorCubit>().nudgeElement(blueprint.id, dx, dy);
+            context.read<EditorCubit>().dragElement(blueprint.id, dx, dy);
           },
           child: Stack(
             clipBehavior: Clip.none,

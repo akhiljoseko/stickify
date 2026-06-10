@@ -74,6 +74,40 @@ class EditorCubit extends Cubit<EditorState> {
     emit(currentState.copyWith(elements: updated));
   }
 
+  void dragElement(String id, double dx, double dy) {
+    final currentState = state;
+    if (currentState is! EditorLoaded) return;
+
+    // Find the element being dragged
+    final elementIndex = currentState.elements.indexWhere((e) => e.id == id);
+    if (elementIndex == -1) return;
+
+    final element = currentState.elements[elementIndex];
+
+    // 1. Calculate proposed position
+    double newX = element.x + dx;
+    double newY = element.y + dy;
+
+    // Sticker boundaries
+    const mmToPx = 4;
+    final stickerWidth = currentState.stickerConfig.widthMm * mmToPx;
+    final stickerHeight = currentState.stickerConfig.heightMm * mmToPx;
+
+    // Clamp inside the sticker bounds
+    newX = newX.clamp(0.0, stickerWidth - element.width);
+    newY = newY.clamp(0.0, stickerHeight - element.height);
+
+    // 2. Emit updated state
+    final updated = currentState.elements.map((e) {
+      if (e.id == id) {
+        return e.copyWith(x: newX, y: newY);
+      }
+      return e;
+    }).toList();
+
+    emit(currentState.copyWith(elements: updated));
+  }
+
   void selectElement(String id) {
     final currentState = state;
     if (currentState is! EditorLoaded) return;

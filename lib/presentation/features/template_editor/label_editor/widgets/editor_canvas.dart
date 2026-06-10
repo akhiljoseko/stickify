@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
+import 'package:stickify/presentation/features/template_editor/sticker_setup/widgets/polygon_painter.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/widgets/canvas_element_widget.dart';
 
 class EditorCanvas extends StatefulWidget {
@@ -58,10 +59,96 @@ class _EditorCanvasState extends State<EditorCanvas> {
             widget.stickerConfig.heightMm - 4.0,
           );
 
-    final safeLeft = tl.x * mmToPx * widget.zoomLevel;
-    final safeTop = tl.y * mmToPx * widget.zoomLevel;
-    final safeWidth = (br.x - tl.x) * mmToPx * widget.zoomLevel;
-    final safeHeight = (br.y - tl.y) * mmToPx * widget.zoomLevel;
+    final safeLeft = tl.x * mmToPx;
+    final safeTop = tl.y * mmToPx;
+    final safeRight = br.x * mmToPx;
+    final safeBottom = br.y * mmToPx;
+
+    // Compute alignment guide lines
+    final List<Guideline> guidelines = [];
+    if (widget.selectedElementId != null) {
+      final selectedIndex = widget.elements.indexWhere((e) => e.id == widget.selectedElementId);
+      if (selectedIndex != -1) {
+        final D = widget.elements[selectedIndex];
+        final tolerance = 3.0 / widget.zoomLevel; // tolerance in canvas pixels (3.0 screen pixels)
+
+        final dl = D.x;
+        final dc = D.x + D.width / 2;
+        final dr = D.x + D.width;
+        final dt = D.y;
+        final dcenter = D.y + D.height / 2;
+        final db = D.y + D.height;
+
+        for (final E in widget.elements) {
+          if (E.id == D.id) continue;
+
+          final el = E.x;
+          final ec = E.x + E.width / 2;
+          final er = E.x + E.width;
+          final et = E.y;
+          final ecenter = E.y + E.height / 2;
+          final eb = E.y + E.height;
+
+          // Vertical alignments (matching X)
+          final xMatches = [
+            (dl, el, dl),
+            (dl, ec, dl),
+            (dl, er, dl),
+            (dc, el, dc),
+            (dc, ec, dc),
+            (dc, er, dc),
+            (dr, el, dr),
+            (dr, ec, dr),
+            (dr, er, dr),
+          ];
+
+          for (final match in xMatches) {
+            if ((match.$1 - match.$2).abs() < tolerance) {
+              final xVal = match.$3;
+              final startY = D.y < E.y ? D.y : E.y;
+              final endY = (D.y + D.height) > (E.y + E.height) ? (D.y + D.height) : (E.y + E.height);
+              guidelines.add(Guideline(Offset(xVal, startY), Offset(xVal, endY)));
+            }
+          }
+
+          // Horizontal alignments (matching Y)
+          final yMatches = [
+            (dt, et, dt),
+            (dt, ecenter, dt),
+            (dt, eb, dt),
+            (dcenter, et, dcenter),
+            (dcenter, ecenter, dcenter),
+            (dcenter, eb, dcenter),
+            (db, et, db),
+            (db, ecenter, db),
+            (db, eb, db),
+          ];
+
+          for (final match in yMatches) {
+            if ((match.$1 - match.$2).abs() < tolerance) {
+              final yVal = match.$3;
+              final startX = D.x < E.x ? D.x : E.x;
+              final endX = (D.x + D.width) > (E.x + E.width) ? (D.x + D.width) : (E.x + E.width);
+              guidelines.add(Guideline(Offset(startX, yVal), Offset(endX, yVal)));
+            }
+          }
+        }
+
+        // Align with safe area margins
+        if ((dl - safeLeft).abs() < tolerance) {
+          guidelines.add(Guideline(Offset(dl, safeTop), Offset(dl, safeBottom)));
+        }
+        if ((dr - safeRight).abs() < tolerance) {
+          guidelines.add(Guideline(Offset(dr, safeTop), Offset(dr, safeBottom)));
+        }
+        if ((dt - safeTop).abs() < tolerance) {
+          guidelines.add(Guideline(Offset(safeLeft, dt), Offset(safeRight, dt)));
+        }
+        if ((db - safeBottom).abs() < tolerance) {
+          guidelines.add(Guideline(Offset(safeLeft, db), Offset(safeRight, db)));
+        }
+      }
+    }
 
     return Focus(
       focusNode: _focusNode,
@@ -103,10 +190,6 @@ class _EditorCanvasState extends State<EditorCanvas> {
                   ),
                 ),
               ),
-
-              // Rulers (horizontal & vertical)
-              _buildHorizontalRuler(colorScheme),
-              _buildVerticalRuler(colorScheme),
 
               // Centered Canvas Board
               Center(
@@ -174,21 +257,16 @@ class _EditorCanvasState extends State<EditorCanvas> {
                       child: Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          // Safe Area Red Border
-                          if (safeWidth > 0 && safeHeight > 0)
-                            Positioned(
-                              left: safeLeft,
-                              top: safeTop,
-                              width: safeWidth,
-                              height: safeHeight,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.red.shade300.withValues(alpha: 0.4),
-                                  ),
-                                ),
+                          // Safe Area Polygon Border
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: PolygonPainter(
+                                points: widget.stickerConfig.printableArea,
+                                scale: mmToPx * widget.zoomLevel,
+                                color: Colors.red.shade300.withValues(alpha: 0.45),
                               ),
                             ),
+                          ),
 
                           // Canvas Elements
                           ...widget.elements.map((bp) {
@@ -205,6 +283,18 @@ class _EditorCanvasState extends State<EditorCanvas> {
                               },
                             );
                           }),
+
+                          // Alignment guides overlay
+                          if (guidelines.isNotEmpty)
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: AlignmentGuidesPainter(
+                                  guidelines: guidelines,
+                                  zoomLevel: widget.zoomLevel,
+                                  color: const Color(0xFFFF00FF), // Dashed magenta
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     );
@@ -217,67 +307,69 @@ class _EditorCanvasState extends State<EditorCanvas> {
       ),
     );
   }
+}
 
-  Widget _buildHorizontalRuler(ColorScheme colorScheme) {
-    return Positioned(
-      left: 0,
-      right: 0,
-      top: 0,
-      height: 20,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainer,
-          border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
-        ),
-        child: Row(
-          children: List.generate(30, (i) {
-            return Container(
-              width: 50,
-              alignment: Alignment.bottomLeft,
-              padding: const EdgeInsets.only(left: 4, bottom: 2),
-              child: Text(
-                '${i * 50}',
-                style: TextStyle(
-                  fontSize: 8,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
+class Guideline {
+  final Offset start;
+  final Offset end;
+  const Guideline(this.start, this.end);
+}
+
+class AlignmentGuidesPainter extends CustomPainter {
+  final List<Guideline> guidelines;
+  final double zoomLevel;
+  final Color color;
+
+  AlignmentGuidesPainter({
+    required this.guidelines,
+    required this.zoomLevel,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+
+    for (final guide in guidelines) {
+      final p1 = Offset(guide.start.dx * zoomLevel, guide.start.dy * zoomLevel);
+      final p2 = Offset(guide.end.dx * zoomLevel, guide.end.dy * zoomLevel);
+      _drawDashedLine(canvas, p1, p2, paint);
+    }
   }
 
-  Widget _buildVerticalRuler(ColorScheme colorScheme) {
-    return Positioned(
-      left: 0,
-      top: 20,
-      bottom: 0,
-      width: 20,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainer,
-          border: Border(right: BorderSide(color: colorScheme.outlineVariant)),
-        ),
-        child: Column(
-          children: List.generate(20, (i) {
-            return Container(
-              height: 50,
-              alignment: Alignment.topLeft,
-              padding: const EdgeInsets.only(left: 2, top: 4),
-              child: Text(
-                '${i * 50}',
-                style: TextStyle(
-                  fontSize: 8,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
+  void _drawDashedLine(Canvas canvas, Offset p1, Offset p2, Paint paint) {
+    const dashLimit = 4.0;
+    const gapLimit = 4.0;
+
+    if (p1.dx == p2.dx) {
+      // Vertical line
+      final startY = p1.dy < p2.dy ? p1.dy : p2.dy;
+      final endY = p1.dy < p2.dy ? p2.dy : p1.dy;
+      double y = startY;
+      while (y < endY) {
+        final nextY = (y + dashLimit).clamp(startY, endY);
+        canvas.drawLine(Offset(p1.dx, y), Offset(p1.dx, nextY), paint);
+        y += dashLimit + gapLimit;
+      }
+    } else if (p1.dy == p2.dy) {
+      // Horizontal line
+      final startX = p1.dx < p2.dx ? p1.dx : p2.dx;
+      final endX = p1.dx < p2.dx ? p2.dx : p1.dx;
+      double x = startX;
+      while (x < endX) {
+        final nextX = (x + dashLimit).clamp(startX, endX);
+        canvas.drawLine(Offset(x, p1.dy), Offset(nextX, p1.dy), paint);
+        x += dashLimit + gapLimit;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant AlignmentGuidesPainter oldDelegate) {
+    return oldDelegate.zoomLevel != zoomLevel || oldDelegate.guidelines != guidelines;
   }
 }
 

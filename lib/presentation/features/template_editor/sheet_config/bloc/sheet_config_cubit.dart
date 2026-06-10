@@ -16,7 +16,8 @@ class SheetConfigCubit extends Cubit<SheetConfigState> {
       final config =
           template.sheetConfig ??
           const SheetConfig(
-            pageSize: 'A4',
+            pageWidth: 210.0,
+            pageHeight: 297.0,
             marginTop: 10,
             marginBottom: 10,
             marginLeft: 10,

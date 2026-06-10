@@ -5,6 +5,7 @@ import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/element_renderer_registry.dart';
 import 'package:stickify/presentation/features/template_editor/preview/bloc/preview_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/preview/bloc/preview_state.dart';
+import 'package:stickify/presentation/features/template_editor/sticker_setup/widgets/polygon_painter.dart';
 import 'package:stickify/presentation/features/template_editor/widgets/wizard_step_indicator.dart';
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
@@ -111,23 +112,14 @@ class _PreviewViewState extends State<_PreviewView> {
           final sticker = template.stickerConfig ??
               const StickerConfig(widthMm: 100, heightMm: 60, cornerRadiusMm: 4, printableArea: []);
           final sheets = template.sheetConfig ??
-              const SheetConfig(pageSize: 'A4', marginTop: 10, marginBottom: 10, marginLeft: 10, marginRight: 10, columns: 2, rows: 4, columnGap: 5, rowGap: 5);
+              const SheetConfig(pageWidth: 210.0, pageHeight: 297.0, marginTop: 10, marginBottom: 10, marginLeft: 10, marginRight: 10, columns: 2, rows: 4, columnGap: 5, rowGap: 5);
 
           // Convert sticker dimensions to pixels (1mm = 4px)
           const mmToPx = 4;
           final boardWidth = sticker.widthMm * mmToPx;
           final boardHeight = sticker.heightMm * mmToPx;
 
-          // Compute printable bounds coordinates
-          final tl = sticker.printableArea.isNotEmpty ? sticker.printableArea[0] : const StickerPoint(4, 4);
-          final br = sticker.printableArea.length > 2
-              ? sticker.printableArea[2]
-              : StickerPoint(sticker.widthMm - 4.0, sticker.heightMm - 4.0);
 
-          final safeLeft = tl.x * mmToPx;
-          final safeTop = tl.y * mmToPx;
-          final safeWidth = (br.x - tl.x) * mmToPx;
-          final safeHeight = (br.y - tl.y) * mmToPx;
 
           final previewBoard = Center(
             child: Container(
@@ -148,21 +140,16 @@ class _PreviewViewState extends State<_PreviewView> {
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  // Safe Area dashed guide lines
-                  if (safeWidth > 0 && safeHeight > 0)
-                    Positioned(
-                      left: safeLeft,
-                      top: safeTop,
-                      width: safeWidth,
-                      height: safeHeight,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.red.shade300.withValues(alpha: 0.3),
-                          ),
-                        ),
+                  // Safe Area Polygon Border
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: PolygonPainter(
+                        points: sticker.printableArea,
+                        scale: mmToPx.toDouble(),
+                        color: Colors.red.shade300.withValues(alpha: 0.35),
                       ),
                     ),
+                  ),
                   
                   // Rendered elements
                   ...template.elements.map((bp) {
@@ -217,7 +204,7 @@ class _PreviewViewState extends State<_PreviewView> {
                   textTheme,
                   colorScheme,
                   'Page Layout',
-                  '${sheets.pageSize} (${sheets.columns} × ${sheets.rows} grid)',
+                  '${sheets.pageWidth.toStringAsFixed(1)} × ${sheets.pageHeight.toStringAsFixed(1)} mm (${sheets.columns} × ${sheets.rows} grid)',
                 ),
                 _buildSummaryItem(
                   textTheme,

@@ -11,7 +11,8 @@ class MockTemplateRepository implements TemplateRepository {
   void _seedTemplates() {
     // 1. A4 Shipping Label (4x6")
     const shipSheet = SheetConfig(
-      pageSize: 'A4',
+      pageWidth: 210,
+      pageHeight: 297,
       marginTop: 15,
       marginBottom: 15,
       marginLeft: 15,
@@ -85,7 +86,8 @@ class MockTemplateRepository implements TemplateRepository {
 
     // 2. Hazardous Material Tag (10x15cm)
     const hazSheet = SheetConfig(
-      pageSize: 'A4',
+      pageWidth: 210,
+      pageHeight: 297,
       marginTop: 20,
       marginBottom: 20,
       marginLeft: 20,
@@ -147,7 +149,8 @@ class MockTemplateRepository implements TemplateRepository {
 
     // 3. Product Price Sticker (2x1")
     const priceSheet = SheetConfig(
-      pageSize: 'Letter',
+      pageWidth: 215.9,
+      pageHeight: 279.4,
       marginTop: 10,
       marginBottom: 10,
       marginLeft: 10,
@@ -210,7 +213,8 @@ class MockTemplateRepository implements TemplateRepository {
 
     // 4. Custom Pallet Slip (8x11")
     const palletSheet = SheetConfig(
-      pageSize: 'Letter',
+      pageWidth: 215.9,
+      pageHeight: 279.4,
       marginTop: 0,
       marginBottom: 0,
       marginLeft: 0,

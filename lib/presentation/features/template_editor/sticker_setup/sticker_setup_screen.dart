@@ -4,6 +4,8 @@ import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/bloc/sticker_setup_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/bloc/sticker_setup_state.dart';
+import 'package:stickify/presentation/features/template_editor/sticker_setup/widgets/polygon_painter.dart';
+import 'package:stickify/presentation/features/template_editor/widgets/setup_fields.dart';
 import 'package:stickify/presentation/features/template_editor/widgets/wizard_step_indicator.dart';
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
@@ -74,31 +76,21 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
-                        initialValue: state.widthMm.toString(),
-                        decoration: const InputDecoration(
-                          labelText: 'Width (mm)',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: state.widthMm,
+                        labelText: 'Width (mm)',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 10.0;
-                          context.read<StickerSetupCubit>().updateFields(widthMm: num);
+                          context.read<StickerSetupCubit>().updateFields(widthMm: val);
                         },
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextFormField(
-                        initialValue: state.heightMm.toString(),
-                        decoration: const InputDecoration(
-                          labelText: 'Height (mm)',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: state.heightMm,
+                        labelText: 'Height (mm)',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 10.0;
-                          context.read<StickerSetupCubit>().updateFields(heightMm: num);
+                          context.read<StickerSetupCubit>().updateFields(heightMm: val);
                         },
                       ),
                     ),
@@ -107,16 +99,11 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                 const SizedBox(height: 16),
 
                 // Corner Radius
-                TextFormField(
-                  initialValue: state.cornerRadiusMm.toString(),
-                  decoration: const InputDecoration(
-                    labelText: 'Corner Radius (mm)',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                SetupNumberField(
+                  value: state.cornerRadiusMm,
+                  labelText: 'Corner Radius (mm)',
                   onChanged: (val) {
-                    final num = double.tryParse(val) ?? 0.0;
-                    context.read<StickerSetupCubit>().updateFields(cornerRadiusMm: num);
+                    context.read<StickerSetupCubit>().updateFields(cornerRadiusMm: val);
                   },
                 ),
                 const SizedBox(height: 24),
@@ -128,54 +115,155 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
-                        initialValue: state.paddingTop.toString(),
-                        decoration: const InputDecoration(labelText: 'Top'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: state.paddingTop,
+                        labelText: 'Top',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 0.0;
-                          context.read<StickerSetupCubit>().updateFields(paddingTop: num);
+                          context.read<StickerSetupCubit>().updateFields(paddingTop: val);
                         },
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: TextFormField(
-                        initialValue: state.paddingBottom.toString(),
-                        decoration: const InputDecoration(labelText: 'Bottom'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: state.paddingBottom,
+                        labelText: 'Bottom',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 0.0;
-                          context.read<StickerSetupCubit>().updateFields(paddingBottom: num);
+                          context.read<StickerSetupCubit>().updateFields(paddingBottom: val);
                         },
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: TextFormField(
-                        initialValue: state.paddingLeft.toString(),
-                        decoration: const InputDecoration(labelText: 'Left'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: state.paddingLeft,
+                        labelText: 'Left',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 0.0;
-                          context.read<StickerSetupCubit>().updateFields(paddingLeft: num);
+                          context.read<StickerSetupCubit>().updateFields(paddingLeft: val);
                         },
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: TextFormField(
-                        initialValue: state.paddingRight.toString(),
-                        decoration: const InputDecoration(labelText: 'Right'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: state.paddingRight,
+                        labelText: 'Right',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 0.0;
-                          context.read<StickerSetupCubit>().updateFields(paddingRight: num);
+                          context.read<StickerSetupCubit>().updateFields(paddingRight: val);
                         },
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 16),
+
+                // Custom Polygon Toggle
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Use Custom Polygon Printable Area'),
+                  subtitle: const Text('Define an arbitrary safe design shape via coordinate points'),
+                  value: state.isCustomPolygon,
+                  onChanged: (val) {
+                    context.read<StickerSetupCubit>().toggleCustomPolygon(val);
+                  },
+                ),
+                
+                if (state.isCustomPolygon) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Polygon Edge Points (mm)', style: textTheme.titleSmall),
+                      TextButton.icon(
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Add Point'),
+                        onPressed: () {
+                          context.read<StickerSetupCubit>().addPolygonPoint();
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ReorderableListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: state.polygonPoints.length,
+                    // onReorder is deprecated in newer Flutter versions but is kept here
+                    // to support older versions in the build environment.
+                    // ignore: deprecated_member_use
+                    onReorder: (oldIdx, newIdx) {
+                      context.read<StickerSetupCubit>().reorderPolygonPoints(oldIdx, newIdx);
+                    },
+                    itemBuilder: (context, index) {
+                      final point = state.polygonPoints[index];
+                      final pointId = state.polygonPointIds[index];
+                      return Padding(
+                        key: ValueKey(pointId),
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            ReorderableDragStartListener(
+                              index: index,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: Icon(
+                                  Icons.drag_handle,
+                                  size: 20,
+                                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Container(
+                              width: 24,
+                              alignment: Alignment.center,
+                              child: Text(
+                                '${index + 1}',
+                                style: textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: SetupNumberField(
+                                keyString: 'pt_${pointId}_x',
+                                value: point.x,
+                                labelText: 'X (mm)',
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                onChanged: (val) {
+                                  context.read<StickerSetupCubit>().updatePolygonPoint(index, val, point.y);
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: SetupNumberField(
+                                keyString: 'pt_${pointId}_y',
+                                value: point.y,
+                                labelText: 'Y (mm)',
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                onChanged: (val) {
+                                  context.read<StickerSetupCubit>().updatePolygonPoint(index, point.x, val);
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                              onPressed: state.polygonPoints.length > 3
+                                  ? () => context.read<StickerSetupCubit>().removePolygonPoint(index)
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ],
             ),
           );
@@ -207,12 +295,6 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                       final scale = drawW / state.widthMm;
                       final radiusPx = state.cornerRadiusMm * scale;
                       
-                      // Calculate paddings in pixels
-                      final pTop = state.paddingTop * scale;
-                      final pBottom = state.paddingBottom * scale;
-                      final pLeft = state.paddingLeft * scale;
-                      final pRight = state.paddingRight * scale;
-
                       return Center(
                         child: Container(
                           width: drawW,
@@ -231,30 +313,30 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                           ),
                           child: Stack(
                             children: [
-                              // Safe printable area boundary representation
-                              if (drawW - pLeft - pRight > 0 && drawH - pTop - pBottom > 0)
-                                Positioned(
-                                  left: pLeft,
-                                  top: pTop,
-                                  width: drawW - pLeft - pRight,
-                                  height: drawH - pTop - pBottom,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: Colors.red.shade300,
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        'Printable Safe Area',
-                                        style: TextStyle(
-                                          color: Colors.red.shade300,
-                                          fontSize: 10,
-                                        ),
-                                      ),
+                              // Safe printable area polygon representation
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: PolygonPainter(
+                                    points: state.toConfig().printableArea,
+                                    scale: scale,
+                                    color: Colors.red.shade300,
+                                    showMarkers: true,
+                                    markerColor: colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                              Center(
+                                child: IgnorePointer(
+                                  child: Text(
+                                    'Printable Safe Area',
+                                    style: TextStyle(
+                                      color: Colors.red.shade300.withValues(alpha: 0.8),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
+                              ),
                             ],
                           ),
                         ),

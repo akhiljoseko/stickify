@@ -5,6 +5,7 @@ import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/sheet_config/bloc/sheet_config_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/sheet_config/bloc/sheet_config_state.dart';
 import 'package:stickify/presentation/features/template_editor/sheet_config/widgets/sheet_preview_grid.dart';
+import 'package:stickify/presentation/features/template_editor/widgets/setup_fields.dart';
 import 'package:stickify/presentation/features/template_editor/widgets/wizard_step_indicator.dart';
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
@@ -73,24 +74,33 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                 Text('Page Setup', style: textTheme.titleMedium),
                 const SizedBox(height: 16),
                 
-                // Page Size Dropdown
-                DropdownButtonFormField<String>(
-                  initialValue: config.pageSize,
-                  decoration: const InputDecoration(
-                    labelText: 'Page Size',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'A4', child: Text('A4 (210 x 297 mm)')),
-                    DropdownMenuItem(value: 'Letter', child: Text('Letter (215.9 x 279.4 mm)')),
+                // Page Width & Height
+                Row(
+                  children: [
+                    Expanded(
+                      child: SetupNumberField(
+                        value: config.pageWidth,
+                        labelText: 'Page Width (mm)',
+                        onChanged: (val) {
+                          context.read<SheetConfigCubit>().updateConfig(
+                                config.copyWith(pageWidth: val),
+                              );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: SetupNumberField(
+                        value: config.pageHeight,
+                        labelText: 'Page Height (mm)',
+                        onChanged: (val) {
+                          context.read<SheetConfigCubit>().updateConfig(
+                                config.copyWith(pageHeight: val),
+                              );
+                        },
+                      ),
+                    ),
                   ],
-                  onChanged: (val) {
-                    if (val != null) {
-                      context.read<SheetConfigCubit>().updateConfig(
-                            config.copyWith(pageSize: val),
-                          );
-                    }
-                  },
                 ),
                 const SizedBox(height: 16),
 
@@ -98,15 +108,10 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
-                        initialValue: config.columns.toString(),
-                        decoration: const InputDecoration(
-                          labelText: 'Columns',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                        onChanged: (val) {
-                          final count = int.tryParse(val) ?? 1;
+                      child: SetupIntField(
+                        value: config.columns,
+                        labelText: 'Columns',
+                        onChanged: (count) {
                           context.read<SheetConfigCubit>().updateConfig(
                                 config.copyWith(columns: count),
                               );
@@ -115,15 +120,10 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextFormField(
-                        initialValue: config.rows.toString(),
-                        decoration: const InputDecoration(
-                          labelText: 'Rows',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                        onChanged: (val) {
-                          final count = int.tryParse(val) ?? 1;
+                      child: SetupIntField(
+                        value: config.rows,
+                        labelText: 'Rows',
+                        onChanged: (count) {
                           context.read<SheetConfigCubit>().updateConfig(
                                 config.copyWith(rows: count),
                               );
@@ -141,56 +141,48 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
-                        initialValue: config.marginTop.toString(),
-                        decoration: const InputDecoration(labelText: 'Top'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: config.marginTop,
+                        labelText: 'Top',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 0.0;
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(marginTop: num),
+                                config.copyWith(marginTop: val),
                               );
                         },
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: TextFormField(
-                        initialValue: config.marginBottom.toString(),
-                        decoration: const InputDecoration(labelText: 'Bottom'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: config.marginBottom,
+                        labelText: 'Bottom',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 0.0;
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(marginBottom: num),
+                                config.copyWith(marginBottom: val),
                               );
                         },
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: TextFormField(
-                        initialValue: config.marginLeft.toString(),
-                        decoration: const InputDecoration(labelText: 'Left'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: config.marginLeft,
+                        labelText: 'Left',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 0.0;
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(marginLeft: num),
+                                config.copyWith(marginLeft: val),
                               );
                         },
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: TextFormField(
-                        initialValue: config.marginRight.toString(),
-                        decoration: const InputDecoration(labelText: 'Right'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: config.marginRight,
+                        labelText: 'Right',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 0.0;
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(marginRight: num),
+                                config.copyWith(marginRight: val),
                               );
                         },
                       ),
@@ -206,28 +198,24 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
-                        initialValue: config.columnGap.toString(),
-                        decoration: const InputDecoration(labelText: 'Horizontal Gap'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: config.columnGap,
+                        labelText: 'Horizontal Gap',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 0.0;
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(columnGap: num),
+                                config.copyWith(columnGap: val),
                               );
                         },
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextFormField(
-                        initialValue: config.rowGap.toString(),
-                        decoration: const InputDecoration(labelText: 'Vertical Gap'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      child: SetupNumberField(
+                        value: config.rowGap,
+                        labelText: 'Vertical Gap',
                         onChanged: (val) {
-                          final num = double.tryParse(val) ?? 0.0;
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(rowGap: num),
+                                config.copyWith(rowGap: val),
                               );
                         },
                       ),

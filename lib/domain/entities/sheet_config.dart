@@ -2,7 +2,8 @@ import 'package:equatable/equatable.dart';
 
 class SheetConfig extends Equatable {
   const SheetConfig({
-    required this.pageSize,
+    required this.pageWidth,
+    required this.pageHeight,
     required this.marginTop,
     required this.marginBottom,
     required this.marginLeft,
@@ -13,7 +14,8 @@ class SheetConfig extends Equatable {
     required this.rowGap,
   });
 
-  final String pageSize;          // e.g. "A4", "Letter", "Custom"
+  final double pageWidth;         // mm
+  final double pageHeight;        // mm
   final double marginTop;         // mm
   final double marginBottom;      // mm
   final double marginLeft;        // mm
@@ -25,7 +27,8 @@ class SheetConfig extends Equatable {
 
   @override
   List<Object?> get props => [
-        pageSize,
+        pageWidth,
+        pageHeight,
         marginTop,
         marginBottom,
         marginLeft,
@@ -37,7 +40,8 @@ class SheetConfig extends Equatable {
       ];
 
   SheetConfig copyWith({
-    String? pageSize,
+    double? pageWidth,
+    double? pageHeight,
     double? marginTop,
     double? marginBottom,
     double? marginLeft,
@@ -48,7 +52,8 @@ class SheetConfig extends Equatable {
     double? rowGap,
   }) {
     return SheetConfig(
-      pageSize: pageSize ?? this.pageSize,
+      pageWidth: pageWidth ?? this.pageWidth,
+      pageHeight: pageHeight ?? this.pageHeight,
       marginTop: marginTop ?? this.marginTop,
       marginBottom: marginBottom ?? this.marginBottom,
       marginLeft: marginLeft ?? this.marginLeft,

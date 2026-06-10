@@ -170,9 +170,6 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                                 desktop: 4,      // desktop/4k
                               ).value;
 
-                              // Include a "+" create template card at the end of the grid if on the last/only page
-                              final showAddCard = _currentPage == totalPages;
-
                               return GridView.builder(
                                 controller: scrollController,
                                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -181,12 +178,8 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                                   mainAxisSpacing: 16,
                                   childAspectRatio: 0.85,
                                 ),
-                                itemCount: paginatedTemplates.length + (showAddCard ? 1 : 0),
+                                itemCount: paginatedTemplates.length,
                                 itemBuilder: (context, index) {
-                                  if (index == paginatedTemplates.length) {
-                                    return _buildCreateNewDashedCard(context);
-                                  }
-
                                   final template = paginatedTemplates[index];
                                   return TemplateCard(
                                     template: template,
@@ -309,46 +302,6 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
             onPressed: () => _showCreateTemplateDialog(context),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCreateNewDashedCard(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return InkWell(
-      onTap: () => _showCreateTemplateDialog(context),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: colorScheme.primary.withValues(alpha: 0.4),
-            width: 2,
-          ),
-          color: colorScheme.primary.withValues(alpha: 0.02),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.add_circle_outline,
-                size: 48,
-                color: colorScheme.primary,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Create New Template',
-                style: textTheme.titleSmall?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

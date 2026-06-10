@@ -25,6 +25,9 @@ class StickerSetupEditing extends StickerSetupState {
     required this.paddingBottom,
     required this.paddingLeft,
     required this.paddingRight,
+    this.isCustomPolygon = false,
+    required this.polygonPoints,
+    required this.polygonPointIds,
   });
 
   final double widthMm;
@@ -34,18 +37,23 @@ class StickerSetupEditing extends StickerSetupState {
   final double paddingBottom;
   final double paddingLeft;
   final double paddingRight;
+  final bool isCustomPolygon;
+  final List<StickerPoint> polygonPoints;
+  final List<String> polygonPointIds;
 
   StickerConfig toConfig() {
     return StickerConfig(
       widthMm: widthMm,
       heightMm: heightMm,
       cornerRadiusMm: cornerRadiusMm,
-      printableArea: [
-        StickerPoint(paddingLeft, paddingTop),
-        StickerPoint(widthMm - paddingRight, paddingTop),
-        StickerPoint(widthMm - paddingRight, heightMm - paddingBottom),
-        StickerPoint(paddingLeft, heightMm - paddingBottom),
-      ],
+      printableArea: isCustomPolygon
+          ? polygonPoints
+          : [
+              StickerPoint(paddingLeft, paddingTop),
+              StickerPoint(widthMm - paddingRight, paddingTop),
+              StickerPoint(widthMm - paddingRight, heightMm - paddingBottom),
+              StickerPoint(paddingLeft, heightMm - paddingBottom),
+            ],
     );
   }
 
@@ -58,6 +66,9 @@ class StickerSetupEditing extends StickerSetupState {
         paddingBottom,
         paddingLeft,
         paddingRight,
+        isCustomPolygon,
+        polygonPoints,
+        polygonPointIds,
       ];
 
   StickerSetupEditing copyWith({
@@ -68,6 +79,9 @@ class StickerSetupEditing extends StickerSetupState {
     double? paddingBottom,
     double? paddingLeft,
     double? paddingRight,
+    bool? isCustomPolygon,
+    List<StickerPoint>? polygonPoints,
+    List<String>? polygonPointIds,
   }) {
     return StickerSetupEditing(
       widthMm: widthMm ?? this.widthMm,
@@ -77,6 +91,9 @@ class StickerSetupEditing extends StickerSetupState {
       paddingBottom: paddingBottom ?? this.paddingBottom,
       paddingLeft: paddingLeft ?? this.paddingLeft,
       paddingRight: paddingRight ?? this.paddingRight,
+      isCustomPolygon: isCustomPolygon ?? this.isCustomPolygon,
+      polygonPoints: polygonPoints ?? this.polygonPoints,
+      polygonPointIds: polygonPointIds ?? this.polygonPointIds,
     );
   }
 }

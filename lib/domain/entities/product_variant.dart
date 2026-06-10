@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 class ProductVariant extends Equatable {
   const ProductVariant({
+    required this.name,
     required this.quantity,
     required this.unit,
     required this.wholesale,
@@ -9,14 +10,16 @@ class ProductVariant extends Equatable {
     required this.sku,
   });
 
+  final String name;        // e.g. '150g Pouch'
   final double quantity;
-  final String unit;       // e.g. ml, gm, kg, L, pcs
+  final String unit;        // e.g. ml, gm, kg, L, pcs
   final double wholesale;
   final double mrp;
-  final String sku;        // variant-level SKU
+  final String sku;         // variant-level SKU
 
   @override
   List<Object?> get props => [
+        name,
         quantity,
         unit,
         wholesale,

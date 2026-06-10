@@ -18,4 +18,10 @@ abstract interface class ProductRepository {
 
   /// Returns all products in the catalogue.
   Future<List<Product>> getAllProducts();
+
+  /// Saves (creates or updates) a product in the catalogue.
+  Future<void> saveProduct(Product product);
+
+  /// Deletes a product by its unique [id].
+  Future<void> deleteProduct(String id);
 }

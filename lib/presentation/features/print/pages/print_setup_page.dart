@@ -135,7 +135,7 @@ class _PrintSetupView extends StatelessWidget {
         if (state is PrintWorkflowLoaded || state is PrintWorkflowSubmitting) {
           final loadedState = state is PrintWorkflowLoaded
               ? state
-              : (context.read<PrintWorkflowCubit>().state as PrintWorkflowLoaded);
+              : (state as PrintWorkflowSubmitting).loadedState;
 
           final product = loadedState.product;
           final variant = loadedState.variant;

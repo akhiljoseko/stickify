@@ -68,7 +68,12 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
 }
 
 class PrintWorkflowSubmitting extends PrintWorkflowState {
-  const PrintWorkflowSubmitting();
+  const PrintWorkflowSubmitting({required this.loadedState});
+
+  final PrintWorkflowLoaded loadedState;
+
+  @override
+  List<Object?> get props => [loadedState];
 }
 
 class PrintWorkflowSuccess extends PrintWorkflowState {

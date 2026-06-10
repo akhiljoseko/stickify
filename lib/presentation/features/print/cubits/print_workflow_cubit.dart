@@ -103,7 +103,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         return;
       }
 
-      emit(const PrintWorkflowSubmitting());
+      emit(PrintWorkflowSubmitting(loadedState: s));
       try {
         await _printService.printLabels(
           product: s.product,

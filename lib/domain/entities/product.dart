@@ -1,4 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:stickify/domain/entities/ingredient.dart';
+import 'package:stickify/domain/entities/nutrition_facts.dart';
+import 'package:stickify/domain/entities/product_variant.dart';
 
 /// Represents the online/connectivity status of a printer station.
 enum StationStatus {
@@ -28,6 +31,12 @@ enum StationStatus {
 /// - [assignedStation] — The printer station currently assigned to this product.
 /// - [stationStatus] — Online/warning/offline state of the assigned station.
 /// - [category] — Optional product category for filtering.
+/// - [shelfLifeDays] — Optional shelf life in days.
+/// - [storageConditions] — Optional storage conditions description.
+/// - [imageUrl] — Optional product image URL or path.
+/// - [ingredients] — Ingredients list.
+/// - [nutritionFacts] — Optional nutrition facts.
+/// - [variants] — Variant-level products.
 class Product extends Equatable {
   const Product({
     required this.id,
@@ -38,6 +47,12 @@ class Product extends Equatable {
     required this.assignedStation,
     required this.stationStatus,
     this.category,
+    this.shelfLifeDays,
+    this.storageConditions,
+    this.imageUrl,
+    this.ingredients = const [],
+    this.nutritionFacts,
+    this.variants = const [],
   });
 
   /// Unique identifier for this product.
@@ -64,6 +79,24 @@ class Product extends Equatable {
   /// Optional product category (e.g., `'Beverages'`, `'Industrial'`).
   final String? category;
 
+  /// Optional shelf life in days.
+  final int? shelfLifeDays;
+
+  /// Optional storage conditions.
+  final String? storageConditions;
+
+  /// Optional image URL or asset path.
+  final String? imageUrl;
+
+  /// List of ingredients.
+  final List<Ingredient> ingredients;
+
+  /// Optional nutrition facts.
+  final NutritionFacts? nutritionFacts;
+
+  /// List of variants.
+  final List<ProductVariant> variants;
+
   @override
   List<Object?> get props => [
         id,
@@ -74,6 +107,12 @@ class Product extends Equatable {
         assignedStation,
         stationStatus,
         category,
+        shelfLifeDays,
+        storageConditions,
+        imageUrl,
+        ingredients,
+        nutritionFacts,
+        variants,
       ];
 
   /// Creates a copy of this [Product] with the given fields replaced.
@@ -86,6 +125,12 @@ class Product extends Equatable {
     String? assignedStation,
     StationStatus? stationStatus,
     String? category,
+    int? shelfLifeDays,
+    String? storageConditions,
+    String? imageUrl,
+    List<Ingredient>? ingredients,
+    NutritionFacts? nutritionFacts,
+    List<ProductVariant>? variants,
   }) {
     return Product(
       id: id ?? this.id,
@@ -96,6 +141,12 @@ class Product extends Equatable {
       assignedStation: assignedStation ?? this.assignedStation,
       stationStatus: stationStatus ?? this.stationStatus,
       category: category ?? this.category,
+      shelfLifeDays: shelfLifeDays ?? this.shelfLifeDays,
+      storageConditions: storageConditions ?? this.storageConditions,
+      imageUrl: imageUrl ?? this.imageUrl,
+      ingredients: ingredients ?? this.ingredients,
+      nutritionFacts: nutritionFacts ?? this.nutritionFacts,
+      variants: variants ?? this.variants,
     );
   }
 }

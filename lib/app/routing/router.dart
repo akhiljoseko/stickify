@@ -4,6 +4,10 @@ import 'package:stickify/app/routing/app_shell.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/presentation/features/dashboard/pages/dashboard_screen.dart';
 import 'package:stickify/presentation/features/search/pages/search_screen.dart';
+import 'package:stickify/presentation/features/template_editor/label_editor/label_editor_screen.dart';
+import 'package:stickify/presentation/features/template_editor/preview/preview_screen.dart';
+import 'package:stickify/presentation/features/template_editor/sheet_config/sheet_config_screen.dart';
+import 'package:stickify/presentation/features/template_editor/sticker_setup/sticker_setup_screen.dart';
 import 'package:stickify/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:stickify/presentation/login/login_screen.dart';
 import 'package:stickify/presentation/products/product_details_screen.dart';
@@ -124,7 +128,15 @@ class ForgotPasswordRoute extends GoRouteData with $ForgotPasswordRoute {
     // Branch 2 — Template Management
     TypedStatefulShellBranch<TemplatesBranchData>(
       routes: [
-        TypedGoRoute<TemplateManagementRoute>(path: '/templates'),
+        TypedGoRoute<TemplateManagementRoute>(
+          path: '/templates',
+          routes: [
+            TypedGoRoute<SheetConfigRoute>(path: 'new/sheets'),
+            TypedGoRoute<StickerSetupRoute>(path: 'new/stickers'),
+            TypedGoRoute<LabelEditorRoute>(path: ':templateId/editor'),
+            TypedGoRoute<PreviewRoute>(path: ':templateId/preview'),
+          ],
+        ),
       ],
     ),
     // Branch 3 — Settings
@@ -259,6 +271,58 @@ class TemplateManagementRoute extends GoRouteData
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return const TemplateManagementScreen();
+  }
+}
+
+/// Route data for the Sheet Configuration screen.
+@immutable
+class SheetConfigRoute extends GoRouteData with $SheetConfigRoute {
+  const SheetConfigRoute({required this.templateId});
+
+  final String templateId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return SheetConfigScreen(templateId: templateId);
+  }
+}
+
+/// Route data for the Sticker Setup screen.
+@immutable
+class StickerSetupRoute extends GoRouteData with $StickerSetupRoute {
+  const StickerSetupRoute({required this.templateId});
+
+  final String templateId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return StickerSetupScreen(templateId: templateId);
+  }
+}
+
+/// Route data for the Label Editor / Designer screen.
+@immutable
+class LabelEditorRoute extends GoRouteData with $LabelEditorRoute {
+  const LabelEditorRoute({required this.templateId});
+
+  final String templateId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return LabelEditorScreen(templateId: templateId);
+  }
+}
+
+/// Route data for the Final Preview & Finalize screen.
+@immutable
+class PreviewRoute extends GoRouteData with $PreviewRoute {
+  const PreviewRoute({required this.templateId});
+
+  final String templateId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return PreviewScreen(templateId: templateId);
   }
 }
 

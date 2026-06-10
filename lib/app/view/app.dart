@@ -6,6 +6,9 @@ import 'package:stickify/app/routing/routing.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/core/utils/app_breakpoints.dart';
+import 'package:stickify/data/repositories/mock_product_repository.dart';
+import 'package:stickify/data/repositories/mock_template_repository.dart';
+import 'package:stickify/domain/domain.dart';
 import 'package:stickify/l10n/l10n.dart';
 
 /// Root application widget.
@@ -14,24 +17,31 @@ import 'package:stickify/l10n/l10n.dart';
 ///
 /// ```dart
 /// App
-/// └── BlocProvider<AuthCubit>   // provides auth state to the whole tree
-///     └── _AppView              // builds the router and MaterialApp
+/// └── MultiRepositoryProvider
+///     ├── RepositoryProvider<ProductRepository>
+///     └── RepositoryProvider<TemplateRepository>
+///         └── BlocProvider<AuthCubit>   // provides auth state to the whole tree
+///             └── _AppView              // builds the router and MaterialApp
 /// ```
-///
-/// The [AuthCubit] must be provided **above** [MaterialApp.router] so that:
-///   1. The `redirect` callback in [AppRouter.createRouter] can read the cubit
-///      synchronously via the injected reference.
-///   2. Screens (`LoginScreen`, `SettingsScreen`) can call
-///      `context.read<AuthCubit>()` to trigger login/logout.
 class App extends StatelessWidget {
   const App({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      // Create the AuthCubit once for the entire app lifetime.
-      create: (_) => AuthCubit(),
-      child: const _AppView(),
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<ProductRepository>(
+          create: (_) => const MockProductRepository(),
+        ),
+        RepositoryProvider<TemplateRepository>(
+          create: (_) => MockTemplateRepository(),
+        ),
+      ],
+      child: BlocProvider(
+        // Create the AuthCubit once for the entire app lifetime.
+        create: (_) => AuthCubit(),
+        child: const _AppView(),
+      ),
     );
   }
 }

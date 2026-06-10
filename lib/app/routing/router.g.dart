@@ -121,6 +121,24 @@ RouteBase get $appShellRouteData => StatefulShellRouteData.$route(
         GoRouteData.$route(
           path: '/templates',
           factory: $TemplateManagementRoute._fromState,
+          routes: [
+            GoRouteData.$route(
+              path: 'new/sheets',
+              factory: $SheetConfigRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: 'new/stickers',
+              factory: $StickerSetupRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: ':templateId/editor',
+              factory: $LabelEditorRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: ':templateId/preview',
+              factory: $PreviewRoute._fromState,
+            ),
+          ],
         ),
       ],
     ),
@@ -238,6 +256,108 @@ mixin $TemplateManagementRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/templates');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $SheetConfigRoute on GoRouteData {
+  static SheetConfigRoute _fromState(GoRouterState state) =>
+      SheetConfigRoute(templateId: state.uri.queryParameters['template-id']!);
+
+  SheetConfigRoute get _self => this as SheetConfigRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/templates/new/sheets',
+    queryParams: {'template-id': _self.templateId},
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $StickerSetupRoute on GoRouteData {
+  static StickerSetupRoute _fromState(GoRouterState state) =>
+      StickerSetupRoute(templateId: state.uri.queryParameters['template-id']!);
+
+  StickerSetupRoute get _self => this as StickerSetupRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/templates/new/stickers',
+    queryParams: {'template-id': _self.templateId},
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $LabelEditorRoute on GoRouteData {
+  static LabelEditorRoute _fromState(GoRouterState state) =>
+      LabelEditorRoute(templateId: state.pathParameters['templateId']!);
+
+  LabelEditorRoute get _self => this as LabelEditorRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/templates/${Uri.encodeComponent(_self.templateId)}/editor',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $PreviewRoute on GoRouteData {
+  static PreviewRoute _fromState(GoRouterState state) =>
+      PreviewRoute(templateId: state.pathParameters['templateId']!);
+
+  PreviewRoute get _self => this as PreviewRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/templates/${Uri.encodeComponent(_self.templateId)}/preview',
+  );
 
   @override
   void go(BuildContext context) => context.go(location);

@@ -1,0 +1,339 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/features/template_editor/core/element_renderer_registry.dart';
+import 'package:stickify/presentation/features/template_editor/preview/bloc/preview_cubit.dart';
+import 'package:stickify/presentation/features/template_editor/preview/bloc/preview_state.dart';
+import 'package:stickify/presentation/features/template_editor/widgets/wizard_step_indicator.dart';
+import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
+import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
+
+class PreviewScreen extends StatelessWidget {
+  const PreviewScreen({required this.templateId, super.key});
+
+  final String templateId;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => PreviewCubit(
+        context.read<TemplateRepository>(),
+        templateId,
+      )..loadPreview(),
+      child: const _PreviewView(),
+    );
+  }
+}
+
+class _PreviewView extends StatefulWidget {
+  const _PreviewView();
+
+  @override
+  State<_PreviewView> createState() => _PreviewViewState();
+}
+
+class _PreviewViewState extends State<_PreviewView> {
+  Product? _sampleProduct;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSampleProduct();
+  }
+
+  Future<void> _loadSampleProduct() async {
+    try {
+      final productRepository = context.read<ProductRepository>();
+      final products = await productRepository.getAllProducts();
+      if (products.isNotEmpty && mounted) {
+        setState(() {
+          _sampleProduct = products.first;
+        });
+      }
+    } catch (_) {
+      // Fallback sample product
+      if (mounted) {
+        setState(() {
+          _sampleProduct = Product(
+            id: 'prod-001',
+            name: 'Organic Cold Brew 12oz',
+            sku: 'BEV-CB-ORG-12',
+            totalPrints: 1240,
+            lastPrintedAt: DateTime.now(),
+            assignedStation: 'Station #02',
+            stationStatus: StationStatus.online,
+            category: 'Beverages',
+            shelfLifeDays: 90,
+            storageConditions: 'Keep refrigerated below 5°C',
+          );
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return BlocConsumer<PreviewCubit, PreviewState>(
+      listener: (context, state) {
+        if (state is PreviewFinalized) {
+          // Success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Template saved and finalized!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Return to home management list
+          const TemplateManagementRoute().go(context);
+        }
+        if (state is PreviewError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: colorScheme.error,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        if (state is PreviewLoading || state is PreviewFinalizing) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state is PreviewLoaded) {
+          final template = state.template;
+          final sticker = template.stickerConfig ??
+              const StickerConfig(widthMm: 100, heightMm: 60, cornerRadiusMm: 4, printableArea: []);
+          final sheets = template.sheetConfig ??
+              const SheetConfig(pageSize: 'A4', marginTop: 10, marginBottom: 10, marginLeft: 10, marginRight: 10, columns: 2, rows: 4, columnGap: 5, rowGap: 5);
+
+          // Convert sticker dimensions to pixels (1mm = 4px)
+          const mmToPx = 4;
+          final boardWidth = sticker.widthMm * mmToPx;
+          final boardHeight = sticker.heightMm * mmToPx;
+
+          // Compute printable bounds coordinates
+          final tl = sticker.printableArea.isNotEmpty ? sticker.printableArea[0] : const StickerPoint(4, 4);
+          final br = sticker.printableArea.length > 2
+              ? sticker.printableArea[2]
+              : StickerPoint(sticker.widthMm - 4.0, sticker.heightMm - 4.0);
+
+          final safeLeft = tl.x * mmToPx;
+          final safeTop = tl.y * mmToPx;
+          final safeWidth = (br.x - tl.x) * mmToPx;
+          final safeHeight = (br.y - tl.y) * mmToPx;
+
+          final previewBoard = Center(
+            child: Container(
+              width: boardWidth,
+              height: boardHeight,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(sticker.cornerRadiusMm * mmToPx),
+                border: Border.all(color: colorScheme.outlineVariant, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 16,
+                    offset: Offset(0, 4),
+                  )
+                ],
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Safe Area dashed guide lines
+                  if (safeWidth > 0 && safeHeight > 0)
+                    Positioned(
+                      left: safeLeft,
+                      top: safeTop,
+                      width: safeWidth,
+                      height: safeHeight,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.red.shade300.withValues(alpha: 0.3),
+                          ),
+                        ),
+                      ),
+                    ),
+                  
+                  // Rendered elements
+                  ...template.elements.map((bp) {
+                    final width = bp.width;
+                    final height = bp.height;
+                    final left = bp.x;
+                    final top = bp.y;
+
+                    final renderedChild = ElementRendererRegistry.forBlueprint(bp)
+                        .render(context, bp, product: _sampleProduct);
+
+                    return Positioned(
+                      left: left,
+                      top: top,
+                      width: width,
+                      height: height,
+                      child: Transform.rotate(
+                        angle: bp.rotation * (3.141592653589793 / 180),
+                        child: SizedBox(
+                          width: width,
+                          height: height,
+                          child: renderedChild,
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          );
+
+          final sidebar = Container(
+            width: 320,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
+              border: Border(
+                left: BorderSide(color: colorScheme.outlineVariant),
+              ),
+            ),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Template Summary',
+                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+                
+                _buildSummaryItem(textTheme, colorScheme, 'Name', template.name),
+                _buildSummaryItem(
+                  textTheme,
+                  colorScheme,
+                  'Page Layout',
+                  '${sheets.pageSize} (${sheets.columns} × ${sheets.rows} grid)',
+                ),
+                _buildSummaryItem(
+                  textTheme,
+                  colorScheme,
+                  'Sticker Dimensions',
+                  '${sticker.widthMm.toStringAsFixed(1)} × ${sticker.heightMm.toStringAsFixed(1)} mm',
+                ),
+                _buildSummaryItem(
+                  textTheme,
+                  colorScheme,
+                  'Elements Count',
+                  '${template.elements.length} placed objects',
+                ),
+                
+                const Spacer(),
+                const Divider(),
+                const SizedBox(height: 16),
+                
+                // Finalize Action
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    onPressed: () => context.read<PreviewCubit>().finalizeAndSave(),
+                    child: const Text('Save & Finalize'),
+                  ),
+                ),
+              ],
+            ),
+          );
+
+          return Scaffold(
+            backgroundColor: colorScheme.surface,
+            appBar: AppBar(
+              title: const Text('Final Label Preview'),
+              bottom: const PreferredSize(
+                preferredSize: Size.fromHeight(60),
+                child: WizardStepIndicator(currentStep: 4),
+              ),
+            ),
+            body: Column(
+              children: [
+                Expanded(
+                  child: AdaptiveLayoutSwitcher(
+                    mobile: AdaptiveScrollWrapper(
+                      builder: (context, controller) => SingleChildScrollView(
+                        controller: controller,
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          children: [
+                            SizedBox(height: boardHeight + 64, child: previewBoard),
+                            const SizedBox(height: 24),
+                            sidebar,
+                          ],
+                        ),
+                      ),
+                    ),
+                    desktop: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          flex: 7,
+                          child: ColoredBox(
+                            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+                            child: previewBoard,
+                          ),
+                        ),
+                        const VerticalDivider(width: 1, thickness: 1),
+                        sidebar,
+                      ],
+                    ),
+                  ),
+                ),
+                
+                // Footer (Mobile specific fallback actions if sidebar goes off screen)
+                // Note: Standard desktop does all controls in sidebar
+              ],
+            ),
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _buildSummaryItem(
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+    String label,
+    String value,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

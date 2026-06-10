@@ -26,3 +26,4 @@ export 'repositories/print_job_repository.dart';
 export 'repositories/product_repository.dart';
 export 'repositories/search_repository.dart';
 export 'repositories/template_repository.dart';
+export 'services/print_service.dart';

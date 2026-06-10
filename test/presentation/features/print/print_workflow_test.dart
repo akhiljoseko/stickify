@@ -12,6 +12,7 @@ import '../../../helpers/pump_app.dart';
 class MockProductRepository extends Mock implements ProductRepository {}
 class MockTemplateRepository extends Mock implements TemplateRepository {}
 class MockPrintJobRepository extends Mock implements PrintJobRepository {}
+class MockPrintService extends Mock implements PrintService {}
 
 void main() {
   setUpAll(() {
@@ -26,11 +27,41 @@ void main() {
         labelCount: 1,
       ),
     );
+    registerFallbackValue(
+      Product(
+        id: 'fallback-prod',
+        name: 'Fallback',
+        sku: 'SKU',
+        totalPrints: 0,
+        lastPrintedAt: DateTime(2026),
+        assignedStation: '',
+        stationStatus: StationStatus.offline,
+        variants: [],
+      ),
+    );
+    registerFallbackValue(
+      ProductVariant(
+        name: 'Fallback',
+        quantity: 0,
+        unit: '',
+        wholesale: 0,
+        mrp: 0,
+        sku: 'SKU',
+      ),
+    );
+    registerFallbackValue(
+      LabelTemplate(
+        id: 'fallback-temp',
+        name: 'Fallback',
+        elements: [],
+      ),
+    );
   });
 
   late ProductRepository productRepository;
   late TemplateRepository templateRepository;
   late PrintJobRepository printJobRepository;
+  late PrintService printService;
 
   final testProduct = Product(
     id: 'prod-test',
@@ -137,6 +168,7 @@ void main() {
       productRepository = MockProductRepository();
       templateRepository = MockTemplateRepository();
       printJobRepository = MockPrintJobRepository();
+      printService = MockPrintService();
 
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => testProduct);
@@ -144,6 +176,14 @@ void main() {
           .thenAnswer((_) async => [testTemplate]);
       when(() => printJobRepository.savePrintJob(any()))
           .thenAnswer((_) async => {});
+      when(() => printService.printLabels(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printerName: any(named: 'printerName'),
+          )).thenAnswer((_) async => {});
     });
 
     test('loads workflow successfully and sets initial state', () async {
@@ -151,6 +191,7 @@ void main() {
         productRepository: productRepository,
         templateRepository: templateRepository,
         printJobRepository: printJobRepository,
+        printService: printService,
       );
 
       expect(cubit.state, const PrintWorkflowInitial());
@@ -171,6 +212,7 @@ void main() {
         productRepository: productRepository,
         templateRepository: templateRepository,
         printJobRepository: printJobRepository,
+        printService: printService,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -193,6 +235,7 @@ void main() {
         productRepository: productRepository,
         templateRepository: templateRepository,
         printJobRepository: printJobRepository,
+        printService: printService,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -200,6 +243,14 @@ void main() {
 
       expect(cubit.state, isA<PrintWorkflowSuccess>());
       verify(() => printJobRepository.savePrintJob(any())).called(1);
+      verify(() => printService.printLabels(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printerName: any(named: 'printerName'),
+          )).called(1);
     });
   });
 
@@ -208,11 +259,20 @@ void main() {
       productRepository = MockProductRepository();
       templateRepository = MockTemplateRepository();
       printJobRepository = MockPrintJobRepository();
+      printService = MockPrintService();
 
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => testProduct);
       when(() => templateRepository.fetchTemplates())
           .thenAnswer((_) async => [testTemplate]);
+      when(() => printService.printLabels(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printerName: any(named: 'printerName'),
+          )).thenAnswer((_) async => {});
     });
 
     Widget buildTestableWidget() {
@@ -221,6 +281,7 @@ void main() {
           RepositoryProvider.value(value: productRepository),
           RepositoryProvider.value(value: templateRepository),
           RepositoryProvider.value(value: printJobRepository),
+          RepositoryProvider.value(value: printService),
         ],
         child: const PrintSetupPage(
           productId: 'prod-test',

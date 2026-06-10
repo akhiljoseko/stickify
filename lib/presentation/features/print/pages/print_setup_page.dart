@@ -28,6 +28,7 @@ class PrintSetupPage extends StatelessWidget {
         productRepository: context.read<ProductRepository>(),
         templateRepository: context.read<TemplateRepository>(),
         printJobRepository: context.read<PrintJobRepository>(),
+        printService: context.read<PrintService>(),
       )..loadWorkflow(productId, variantSku, templateId),
       child: const _PrintSetupView(),
     );

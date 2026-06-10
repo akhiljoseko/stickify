@@ -7,6 +7,7 @@ import 'package:stickify/app/theme.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/core/utils/app_breakpoints.dart';
 import 'package:stickify/core/services/document_database.dart';
+import 'package:stickify/core/services/pdf_print_service.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_template_repository.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
@@ -42,6 +43,7 @@ class _AppState extends State<App> {
   late final TemplateRepository _templateRepository;
   late final PrintJobRepository _printJobRepository;
   late final SearchRepository _searchRepository;
+  late final PrintService _printService;
 
   @override
   void initState() {
@@ -54,6 +56,7 @@ class _AppState extends State<App> {
       productRepository: _productRepository,
       templateRepository: _templateRepository,
     );
+    _printService = const PdfPrintService();
   }
 
   @override
@@ -65,6 +68,7 @@ class _AppState extends State<App> {
         RepositoryProvider<TemplateRepository>.value(value: _templateRepository),
         RepositoryProvider<PrintJobRepository>.value(value: _printJobRepository),
         RepositoryProvider<SearchRepository>.value(value: _searchRepository),
+        RepositoryProvider<PrintService>.value(value: _printService),
       ],
       child: BlocProvider(
         // Create the AuthCubit once for the entire app lifetime.

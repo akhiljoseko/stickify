@@ -8,14 +8,17 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     required ProductRepository productRepository,
     required TemplateRepository templateRepository,
     required PrintJobRepository printJobRepository,
+    required PrintService printService,
   })  : _productRepo = productRepository,
         _templateRepo = templateRepository,
         _printJobRepo = printJobRepository,
+        _printService = printService,
         super(const PrintWorkflowInitial());
 
   final ProductRepository _productRepo;
   final TemplateRepository _templateRepo;
   final PrintJobRepository _printJobRepo;
+  final PrintService _printService;
 
   Future<void> loadWorkflow(String productId, String variantSku, [String? templateId]) async {
     emit(const PrintWorkflowLoading());
@@ -102,6 +105,15 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
 
       emit(const PrintWorkflowSubmitting());
       try {
+        await _printService.printLabels(
+          product: s.product,
+          variant: s.variant,
+          template: template,
+          quantity: s.quantity,
+          disabledSlots: s.disabledSlots,
+          printerName: s.selectedPrinter,
+        );
+
         final jobId = 'job-${DateTime.now().millisecondsSinceEpoch}';
         final job = PrintJob(
           id: jobId,

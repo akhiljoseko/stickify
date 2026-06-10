@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/core/utils/adaptive_value.dart';
-import 'package:stickify/data/data.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/search/cubits/search_cubit.dart';
 import 'package:stickify/presentation/features/search/cubits/search_state.dart';

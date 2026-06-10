@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/domain/domain.dart';
-import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
 class TemplateSelectionPage extends StatefulWidget {
@@ -20,8 +19,8 @@ class TemplateSelectionPage extends StatefulWidget {
 }
 
 class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
-  Product? _product;
-  ProductVariant? _variant;
+  late Product _product;
+  late ProductVariant _variant;
   List<LabelTemplate> _templates = [];
   String? _selectedTemplateId;
   bool _isLoading = true;
@@ -105,8 +104,8 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
       );
     }
 
-    final product = _product!;
-    final variant = _variant!;
+    final product = _product;
+    final variant = _variant;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -265,7 +264,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                                                           ? (sticker.widthMm / sticker.heightMm)
                                                           : 1.5,
                                                       child: Padding(
-                                                        padding: const EdgeInsets.all(8.0),
+                                                        padding: const EdgeInsets.all(8),
                                                         child: Column(
                                                           crossAxisAlignment: CrossAxisAlignment.start,
                                                           children: [

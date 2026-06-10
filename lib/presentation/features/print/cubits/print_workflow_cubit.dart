@@ -3,27 +3,39 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_state.dart';
 
+/// Cubit managing the multi-step printing workflow state.
+///
+/// Handles template selection, quantity updates, slot toggling (for reuse),
+/// and print job submission.
 class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
+  /// Creates a [PrintWorkflowCubit] with the necessary repositories and services.
   PrintWorkflowCubit({
-    required ProductRepository productRepository,
-    required TemplateRepository templateRepository,
-    required PrintJobRepository printJobRepository,
-    required PrintService printService,
-  })  : _productRepo = productRepository,
-        _templateRepo = templateRepository,
-        _printJobRepo = printJobRepository,
-        _printService = printService,
-        super(const PrintWorkflowInitial());
+    required this.productRepository,
+    required this.templateRepository,
+    required this.printJobRepository,
+    required this.printService,
+  }) : super(const PrintWorkflowInitial());
 
-  final ProductRepository _productRepo;
-  final TemplateRepository _templateRepo;
-  final PrintJobRepository _printJobRepo;
-  final PrintService _printService;
+  /// Repository providing product catalog records.
+  final ProductRepository productRepository;
 
+  /// Repository providing label templates.
+  final TemplateRepository templateRepository;
+
+  /// Repository tracking and saving print logs.
+  final PrintJobRepository printJobRepository;
+
+  /// Service dispatching compiled labels to physical printer hardware.
+  final PrintService printService;
+
+  /// Loads the initial metadata needed to configure the print job.
+  ///
+  /// Fetches [productId], locates the variant by [variantSku], and optionally
+  /// sets the initial active layout template by [templateId].
   Future<void> loadWorkflow(String productId, String variantSku, [String? templateId]) async {
     emit(const PrintWorkflowLoading());
     try {
-      final product = await _productRepo.getProductById(productId);
+      final product = await productRepository.getProductById(productId);
       if (product == null) {
         emit(const PrintWorkflowError(message: 'Product not found.'));
         return;
@@ -34,7 +46,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         orElse: () => throw Exception('Variant SKU $variantSku not found in product $productId.'),
       );
 
-      final templates = await _templateRepo.fetchTemplates();
+      final templates = await templateRepository.fetchTemplates();
 
       LabelTemplate? selected;
       if (templateId != null && templateId.isNotEmpty) {
@@ -57,6 +69,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     }
   }
 
+  /// Updates the active label template layout.
   void selectTemplate(LabelTemplate template) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
@@ -67,6 +80,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     }
   }
 
+  /// Updates the target label print quantity.
   void updateQuantity(int qty) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
@@ -74,6 +88,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     }
   }
 
+  /// Updates the selected destination printer.
   void updatePrinter(String printer) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
@@ -81,6 +96,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     }
   }
 
+  /// Toggles a specific slot index on the printing grid sheet.
+  ///
+  /// Toggled slots will be skipped/ignored during PDF page layout compilation.
   void toggleSlot(int absoluteSlotIndex) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
@@ -94,6 +112,10 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     }
   }
 
+  /// Compiles the dynamic layout and dispatches the print job.
+  ///
+  /// Generates the PDF, calls the system printer, and appends a record
+  /// to the printed job history repository.
   Future<void> startPrintJob() async {
     final s = state;
     if (s is PrintWorkflowLoaded) {
@@ -105,7 +127,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
 
       emit(PrintWorkflowSubmitting(loadedState: s));
       try {
-        await _printService.printLabels(
+        await printService.printLabels(
           product: s.product,
           variant: s.variant,
           template: template,
@@ -123,10 +145,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
           printerStation: s.selectedPrinter.split(' ').first, // station name prefix
           printedAt: DateTime.now(),
           labelCount: s.quantity,
-          isVerified: false,
         );
 
-        await _printJobRepo.savePrintJob(job);
+        await printJobRepository.savePrintJob(job);
         emit(PrintWorkflowSuccess(printJob: job));
       } on Object catch (e) {
         emit(PrintWorkflowError(message: e.toString()));

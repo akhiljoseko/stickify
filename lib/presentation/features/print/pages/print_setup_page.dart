@@ -41,8 +41,8 @@ class _PrintSetupView extends StatelessWidget {
   // Dynamic layout reflowing helper
   int _calculateTotalSheets(int qty, int slotsPerSheet, Set<int> disabledSlots) {
     if (qty <= 0) return 0;
-    int activePlaced = 0;
-    int currentSlot = 0;
+    var activePlaced = 0;
+    var currentSlot = 0;
     while (activePlaced < qty) {
       if (!disabledSlots.contains(currentSlot)) {
         activePlaced++;
@@ -57,8 +57,8 @@ class _PrintSetupView extends StatelessWidget {
   // Helper to resolve positions of active labels
   Set<int> _getActivePositions(int qty, Set<int> disabledSlots) {
     final active = <int>{};
-    int activePlaced = 0;
-    int currentSlot = 0;
+    var activePlaced = 0;
+    var currentSlot = 0;
     while (activePlaced < qty) {
       if (!disabledSlots.contains(currentSlot)) {
         active.add(currentSlot);
@@ -199,7 +199,7 @@ class _PrintSetupView extends StatelessWidget {
                    // Printer Selection
                   DropdownButtonFormField<String>(
                     isExpanded: true,
-                    value: loadedState.selectedPrinter,
+                    initialValue: loadedState.selectedPrinter,
                     decoration: const InputDecoration(
                       labelText: 'Printer Selection',
                       border: OutlineInputBorder(),
@@ -370,7 +370,7 @@ class _PrintSetupView extends StatelessWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: totalSheets,
-                separatorBuilder: (_, __) => const SizedBox(height: 24),
+                separatorBuilder: (context, index) => const SizedBox(height: 24),
                 itemBuilder: (context, sheetIndex) {
                   final disabledOnSheet = loadedState.disabledSlots
                       .where((s) => s >= sheetIndex * slotsPerSheet && s < (sheetIndex + 1) * slotsPerSheet)
@@ -399,8 +399,8 @@ class _PrintSetupView extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: disabledOnSheet > 0
-                                      ? colorScheme.errorContainer.withOpacity(0.3)
-                                      : colorScheme.tertiaryContainer.withOpacity(0.3),
+                                      ? colorScheme.errorContainer.withValues(alpha: 0.3)
+                                      : colorScheme.tertiaryContainer.withValues(alpha: 0.3),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -460,7 +460,7 @@ class _PrintSetupView extends StatelessWidget {
                                               child: Container(
                                                 decoration: BoxDecoration(
                                                   color: colorScheme.surfaceContainerLow,
-                                                  border: Border.all(color: colorScheme.outlineVariant, style: BorderStyle.solid),
+                                                  border: Border.all(color: colorScheme.outlineVariant),
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
                                                 child: const Center(
@@ -481,7 +481,6 @@ class _PrintSetupView extends StatelessWidget {
                                                 child: ClipRRect(
                                                   borderRadius: BorderRadius.circular(3),
                                                   child: FittedBox(
-                                                    fit: BoxFit.contain,
                                                     child: SizedBox(
                                                       width: sticker.widthMm * 4,
                                                       height: sticker.heightMm * 4,
@@ -520,7 +519,7 @@ class _PrintSetupView extends StatelessWidget {
                                           // Unused/Empty slot at the end
                                           return Container(
                                             decoration: BoxDecoration(
-                                              border: Border.all(color: colorScheme.outlineVariant, style: BorderStyle.solid),
+                                              border: Border.all(color: colorScheme.outlineVariant),
                                               borderRadius: BorderRadius.circular(4),
                                             ),
                                             child: const Center(

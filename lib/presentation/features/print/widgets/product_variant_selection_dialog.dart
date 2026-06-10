@@ -124,7 +124,7 @@ class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionD
                               )
                             : ListView.separated(
                                 itemCount: _filteredProducts.length,
-                                separatorBuilder: (_, __) => Divider(
+                                separatorBuilder: (context, index) => Divider(
                                   height: 1,
                                   color: colorScheme.outlineVariant,
                                 ),
@@ -191,7 +191,7 @@ class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionD
                               )
                             : ListView.separated(
                                 itemCount: _selectedProduct!.variants.length,
-                                separatorBuilder: (_, __) => Divider(
+                                separatorBuilder: (context, index) => Divider(
                                   height: 1,
                                   color: colorScheme.outlineVariant,
                                 ),

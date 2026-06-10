@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:stickify/app/routing/app_shell.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/presentation/features/dashboard/pages/dashboard_screen.dart';
+import 'package:stickify/presentation/features/print/pages/print_setup_page.dart';
+import 'package:stickify/presentation/features/print/pages/template_selection_page.dart';
 import 'package:stickify/presentation/features/search/pages/search_screen.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/label_editor_screen.dart';
 import 'package:stickify/presentation/features/template_editor/preview/preview_screen.dart';
@@ -15,8 +17,6 @@ import 'package:stickify/presentation/products/product_management_screen.dart';
 import 'package:stickify/presentation/registration/register_screen.dart';
 import 'package:stickify/presentation/settings/settings_screen.dart';
 import 'package:stickify/presentation/template_management/template_management_screen.dart';
-import 'package:stickify/presentation/features/print/pages/print_setup_page.dart';
-import 'package:stickify/presentation/features/print/pages/template_selection_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PART DIRECTIVE

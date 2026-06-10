@@ -5,13 +5,13 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/routing/routing.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/auth/auth.dart';
-import 'package:stickify/core/utils/app_breakpoints.dart';
 import 'package:stickify/core/services/document_database.dart';
 import 'package:stickify/core/services/pdf_print_service.dart';
-import 'package:stickify/data/repositories/database_product_repository.dart';
-import 'package:stickify/data/repositories/database_template_repository.dart';
+import 'package:stickify/core/utils/app_breakpoints.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
+import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
+import 'package:stickify/data/repositories/database_template_repository.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/l10n/l10n.dart';
 

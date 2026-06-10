@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:stickify/presentation/widgets/global_header_bar.dart';
 import 'package:stickify/presentation/features/print/widgets/product_variant_selection_dialog.dart';
+import 'package:stickify/presentation/widgets/global_header_bar.dart';
 
 /// The active navigation destinations.
 class _NavDestination {

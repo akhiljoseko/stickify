@@ -373,7 +373,7 @@ class AlignmentGuidesPainter extends CustomPainter {
       // Vertical line
       final startY = p1.dy < p2.dy ? p1.dy : p2.dy;
       final endY = p1.dy < p2.dy ? p2.dy : p1.dy;
-      double y = startY;
+      var y = startY;
       while (y < endY) {
         final nextY = (y + dashLimit).clamp(startY, endY);
         canvas.drawLine(Offset(p1.dx, y), Offset(p1.dx, nextY), paint);

@@ -289,7 +289,7 @@ class _ProductCatalogDesktopTable extends StatelessWidget {
             decoration: BoxDecoration(
               color: colorScheme.containerLow,
               border: Border(
-                bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+                bottom: BorderSide(color: colorScheme.outlineVariant),
               ),
             ),
             child: Row(
@@ -584,7 +584,7 @@ class _HighDensityProductRowState extends State<_HighDensityProductRow> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: colorScheme.outlineVariant),
-                      color: colorScheme.surfaceVariant.withOpacity(0.2),
+                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
                     ),
                     child: Text(
                       widget.product.category ?? 'N/A',
@@ -620,32 +620,7 @@ class _HighDensityProductRowState extends State<_HighDensityProductRow> {
   }
 }
 
-class _StatusDot extends StatelessWidget {
-  const _StatusDot({required this.status});
 
-  final StationStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    Color color;
-    switch (status) {
-      case StationStatus.online:
-        color = const Color(0xFF10B981);
-      case StationStatus.warning:
-        color = const Color(0xFFF59E0B);
-      case StationStatus.offline:
-        color = const Color(0xFFEF4444);
-    }
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
-    );
-  }
-}
 
 class _ProductFormView extends StatefulWidget {
   const _ProductFormView({
@@ -696,7 +671,7 @@ class _ProductFormViewState extends State<_ProductFormView> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
         _imageUrlController.text = image.path;
@@ -716,7 +691,7 @@ class _ProductFormViewState extends State<_ProductFormView> {
     _storageController = TextEditingController(text: p?.storageConditions ?? '')..addListener(_rebuild);
     _imageUrlController = TextEditingController(text: p?.imageUrl ?? '')..addListener(_rebuild);
 
-    String previousSku = _skuController.text;
+    var previousSku = _skuController.text;
     _skuController.addListener(() {
       final currentSku = _skuController.text;
       if (_varSkuController.text.isEmpty || _varSkuController.text == previousSku) {
@@ -937,7 +912,7 @@ class _ProductFormViewState extends State<_ProductFormView> {
                 decoration: BoxDecoration(
                   border: Border.all(color: colorScheme.outlineVariant),
                   borderRadius: BorderRadius.circular(8),
-                  color: colorScheme.surfaceVariant.withOpacity(0.1),
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
                 ),
                 child: _imageUrlController.text.isNotEmpty
                     ? Stack(
@@ -955,7 +930,7 @@ class _ProductFormViewState extends State<_ProductFormView> {
                             right: 8,
                             top: 8,
                             child: CircleAvatar(
-                              backgroundColor: colorScheme.surface.withOpacity(0.8),
+                              backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
                               radius: 16,
                               child: IconButton(
                                 icon: Icon(Icons.close, size: 16, color: colorScheme.error),
@@ -1398,293 +1373,7 @@ class _ProductFormViewState extends State<_ProductFormView> {
   }
 }
 
-class _ProductLivePreviewCard extends StatelessWidget {
-  const _ProductLivePreviewCard({
-    required this.name,
-    required this.sku,
-    required this.category,
-    required this.storage,
-    required this.shelfLife,
-    required this.ingredients,
-    required this.variants,
-    required this.includeNutrition,
-    required this.calories,
-    required this.protein,
-    required this.fat,
-    required this.saturatedFat,
-    required this.carbs,
-    required this.fiber,
-    required this.imageUrl,
-  });
 
-  final String name;
-  final String sku;
-  final String category;
-  final String storage;
-  final int shelfLife;
-  final List<Ingredient> ingredients;
-  final List<ProductVariant> variants;
-  final bool includeNutrition;
-  final double calories;
-  final double protein;
-  final double fat;
-  final double saturatedFat;
-  final double carbs;
-  final double fiber;
-  final String imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: colorScheme.primaryContainer, width: 2),
-      ),
-      child: Container(
-        width: 340,
-        decoration: BoxDecoration(
-          color: colorScheme.containerLowest,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(10),
-                  topRight: Radius.circular(10),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'LIVE PRINT PREVIEW',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onPrimary,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  Icon(Icons.sync_alt, color: colorScheme.onPrimary, size: 16),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: 140,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: colorScheme.containerLow,
-                      borderRadius: BorderRadius.circular(6),
-                      image: imageUrl.isNotEmpty
-                          ? DecorationImage(
-                              image: getImageProvider(imageUrl),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
-                    ),
-                    child: imageUrl.isEmpty
-                        ? Center(
-                            child: Icon(
-                              Icons.image_outlined,
-                              size: 48,
-                              color: colorScheme.outline,
-                            ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: colorScheme.container,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          category.toUpperCase(),
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.primary,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        'Life: ${shelfLife}d',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    name.isNotEmpty ? name : 'Product Name Placeholder',
-                    style: textTheme.headlineMedium?.copyWith(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  _BarcodeWidget(sku: sku),
-                  const SizedBox(height: 16),
-
-                  if (storage.isNotEmpty) ...[
-                    Text(
-                      'STORAGE INSTRUCTIONS',
-                      style: textTheme.labelSmall?.copyWith(color: colorScheme.outline),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(storage, style: textTheme.bodySmall),
-                    const SizedBox(height: 12),
-                  ],
-
-                  if (ingredients.isNotEmpty) ...[
-                    Text(
-                      'INGREDIENTS',
-                      style: textTheme.labelSmall?.copyWith(color: colorScheme.outline),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      ingredients.map((i) => '${i.name} (${i.percentage}%)').join(', '),
-                      style: textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-
-                  if (includeNutrition) ...[
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: colorScheme.containerLow,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: colorScheme.outlineVariant),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'Nutrition Facts',
-                            style: textTheme.titleSmall?.copyWith(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const Divider(height: 10),
-                          _NutritionRow(label: 'Calories', value: '${calories.toStringAsFixed(0)} kcal'),
-                          _NutritionRow(label: 'Protein', value: '${protein.toStringAsFixed(1)} g'),
-                          _NutritionRow(label: 'Total Fat', value: '${fat.toStringAsFixed(1)} g'),
-                          _NutritionRow(label: 'Saturated Fat', value: '${saturatedFat.toStringAsFixed(1)} g'),
-                          _NutritionRow(label: 'Total Carbs', value: '${carbs.toStringAsFixed(1)} g'),
-                          _NutritionRow(label: 'Fiber', value: '${fiber.toStringAsFixed(1)} g'),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-
-                  if (variants.isNotEmpty) ...[
-                    Text(
-                      'AVAILABLE VARIANTS',
-                      style: textTheme.labelSmall?.copyWith(color: colorScheme.outline),
-                    ),
-                    const SizedBox(height: 4),
-                    Column(
-                      children: variants.map((v) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('${v.quantity} ${v.unit}', style: textTheme.bodySmall),
-                            Text('₹${v.wholesale} / ₹${v.mrp}', style: textTheme.bodySmall),
-                          ],
-                        ),
-                      )).toList(),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NutritionRow extends StatelessWidget {
-  const _NutritionRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
-          Text(value, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-}
-
-class _BarcodeWidget extends StatelessWidget {
-  const _BarcodeWidget({required this.sku});
-
-  final String sku;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final lines = [2, 1, 4, 2, 1, 3, 2, 1, 4, 1, 2, 3, 1, 2, 4, 1, 3, 2, 2, 1, 3];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: lines.map((w) => Container(
-            width: w.toDouble(),
-            height: 36,
-            color: colorScheme.onSurface,
-            margin: const EdgeInsets.symmetric(horizontal: 0.5),
-          )).toList(),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          sku.isNotEmpty ? sku : 'SKU-PLACEHOLDER',
-          style: theme.textTheme.labelSmall?.copyWith(
-            fontFamily: 'JetBrains Mono',
-            letterSpacing: 1.5,
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class _ProductDetailView extends StatelessWidget {
   const _ProductDetailView({
@@ -1796,7 +1485,7 @@ class _ProductDetailView extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer.withOpacity(0.3),
+                            color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -2093,9 +1782,9 @@ class _ProductDetailView extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: colorScheme.errorContainer.withOpacity(0.3),
+                  color: colorScheme.errorContainer.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: colorScheme.error.withOpacity(0.2)),
+                  border: Border.all(color: colorScheme.error.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

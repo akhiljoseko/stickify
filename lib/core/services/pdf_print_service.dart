@@ -1,14 +1,21 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
+
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:stickify/domain/domain.dart';
 import 'package:stickify/core/services/pdf/pdf_element_renderer_registry.dart';
+import 'package:stickify/domain/domain.dart';
 
 /// Concrete implementation of [PrintService] using the `pdf` and `printing` packages.
+///
+/// This service coordinates the rendering of structured sticker layouts on print sheets,
+/// offloading PDF document generation to a background Dart Isolate to keep the main
+/// application UI thread completely responsive during physical printing.
 class PdfPrintService implements PrintService {
+  /// Instantiates a new [PdfPrintService].
   const PdfPrintService();
 
   @override
@@ -55,7 +62,9 @@ class PdfPrintService implements PrintService {
             if (file.existsSync()) {
               imageCache[bp.localFilePath!] = file.readAsBytesSync();
             }
-          } catch (_) {}
+          } on FileSystemException catch (_) {
+            // Safe fallback if local file access fails
+          }
         } else if (bp.networkUrl != null && bp.networkUrl!.isNotEmpty) {
           final bytes = await _fetchNetworkImage(bp.networkUrl!);
           if (bytes != null) {
@@ -65,13 +74,16 @@ class PdfPrintService implements PrintService {
           try {
             final data = await rootBundle.load(bp.assetPath!);
             imageCache[bp.assetPath!] = data.buffer.asUint8List();
-          } catch (_) {}
+          } on FlutterError catch (_) {
+            // Safe fallback if Flutter asset load fails
+          }
         }
       }
     }
     return imageCache;
   }
 
+  /// Fetches a network image's bytes using HttpClient.
   Future<Uint8List?> _fetchNetworkImage(String url) async {
     try {
       final client = HttpClient();
@@ -79,12 +91,12 @@ class PdfPrintService implements PrintService {
       final response = await request.close();
       if (response.statusCode == 200) {
         final builder = BytesBuilder();
-        await for (final chunk in response) {
-          builder.add(chunk);
-        }
+        await response.forEach(builder.add);
         return builder.takeBytes();
       }
-    } catch (_) {}
+    } on HttpException catch (_) {
+      // Safe fallback if connection fails
+    }
     return null;
   }
 
@@ -119,7 +131,7 @@ class PdfPrintService implements PrintService {
     final activePositions = _getActivePositions(input.quantity, input.disabledSlots);
 
     // Build the template elements ONCE to optimize generation and prevent duplicate tree instantiation
-    final List<pw.Widget> cachedStickerElements = [];
+    final cachedStickerElements = <pw.Widget>[];
     for (final bp in input.template.elements) {
       final renderer = PdfElementRendererRegistry.getRenderer(bp);
       final childWidget = renderer.render(bp, input.product, input.variant, input.imageCache);
@@ -141,13 +153,13 @@ class PdfPrintService implements PrintService {
     }
 
     // Build pages
-    for (int sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
-      final List<pw.Widget> rowsList = [];
+    for (var sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
+      final rowsList = <pw.Widget>[];
 
-      for (int r = 0; r < sheetConfig.rows; r++) {
-        final List<pw.Widget> rowCells = [];
+      for (var r = 0; r < sheetConfig.rows; r++) {
+        final rowCells = <pw.Widget>[];
 
-        for (int c = 0; c < sheetConfig.columns; c++) {
+        for (var c = 0; c < sheetConfig.columns; c++) {
           final cellIndex = r * sheetConfig.columns + c;
           final absIndex = sheetIndex * slotsPerSheet + cellIndex;
           final isActive = activePositions.contains(absIndex);
@@ -165,7 +177,6 @@ class PdfPrintService implements PrintService {
                 horizontalRadius: sticker.cornerRadiusMm,
                 verticalRadius: sticker.cornerRadiusMm,
                 child: pw.FittedBox(
-                  fit: pw.BoxFit.contain,
                   child: pw.SizedBox(
                     width: sticker.widthMm * 4,
                     height: sticker.heightMm * 4,
@@ -190,7 +201,6 @@ class PdfPrintService implements PrintService {
         }
 
         rowsList.add(pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.start,
           children: rowCells,
         ));
         if (r < sheetConfig.rows - 1) {
@@ -208,9 +218,8 @@ class PdfPrintService implements PrintService {
             marginLeft: sheetConfig.marginLeft * PdfPageFormat.mm,
             marginRight: sheetConfig.marginRight * PdfPageFormat.mm,
           ),
-          build: (pw.Context context) {
+          build: (context) {
             return pw.Column(
-              mainAxisAlignment: pw.MainAxisAlignment.start,
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: rowsList,
             );
@@ -222,10 +231,11 @@ class PdfPrintService implements PrintService {
     return doc.save();
   }
 
+  /// Calculates the total sheets required given the target quantity and disabled slot positions.
   static int _calculateTotalSheets(int qty, int slotsPerSheet, Set<int> disabledSlots) {
     if (qty <= 0) return 0;
-    int activePlaced = 0;
-    int currentSlot = 0;
+    var activePlaced = 0;
+    var currentSlot = 0;
     while (activePlaced < qty) {
       if (!disabledSlots.contains(currentSlot)) {
         activePlaced++;
@@ -237,10 +247,11 @@ class PdfPrintService implements PrintService {
     return (currentSlot / slotsPerSheet).floor() + 1;
   }
 
+  /// Returns a set of all active slot index positions that contain label stickers.
   static Set<int> _getActivePositions(int qty, Set<int> disabledSlots) {
     final active = <int>{};
-    int activePlaced = 0;
-    int currentSlot = 0;
+    var activePlaced = 0;
+    var currentSlot = 0;
     while (activePlaced < qty) {
       if (!disabledSlots.contains(currentSlot)) {
         active.add(currentSlot);

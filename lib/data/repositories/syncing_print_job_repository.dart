@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:stickify/core/services/document_database.dart';
+import 'package:stickify/core/services/auth_service.dart';
+import 'package:stickify/core/services/local_database.dart';
+import 'package:stickify/core/services/remote_database_service.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/firestore_print_job_repository.dart';
 import 'package:stickify/domain/entities/print_job.dart';
@@ -11,36 +11,34 @@ class SyncingPrintJobRepository implements PrintJobRepository {
   /// Creates a [SyncingPrintJobRepository] instance.
   SyncingPrintJobRepository({
     required DatabasePrintJobRepository local,
-    required FirebaseAuth auth,
-    required FirebaseFirestore firestore,
-    required DocumentDatabase localDatabase,
+    required AuthService auth,
+    required RemoteDatabaseService remoteDb,
+    required LocalDatabase localDatabase,
   })  : _local = local,
         _auth = auth,
-        _firestore = firestore,
+        _remoteDb = remoteDb,
         _localDb = localDatabase;
 
   final DatabasePrintJobRepository _local;
-  final FirebaseAuth _auth;
-  final FirebaseFirestore _firestore;
-  final DocumentDatabase _localDb;
+  final AuthService _auth;
+  final RemoteDatabaseService _remoteDb;
+  final LocalDatabase _localDb;
 
   FirestorePrintJobRepository? get _remote {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return null;
-    return FirestorePrintJobRepository(firestore: _firestore, userId: uid);
+    return FirestorePrintJobRepository(remoteDb: _remoteDb, userId: uid);
   }
 
   @override
   Future<void> savePrintJob(PrintJob job) async {
-    // 1. Write locally
     await _local.savePrintJob(job);
 
-    // 2. Automatically push to remote Firestore if logged in
     final remoteRepo = _remote;
     if (remoteRepo != null) {
       try {
         await remoteRepo.savePrintJob(job);
-      } catch (_) {
+      } on Object catch (_) {
         // Fallback
       }
     }
@@ -58,8 +56,8 @@ class SyncingPrintJobRepository implements PrintJobRepository {
 
   /// Pulls all print jobs from Firestore and overwrites the local cache.
   Future<void> sync(String uid) async {
-    final remoteRepo = FirestorePrintJobRepository(firestore: _firestore, userId: uid);
-    final remoteJobs = await remoteRepo.getRecentJobs(limit: 1000); // Fetch a large range to catch remote logs
+    final remoteRepo = FirestorePrintJobRepository(remoteDb: _remoteDb, userId: uid);
+    final remoteJobs = await remoteRepo.getRecentJobs(limit: 1000);
 
     // Clear local cache
     final localJobs = await _local.getRecentJobs(limit: 1000);
@@ -67,22 +65,9 @@ class SyncingPrintJobRepository implements PrintJobRepository {
       await _localDb.delete('print_jobs', j.id);
     }
 
-    // Overwrite local cache with remote logs
+    // Overwrite local cache with remote logs using DatabasePrintJobRepository save method
     for (final j in remoteJobs) {
-      await _localDb.save('print_jobs', j.id, _localJobToJson(j));
+      await _local.savePrintJob(j);
     }
-  }
-
-  Map<String, dynamic> _localJobToJson(PrintJob j) {
-    return {
-      'id': j.id,
-      'productName': j.productName,
-      'sku': j.sku,
-      'status': j.status.name,
-      'printerStation': j.printerStation,
-      'printedAt': j.printedAt.toIso8601String(),
-      'labelCount': j.labelCount,
-      'isVerified': j.isVerified,
-    };
   }
 }

@@ -3,7 +3,7 @@
 /// Decouples repositories from specific storage implementations (e.g. Hive, JSON files).
 abstract class LocalDatabase {
   /// Initializes the database engine.
-  Future<void> init();
+  Future<void> init([String? path]);
 
   /// Saves a document [data] mapped to [id] inside a [collection].
   Future<void> save<T>(String collection, String id, T data);

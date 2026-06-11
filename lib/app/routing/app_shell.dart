@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:stickify/presentation/widgets/adaptive_navigation_shell.dart';
+import 'package:stickify/presentation/navigation/adaptive_app_shell.dart';
 
 /// The root layout scaffold for authenticated users.
 ///
-/// Delegates layout rendering to the global [AdaptiveNavigationShell] component.
+/// Delegates layout rendering to the global [AdaptiveAppShell] component.
 class AppShell extends StatelessWidget {
   const AppShell({
     required this.navigationShell,
@@ -17,7 +17,7 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AdaptiveNavigationShell(
+    return AdaptiveAppShell(
       body: navigationShell,
       selectedIndex: navigationShell.currentIndex,
       onDestinationSelected: _onDestinationSelected,

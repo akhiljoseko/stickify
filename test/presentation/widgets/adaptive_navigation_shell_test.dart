@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stickify/presentation/widgets/adaptive_navigation_shell.dart';
+import 'package:stickify/presentation/navigation/adaptive_app_shell.dart';
 import 'package:stickify/presentation/widgets/global_header_bar.dart';
 
 import '../../helpers/helpers.dart';
 
 void main() {
-  group('AdaptiveNavigationShell', () {
+  group('AdaptiveAppShell', () {
     Widget buildShell({
       required Widget body,
       required int selectedIndex,
       required ValueChanged<int> onDestinationSelected,
     }) {
-      return AdaptiveNavigationShell(
+      return AdaptiveAppShell(
         body: body,
         selectedIndex: selectedIndex,
         onDestinationSelected: onDestinationSelected,

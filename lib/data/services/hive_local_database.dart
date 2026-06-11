@@ -20,39 +20,41 @@ class HiveLocalDatabase implements LocalDatabase {
     }
   }
 
-  Future<Box<T>> _getBox<T>(String name) async {
+  Future<Box<dynamic>> _getBox(String name) async {
     if (_openedBoxes.containsKey(name)) {
       final box = _openedBoxes[name];
       if (box != null && box.isOpen) {
-        return box as Box<T>;
+        return box;
       }
     }
-    final box = await Hive.openBox<T>(name);
+    final box = await Hive.openBox<dynamic>(name);
     _openedBoxes[name] = box;
     return box;
   }
 
   @override
   Future<void> save<T>(String collection, String id, T data) async {
-    final box = await _getBox<T>(collection);
+    final box = await _getBox(collection);
     await box.put(id, data);
   }
 
   @override
   Future<T?> get<T>(String collection, String id) async {
-    final box = await _getBox<T>(collection);
-    return box.get(id);
+    final box = await _getBox(collection);
+    final value = box.get(id);
+    if (value == null) return null;
+    return value as T;
   }
 
   @override
   Future<List<T>> getAll<T>(String collection) async {
-    final box = await _getBox<T>(collection);
-    return box.values.toList();
+    final box = await _getBox(collection);
+    return box.values.cast<T>().toList();
   }
 
   @override
   Future<void> delete(String collection, String id) async {
-    final box = await _getBox<dynamic>(collection);
+    final box = await _getBox(collection);
     await box.delete(id);
   }
 

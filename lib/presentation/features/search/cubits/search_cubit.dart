@@ -5,6 +5,7 @@ import 'package:stickify/presentation/features/search/cubits/search_state.dart';
 
 /// Cubit responsible for search queries, suggestions, and facet filtering.
 class SearchCubit extends Cubit<SearchState> {
+  /// Creates a [SearchCubit] instance.
   SearchCubit({required SearchRepository searchRepository})
       : _repository = searchRepository,
         super(const SearchInitial(

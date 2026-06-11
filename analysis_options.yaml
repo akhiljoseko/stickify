@@ -7,6 +7,7 @@ analyzer:
     lines_longer_than_80_chars: ignore
   exclude:
     - lib/l10n/gen/*
+    - build/**
 linter:
   rules:
     public_member_api_docs: false

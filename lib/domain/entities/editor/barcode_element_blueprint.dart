@@ -1,8 +1,17 @@
 import 'package:stickify/domain/entities/editor/element_blueprint.dart';
 
-enum BlueprintBarcodeType { code128, ean13 }
+/// Supported barcode types for rendering barcodes on labels.
+enum BlueprintBarcodeType {
+  /// Code 128 format barcode.
+  code128,
 
+  /// EAN-13 format barcode.
+  ean13,
+}
+
+/// A blueprint element representing a barcode in the label template.
 class BarcodeElementBlueprint extends ElementBlueprint {
+  /// Creates a [BarcodeElementBlueprint] configuration.
   const BarcodeElementBlueprint({
     required super.id,
     required super.x,
@@ -16,9 +25,16 @@ class BarcodeElementBlueprint extends ElementBlueprint {
     required this.showLabel,
   });
 
-  final String data;          // raw or token e.g. "{{product.sku}}"
+  /// Barcode raw data string or dynamic evaluation token, e.g. `{{product.sku}}`.
+  final String data;
+
+  /// True if [data] represents a dynamic token evaluated at print-time.
   final bool isDynamic;
+
+  /// Type encoding style of this barcode.
   final BlueprintBarcodeType barcodeType;
+
+  /// True if the human-readable text label should be displayed beneath the barcode.
   final bool showLabel;
 
   @override

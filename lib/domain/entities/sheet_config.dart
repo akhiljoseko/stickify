@@ -1,6 +1,11 @@
 import 'package:equatable/equatable.dart';
 
+/// Defines the dimensional layout configuration for a physical sheet of labels.
+///
+/// Contains parameters for the page sizes, outer margins, column/row count,
+/// and gaps between neighboring labels.
 class SheetConfig extends Equatable {
+  /// Creates a [SheetConfig] layout representation.
   const SheetConfig({
     required this.pageWidth,
     required this.pageHeight,
@@ -14,16 +19,35 @@ class SheetConfig extends Equatable {
     required this.rowGap,
   });
 
-  final double pageWidth;         // mm
-  final double pageHeight;        // mm
-  final double marginTop;         // mm
-  final double marginBottom;      // mm
-  final double marginLeft;        // mm
-  final double marginRight;       // mm
+  /// Width of the entire sheet page in millimeters (mm).
+  final double pageWidth;
+
+  /// Height of the entire sheet page in millimeters (mm).
+  final double pageHeight;
+
+  /// Outer margin from the top edge of the sheet to the first row of labels in mm.
+  final double marginTop;
+
+  /// Outer margin from the bottom edge of the sheet in mm.
+  final double marginBottom;
+
+  /// Outer margin from the left edge of the sheet to the first column of labels in mm.
+  final double marginLeft;
+
+  /// Outer margin from the right edge of the sheet in mm.
+  final double marginRight;
+
+  /// Number of sticker columns in the sheet grid.
   final int columns;
+
+  /// Number of sticker rows in the sheet grid.
   final int rows;
-  final double columnGap;         // mm
-  final double rowGap;            // mm
+
+  /// Gap distance between adjacent sticker columns in mm.
+  final double columnGap;
+
+  /// Gap distance between adjacent sticker rows in mm.
+  final double rowGap;
 
   @override
   List<Object?> get props => [
@@ -39,6 +63,7 @@ class SheetConfig extends Equatable {
         rowGap,
       ];
 
+  /// Creates a copy of this [SheetConfig] with the given fields replaced by new values.
   SheetConfig copyWith({
     double? pageWidth,
     double? pageHeight,

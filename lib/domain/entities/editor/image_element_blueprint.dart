@@ -1,8 +1,29 @@
 import 'package:stickify/domain/entities/editor/element_blueprint.dart';
 
-enum BlueprintBoxFit { fill, contain, cover, fitWidth, fitHeight, none }
+/// How an image should fit within its bounding box on the label canvas.
+enum BlueprintBoxFit {
+  /// Fill the target box completely.
+  fill,
 
+  /// Contain the image within the target box, preserving aspect ratio.
+  contain,
+
+  /// Cover the target box entirely, cropping if necessary.
+  cover,
+
+  /// Scale the image to fit the width.
+  fitWidth,
+
+  /// Scale the image to fit the height.
+  fitHeight,
+
+  /// Do not scale the image.
+  none,
+}
+
+/// A blueprint element representing an image in the label template.
 class ImageElementBlueprint extends ElementBlueprint {
+  /// Creates a [ImageElementBlueprint] configuration.
   const ImageElementBlueprint({
     required super.id,
     required super.x,
@@ -10,14 +31,22 @@ class ImageElementBlueprint extends ElementBlueprint {
     required super.width,
     required super.height,
     required super.rotation,
-    required this.fit, this.assetPath,
+    required this.fit,
+    this.assetPath,
     this.networkUrl,
-    this.localFilePath, // Added for local file picker source support
+    this.localFilePath,
   });
 
+  /// Optional path to a bundled flutter asset image.
   final String? assetPath;
+
+  /// Optional web URL to load the image remotely.
   final String? networkUrl;
+
+  /// Optional absolute path to a file stored locally on the device.
   final String? localFilePath;
+
+  /// Fit rule specifying how the image should resize inside the dimensions.
   final BlueprintBoxFit fit;
 
   @override

@@ -1,6 +1,8 @@
 import 'package:stickify/domain/entities/editor/element_blueprint.dart';
 
+/// A blueprint element representing a QR code in the label template.
 class QrElementBlueprint extends ElementBlueprint {
+  /// Creates a [QrElementBlueprint] configuration.
   const QrElementBlueprint({
     required super.id,
     required super.x,
@@ -12,7 +14,10 @@ class QrElementBlueprint extends ElementBlueprint {
     required this.isDynamic,
   });
 
-  final String data;          // raw or token e.g. "{{product.sku}}"
+  /// QR code raw data payload or evaluation token.
+  final String data;
+
+  /// True if [data] represents a dynamic token evaluated at print-time.
   final bool isDynamic;
 
   @override

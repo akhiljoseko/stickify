@@ -1,6 +1,8 @@
 import 'package:stickify/domain/entities/editor/element_blueprint.dart';
 
+/// A blueprint element representing a shape (e.g. rounded rectangle) in the label template.
 class ShapeElementBlueprint extends ElementBlueprint {
+  /// Creates a [ShapeElementBlueprint] configuration.
   const ShapeElementBlueprint({
     required super.id,
     required super.x,
@@ -15,10 +17,19 @@ class ShapeElementBlueprint extends ElementBlueprint {
     required this.isFilled,
   });
 
+  /// Fill color value of the shape in 32-bit ARGB hex integer format.
   final int fillColorHex;
+
+  /// Stroke border color value of the shape in 32-bit ARGB hex integer format.
   final int strokeColorHex;
+
+  /// Width of the stroke border in logical pixels.
   final double strokeWidth;
+
+  /// Corner radius of the shape in logical pixels (useful for drawing rounded rectangles).
   final double cornerRadius;
+
+  /// True if the shape should be drawn with a solid color fill.
   final bool isFilled;
 
   @override

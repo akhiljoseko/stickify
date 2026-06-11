@@ -1,6 +1,10 @@
 import 'package:equatable/equatable.dart';
 
+/// Represents a specific variant of a product.
+///
+/// Contains details about size/packaging, quantity, pricing (wholesale, MRP), and SKU.
 class ProductVariant extends Equatable {
+  /// Creates a [ProductVariant] instance.
   const ProductVariant({
     required this.name,
     required this.quantity,
@@ -10,12 +14,23 @@ class ProductVariant extends Equatable {
     required this.sku,
   });
 
-  final String name;        // e.g. '150g Pouch'
+  /// Name of the variant, e.g. '150g Pouch'.
+  final String name;
+
+  /// Numeric quantity for this variant.
   final double quantity;
-  final String unit;        // e.g. ml, gm, kg, L, pcs
+
+  /// Unit of measurement, e.g., 'ml', 'gm', 'kg', 'L', 'pcs'.
+  final String unit;
+
+  /// Wholesale price for this variant.
   final double wholesale;
+
+  /// Maximum Retail Price (MRP) for this variant.
   final double mrp;
-  final String sku;         // variant-level SKU
+
+  /// Unique Stock Keeping Unit (SKU) identifying this variant.
+  final String sku;
 
   @override
   List<Object?> get props => [

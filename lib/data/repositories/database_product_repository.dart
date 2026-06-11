@@ -44,4 +44,3 @@ class DatabaseProductRepository implements ProductRepository {
     await _db.delete(_collection, id);
   }
 }
-}

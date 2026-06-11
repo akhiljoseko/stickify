@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
+import 'package:stickify/core/services/auth_service.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/recent_print_jobs_cubit.dart';
@@ -26,7 +26,7 @@ class DashboardPage extends StatelessWidget {
             final cubit = RecentPrintJobsCubit(
               printJobRepository: blocContext.read<PrintJobRepository>(),
             );
-            unawaited(cubit.loadRecentJobs());
+            unawaited(cubit.loadRecentPrintJobs());
             return cubit;
           },
         ),
@@ -41,10 +41,10 @@ class DashboardPage extends StatelessWidget {
         ),
         BlocProvider(
           create: (blocContext) => SyncCubit(
-            productRepository: blocContext.read<ProductRepository>(),
-            templateRepository: blocContext.read<TemplateRepository>(),
-            printJobRepository: blocContext.read<PrintJobRepository>(),
-            auth: FirebaseAuth.instance,
+            productRepo: blocContext.read<ProductRepository>(),
+            templateRepo: blocContext.read<TemplateRepository>(),
+            printJobRepo: blocContext.read<PrintJobRepository>(),
+            auth: blocContext.read<AuthService>(),
           ),
         ),
       ],

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:stickify/domain/domain.dart';
 
+/// Sidebar palette displaying available label element types that can be dragged onto the canvas.
+///
+/// Contains preconfigured text fields, dynamic values, barcodes, and shapes.
 class ElementPalette extends StatelessWidget {
+  /// Creates an [ElementPalette] instance.
   const ElementPalette({super.key});
 
   @override

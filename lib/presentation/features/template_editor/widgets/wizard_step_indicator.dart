@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:stickify/core/utils/adaptive_value.dart';
 
+/// Visual wizard step indicator shown at the top of the template setup process.
+///
+/// Supports responsive scaling to adapt from small screens to larger viewports.
 class WizardStepIndicator extends StatelessWidget {
+  /// Creates a [WizardStepIndicator] instance.
   const WizardStepIndicator({
     required this.currentStep,
     super.key,
   });
 
-  /// 1: Sheet Config, 2: Sticker Setup, 3: Label Designer, 4: Final Preview
+  /// The active step index (1: Sheet Config, 2: Sticker Setup, 3: Label Designer, 4: Final Preview).
   final int currentStep;
 
   @override

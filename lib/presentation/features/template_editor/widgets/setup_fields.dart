@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+/// Input field for editing numerical values in the template configuration wizard.
+///
+/// Features focus-based state synchronization to avoid cursor jumps.
 class SetupNumberField extends StatefulWidget {
+  /// Creates a [SetupNumberField] instance.
   const SetupNumberField({
     required this.value,
     required this.onChanged,
@@ -12,12 +16,25 @@ class SetupNumberField extends StatefulWidget {
     super.key,
   });
 
+  /// The active numeric value.
   final double value;
+
+  /// Callback when the value has changed.
   final ValueChanged<double> onChanged;
+
+  /// Label display text for the text input.
   final String labelText;
+
+  /// Optional widget key string identifier.
   final String? keyString;
+
+  /// Whether the input allows fractional numbers.
   final bool isDecimal;
+
+  /// Input border decoration style.
   final InputBorder border;
+
+  /// Content padding decoration style.
   final EdgeInsetsGeometry? contentPadding;
 
   @override
@@ -103,7 +120,11 @@ class _SetupNumberFieldState extends State<SetupNumberField> {
   }
 }
 
+/// Input field for editing integer values in the template configuration wizard.
+///
+/// Features focus-based state synchronization to avoid cursor jumps.
 class SetupIntField extends StatefulWidget {
+  /// Creates a [SetupIntField] instance.
   const SetupIntField({
     required this.value,
     required this.onChanged,
@@ -112,9 +133,16 @@ class SetupIntField extends StatefulWidget {
     super.key,
   });
 
+  /// The active integer value.
   final int value;
+
+  /// Callback when the value has changed.
   final ValueChanged<int> onChanged;
+
+  /// Label display text for the text input.
   final String labelText;
+
+  /// Optional widget key string identifier.
   final String? keyString;
 
   @override

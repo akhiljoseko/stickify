@@ -7,7 +7,10 @@ import 'package:stickify/presentation/features/template_editor/renderers/qr_elem
 import 'package:stickify/presentation/features/template_editor/renderers/shape_element_renderer.dart';
 import 'package:stickify/presentation/features/template_editor/renderers/text_element_renderer.dart';
 
+/// Registry that maps an [ElementBlueprint] type to its corresponding UI [LabelElementRenderer].
 class ElementRendererRegistry {
+  ElementRendererRegistry._();
+
   static const _renderers = <Type, LabelElementRenderer>{
     TextElementBlueprint: TextElementRenderer(),
     BarcodeElementBlueprint: BarcodeElementRenderer(),

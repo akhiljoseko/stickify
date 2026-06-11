@@ -6,7 +6,11 @@ import 'package:stickify/presentation/features/template_editor/label_editor/bloc
 import 'package:stickify/presentation/features/template_editor/label_editor/widgets/canvas_element_widget.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/widgets/polygon_painter.dart';
 
+/// Interactive workspace area where label blueprint elements are manipulated.
+///
+/// Draws guideline boundaries and supports key event handlers for nudging elements.
 class EditorCanvas extends StatefulWidget {
+  /// Creates an [EditorCanvas] instance.
   const EditorCanvas({
     required this.stickerConfig,
     required this.elements,
@@ -16,10 +20,19 @@ class EditorCanvas extends StatefulWidget {
     super.key,
   });
 
+  /// The active dimensions and shape configurations.
   final StickerConfig stickerConfig;
+
+  /// Placed visual blueprint components on the canvas.
   final List<ElementBlueprint> elements;
+
+  /// The unique identifier of the currently selected element.
   final String? selectedElementId;
+
+  /// The current zoom level coefficient.
   final double zoomLevel;
+
+  /// Optional product entity to populate dynamic token values.
   final Product? product;
 
   @override

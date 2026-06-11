@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 
+/// Floating overlay widget showing controls to adjust the designer canvas zoom factor.
 class ZoomControls extends StatelessWidget {
+  /// Creates a [ZoomControls] instance.
   const ZoomControls({
     required this.zoomLevel,
     required this.onZoomChanged,
     super.key,
   });
 
+  /// The active zoom scaling level.
   final double zoomLevel;
+
+  /// Callback when the user changes the zoom level.
   final ValueChanged<double> onZoomChanged;
 
   @override

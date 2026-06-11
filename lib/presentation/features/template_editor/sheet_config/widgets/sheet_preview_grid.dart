@@ -2,9 +2,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:stickify/domain/domain.dart';
 
+/// Renders a dynamic visual preview of the sheet matrix grid in the editor setup wizard.
+///
+/// Draws page margin boundaries and individual sticker grids based on [config].
 class SheetPreviewGrid extends StatelessWidget {
+  /// Creates a [SheetPreviewGrid] instance.
   const SheetPreviewGrid({required this.config, super.key});
 
+  /// The active sheet page layout configuration parameters.
   final SheetConfig config;
 
   @override

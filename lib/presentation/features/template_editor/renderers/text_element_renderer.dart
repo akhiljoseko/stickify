@@ -2,9 +2,12 @@ import 'package:flutter/widgets.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/label_element_renderer.dart';
 
+/// Renders a [TextElementBlueprint] on the designer canvas.
 class TextElementRenderer implements LabelElementRenderer {
+  /// Creates a [TextElementRenderer] instance.
   const TextElementRenderer();
 
+  /// Utility to resolve dynamic metadata evaluation tokens (e.g. `{{product.name}}`, `{{variant.sku}}`) inside a [template] string.
   static String resolveToken(String template, Product? product, [ProductVariant? variant]) {
     var result = template;
     if (product != null) {

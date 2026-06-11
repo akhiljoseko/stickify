@@ -4,7 +4,12 @@ import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/element_renderer_registry.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
 
+/// Represents a single positioned component inside the designer canvas grid.
+///
+/// Wraps blueprint elements in gesture detectors for dragging and selection, and handles
+/// rendering and layout outline highlights.
 class CanvasElementWidget extends StatelessWidget {
+  /// Creates a [CanvasElementWidget] instance.
   const CanvasElementWidget({
     required this.blueprint,
     required this.isSelected,
@@ -14,10 +19,19 @@ class CanvasElementWidget extends StatelessWidget {
     super.key,
   });
 
+  /// The blueprint describing position, dimension, rotation and type.
   final ElementBlueprint blueprint;
+
+  /// Whether this specific element is currently selected on the canvas.
   final bool isSelected;
+
+  /// Callback when user taps/clicks on this element.
   final VoidCallback onTap;
+
+  /// Viewport zoom scaling factor.
   final double zoomLevel;
+
+  /// Optional product entity to populate dynamic token references.
   final Product? product;
 
   @override

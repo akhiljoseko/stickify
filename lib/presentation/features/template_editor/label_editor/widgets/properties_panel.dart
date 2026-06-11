@@ -4,7 +4,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
 
+/// Sidebar panel displaying detailed configuration inputs for the selected canvas element.
+///
+/// Features shape dimensions adjustments, text formats, dynamic tokens insertion, etc.
 class PropertiesPanel extends StatelessWidget {
+  /// Creates a [PropertiesPanel] instance.
   const PropertiesPanel({
     required this.selectedElement,
     required this.onBack,
@@ -12,8 +16,13 @@ class PropertiesPanel extends StatelessWidget {
     super.key,
   });
 
+  /// The active selected element blueprint.
   final ElementBlueprint? selectedElement;
+
+  /// Callback when user hits back button.
   final VoidCallback onBack;
+
+  /// Callback when user hits next button.
   final VoidCallback onNext;
 
   @override
@@ -365,7 +374,9 @@ class PropertiesPanel extends StatelessWidget {
   }
 }
 
+/// Input text field displaying coordinates or sizes that update in real time.
 class RealTimeNumberField extends StatefulWidget {
+  /// Creates a [RealTimeNumberField] instance.
   const RealTimeNumberField({
     required this.label,
     required this.value,
@@ -373,8 +384,13 @@ class RealTimeNumberField extends StatefulWidget {
     super.key,
   });
 
+  /// The label display text.
   final String label;
+
+  /// The active double value.
   final double value;
+
+  /// Callback when the value is updated.
   final ValueChanged<double> onChanged;
 
   @override
@@ -427,7 +443,9 @@ class _RealTimeNumberFieldState extends State<RealTimeNumberField> {
   }
 }
 
+/// Widget providing property configuration controls specific to text elements.
 class TextPropertiesWidget extends StatefulWidget {
+  /// Creates a [TextPropertiesWidget] instance.
   const TextPropertiesWidget({
     required this.blueprint,
     required this.cubit,
@@ -678,7 +696,9 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
   }
 }
 
+/// Widget providing property configuration controls specific to barcode elements.
 class BarcodePropertiesWidget extends StatefulWidget {
+  /// Creates a [BarcodePropertiesWidget] instance.
   const BarcodePropertiesWidget({
     required this.blueprint,
     required this.cubit,
@@ -849,7 +869,9 @@ class _BarcodePropertiesWidgetState extends State<BarcodePropertiesWidget> {
   }
 }
 
+/// Widget providing property configuration controls specific to QR elements.
 class QrPropertiesWidget extends StatefulWidget {
+  /// Creates a [QrPropertiesWidget] instance.
   const QrPropertiesWidget({
     required this.blueprint,
     required this.cubit,

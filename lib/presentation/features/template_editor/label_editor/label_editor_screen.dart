@@ -11,9 +11,15 @@ import 'package:stickify/presentation/features/template_editor/label_editor/widg
 import 'package:stickify/presentation/features/template_editor/widgets/wizard_step_indicator.dart';
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 
+/// Screen presenting the drag-and-drop label designer canvas.
+///
+/// Integrates the [ElementPalette] to select components, a live canvas for positioning,
+/// and the [PropertiesPanel] for detail modifications.
 class LabelEditorScreen extends StatelessWidget {
+  /// Creates a [LabelEditorScreen] instance.
   const LabelEditorScreen({required this.templateId, super.key});
 
+  /// The unique identifier of the template being designed.
   final String templateId;
 
   @override

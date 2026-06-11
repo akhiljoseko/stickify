@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:stickify/domain/domain.dart';
 
+/// A custom painter that draws a closed polygon outline defined by a set of [StickerPoint]s.
+///
+/// Used in the sticker template designer view to outline the printable area boundary.
 class PolygonPainter extends CustomPainter {
+  /// Creates a [PolygonPainter] instance.
   const PolygonPainter({
     required this.points,
     required this.scale,
@@ -11,11 +15,22 @@ class PolygonPainter extends CustomPainter {
     this.markerColor = Colors.blue,
   });
 
+  /// The list of [StickerPoint] vertices.
   final List<StickerPoint> points;
+
+  /// Layout scale factor from millimeters (mm) to screen logical pixels.
   final double scale;
+
+  /// Outline border stroke color.
   final Color color;
+
+  /// Outline border stroke width.
   final double strokeWidth;
+
+  /// True if draggable numeric vertex markers should be painted.
   final bool showMarkers;
+
+  /// Marker circle color.
   final Color markerColor;
 
   @override

@@ -1,22 +1,30 @@
 import 'package:equatable/equatable.dart';
 import 'package:stickify/domain/domain.dart';
 
+/// Base state for the sticker layout outline setup editor.
 sealed class StickerSetupState extends Equatable {
+  /// Base constructor.
   const StickerSetupState();
 
   @override
   List<Object?> get props => [];
 }
 
+/// Initial state of the sticker setup view.
 class StickerSetupInitial extends StickerSetupState {
+  /// Creates a [StickerSetupInitial] state.
   const StickerSetupInitial();
 }
 
+/// Loading state indicating data retrieval/initialization is active.
 class StickerSetupLoading extends StickerSetupState {
+  /// Creates a [StickerSetupLoading] state.
   const StickerSetupLoading();
 }
 
+/// Active editing state containing the dimensions, margin padding, and polygon vertices defining the sticker contour.
 class StickerSetupEditing extends StickerSetupState {
+  /// Creates a [StickerSetupEditing] state.
   const StickerSetupEditing({
     required this.widthMm,
     required this.heightMm,
@@ -30,17 +38,37 @@ class StickerSetupEditing extends StickerSetupState {
     this.isCustomPolygon = false,
   });
 
+  /// Width of the sticker (mm).
   final double widthMm;
+
+  /// Height of the sticker (mm).
   final double heightMm;
+
+  /// Corner radius of the sticker (mm).
   final double cornerRadiusMm;
+
+  /// Top printable boundary padding inset (mm).
   final double paddingTop;
+
+  /// Bottom printable boundary padding inset (mm).
   final double paddingBottom;
+
+  /// Left printable boundary padding inset (mm).
   final double paddingLeft;
+
+  /// Right printable boundary padding inset (mm).
   final double paddingRight;
+
+  /// True if the user defined a custom polygon printable contour boundary.
   final bool isCustomPolygon;
+
+  /// Ordered vertices defining the custom printable polygon area.
   final List<StickerPoint> polygonPoints;
+
+  /// Unique IDs corresponding to each custom polygon vertex.
   final List<String> polygonPointIds;
 
+  /// Converts the current state data into a domain [StickerConfig] entity.
   StickerConfig toConfig() {
     return StickerConfig(
       widthMm: widthMm,
@@ -71,6 +99,7 @@ class StickerSetupEditing extends StickerSetupState {
         polygonPointIds,
       ];
 
+  /// Returns a copy of this editing state with the given parameters overridden.
   StickerSetupEditing copyWith({
     double? widthMm,
     double? heightMm,
@@ -98,22 +127,30 @@ class StickerSetupEditing extends StickerSetupState {
   }
 }
 
+/// Transition state during configuration save.
 class StickerSetupSaving extends StickerSetupState {
+  /// Creates a [StickerSetupSaving] state.
   const StickerSetupSaving();
 }
 
+/// Success state indicating the sticker outline was saved successfully.
 class StickerSetupSaved extends StickerSetupState {
+  /// Creates a [StickerSetupSaved] state.
   const StickerSetupSaved(this.templateId);
 
+  /// The template ID that was modified.
   final String templateId;
 
   @override
   List<Object?> get props => [templateId];
 }
 
+/// Error state conveying configuration issues or database failures.
 class StickerSetupError extends StickerSetupState {
+  /// Creates a [StickerSetupError] state.
   const StickerSetupError(this.message);
 
+  /// The error message.
   final String message;
 
   @override

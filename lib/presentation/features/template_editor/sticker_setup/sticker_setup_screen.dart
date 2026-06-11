@@ -11,9 +11,14 @@ import 'package:stickify/presentation/features/template_editor/widgets/wizard_st
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
+/// Screen for configuring individual sticker dimensions and printable safe area boundaries.
+///
+/// Handles custom polygon contours or standard inset margins.
 class StickerSetupScreen extends StatelessWidget {
+  /// Creates a [StickerSetupScreen] instance.
   const StickerSetupScreen({required this.templateId, super.key});
 
+  /// The active template ID.
   final String templateId;
 
   @override

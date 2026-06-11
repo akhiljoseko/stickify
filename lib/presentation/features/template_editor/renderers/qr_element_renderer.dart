@@ -4,7 +4,9 @@ import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/label_element_renderer.dart';
 import 'package:stickify/presentation/features/template_editor/renderers/text_element_renderer.dart';
 
+/// Renders a [QrElementBlueprint] on the designer canvas.
 class QrElementRenderer implements LabelElementRenderer {
+  /// Creates a [QrElementRenderer] instance.
   const QrElementRenderer();
 
   @override

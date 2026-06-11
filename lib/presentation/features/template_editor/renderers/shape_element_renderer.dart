@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/label_element_renderer.dart';
 
+/// Renders a [ShapeElementBlueprint] on the designer canvas.
 class ShapeElementRenderer implements LabelElementRenderer {
+  /// Creates a [ShapeElementRenderer] instance.
   const ShapeElementRenderer();
 
   @override

@@ -11,9 +11,14 @@ import 'package:stickify/presentation/features/template_editor/widgets/wizard_st
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
+/// Screen that displays the finalized visual template sticker layout before saving.
+///
+/// Features dynamic sample data mapping to preview the layout.
 class PreviewScreen extends StatelessWidget {
+  /// Creates a [PreviewScreen] instance.
   const PreviewScreen({required this.templateId, super.key});
 
+  /// The unique identifier of the template to preview and finalize.
   final String templateId;
 
   @override

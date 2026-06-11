@@ -11,9 +11,14 @@ import 'package:stickify/presentation/features/template_editor/widgets/wizard_st
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
+/// Screen that allows users to configure sheet page settings for printing.
+///
+/// Integrates a live preview grid of the configured layout template.
 class SheetConfigScreen extends StatelessWidget {
+  /// Creates a [SheetConfigScreen] instance.
   const SheetConfigScreen({required this.templateId, super.key});
 
+  /// The unique identifier of the template to configure.
   final String templateId;
 
   @override

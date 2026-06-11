@@ -3,6 +3,7 @@ import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/bloc/sticker_setup_state.dart';
 
 class StickerSetupCubit extends Cubit<StickerSetupState> {
+  /// Creates a [StickerSetupCubit] instance.
   StickerSetupCubit(this._templateRepository, this.templateId)
       : super(const StickerSetupInitial());
 

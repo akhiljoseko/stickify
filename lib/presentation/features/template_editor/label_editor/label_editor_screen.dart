@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/environment/app_environment.dart';
+import 'package:stickify/core/environment/app_experience.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_state.dart';
@@ -8,6 +10,7 @@ import 'package:stickify/presentation/features/template_editor/label_editor/widg
 import 'package:stickify/presentation/features/template_editor/label_editor/widgets/element_palette.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/widgets/properties_panel.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/widgets/zoom_controls.dart';
+import 'package:stickify/presentation/features/template_editor/presentation/mobile_restricted_view.dart';
 import 'package:stickify/presentation/features/template_editor/widgets/wizard_step_indicator.dart';
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 
@@ -24,6 +27,11 @@ class LabelEditorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final env = context.watch<AppEnvironment>();
+    if (env.experience == AppExperience.mobile) {
+      return const MobileRestrictedView(title: 'Label Editor');
+    }
+
     return BlocProvider(
       create: (context) => EditorCubit(
         context.read<TemplateRepository>(),

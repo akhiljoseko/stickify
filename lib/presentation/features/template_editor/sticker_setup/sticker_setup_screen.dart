@@ -2,7 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/environment/app_environment.dart';
+import 'package:stickify/core/environment/app_experience.dart';
 import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/features/template_editor/presentation/mobile_restricted_view.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/bloc/sticker_setup_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/bloc/sticker_setup_state.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/widgets/polygon_painter.dart';
@@ -23,6 +26,11 @@ class StickerSetupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final env = context.watch<AppEnvironment>();
+    if (env.experience == AppExperience.mobile) {
+      return const MobileRestrictedView(title: 'Sticker Setup Configuration');
+    }
+
     return BlocProvider(
       create: (context) {
         final cubit = StickerSetupCubit(

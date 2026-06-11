@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:stickify/core/environment/app_environment.dart';
+import 'package:stickify/core/environment/app_experience.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Grid card item displaying metadata and CRUD action buttons for a single template.
@@ -171,34 +174,36 @@ class _TemplateCardState extends State<TemplateCard> {
                             child: const Text('Select for Print'),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined),
-                          tooltip: 'Edit Template',
-                          style: IconButton.styleFrom(
-                            backgroundColor: colorScheme.surfaceContainerHigh,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        if (context.watch<AppEnvironment>().experience != AppExperience.mobile) ...[
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined),
+                            tooltip: 'Edit Template',
+                            style: IconButton.styleFrom(
+                              backgroundColor: colorScheme.surfaceContainerHigh,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
+                            onPressed: widget.onEdit,
                           ),
-                          onPressed: widget.onEdit,
-                        ),
-                        const SizedBox(width: 4),
-                        IconButton(
-                          icon: Icon(
-                            Icons.delete_outline,
-                            color: colorScheme.error,
-                          ),
-                          tooltip: 'Delete Template',
-                          style: IconButton.styleFrom(
-                            backgroundColor: colorScheme.errorContainer
-                                .withValues(alpha: 0.2),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: Icon(
+                              Icons.delete_outline,
+                              color: colorScheme.error,
                             ),
+                            tooltip: 'Delete Template',
+                            style: IconButton.styleFrom(
+                              backgroundColor: colorScheme.errorContainer
+                                  .withValues(alpha: 0.2),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: widget.onDelete,
                           ),
-                          onPressed: widget.onDelete,
-                        ),
+                        ],
                       ],
                     ),
                   ],

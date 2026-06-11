@@ -6,8 +6,6 @@ class _TestCommand extends AppCommand {
   _TestCommand({
     required this.id,
     required this.label,
-    this.visible = true,
-    this.enabled = true,
   });
 
   @override
@@ -16,16 +14,13 @@ class _TestCommand extends AppCommand {
   @override
   final String label;
 
-  final bool visible;
-  final bool enabled;
-
   bool executed = false;
 
   @override
-  bool isVisible(AppEnvironment environment) => visible;
+  bool isVisible(AppEnvironment environment) => true;
 
   @override
-  bool isEnabled(Object state, AppEnvironment environment) => enabled;
+  bool isEnabled(Object state, AppEnvironment environment) => true;
 
   @override
   Future<void> execute(BuildContext context) async {
@@ -35,9 +30,7 @@ class _TestCommand extends AppCommand {
 
 void main() {
   group('CommandRegistry Tests', () {
-    setUp(() {
-      CommandRegistry.clear();
-    });
+    setUp(CommandRegistry.clear);
 
     test('can register and look up commands', () {
       final cmd = _TestCommand(id: 'test_cmd', label: 'Test Command');

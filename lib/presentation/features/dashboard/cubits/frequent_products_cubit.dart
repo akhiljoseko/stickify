@@ -17,6 +17,7 @@ part 'frequent_products_state.dart';
 ///          Error ──(loadFrequentProducts retry)──▶ Loading
 /// ```
 class FrequentProductsCubit extends Cubit<FrequentProductsState> {
+  /// Creates a [FrequentProductsCubit] instance.
   FrequentProductsCubit({required ProductRepository productRepository})
       : _repository = productRepository,
         super(const FrequentProductsInitial());

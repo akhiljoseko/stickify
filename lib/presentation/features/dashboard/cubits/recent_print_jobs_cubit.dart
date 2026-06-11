@@ -24,6 +24,7 @@ part 'recent_print_jobs_state.dart';
 /// to a real backend, only the concrete repository implementation needs to
 /// change — this cubit is untouched.
 class RecentPrintJobsCubit extends Cubit<RecentPrintJobsState> {
+  /// Creates a [RecentPrintJobsCubit] instance.
   RecentPrintJobsCubit({required PrintJobRepository printJobRepository})
       : _repository = printJobRepository,
         super(const RecentPrintJobsInitial());

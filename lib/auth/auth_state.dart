@@ -9,28 +9,34 @@ sealed class AuthState {
 }
 
 /// The initial state emitted when the `AuthCubit` is first created.
-///
-/// Use this to show a splash / loading screen before the real auth status
-/// has been determined (e.g. while reading a persisted token from storage).
-/// In this mock implementation the cubit immediately transitions to
-/// `AuthUnauthenticated`, so this state is transient.
 final class AuthInitial extends AuthState {
   const AuthInitial();
 }
 
+/// Emitted when an authentication operation is in progress (e.g. logging in or registering).
+final class AuthLoading extends AuthState {
+  const AuthLoading();
+}
+
 /// Emitted when the user has successfully authenticated.
-///
-/// Carry any user-specific data you need throughout the app here, e.g.
-/// a `User` model with the display name and avatar URL. For now it is
-/// kept intentionally minimal to focus on routing architecture.
 final class AuthAuthenticated extends AuthState {
-  const AuthAuthenticated();
+  final String uid;
+  final String? email;
+
+  const AuthAuthenticated({
+    required this.uid,
+    this.email,
+  });
 }
 
 /// Emitted when the user is not authenticated (logged out or session expired).
-///
-/// The `GoRouter` redirect callback checks for this state and sends the
-/// user to the `/login` route whenever they try to reach a protected path.
 final class AuthUnauthenticated extends AuthState {
   const AuthUnauthenticated();
+}
+
+/// Emitted when an authentication operation fails with an error.
+final class AuthFailure extends AuthState {
+  final String message;
+
+  const AuthFailure(this.message);
 }

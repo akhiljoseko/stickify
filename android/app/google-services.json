@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "218736345851",
+    "project_id": "stickify-akhil-3705",
+    "storage_bucket": "stickify-akhil-3705.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:218736345851:android:a4511014e59bdbc97ea65e",
+        "android_client_info": {
+          "package_name": "co.inevitablesoftware.stickify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3IhazXZyxv9tYz5Ob5IaSZ2vjhk_YUs0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -4,6 +4,8 @@ import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/recent_print_jobs_cubit.dart';
+import 'package:stickify/presentation/features/dashboard/cubits/sync_cubit.dart';
+import 'package:stickify/presentation/features/dashboard/cubits/sync_state.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/connectivity_status_chip.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/recent_print_card.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
@@ -17,11 +19,33 @@ class MobileDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: Center(
-        child: AdaptiveScrollWrapper(
-          builder: (context, controller) => CustomScrollView(
-            controller: controller,
-            slivers: const [
+      body: BlocListener<SyncCubit, SyncState>(
+        listener: (context, state) {
+          if (state is SyncSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Synchronization complete! All templates and products updated.'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            // Refresh data
+            context.read<RecentPrintJobsCubit>().loadRecentJobs();
+            context.read<FrequentProductsCubit>().loadFrequentProducts();
+          } else if (state is SyncFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Sync failed: ${state.error}'),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+        },
+        child: Center(
+          child: AdaptiveScrollWrapper(
+            builder: (context, controller) => CustomScrollView(
+              controller: controller,
+              slivers: const [
               SliverPadding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 sliver: SliverList(
@@ -41,7 +65,8 @@ class MobileDashboardScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ),
+   );
   }
 }
 
@@ -66,6 +91,23 @@ class _HeroHeader extends StatelessWidget {
               ),
             ),
             const ConnectivityStatusChip(isOnline: true),
+            const SizedBox(width: 8),
+            BlocBuilder<SyncCubit, SyncState>(
+              builder: (context, state) {
+                final isLoading = state is SyncLoading;
+                return IconButton(
+                  icon: isLoading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(Icons.sync, color: colorScheme.primary),
+                  onPressed: isLoading ? null : () => context.read<SyncCubit>().syncData(),
+                  tooltip: 'Sync Data',
+                );
+              },
+            ),
           ],
         ),
         const SizedBox(height: 4),

@@ -8,47 +8,50 @@ import 'package:stickify/domain/domain.dart';
 class SyncingProductRepository implements ProductRepository {
   /// Creates a [SyncingProductRepository] instance.
   SyncingProductRepository({
-    required DatabaseProductRepository local,
-    required AuthService auth,
-    required RemoteDatabaseService remoteDb,
-  })  : _local = local,
-        _auth = auth,
-        _remoteDb = remoteDb;
+    required this.local,
+    required this.auth,
+    required this.remoteDb,
+  });
 
-  final DatabaseProductRepository _local;
-  final AuthService _auth;
-  final RemoteDatabaseService _remoteDb;
+  /// The local product repository.
+  final DatabaseProductRepository local;
+
+  /// The authentication service interface.
+  final AuthService auth;
+
+  /// The remote database service interface.
+  final RemoteDatabaseService remoteDb;
 
   FirestoreProductRepository? get _remote {
-    final uid = _auth.currentUser?.uid;
+    final uid = auth.currentUser?.uid;
     if (uid == null) return null;
-    return FirestoreProductRepository(remoteDb: _remoteDb, userId: uid);
+    return FirestoreProductRepository(remoteDb: remoteDb, userId: uid);
   }
 
   @override
   Future<List<Product>> getFrequentProducts({int limit = 20}) async {
-    return _local.getFrequentProducts(limit: limit);
+    return local.getFrequentProducts(limit: limit);
   }
 
   @override
   Future<Product?> getProductById(String id) async {
-    return _local.getProductById(id);
+    return local.getProductById(id);
   }
 
   @override
   Future<List<Product>> getAllProducts() async {
-    return _local.getAllProducts();
+    return local.getAllProducts();
   }
 
   @override
   Future<void> saveProduct(Product product) async {
-    await _local.saveProduct(product);
+    await local.saveProduct(product);
 
     final remoteRepo = _remote;
     if (remoteRepo != null) {
       try {
         await remoteRepo.saveProduct(product);
-      } on Object catch (_) {
+      } on Exception catch (_) {
         // Fallback: local save remains, remote write will sync later
       }
     }
@@ -56,13 +59,13 @@ class SyncingProductRepository implements ProductRepository {
 
   @override
   Future<void> deleteProduct(String id) async {
-    await _local.deleteProduct(id);
+    await local.deleteProduct(id);
 
     final remoteRepo = _remote;
     if (remoteRepo != null) {
       try {
         await remoteRepo.deleteProduct(id);
-      } on Object catch (_) {
+      } on Exception catch (_) {
         // Fallback: local delete succeeds, remote sync will resolve it
       }
     }
@@ -70,18 +73,18 @@ class SyncingProductRepository implements ProductRepository {
 
   /// Pulls all products from Firestore and overwrites the local cache.
   Future<void> sync(String uid) async {
-    final remoteRepo = FirestoreProductRepository(remoteDb: _remoteDb, userId: uid);
+    final remoteRepo = FirestoreProductRepository(remoteDb: remoteDb, userId: uid);
     final remoteProducts = await remoteRepo.getAllProducts();
 
     // Clear local cache
-    final localProducts = await _local.getAllProducts();
+    final localProducts = await local.getAllProducts();
     for (final p in localProducts) {
-      await _local.deleteProduct(p.id);
+      await local.deleteProduct(p.id);
     }
 
     // Populate local cache with remote documents
     for (final p in remoteProducts) {
-      await _local.saveProduct(p);
+      await local.saveProduct(p);
     }
   }
 }

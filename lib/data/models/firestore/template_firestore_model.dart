@@ -275,7 +275,7 @@ class ElementBlueprintFirestoreModel {
   });
 
   factory ElementBlueprintFirestoreModel.fromDomain(ElementBlueprint eb) {
-    String type = '';
+    var type = '';
     String? content;
     bool? isDynamic;
     double? fontSize;

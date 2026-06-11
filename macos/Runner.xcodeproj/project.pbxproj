@@ -32,6 +32,7 @@
 		B55CDB8C2EECA409009268AC /* AppIcon-stg.icon in Resources */ = {isa = PBXBuildFile; fileRef = B55CDB8A2EECA409009268AC /* AppIcon-stg.icon */; };
 		B55CDB8D2EECA409009268AC /* AppIcon-dev.icon in Resources */ = {isa = PBXBuildFile; fileRef = B55CDB892EECA409009268AC /* AppIcon-dev.icon */; };
 		B55CDB8E2EECA409009268AC /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = B55CDB882EECA409009268AC /* AppIcon.icon */; };
+		C33DA5DAFD8BF17A1CD270A0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6F9411CA83A320624B42A86D /* GoogleService-Info.plist */; };
 		D2A5C095ECE65CD11C53D7A5 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 796DCF8FB7B4D3CC7E05F540 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -90,6 +91,7 @@
 		33E5194F232828860026EE4D /* AppInfo.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppInfo.xcconfig; sourceTree = "<group>"; };
 		5D8B7C55CFF96CB4F71E2A6C /* Pods-Runner.release-staging.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-staging.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-staging.xcconfig"; sourceTree = "<group>"; };
 		660E5F556AC6F354C7107E06 /* Pods-Runner.profile-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile-development.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile-development.xcconfig"; sourceTree = "<group>"; };
+		6F9411CA83A320624B42A86D /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Runner/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 		796DCF8FB7B4D3CC7E05F540 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
@@ -159,6 +161,7 @@
 				33CC10EE2044A3C60003C045 /* Products */,
 				D73912EC22F37F3D000D13A0 /* Frameworks */,
 				35602239A725984339A4EE90 /* Pods */,
+				6F9411CA83A320624B42A86D /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -370,6 +373,7 @@
 				B55CDB8D2EECA409009268AC /* AppIcon-dev.icon in Resources */,
 				B55CDB8E2EECA409009268AC /* AppIcon.icon in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
+				C33DA5DAFD8BF17A1CD270A0 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

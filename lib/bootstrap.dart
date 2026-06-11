@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
+import 'package:stickify/firebase_options.dart';
 
 /// Custom [BlocObserver] that logs Bloc state changes and errors.
 class AppBlocObserver extends BlocObserver {
@@ -24,6 +27,16 @@ class AppBlocObserver extends BlocObserver {
 
 /// Global initialization block to configure cross-flavor logic and launch the application.
 Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+  );
+
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
   };

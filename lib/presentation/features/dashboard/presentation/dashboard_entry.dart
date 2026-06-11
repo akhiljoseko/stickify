@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/recent_print_jobs_cubit.dart';
+import 'package:stickify/presentation/features/dashboard/cubits/sync_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/presentation/desktop/desktop_dashboard_screen.dart';
 import 'package:stickify/presentation/features/dashboard/presentation/mobile/mobile_dashboard_screen.dart';
 
@@ -36,6 +38,14 @@ class DashboardPage extends StatelessWidget {
             unawaited(cubit.loadFrequentProducts());
             return cubit;
           },
+        ),
+        BlocProvider(
+          create: (blocContext) => SyncCubit(
+            productRepository: blocContext.read<ProductRepository>(),
+            templateRepository: blocContext.read<TemplateRepository>(),
+            printJobRepository: blocContext.read<PrintJobRepository>(),
+            auth: FirebaseAuth.instance,
+          ),
         ),
       ],
       child: const _AdaptiveDashboardLayout(),

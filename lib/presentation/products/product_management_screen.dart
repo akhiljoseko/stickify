@@ -16,6 +16,9 @@ import 'package:stickify/presentation/features/product/bloc/product_state.dart';
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
+/// Resolves a dynamic [ImageProvider] from the given [path].
+///
+/// Supports network images (starting with http/https) and local filesystem images.
 ImageProvider getImageProvider(String path) {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return NetworkImage(path);
@@ -24,7 +27,11 @@ ImageProvider getImageProvider(String path) {
   }
 }
 
+/// Screen displaying the catalogue list of products and allowing administration operations.
+///
+/// Integrates CRUD actions for adding and updating products and their variants.
 class ProductManagementScreen extends StatelessWidget {
+  /// Creates a [ProductManagementScreen] instance.
   const ProductManagementScreen({super.key});
 
   @override

@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+/// Shimmering skeleton loader card representation used during list fetching transitions.
 class TemplateCardSkeleton extends StatefulWidget {
+  /// Creates a [TemplateCardSkeleton] instance.
   const TemplateCardSkeleton({super.key});
 
   @override

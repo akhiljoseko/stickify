@@ -10,7 +10,11 @@ import 'package:stickify/presentation/template_management/widgets/template_card.
 import 'package:stickify/presentation/template_management/widgets/template_card_skeleton.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
+/// Screen presenting the admin interface for managing custom sticker templates.
+///
+/// Features template creation modal dialogs, cards grid display, and pagination controls.
 class TemplateManagementScreen extends StatelessWidget {
+  /// Creates a [TemplateManagementScreen] instance.
   const TemplateManagementScreen({super.key});
 
   @override

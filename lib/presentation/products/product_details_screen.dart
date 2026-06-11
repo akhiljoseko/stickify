@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 ///
 /// In production, use [id] to fetch data from your product repository.
 class ProductDetailsScreen extends StatelessWidget {
+  /// Creates a [ProductDetailsScreen] instance.
   const ProductDetailsScreen({required this.id, super.key});
 
   /// The product identifier from the URL path parameter `:id`.

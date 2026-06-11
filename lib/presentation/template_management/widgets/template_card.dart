@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stickify/domain/domain.dart';
 
+/// Grid card item displaying metadata and CRUD action buttons for a single template.
 class TemplateCard extends StatefulWidget {
+  /// Creates a [TemplateCard] instance.
   const TemplateCard({
     required this.template,
     required this.onSelect,
@@ -11,9 +13,16 @@ class TemplateCard extends StatefulWidget {
     super.key,
   });
 
+  /// The label template details.
   final LabelTemplate template;
+
+  /// Callback when user selects the template for printing.
   final VoidCallback onSelect;
+
+  /// Callback to edit the template.
   final VoidCallback onEdit;
+
+  /// Callback to delete the template.
   final VoidCallback onDelete;
 
   @override

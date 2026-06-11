@@ -8,6 +8,7 @@ import 'package:stickify/domain/repositories/print_job_repository.dart';
 /// the backend is ready. The Cubits depend only on [PrintJobRepository],
 /// so swapping implementations requires zero UI changes.
 class MockPrintJobRepository implements PrintJobRepository {
+  /// Creates a [MockPrintJobRepository] instance.
   const MockPrintJobRepository();
 
   /// Realistic mock data sourced directly from the Stitch dashboard design.

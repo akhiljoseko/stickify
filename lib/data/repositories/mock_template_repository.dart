@@ -1,7 +1,12 @@
 import 'dart:async';
 import 'package:stickify/domain/domain.dart';
 
+/// Mock implementation of [TemplateRepository] providing seed layouts.
+///
+/// Seeds a few standard templates such as shipping labels, HAZMAT tags,
+/// and retail price stickers.
 class MockTemplateRepository implements TemplateRepository {
+  /// Creates a [MockTemplateRepository] and seeds default layouts.
   MockTemplateRepository() {
     _seedTemplates();
   }

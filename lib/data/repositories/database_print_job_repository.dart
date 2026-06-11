@@ -2,7 +2,11 @@ import 'package:stickify/core/services/document_database.dart';
 import 'package:stickify/domain/entities/print_job.dart';
 import 'package:stickify/domain/repositories/print_job_repository.dart';
 
+/// Local JSON-based storage implementation of [PrintJobRepository].
+///
+/// Interfaces directly with [DocumentDatabase] to fetch or save [PrintJob] records.
 class DatabasePrintJobRepository implements PrintJobRepository {
+  /// Creates a [DatabasePrintJobRepository] instance backed by [database].
   DatabasePrintJobRepository({required DocumentDatabase database}) : _db = database;
 
   final DocumentDatabase _db;

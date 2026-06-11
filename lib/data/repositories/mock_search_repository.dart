@@ -6,6 +6,7 @@ import 'package:stickify/domain/repositories/search_repository.dart';
 /// Houses static catalog data including custom items matching the Stitch
 /// search results screen design, and simulates network delays for realistic states.
 class MockSearchRepository implements SearchRepository {
+  /// Creates a [MockSearchRepository] instance.
   const MockSearchRepository();
 
   static const List<SearchItem> _kMockSearchItems = [

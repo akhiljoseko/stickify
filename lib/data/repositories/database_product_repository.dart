@@ -5,7 +5,11 @@ import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 
+/// Local JSON-based storage implementation of [ProductRepository].
+///
+/// Interfaces directly with [DocumentDatabase] to fetch, create, update, or delete [Product] entities.
 class DatabaseProductRepository implements ProductRepository {
+  /// Creates a [DatabaseProductRepository] instance backed by [database].
   DatabaseProductRepository({required DocumentDatabase database}) : _db = database;
 
   final DocumentDatabase _db;

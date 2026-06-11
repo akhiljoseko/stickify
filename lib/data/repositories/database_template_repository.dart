@@ -1,7 +1,11 @@
 import 'package:stickify/core/services/document_database.dart';
 import 'package:stickify/domain/domain.dart';
 
+/// Local JSON-based storage implementation of [TemplateRepository].
+///
+/// Interfaces directly with [DocumentDatabase] to fetch, create, update, or delete [LabelTemplate] configurations.
 class DatabaseTemplateRepository implements TemplateRepository {
+  /// Creates a [DatabaseTemplateRepository] backed by [database].
   DatabaseTemplateRepository({required DocumentDatabase database})
     : _db = database;
 

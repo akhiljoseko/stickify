@@ -9,6 +9,7 @@ import 'package:stickify/domain/repositories/product_repository.dart';
 /// Returns realistic hardcoded product data matching the Stitch dashboard
 /// design's "Frequent Products" table and the "Product Management - List" page.
 class MockProductRepository implements ProductRepository {
+  /// Creates a [MockProductRepository] instance.
   const MockProductRepository();
 
   /// Realistic mock data sourced from the Stitch "Frequent Products" table.

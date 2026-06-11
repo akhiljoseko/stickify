@@ -3,7 +3,12 @@ import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/domain/repositories/search_repository.dart';
 import 'package:stickify/domain/repositories/template_repository.dart';
 
+/// Real database-backed implementation of [SearchRepository].
+///
+/// Queries active [ProductRepository] and [TemplateRepository] entities,
+/// combines them with static printing stations, and filters/orders search results.
 class DatabaseSearchRepository implements SearchRepository {
+  /// Creates a [DatabaseSearchRepository] instance.
   DatabaseSearchRepository({
     required ProductRepository productRepository,
     required TemplateRepository templateRepository,

@@ -32,22 +32,50 @@ class PdfPrintService implements PrintService {
     final imageCache = await _preCacheImages(template);
 
     // 2. Offload the heavy compilation and saving process to a background Isolate
-    final pdfBytes = await Isolate.run(() => _buildPdfDocumentInBackground(
-          _PdfJobInput(
-            product: product,
-            variant: variant,
-            template: template,
-            quantity: quantity,
-            disabledSlots: disabledSlots,
-            imageCache: imageCache,
-          ),
-        ));
+    final pdfBytes = await Isolate.run(
+      () => _buildPdfDocumentInBackground(
+        _PdfJobInput(
+          product: product,
+          variant: variant,
+          template: template,
+          quantity: quantity,
+          disabledSlots: disabledSlots,
+          imageCache: imageCache,
+        ),
+      ),
+    );
 
     // 3. Launch the native system print dialog
+    final sheetConfig =
+        template.sheetConfig ??
+        const SheetConfig(
+          pageWidth: 210,
+          pageHeight: 297,
+          marginTop: 10,
+          marginBottom: 10,
+          marginLeft: 10,
+          marginRight: 10,
+          columns: 2,
+          rows: 5,
+          columnGap: 5,
+          rowGap: 5,
+        );
+
+    final targetFormat = PdfPageFormat(
+      sheetConfig.pageWidth * PdfPageFormat.mm,
+      sheetConfig.pageHeight * PdfPageFormat.mm,
+      marginTop: sheetConfig.marginTop * PdfPageFormat.mm,
+      marginBottom: sheetConfig.marginBottom * PdfPageFormat.mm,
+      marginLeft: sheetConfig.marginLeft * PdfPageFormat.mm,
+      marginRight: sheetConfig.marginRight * PdfPageFormat.mm,
+    );
+
     await Printing.layoutPdf(
       name: '${product.name}_${variant.name}_labels',
       onLayout: (format) async => pdfBytes,
+      format: targetFormat,
       dynamicLayout: false,
+      forceCustomPrintPaper: true,
     );
   }
 
@@ -101,10 +129,13 @@ class PdfPrintService implements PrintService {
   }
 
   /// Background isolate compilation task.
-  static Future<Uint8List> _buildPdfDocumentInBackground(_PdfJobInput input) async {
+  static Future<Uint8List> _buildPdfDocumentInBackground(
+    _PdfJobInput input,
+  ) async {
     final doc = pw.Document();
 
-    final sheetConfig = input.template.sheetConfig ??
+    final sheetConfig =
+        input.template.sheetConfig ??
         const SheetConfig(
           pageWidth: 210,
           pageHeight: 297,
@@ -118,7 +149,8 @@ class PdfPrintService implements PrintService {
           rowGap: 5,
         );
 
-    final sticker = input.template.stickerConfig ??
+    final sticker =
+        input.template.stickerConfig ??
         const StickerConfig(
           widthMm: 100,
           heightMm: 60,
@@ -127,14 +159,26 @@ class PdfPrintService implements PrintService {
         );
 
     final slotsPerSheet = sheetConfig.columns * sheetConfig.rows;
-    final totalSheets = _calculateTotalSheets(input.quantity, slotsPerSheet, input.disabledSlots);
-    final activePositions = _getActivePositions(input.quantity, input.disabledSlots);
+    final totalSheets = _calculateTotalSheets(
+      input.quantity,
+      slotsPerSheet,
+      input.disabledSlots,
+    );
+    final activePositions = _getActivePositions(
+      input.quantity,
+      input.disabledSlots,
+    );
 
     // Build the template elements ONCE to optimize generation and prevent duplicate tree instantiation
     final cachedStickerElements = <pw.Widget>[];
     for (final bp in input.template.elements) {
       final renderer = PdfElementRendererRegistry.getRenderer(bp);
-      final childWidget = renderer.render(bp, input.product, input.variant, input.imageCache);
+      final childWidget = renderer.render(
+        bp,
+        input.product,
+        input.variant,
+        input.imageCache,
+      );
 
       cachedStickerElements.add(
         pw.Positioned(
@@ -196,15 +240,21 @@ class PdfPrintService implements PrintService {
 
           rowCells.add(cellWidget);
           if (c < sheetConfig.columns - 1) {
-            rowCells.add(pw.SizedBox(width: sheetConfig.columnGap * PdfPageFormat.mm));
+            rowCells.add(
+              pw.SizedBox(width: sheetConfig.columnGap * PdfPageFormat.mm),
+            );
           }
         }
 
-        rowsList.add(pw.Row(
-          children: rowCells,
-        ));
+        rowsList.add(
+          pw.Row(
+            children: rowCells,
+          ),
+        );
         if (r < sheetConfig.rows - 1) {
-          rowsList.add(pw.SizedBox(height: sheetConfig.rowGap * PdfPageFormat.mm));
+          rowsList.add(
+            pw.SizedBox(height: sheetConfig.rowGap * PdfPageFormat.mm),
+          );
         }
       }
 
@@ -232,7 +282,11 @@ class PdfPrintService implements PrintService {
   }
 
   /// Calculates the total sheets required given the target quantity and disabled slot positions.
-  static int _calculateTotalSheets(int qty, int slotsPerSheet, Set<int> disabledSlots) {
+  static int _calculateTotalSheets(
+    int qty,
+    int slotsPerSheet,
+    Set<int> disabledSlots,
+  ) {
     if (qty <= 0) return 0;
     var activePlaced = 0;
     var currentSlot = 0;

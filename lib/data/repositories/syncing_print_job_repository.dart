@@ -1,6 +1,7 @@
 import 'package:stickify/core/services/auth_service.dart';
 import 'package:stickify/core/services/local_database.dart';
 import 'package:stickify/core/services/remote_database_service.dart';
+import 'package:stickify/data/models/hive/print_job_hive_model.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/firestore_print_job_repository.dart';
 import 'package:stickify/domain/entities/print_job.dart';
@@ -38,10 +39,19 @@ class SyncingPrintJobRepository implements PrintJobRepository {
   Future<void> savePrintJob(PrintJob job) async {
     await local.savePrintJob(job);
 
+    final syncKey = 'print_jobs_${job.id}';
+    await localDatabase.save('sync_queue', syncKey, {
+      'id': job.id,
+      'collection': 'print_jobs',
+      'action': 'save',
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
+
     final remoteRepo = _remote;
     if (remoteRepo != null) {
       try {
         await remoteRepo.savePrintJob(job);
+        await localDatabase.delete('sync_queue', syncKey);
       } on Exception catch (_) {
         // Fallback
       }
@@ -61,6 +71,26 @@ class SyncingPrintJobRepository implements PrintJobRepository {
   /// Pulls all print jobs from Firestore and overwrites the local cache.
   Future<void> sync(String uid) async {
     final remoteRepo = FirestorePrintJobRepository(remoteDb: remoteDb, userId: uid);
+
+    // 1. Process pending changes in sync queue for print jobs
+    final allQueue = await localDatabase.getAll<dynamic>('sync_queue');
+    final printJobQueue = allQueue
+        .where((entry) => entry is Map && entry['collection'] == 'print_jobs')
+        .cast<Map<dynamic, dynamic>>()
+        .toList();
+
+    for (final entry in printJobQueue) {
+      final id = entry['id'] as String;
+      final syncKey = 'print_jobs_$id';
+
+      final model = await localDatabase.get<PrintJobHiveModel>('print_jobs', id);
+      if (model != null) {
+        await remoteRepo.savePrintJob(model.toDomain());
+      }
+      await localDatabase.delete('sync_queue', syncKey);
+    }
+
+    // 2. Pull from remote and overwrite local
     final remoteJobs = await remoteRepo.getRecentJobs(limit: 1000);
 
     // Clear local cache

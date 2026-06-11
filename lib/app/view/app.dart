@@ -71,6 +71,7 @@ class _AppState extends State<App> {
       local: localProductRepo,
       auth: _authService,
       remoteDb: remoteDb,
+      localDatabase: _database,
     );
     _templateRepository = SyncingTemplateRepository(
       local: localTemplateRepo,

@@ -5,9 +5,9 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/routing/routing.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/auth/auth.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/document_database.dart';
 import 'package:stickify/core/services/pdf_print_service.dart';
-import 'package:stickify/core/utils/app_breakpoints.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
@@ -69,6 +69,9 @@ class _AppState extends State<App> {
         RepositoryProvider<PrintJobRepository>.value(value: _printJobRepository),
         RepositoryProvider<SearchRepository>.value(value: _searchRepository),
         RepositoryProvider<PrintService>.value(value: _printService),
+        RepositoryProvider<FeatureAccessService>(
+          create: (_) => const FeatureAccessService(),
+        ),
       ],
       child: BlocProvider(
         // Create the AuthCubit once for the entire app lifetime.
@@ -127,7 +130,15 @@ class _AppViewState extends State<_AppView> {
       // so that AdaptiveLayoutSwitcher and AdaptiveValue work in every widget
       // without any per-screen setup.
       builder: (context, child) => ResponsiveBreakpoints.builder(
-        child: child!,
+        child: Builder(
+          builder: (context) {
+            final environment = AppEnvironmentResolver.resolve(context);
+            return RepositoryProvider<AppEnvironment>.value(
+              value: environment,
+              child: child,
+            );
+          },
+        ),
         breakpoints: AppBreakpoints.breakpoints,
       ),
     );

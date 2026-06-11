@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/app/theme.dart';
+import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/core/utils/adaptive_value.dart';
 import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
@@ -512,13 +512,11 @@ class _ProductFormViewState extends State<_ProductFormView> {
   final TextEditingController _varWholesaleController = TextEditingController();
   final TextEditingController _varMrpController = TextEditingController();
 
-  final ImagePicker _picker = ImagePicker();
-
   Future<void> _pickImage() async {
-    final image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+    final path = await context.read<FilePickerService>().pickImage();
+    if (path != null) {
       setState(() {
-        _imageUrlController.text = image.path;
+        _imageUrlController.text = path;
       });
     }
   }

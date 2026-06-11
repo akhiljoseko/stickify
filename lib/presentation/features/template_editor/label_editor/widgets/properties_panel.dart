@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
 
@@ -270,17 +270,15 @@ class PropertiesPanel extends StatelessWidget {
       Text('Image Settings', style: textTheme.titleSmall),
       const SizedBox(height: 12),
 
-      // Image source Picker (Local file picker)
       ElevatedButton.icon(
         icon: const Icon(Icons.file_open),
         label: const Text('Pick Local Image'),
         onPressed: () async {
-          final picker = ImagePicker();
-          final image = await picker.pickImage(source: ImageSource.gallery);
-          if (image != null) {
+          final path = await context.read<FilePickerService>().pickImage();
+          if (path != null) {
             cubit.updateElementProperty(
               bp.id,
-              bp.copyWith(localFilePath: image.path),
+              bp.copyWith(localFilePath: path),
             );
           }
         },

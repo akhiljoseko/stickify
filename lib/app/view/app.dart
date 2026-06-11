@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/routing/routing.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/core/core.dart';
+import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/core/services/document_database.dart';
 import 'package:stickify/core/services/pdf_print_service.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
@@ -44,6 +46,7 @@ class _AppState extends State<App> {
   late final PrintJobRepository _printJobRepository;
   late final SearchRepository _searchRepository;
   late final PrintService _printService;
+  late final FilePickerService _filePickerService;
 
   @override
   void initState() {
@@ -57,6 +60,7 @@ class _AppState extends State<App> {
       templateRepository: _templateRepository,
     );
     _printService = const PdfPrintService();
+    _filePickerService = ImagePickerServiceImpl(ImagePicker());
   }
 
   @override
@@ -69,6 +73,7 @@ class _AppState extends State<App> {
         RepositoryProvider<PrintJobRepository>.value(value: _printJobRepository),
         RepositoryProvider<SearchRepository>.value(value: _searchRepository),
         RepositoryProvider<PrintService>.value(value: _printService),
+        RepositoryProvider<FilePickerService>.value(value: _filePickerService),
         RepositoryProvider<FeatureAccessService>(
           create: (_) => const FeatureAccessService(),
         ),

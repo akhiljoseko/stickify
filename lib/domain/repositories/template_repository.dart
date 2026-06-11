@@ -26,6 +26,9 @@ abstract interface class TemplateRepository {
   /// Finalizes the template specified by [templateId], marking it ready for printing.
   Future<void> finalizeTemplate(String templateId);
 
+  /// Saves the complete state of a template.
+  Future<void> saveTemplate(LabelTemplate template);
+
   /// Deletes the template matching the given [id].
   Future<void> deleteTemplate(String id);
 }

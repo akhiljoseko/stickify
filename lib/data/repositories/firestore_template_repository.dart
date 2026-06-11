@@ -108,6 +108,14 @@ class FirestoreTemplateRepository implements TemplateRepository {
   }
 
   @override
+  Future<void> saveTemplate(LabelTemplate template) async {
+    await remoteDb.setData(
+      '$_collectionPath/${template.id}',
+      TemplateFirestoreModel.fromDomain(template).toMap(),
+    );
+  }
+
+  @override
   Future<void> deleteTemplate(String id) async {
     await remoteDb.deleteData('$_collectionPath/$id');
   }

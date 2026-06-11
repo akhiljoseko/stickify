@@ -354,6 +354,12 @@ class MockTemplateRepository implements TemplateRepository {
   }
 
   @override
+  Future<void> saveTemplate(LabelTemplate template) async {
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    _templates[template.id] = template;
+  }
+
+  @override
   Future<void> deleteTemplate(String id) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     _templates.remove(id);

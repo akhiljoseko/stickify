@@ -104,6 +104,15 @@ class DatabaseTemplateRepository implements TemplateRepository {
   }
 
   @override
+  Future<void> saveTemplate(LabelTemplate template) async {
+    await _db.save<LabelTemplateHiveModel>(
+      _collection,
+      template.id,
+      LabelTemplateHiveModel.fromDomain(template),
+    );
+  }
+
+  @override
   Future<void> deleteTemplate(String id) async {
     await _db.delete(_collection, id);
   }

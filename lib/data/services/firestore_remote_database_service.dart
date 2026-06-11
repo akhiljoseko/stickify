@@ -3,25 +3,25 @@ import 'package:stickify/core/services/remote_database_service.dart';
 
 /// Concrete implementation of [RemoteDatabaseService] powered by Cloud Firestore.
 class FirestoreRemoteDatabaseService implements RemoteDatabaseService {
-  /// Creates a [FirestoreRemoteDatabaseService] backed by [firestore].
-  FirestoreRemoteDatabaseService({required FirebaseFirestore firestore})
-      : _firestore = firestore;
+  /// Creates a [FirestoreRemoteDatabaseService].
+  FirestoreRemoteDatabaseService({required this.firestore});
 
-  final FirebaseFirestore _firestore;
+  /// The underlying Firestore instance.
+  final FirebaseFirestore firestore;
 
   @override
   Future<void> setData(String path, Map<String, dynamic> data) async {
-    await _firestore.doc(path).set(data);
+    await firestore.doc(path).set(data);
   }
 
   @override
   Future<void> deleteData(String path) async {
-    await _firestore.doc(path).delete();
+    await firestore.doc(path).delete();
   }
 
   @override
   Future<Map<String, dynamic>?> getData(String path) async {
-    final doc = await _firestore.doc(path).get();
+    final doc = await firestore.doc(path).get();
     final data = doc.data();
     if (data == null) return null;
     return {
@@ -37,7 +37,7 @@ class FirestoreRemoteDatabaseService implements RemoteDatabaseService {
     bool descending = false,
     int? limit,
   }) async {
-    Query<Map<String, dynamic>> query = _firestore.collection(path);
+    Query<Map<String, dynamic>> query = firestore.collection(path);
 
     if (orderBy != null) {
       query = query.orderBy(orderBy, descending: descending);
@@ -61,7 +61,7 @@ class FirestoreRemoteDatabaseService implements RemoteDatabaseService {
     required String field,
     required dynamic isEqualTo,
   }) async {
-    final snapshot = await _firestore
+    final snapshot = await firestore
         .collection(path)
         .where(field, isEqualTo: isEqualTo)
         .get();

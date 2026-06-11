@@ -10,45 +10,49 @@ import 'package:stickify/domain/domain.dart';
 class SyncingTemplateRepository implements TemplateRepository {
   /// Creates a [SyncingTemplateRepository] instance.
   SyncingTemplateRepository({
-    required DatabaseTemplateRepository local,
-    required AuthService auth,
-    required RemoteDatabaseService remoteDb,
-    required LocalDatabase localDatabase,
-  })  : _local = local,
-        _auth = auth,
-        _remoteDb = remoteDb,
-        _localDb = localDatabase;
+    required this.local,
+    required this.auth,
+    required this.remoteDb,
+    required this.localDatabase,
+  });
 
-  final DatabaseTemplateRepository _local;
-  final AuthService _auth;
-  final RemoteDatabaseService _remoteDb;
-  final LocalDatabase _localDb;
+  /// The local template repository.
+  final DatabaseTemplateRepository local;
+
+  /// The auth service interface.
+  final AuthService auth;
+
+  /// The remote database service interface.
+  final RemoteDatabaseService remoteDb;
+
+  /// The local database service interface.
+  final LocalDatabase localDatabase;
 
   FirestoreTemplateRepository? get _remote {
-    final uid = _auth.currentUser?.uid;
+    final uid = auth.currentUser?.uid;
     if (uid == null) return null;
-    return FirestoreTemplateRepository(remoteDb: _remoteDb, userId: uid);
+    return FirestoreTemplateRepository(remoteDb: remoteDb, userId: uid);
   }
 
   @override
   Future<List<LabelTemplate>> fetchTemplates() async {
-    return _local.fetchTemplates();
+    return local.fetchTemplates();
   }
 
   @override
   Future<LabelTemplate> fetchTemplate(String id) async {
-    return _local.fetchTemplate(id);
+    return local.fetchTemplate(id);
   }
 
   @override
   Future<LabelTemplate> createTemplate(String name) async {
-    final template = await _local.createTemplate(name);
+    final template = await local.createTemplate(name);
 
     final remoteRepo = _remote;
     if (remoteRepo != null) {
       try {
         await remoteRepo.createTemplate(name);
-      } on Object catch (_) {
+      } on Exception catch (_) {
         // Fallback
       }
     }
@@ -57,13 +61,13 @@ class SyncingTemplateRepository implements TemplateRepository {
 
   @override
   Future<void> saveSheetConfig(String templateId, SheetConfig config) async {
-    await _local.saveSheetConfig(templateId, config);
+    await local.saveSheetConfig(templateId, config);
 
     final remoteRepo = _remote;
     if (remoteRepo != null) {
       try {
         await remoteRepo.saveSheetConfig(templateId, config);
-      } on Object catch (_) {
+      } on Exception catch (_) {
         // Fallback
       }
     }
@@ -71,13 +75,13 @@ class SyncingTemplateRepository implements TemplateRepository {
 
   @override
   Future<void> saveStickerConfig(String templateId, StickerConfig config) async {
-    await _local.saveStickerConfig(templateId, config);
+    await local.saveStickerConfig(templateId, config);
 
     final remoteRepo = _remote;
     if (remoteRepo != null) {
       try {
         await remoteRepo.saveStickerConfig(templateId, config);
-      } on Object catch (_) {
+      } on Exception catch (_) {
         // Fallback
       }
     }
@@ -85,13 +89,13 @@ class SyncingTemplateRepository implements TemplateRepository {
 
   @override
   Future<void> saveElements(String templateId, List<ElementBlueprint> elements) async {
-    await _local.saveElements(templateId, elements);
+    await local.saveElements(templateId, elements);
 
     final remoteRepo = _remote;
     if (remoteRepo != null) {
       try {
         await remoteRepo.saveElements(templateId, elements);
-      } on Object catch (_) {
+      } on Exception catch (_) {
         // Fallback
       }
     }
@@ -99,13 +103,13 @@ class SyncingTemplateRepository implements TemplateRepository {
 
   @override
   Future<void> finalizeTemplate(String templateId) async {
-    await _local.finalizeTemplate(templateId);
+    await local.finalizeTemplate(templateId);
 
     final remoteRepo = _remote;
     if (remoteRepo != null) {
       try {
         await remoteRepo.finalizeTemplate(templateId);
-      } on Object catch (_) {
+      } on Exception catch (_) {
         // Fallback
       }
     }
@@ -113,13 +117,13 @@ class SyncingTemplateRepository implements TemplateRepository {
 
   @override
   Future<void> deleteTemplate(String id) async {
-    await _local.deleteTemplate(id);
+    await local.deleteTemplate(id);
 
     final remoteRepo = _remote;
     if (remoteRepo != null) {
       try {
         await remoteRepo.deleteTemplate(id);
-      } on Object catch (_) {
+      } on Exception catch (_) {
         // Fallback
       }
     }
@@ -127,18 +131,18 @@ class SyncingTemplateRepository implements TemplateRepository {
 
   /// Pulls all templates from Firestore and overwrites the local cache.
   Future<void> sync(String uid) async {
-    final remoteRepo = FirestoreTemplateRepository(remoteDb: _remoteDb, userId: uid);
+    final remoteRepo = FirestoreTemplateRepository(remoteDb: remoteDb, userId: uid);
     final remoteTemplates = await remoteRepo.fetchTemplates();
 
     // Clear local cache
-    final localTemplates = await _local.fetchTemplates();
+    final localTemplates = await local.fetchTemplates();
     for (final t in localTemplates) {
-      await _local.deleteTemplate(t.id);
+      await local.deleteTemplate(t.id);
     }
 
     // Overwrite local cache with remote data (preserving original IDs)
     for (final t in remoteTemplates) {
-      await _localDb.save<LabelTemplateHiveModel>(
+      await localDatabase.save<LabelTemplateHiveModel>(
         'templates',
         t.id,
         LabelTemplateHiveModel.fromDomain(t),

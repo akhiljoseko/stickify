@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stickify/app/app.dart';
-import 'package:stickify/presentation/features/dashboard/pages/dashboard_screen.dart';
+import 'package:stickify/presentation/features/dashboard/presentation/dashboard_entry.dart';
 import 'package:stickify/presentation/login/login_screen.dart';
 
 void main() {

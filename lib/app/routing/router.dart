@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stickify/app/routing/app_shell.dart';
 import 'package:stickify/auth/auth.dart';
-import 'package:stickify/presentation/features/dashboard/pages/dashboard_screen.dart';
+import 'package:stickify/presentation/features/dashboard/presentation/dashboard_entry.dart';
 import 'package:stickify/presentation/features/print/pages/print_setup_page.dart';
 import 'package:stickify/presentation/features/print/pages/template_selection_page.dart';
 import 'package:stickify/presentation/features/search/pages/search_screen.dart';

@@ -1,22 +1,30 @@
 import 'package:equatable/equatable.dart';
 import 'package:stickify/domain/domain.dart';
 
+/// Base state class for print setup and execution workflow.
 abstract class PrintWorkflowState extends Equatable {
+  /// Base constructor.
   const PrintWorkflowState();
 
   @override
   List<Object?> get props => [];
 }
 
+/// Initial state of the print workflow.
 class PrintWorkflowInitial extends PrintWorkflowState {
+  /// Creates a [PrintWorkflowInitial] state.
   const PrintWorkflowInitial();
 }
 
+/// Loading state indicating data retrieval (e.g. templates catalog) is in progress.
 class PrintWorkflowLoading extends PrintWorkflowState {
+  /// Creates a [PrintWorkflowLoading] state.
   const PrintWorkflowLoading();
 }
 
+/// Active workflow state carrying the product, selected template, printer configuration, and grid slots.
 class PrintWorkflowLoaded extends PrintWorkflowState {
+  /// Creates a [PrintWorkflowLoaded] state.
   const PrintWorkflowLoaded({
     required this.product,
     required this.variant,
@@ -27,14 +35,28 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     this.disabledSlots = const {},
   });
 
+  /// The active product.
   final Product product;
+
+  /// The active variant of the product.
   final ProductVariant variant;
+
+  /// List of available label templates.
   final List<LabelTemplate> templates;
+
+  /// The currently selected template.
   final LabelTemplate? selectedTemplate;
+
+  /// Label sheet slot index count or quantity to print.
   final int quantity;
+
+  /// Selected printer name.
   final String selectedPrinter;
+
+  /// Set of disabled label slot grid indices to skip when compiling.
   final Set<int> disabledSlots;
 
+  /// Returns a copy of the state with modified fields.
   PrintWorkflowLoaded copyWith({
     Product? product,
     ProductVariant? variant,
@@ -67,27 +89,36 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
       ];
 }
 
+/// Transition state while compiling PDF and sending the layout job to the print service.
 class PrintWorkflowSubmitting extends PrintWorkflowState {
+  /// Creates a [PrintWorkflowSubmitting] state.
   const PrintWorkflowSubmitting({required this.loadedState});
 
+  /// The active loaded state metadata at the time of submission.
   final PrintWorkflowLoaded loadedState;
 
   @override
   List<Object?> get props => [loadedState];
 }
 
+/// Success state indicating the print job finished compiling and was sent successfully.
 class PrintWorkflowSuccess extends PrintWorkflowState {
+  /// Creates a [PrintWorkflowSuccess] state.
   const PrintWorkflowSuccess({required this.printJob});
 
+  /// The compiled/sent [PrintJob] entity.
   final PrintJob printJob;
 
   @override
   List<Object?> get props => [printJob];
 }
 
+/// Error state containing a descriptive message of what failed during the print pipeline.
 class PrintWorkflowError extends PrintWorkflowState {
+  /// Creates a [PrintWorkflowError] state.
   const PrintWorkflowError({required this.message});
 
+  /// The error message.
   final String message;
 
   @override

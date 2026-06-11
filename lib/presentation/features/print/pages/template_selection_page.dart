@@ -4,14 +4,19 @@ import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
+/// A screen allowing users to pick which finalized [LabelTemplate] to use for the selected product and variant.
 class TemplateSelectionPage extends StatefulWidget {
+  /// Creates a [TemplateSelectionPage] instance.
   const TemplateSelectionPage({
     required this.productId,
     required this.variantSku,
     super.key,
   });
 
+  /// The active product ID.
   final String productId;
+
+  /// The active product variant SKU.
   final String variantSku;
 
   @override

@@ -3,9 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/domain/domain.dart';
 
+/// A popup modal dialog for searching products and selecting a specific [ProductVariant] to print.
 class ProductVariantSelectionDialog extends StatefulWidget {
+  /// Creates a [ProductVariantSelectionDialog] instance.
   const ProductVariantSelectionDialog({super.key});
 
+  /// Displays the variant selection dialog over [context].
   static Future<void> show(BuildContext context) {
     return showDialog<void>(
       context: context,

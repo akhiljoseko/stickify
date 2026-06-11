@@ -9,7 +9,12 @@ import 'package:stickify/presentation/features/template_editor/core/element_rend
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
+/// Screen for configuring and executing a label print job.
+///
+/// Wraps [PrintWorkflowCubit] and allows users to set print quantity, select destination printer,
+/// and toggle disabled slots on the sticker sheet.
 class PrintSetupPage extends StatelessWidget {
+  /// Creates a [PrintSetupPage] instance.
   const PrintSetupPage({
     required this.productId,
     required this.variantSku,
@@ -17,8 +22,13 @@ class PrintSetupPage extends StatelessWidget {
     super.key,
   });
 
+  /// The active product ID.
   final String productId;
+
+  /// The active variant SKU.
   final String variantSku;
+
+  /// The active label template ID.
   final String templateId;
 
   @override

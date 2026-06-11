@@ -174,7 +174,41 @@ class _TemplateCardState extends State<TemplateCard> {
                             child: const Text('Select for Print'),
                           ),
                         ),
-                        if (context.watch<AppEnvironment>().experience != AppExperience.mobile) ...[
+                        if (context.watch<AppEnvironment>().experience == AppExperience.mobile) ...[
+                          const SizedBox(width: 8),
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert),
+                            onSelected: (val) {
+                              if (val == 'edit') {
+                                widget.onEdit();
+                              } else if (val == 'delete') {
+                                widget.onDelete();
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit_outlined, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('Edit Template'),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text('Delete Template', style: TextStyle(color: colorScheme.error)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ] else ...[
                           const SizedBox(width: 8),
                           IconButton(
                             icon: const Icon(Icons.edit_outlined),

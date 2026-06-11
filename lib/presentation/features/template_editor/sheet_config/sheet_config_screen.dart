@@ -2,10 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
-import 'package:stickify/core/environment/app_environment.dart';
-import 'package:stickify/core/environment/app_experience.dart';
 import 'package:stickify/domain/domain.dart';
-import 'package:stickify/presentation/features/template_editor/presentation/mobile_restricted_view.dart';
 import 'package:stickify/presentation/features/template_editor/sheet_config/bloc/sheet_config_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/sheet_config/bloc/sheet_config_state.dart';
 import 'package:stickify/presentation/features/template_editor/sheet_config/widgets/sheet_preview_grid.dart';
@@ -26,11 +23,6 @@ class SheetConfigScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final env = context.watch<AppEnvironment>();
-    if (env.experience == AppExperience.mobile) {
-      return const MobileRestrictedView(title: 'Sheet Layout Configuration');
-    }
-
     return BlocProvider(
       create: (context) {
         final cubit = SheetConfigCubit(

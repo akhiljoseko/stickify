@@ -17,7 +17,10 @@ import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 /// Features template creation modal dialogs, cards grid display, and pagination controls.
 class TemplateManagementScreen extends StatelessWidget {
   /// Creates a [TemplateManagementScreen] instance.
-  const TemplateManagementScreen({super.key});
+  const TemplateManagementScreen({this.initialAction, super.key});
+
+  /// The initial action to perform.
+  final String? initialAction;
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +32,15 @@ class TemplateManagementScreen extends StatelessWidget {
         unawaited(cubit.loadTemplates());
         return cubit;
       },
-      child: const _TemplateManagementView(),
+      child: _TemplateManagementView(initialAction: initialAction),
     );
   }
 }
 
 class _TemplateManagementView extends StatefulWidget {
-  const _TemplateManagementView();
+  const _TemplateManagementView({this.initialAction});
+
+  final String? initialAction;
 
   @override
   State<_TemplateManagementView> createState() => _TemplateManagementViewState();
@@ -44,6 +49,16 @@ class _TemplateManagementView extends StatefulWidget {
 class _TemplateManagementViewState extends State<_TemplateManagementView> {
   int _currentPage = 1;
   static const int _itemsPerPage = 8;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialAction == 'create') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showCreateTemplateDialog(context);
+      });
+    }
+  }
 
   void _showCreateTemplateDialog(BuildContext context) {
     final textController = TextEditingController();
@@ -92,8 +107,16 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    final isMobile = context.watch<AppEnvironment>().experience == AppExperience.mobile;
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
+      floatingActionButton: isMobile
+          ? FloatingActionButton(
+              onPressed: () => _showCreateTemplateDialog(context),
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -283,7 +306,6 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
   Widget _buildEmptyState(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final isMobile = context.watch<AppEnvironment>().experience == AppExperience.mobile;
 
     return Center(
       child: Column(
@@ -303,21 +325,17 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
           ),
           const SizedBox(height: 8),
           Text(
-            isMobile
-                ? 'Design controls are restricted to desktop viewports.'
-                : 'Create your first template to get started.',
+            'Create your first template to get started.',
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.outlineVariant,
             ),
           ),
-          if (!isMobile) ...[
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.add),
-              label: const Text('Create New Template'),
-              onPressed: () => _showCreateTemplateDialog(context),
-            ),
-          ],
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.add),
+            label: const Text('Create New Template'),
+            onPressed: () => _showCreateTemplateDialog(context),
+          ),
         ],
       ),
     );

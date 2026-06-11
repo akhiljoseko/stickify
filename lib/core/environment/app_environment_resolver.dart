@@ -33,13 +33,10 @@ abstract final class AppEnvironmentResolver {
       hasMouse: hasMouse,
       hasKeyboard: hasKeyboard,
       supportsFileSystem: true,
-      // User requirements resolved in griller interview:
-      // Bulk operations and advanced printing setups are fully supported across all platforms (including mobile print setups).
-      // Advanced editor/canvas creation is desktop/tablet only.
       supportsBulkOperations: true,
       supportsAdvancedPrintSetup: true,
-      supportsAdvancedEditor: experience != AppExperience.mobile,
-      supportsDragAndDrop: experience != AppExperience.mobile,
+      supportsAdvancedEditor: true,
+      supportsDragAndDrop: true,
       supportsKeyboardShortcuts: isDesktopPlatform,
     );
   }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
+import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_state.dart';
 
 /// Sidebar palette displaying available label element types that can be dragged onto the canvas.
 ///
@@ -267,24 +270,50 @@ class ElementPalette extends StatelessWidget {
             ],
           ),
         ),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: colorScheme.outlineVariant),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(color: colorScheme.onSurface, fontSize: 13),
-              ),
-              const Spacer(),
-              Icon(Icons.drag_indicator, size: 16, color: colorScheme.outlineVariant),
-            ],
+        child: GestureDetector(
+          onTap: () {
+            final editorState = context.read<EditorCubit>().state;
+            var element = blueprint();
+            if (editorState is EditorLoaded) {
+              const mmToPx = 4;
+              final stickerWidth = editorState.stickerConfig.widthMm * mmToPx;
+              final stickerHeight = editorState.stickerConfig.heightMm * mmToPx;
+
+              // Center the element on the sticker board
+              final centerX = (stickerWidth / 2) - (element.width / 2);
+              final centerY = (stickerHeight / 2) - (element.height / 2);
+
+              // Clamp inside sticker boundaries
+              final finalX = centerX.clamp(0.0, stickerWidth - element.width);
+              final finalY = centerY.clamp(0.0, stickerHeight - element.height);
+
+              element = element.copyWith(x: finalX, y: finalY);
+            }
+            context.read<EditorCubit>().addElement(element);
+
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: colorScheme.outlineVariant),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(color: colorScheme.onSurface, fontSize: 13),
+                ),
+                const Spacer(),
+                Icon(Icons.drag_indicator, size: 16, color: colorScheme.outlineVariant),
+              ],
+            ),
           ),
         ),
       ),

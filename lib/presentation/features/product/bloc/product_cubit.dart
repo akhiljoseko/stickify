@@ -8,17 +8,19 @@ class ProductCubit extends Cubit<ProductState> {
 
   final ProductRepository _productRepository;
 
-  Future<void> loadProducts() async {
+  Future<void> loadProducts({String? initialSubView}) async {
     final currentState = state;
     var query = '';
     var category = '';
-    var subView = 'catalog';
+    var subView = initialSubView ?? 'catalog';
     Product? selected;
     
     if (currentState is ProductCatalogSuccess) {
       query = currentState.searchQuery;
       category = currentState.categoryFilter;
-      subView = currentState.subView;
+      if (initialSubView == null) {
+        subView = currentState.subView;
+      }
       selected = currentState.selectedProduct;
     } else {
       emit(const ProductCatalogLoading());

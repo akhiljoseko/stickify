@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Forgot-password screen placeholder.
 class ForgotPasswordScreen extends StatelessWidget {
+  /// Creates a [ForgotPasswordScreen] instance.
   const ForgotPasswordScreen({super.key});
 
   @override

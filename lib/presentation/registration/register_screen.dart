@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 /// Wire up real registration logic by injecting a registration repository
 /// and cubit following the same pattern as `AuthCubit` / `LoginScreen`.
 class RegisterScreen extends StatelessWidget {
+  /// Creates a [RegisterScreen] instance.
   const RegisterScreen({super.key});
 
   @override

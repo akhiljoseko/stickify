@@ -12,6 +12,7 @@ import 'package:stickify/auth/auth.dart';
 /// state via [GoRouterRefreshStream] and automatically navigates to
 /// `/dashboard`. This keeps navigation concerns out of the UI layer entirely.
 class LoginScreen extends StatelessWidget {
+  /// Creates a [LoginScreen] instance.
   const LoginScreen({super.key});
 
   @override

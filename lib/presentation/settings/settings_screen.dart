@@ -12,6 +12,7 @@ import 'package:stickify/auth/auth.dart';
 /// automatically navigates to `/login`. This pattern enforces the rule:
 /// *business logic never navigates; the router does*.
 class SettingsScreen extends StatelessWidget {
+  /// Creates a [SettingsScreen] instance.
   const SettingsScreen({super.key});
 
   @override

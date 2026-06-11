@@ -98,6 +98,7 @@ class _AppState extends State<App> {
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider<LocalDatabase>.value(value: _database),
+        RepositoryProvider<AuthService>.value(value: _authService),
         RepositoryProvider<ProductRepository>.value(value: _productRepository),
         RepositoryProvider<TemplateRepository>.value(value: _templateRepository),
         RepositoryProvider<PrintJobRepository>.value(value: _printJobRepository),

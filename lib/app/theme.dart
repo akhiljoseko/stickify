@@ -315,24 +315,37 @@ class AppTheme {
 /// Extension helper to get custom Material 3 surface container colors
 /// from [ColorScheme].
 extension ContainerColors on ColorScheme {
+  /// Dim surface color.
   Color get surfaceDim => brightness == Brightness.light
       ? AppTheme.lightSurfaceDim
       : AppTheme.darkSurfaceDim;
+
+  /// Bright surface color.
   Color get surfaceBright => brightness == Brightness.light
       ? AppTheme.lightSurfaceBright
       : AppTheme.darkSurfaceBright;
+
+  /// Lowest elevation container surface color.
   Color get containerLowest => brightness == Brightness.light
       ? AppTheme.lightSurfaceContainerLowest
       : AppTheme.darkSurfaceContainerLowest;
+
+  /// Low elevation container surface color.
   Color get containerLow => brightness == Brightness.light
       ? AppTheme.lightSurfaceContainerLow
       : AppTheme.darkSurfaceContainerLow;
+
+  /// Medium elevation container surface color.
   Color get container => brightness == Brightness.light
       ? AppTheme.lightSurfaceContainer
       : AppTheme.darkSurfaceContainer;
+
+  /// High elevation container surface color.
   Color get containerHigh => brightness == Brightness.light
       ? AppTheme.lightSurfaceContainerHigh
       : AppTheme.darkSurfaceContainerHigh;
+
+  /// Highest elevation container surface color.
   Color get containerHighest => brightness == Brightness.light
       ? AppTheme.lightSurfaceContainerHighest
       : AppTheme.darkSurfaceContainerHighest;

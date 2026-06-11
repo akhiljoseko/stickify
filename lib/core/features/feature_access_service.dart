@@ -1,5 +1,4 @@
 import 'package:stickify/core/environment/app_environment.dart';
-import 'package:stickify/core/environment/app_experience.dart';
 import 'package:stickify/core/features/feature_availability.dart';
 import 'package:stickify/core/features/feature_id.dart';
 
@@ -23,9 +22,6 @@ class FeatureAccessService {
 
       case FeatureId.templateCreation:
       case FeatureId.productCatalogAdmin:
-        if (environment.experience == AppExperience.mobile) {
-          return FeatureAvailability.desktopOnly;
-        }
         return FeatureAvailability.available;
     }
   }

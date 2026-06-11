@@ -26,7 +26,7 @@ class DashboardPage extends StatelessWidget {
             final cubit = RecentPrintJobsCubit(
               printJobRepository: blocContext.read<PrintJobRepository>(),
             );
-            unawaited(cubit.loadRecentPrintJobs());
+            unawaited(cubit.loadRecentJobs());
             return cubit;
           },
         ),

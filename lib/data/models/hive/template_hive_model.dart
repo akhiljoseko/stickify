@@ -237,7 +237,7 @@ class ElementBlueprintHiveModel extends HiveObject {
   });
 
   factory ElementBlueprintHiveModel.fromDomain(ElementBlueprint eb) {
-    String type = '';
+    var type = '';
     String? content;
     bool? isDynamic;
     double? fontSize;

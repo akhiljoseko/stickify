@@ -1,24 +1,19 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:stickify/core/services/document_database.dart';
 import 'package:stickify/core/services/local_database.dart';
-import 'package:stickify/data/services/hive_local_database.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
 import 'package:stickify/data/repositories/database_template_repository.dart';
+import 'package:stickify/data/services/hive_local_database.dart';
 import 'package:stickify/domain/domain.dart';
 
 void main() {
   final dbFactories = <String, Future<LocalDatabase> Function(Directory tempDir)>{
-    'DocumentDatabase': (tempDir) async {
-      return DocumentDatabase(customDirectory: tempDir);
-    },
     'HiveLocalDatabase': (tempDir) async {
-      Hive.init(tempDir.path);
       final db = HiveLocalDatabase();
-      await db.init();
+      await db.init(tempDir.path);
       return db;
     },
   };
@@ -59,20 +54,6 @@ void main() {
             // Ignore windows file locking issues in tests
           }
         }
-      });
-
-      group('Basic operations', () {
-        test('save and retrieve data', () async {
-          // DocumentDatabase works with Map, HiveLocalDatabase works with type-safe models.
-          // In actual repositories we use type-safe models, but basic direct save can be verified.
-          if (dbName == 'DocumentDatabase') {
-            await database.save('users', 'user-1', {'name': 'Akhil', 'role': 'Admin'});
-            final data = await database.get<Map<String, dynamic>>('users', 'user-1');
-            expect(data, isNotNull);
-            expect(data!['name'], 'Akhil');
-            expect(data['role'], 'Admin');
-          }
-        });
       });
 
       group('DatabaseProductRepository', () {

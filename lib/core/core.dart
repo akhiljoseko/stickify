@@ -6,5 +6,11 @@
 /// ```
 library;
 
+export 'environment/app_environment.dart';
+export 'environment/app_environment_resolver.dart';
+export 'environment/app_experience.dart';
+export 'features/feature_access_service.dart';
+export 'features/feature_availability.dart';
+export 'features/feature_id.dart';
 export 'utils/adaptive_value.dart';
 export 'utils/app_breakpoints.dart';

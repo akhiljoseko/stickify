@@ -1,12 +1,14 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/environment/app_environment.dart';
+import 'package:stickify/core/environment/app_experience.dart';
 import 'package:stickify/core/utils/app_breakpoints.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/element_renderer_registry.dart';
+import 'package:stickify/presentation/features/template_editor/presentation/mobile_restricted_view.dart';
 import 'package:stickify/presentation/features/template_editor/preview/bloc/preview_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/preview/bloc/preview_state.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/widgets/polygon_painter.dart';
@@ -26,6 +28,11 @@ class PreviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final env = context.watch<AppEnvironment>();
+    if (env.experience == AppExperience.mobile) {
+      return const MobileRestrictedView(title: 'Template Preview & Save');
+    }
+
     return BlocProvider(
       create: (context) {
         final cubit = PreviewCubit(

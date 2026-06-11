@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/environment/app_environment.dart';
+import 'package:stickify/core/environment/app_experience.dart';
 import 'package:stickify/core/utils/adaptive_value.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/template_management/bloc/template_list_cubit.dart';
@@ -98,7 +100,7 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            Row(
+             Row(
               children: [
                 Expanded(
                   child: Column(
@@ -118,14 +120,15 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                     ],
                   ),
                 ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create New Template'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                if (context.watch<AppEnvironment>().experience != AppExperience.mobile)
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: const Text('Create New Template'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    ),
+                    onPressed: () => _showCreateTemplateDialog(context),
                   ),
-                  onPressed: () => _showCreateTemplateDialog(context),
-                ),
               ],
             ),
             const SizedBox(height: 32),
@@ -280,6 +283,7 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
   Widget _buildEmptyState(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final isMobile = context.watch<AppEnvironment>().experience == AppExperience.mobile;
 
     return Center(
       child: Column(
@@ -299,17 +303,21 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Create your first template to get started.',
+            isMobile
+                ? 'Design controls are restricted to desktop viewports.'
+                : 'Create your first template to get started.',
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.outlineVariant,
             ),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.add),
-            label: const Text('Create New Template'),
-            onPressed: () => _showCreateTemplateDialog(context),
-          ),
+          if (!isMobile) ...[
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Create New Template'),
+              onPressed: () => _showCreateTemplateDialog(context),
+            ),
+          ],
         ],
       ),
     );

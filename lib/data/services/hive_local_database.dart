@@ -7,8 +7,12 @@ class HiveLocalDatabase implements LocalDatabase {
   final Map<String, Box<dynamic>> _openedBoxes = {};
 
   @override
-  Future<void> init() async {
-    await Hive.initFlutter();
+  Future<void> init([String? path]) async {
+    if (path != null) {
+      Hive.init(path);
+    } else {
+      await Hive.initFlutter();
+    }
     try {
       Hive.registerAdapters();
     } on Object catch (_) {

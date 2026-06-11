@@ -5,9 +5,9 @@ import 'package:mocktail/mocktail.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_cubit.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_state.dart';
-import 'package:stickify/presentation/features/print/pages/print_setup_page.dart';
+import 'package:stickify/presentation/features/print/presentation/print_setup_entry.dart';
 import 'package:stickify/presentation/features/template_editor/renderers/text_element_renderer.dart';
-import '../../../helpers/pump_app.dart';
+import '../../../../helpers/pump_app.dart';
 
 class MockProductRepository extends Mock implements ProductRepository {}
 class MockTemplateRepository extends Mock implements TemplateRepository {}

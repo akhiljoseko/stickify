@@ -1,7 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/utils/app_breakpoints.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/element_renderer_registry.dart';
 import 'package:stickify/presentation/features/template_editor/preview/bloc/preview_cubit.dart';
@@ -191,7 +194,7 @@ class _PreviewViewState extends State<_PreviewView> {
             ),
           );
 
-          final sidebar = Container(
+          final desktopSidebar = Container(
             width: 320,
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerLow,
@@ -248,6 +251,10 @@ class _PreviewViewState extends State<_PreviewView> {
             ),
           );
 
+          final bp = ResponsiveBreakpoints.of(context);
+          final isMobileOrTablet = bp.breakpoint.name == AppBreakpoints.mobile ||
+              bp.breakpoint.name == AppBreakpoints.tablet;
+
           return Scaffold(
             backgroundColor: colorScheme.surface,
             appBar: AppBar(
@@ -266,10 +273,52 @@ class _PreviewViewState extends State<_PreviewView> {
                         controller: controller,
                         padding: const EdgeInsets.all(24),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            SizedBox(height: boardHeight + 64, child: previewBoard),
-                            const SizedBox(height: 24),
-                            sidebar,
+                            Text(
+                              'Label Preview',
+                              style: textTheme.titleSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              height: 240,
+                              child: Center(
+                                child: FittedBox(
+                                  child: previewBoard,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            Text(
+                              'Template Summary',
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildSummaryItem(textTheme, colorScheme, 'Name', template.name),
+                            _buildSummaryItem(
+                              textTheme,
+                              colorScheme,
+                              'Page Layout',
+                              '${sheets.pageWidth.toStringAsFixed(1)} × ${sheets.pageHeight.toStringAsFixed(1)} mm (${sheets.columns} × ${sheets.rows} grid)',
+                            ),
+                            _buildSummaryItem(
+                              textTheme,
+                              colorScheme,
+                              'Sticker Dimensions',
+                              '${sticker.widthMm.toStringAsFixed(1)} × ${sticker.heightMm.toStringAsFixed(1)} mm',
+                            ),
+                            _buildSummaryItem(
+                              textTheme,
+                              colorScheme,
+                              'Elements Count',
+                              '${template.elements.length} placed objects',
+                            ),
+                            const SizedBox(height: 40),
                           ],
                         ),
                       ),
@@ -281,18 +330,42 @@ class _PreviewViewState extends State<_PreviewView> {
                           flex: 7,
                           child: ColoredBox(
                             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
-                            child: previewBoard,
+                            child: Center(
+                              child: FittedBox(
+                                child: previewBoard,
+                              ),
+                            ),
                           ),
                         ),
                         const VerticalDivider(width: 1, thickness: 1),
-                        sidebar,
+                        desktopSidebar,
                       ],
                     ),
                   ),
                 ),
-                
-                // Footer (Mobile specific fallback actions if sidebar goes off screen)
-                // Note: Standard desktop does all controls in sidebar
+                if (isMobileOrTablet)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      border: Border(
+                        top: BorderSide(color: colorScheme.outlineVariant),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        OutlinedButton(
+                          onPressed: () => LabelEditorRoute(templateId: template.id).go(context),
+                          child: const Text('Back to Editor'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => context.read<PreviewCubit>().finalizeAndSave(),
+                          child: const Text('Save & Finalize'),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           );

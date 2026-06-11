@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
@@ -164,7 +165,11 @@ class _QuickActionsList extends StatelessWidget {
     if (isRestricted) {
       _showDesktopOnlySheet(context, action.title);
     } else {
-      // Wire navigation/action in appropriate screen router/controller
+      if (action.id == FeatureId.productCatalogAdmin) {
+        context.go('/products?subView=create');
+      } else if (action.id == FeatureId.templateCreation) {
+        context.go('/templates?action=create');
+      }
     }
   }
 

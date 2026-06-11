@@ -236,7 +236,8 @@ class ProductManagementRoute extends GoRouteData with $ProductManagementRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const ProductManagementScreen();
+    final subView = state.uri.queryParameters['subView'];
+    return ProductManagementScreen(initialSubView: subView);
   }
 }
 
@@ -318,7 +319,8 @@ class TemplateManagementRoute extends GoRouteData
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const TemplateManagementScreen();
+    final action = state.uri.queryParameters['action'];
+    return TemplateManagementScreen(initialAction: action);
   }
 }
 

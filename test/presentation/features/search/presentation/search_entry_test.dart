@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stickify/domain/domain.dart';
-import 'package:stickify/presentation/features/search/pages/search_screen.dart';
+import 'package:stickify/presentation/features/search/presentation/search_entry.dart';
 
 import '../../../../helpers/helpers.dart';
 

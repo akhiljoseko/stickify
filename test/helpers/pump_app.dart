@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:stickify/core/utils/app_breakpoints.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/l10n/l10n.dart';
 
 extension PumpApp on WidgetTester {
@@ -13,6 +14,9 @@ extension PumpApp on WidgetTester {
     Size? size,
   }) async {
     if (size != null) {
+      // Clear the widget tree first to avoid laying out the old tree with the new size
+      await pumpWidget(const SizedBox());
+      
       // Set the physical size and pixel ratio for MediaQuery
       view
         ..physicalSize = size
@@ -33,7 +37,15 @@ extension PumpApp on WidgetTester {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         builder: (context, child) => ResponsiveBreakpoints.builder(
-          child: child!,
+          child: Builder(
+            builder: (context) {
+              final environment = AppEnvironmentResolver.resolve(context);
+              return RepositoryProvider<AppEnvironment>.value(
+                value: environment,
+                child: child,
+              );
+            },
+          ),
           breakpoints: AppBreakpoints.breakpoints,
         ),
         home: widget,

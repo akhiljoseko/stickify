@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/core/environment/app_environment.dart';
 import 'package:stickify/core/environment/app_experience.dart';
 
@@ -9,7 +8,7 @@ abstract final class AppEnvironmentResolver {
 
   /// Resolves the current [AppEnvironment] from [BuildContext] dimensions and host platform.
   static AppEnvironment resolve(BuildContext context) {
-    final bp = ResponsiveBreakpoints.of(context);
+    final size = MediaQuery.sizeOf(context);
     final platform = Theme.of(context).platform;
 
     final isDesktopPlatform = platform == TargetPlatform.macOS ||
@@ -17,9 +16,9 @@ abstract final class AppEnvironmentResolver {
         platform == TargetPlatform.linux;
 
     final AppExperience experience;
-    if (bp.isMobile) {
+    if (size.width <= 450) {
       experience = AppExperience.mobile;
-    } else if (bp.isTablet) {
+    } else if (size.width <= 800) {
       experience = AppExperience.tablet;
     } else {
       experience = AppExperience.desktop;

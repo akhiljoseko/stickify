@@ -1,62 +1,95 @@
+import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:stickify/auth/auth_state.dart';
+import 'package:stickify/core/services/document_database.dart';
 
 /// Manages the application-wide authentication state.
-///
-/// ## Architecture Contract
-///
-/// The [AuthCubit] is the **single source of truth** for whether the current
-/// user is logged in or not. It intentionally knows nothing about routing:
-/// it only emits state. The `GoRouter` (configured in `router.dart`) listens
-/// to this cubit's stream via a `GoRouterRefreshStream` and calls its
-/// `redirect` callback every time a new [AuthState] is emitted. This
-/// separation of concerns keeps business logic out of navigation code and
-/// navigation code out of business logic.
-///
-/// ## Usage
-///
-/// ```dart
-/// // Provide at the top of the widget tree:
-/// BlocProvider(create: (_) => AuthCubit())
-///
-/// // Trigger login from a button:
-/// context.read<AuthCubit>().login();
-///
-/// // Trigger logout from settings:
-/// context.read<AuthCubit>().logout();
-/// ```
-///
-/// The router observes these state changes and automatically redirects —
-/// callers never need to call `context.go(...)` themselves.
 class AuthCubit extends Cubit<AuthState> {
-  /// Creates the [AuthCubit] starting in the [AuthUnauthenticated] state.
-  ///
-  /// In a real application the constructor would accept an `AuthRepository`
-  /// dependency and call `checkSession()` to restore a persisted login. For
-  /// this mock, we default to unauthenticated so the user always lands on
-  /// the login screen first.
-  AuthCubit() : super(const AuthUnauthenticated());
-
-  /// Simulates a successful login flow.
-  ///
-  /// In production this method would call the auth repository, await a token,
-  /// and then emit [AuthAuthenticated]. For the mock, we transition
-  /// immediately.
-  ///
-  /// **Do NOT add `context.go(...)` here.** Navigation is the router's job;
-  /// this method's only responsibility is to update state.
-  void login() {
-    emit(const AuthAuthenticated());
+  /// Creates the [AuthCubit] and listens to the Firebase authentication state.
+  AuthCubit({
+    required FirebaseAuth auth,
+    required DocumentDatabase localDatabase,
+  })  : _auth = auth,
+        _localDb = localDatabase,
+        super(const AuthInitial()) {
+    _authStateSubscription = _auth.authStateChanges().listen(_onAuthStateChanged);
   }
 
-  /// Simulates a logout.
-  ///
-  /// Clears session state and emits [AuthUnauthenticated]. The router's
-  /// redirect callback will detect the state change and send the user back
-  /// to `/login` automatically.
-  ///
-  /// **Do NOT add `context.go(...)` here.**
-  void logout() {
-    emit(const AuthUnauthenticated());
+  final FirebaseAuth _auth;
+  final DocumentDatabase _localDb;
+  late final StreamSubscription<User?> _authStateSubscription;
+
+  void _onAuthStateChanged(User? user) {
+    if (user != null) {
+      emit(AuthAuthenticated(uid: user.uid, email: user.email));
+    } else {
+      emit(const AuthUnauthenticated());
+    }
+  }
+
+  /// Signs in a user using email and password.
+  Future<void> login(String email, String password) async {
+    emit(const AuthLoading());
+    try {
+      // Clear local database to start fresh and avoid guest data leaks
+      await _clearLocalDatabase();
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      emit(AuthFailure(e.message ?? 'Authentication failed'));
+    } catch (e) {
+      emit(AuthFailure(e.toString()));
+    }
+  }
+
+  /// Registers a new user using email and password.
+  Future<void> register(String email, String password) async {
+    emit(const AuthLoading());
+    try {
+      // Clear local database to start fresh
+      await _clearLocalDatabase();
+      await _auth.createUserWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      emit(AuthFailure(e.message ?? 'Registration failed'));
+    } catch (e) {
+      emit(AuthFailure(e.toString()));
+    }
+  }
+
+  /// Sends a password reset email.
+  Future<void> resetPassword(String email) async {
+    emit(const AuthLoading());
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      emit(const AuthUnauthenticated());
+    } on FirebaseAuthException catch (e) {
+      emit(AuthFailure(e.message ?? 'Password reset failed'));
+    } catch (e) {
+      emit(AuthFailure(e.toString()));
+    }
+  }
+
+  /// Logs out the user from Firebase.
+  Future<void> logout() async {
+    emit(const AuthLoading());
+    try {
+      await _auth.signOut();
+    } catch (e) {
+      emit(AuthFailure(e.toString()));
+    }
+  }
+
+  Future<void> _clearLocalDatabase() async {
+    try {
+      await _localDb.clear();
+    } catch (_) {
+      // Ignore directory cleanup exceptions silently
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _authStateSubscription.cancel();
+    return super.close();
   }
 }

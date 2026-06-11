@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +16,9 @@ import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
 import 'package:stickify/data/repositories/database_template_repository.dart';
+import 'package:stickify/data/repositories/syncing_print_job_repository.dart';
+import 'package:stickify/data/repositories/syncing_product_repository.dart';
+import 'package:stickify/data/repositories/syncing_template_repository.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/l10n/l10n.dart';
 
@@ -52,9 +57,29 @@ class _AppState extends State<App> {
   void initState() {
     super.initState();
     _database = DocumentDatabase();
-    _productRepository = DatabaseProductRepository(database: _database);
-    _templateRepository = DatabaseTemplateRepository(database: _database);
-    _printJobRepository = DatabasePrintJobRepository(database: _database);
+    
+    final localProductRepo = DatabaseProductRepository(database: _database);
+    final localTemplateRepo = DatabaseTemplateRepository(database: _database);
+    final localPrintJobRepo = DatabasePrintJobRepository(database: _database);
+
+    _productRepository = SyncingProductRepository(
+      local: localProductRepo,
+      auth: FirebaseAuth.instance,
+      firestore: FirebaseFirestore.instance,
+    );
+    _templateRepository = SyncingTemplateRepository(
+      local: localTemplateRepo,
+      auth: FirebaseAuth.instance,
+      firestore: FirebaseFirestore.instance,
+      localDatabase: _database,
+    );
+    _printJobRepository = SyncingPrintJobRepository(
+      local: localPrintJobRepo,
+      auth: FirebaseAuth.instance,
+      firestore: FirebaseFirestore.instance,
+      localDatabase: _database,
+    );
+
     _searchRepository = DatabaseSearchRepository(
       productRepository: _productRepository,
       templateRepository: _templateRepository,
@@ -80,7 +105,10 @@ class _AppState extends State<App> {
       ],
       child: BlocProvider(
         // Create the AuthCubit once for the entire app lifetime.
-        create: (_) => AuthCubit(),
+        create: (_) => AuthCubit(
+          auth: FirebaseAuth.instance,
+          localDatabase: _database,
+        ),
         child: const _AppView(),
       ),
     );

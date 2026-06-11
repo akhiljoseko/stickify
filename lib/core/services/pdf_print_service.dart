@@ -265,6 +265,7 @@ class PdfPrintService implements PrintService {
 
 /// Isolate message wrapper carrying print execution payload.
 class _PdfJobInput {
+  /// Creates a [_PdfJobInput] payload.
   const _PdfJobInput({
     required this.product,
     required this.variant,
@@ -274,10 +275,21 @@ class _PdfJobInput {
     required this.imageCache,
   });
 
+  /// The active product.
   final Product product;
+
+  /// The active product variant.
   final ProductVariant variant;
+
+  /// The label design template to compile.
   final LabelTemplate template;
+
+  /// Number of labels to print.
   final int quantity;
+
+  /// Slot grid positions on the sheet marked as disabled/skipped.
   final Set<int> disabledSlots;
+
+  /// Pre-cached image asset bytes indexed by source path/URL.
   final Map<String, Uint8List> imageCache;
 }

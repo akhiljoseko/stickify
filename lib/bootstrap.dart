@@ -4,7 +4,9 @@ import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/widgets.dart';
 
+/// Custom [BlocObserver] that logs Bloc state changes and errors.
 class AppBlocObserver extends BlocObserver {
+  /// Creates an [AppBlocObserver] instance.
   const AppBlocObserver();
 
   @override
@@ -20,6 +22,7 @@ class AppBlocObserver extends BlocObserver {
   }
 }
 
+/// Global initialization block to configure cross-flavor logic and launch the application.
 Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);

@@ -7,6 +7,7 @@ import 'package:stickify/presentation/features/template_editor/renderers/text_el
 
 /// Concrete Strategy for rendering [TextElementBlueprint] into PDF [pw.Text].
 class PdfTextElementRenderer implements PdfElementRenderer<TextElementBlueprint> {
+  /// Creates a [PdfTextElementRenderer] instance.
   const PdfTextElementRenderer();
 
   @override
@@ -47,6 +48,7 @@ class PdfTextElementRenderer implements PdfElementRenderer<TextElementBlueprint>
 
 /// Concrete Strategy for rendering [ShapeElementBlueprint] into PDF shapes.
 class PdfShapeElementRenderer implements PdfElementRenderer<ShapeElementBlueprint> {
+  /// Creates a [PdfShapeElementRenderer] instance.
   const PdfShapeElementRenderer();
 
   @override
@@ -73,6 +75,7 @@ class PdfShapeElementRenderer implements PdfElementRenderer<ShapeElementBlueprin
 
 /// Concrete Strategy for rendering [BarcodeElementBlueprint] into PDF barcode widgets.
 class PdfBarcodeElementRenderer implements PdfElementRenderer<BarcodeElementBlueprint> {
+  /// Creates a [PdfBarcodeElementRenderer] instance.
   const PdfBarcodeElementRenderer();
 
   @override
@@ -103,6 +106,7 @@ class PdfBarcodeElementRenderer implements PdfElementRenderer<BarcodeElementBlue
 
 /// Concrete Strategy for rendering [QrElementBlueprint] into PDF QR codes.
 class PdfQrElementRenderer implements PdfElementRenderer<QrElementBlueprint> {
+  /// Creates a [PdfQrElementRenderer] instance.
   const PdfQrElementRenderer();
 
   @override
@@ -128,6 +132,7 @@ class PdfQrElementRenderer implements PdfElementRenderer<QrElementBlueprint> {
 
 /// Concrete Strategy for rendering [ImageElementBlueprint] into PDF images.
 class PdfImageElementRenderer implements PdfElementRenderer<ImageElementBlueprint> {
+  /// Creates a [PdfImageElementRenderer] instance.
   const PdfImageElementRenderer();
 
   @override

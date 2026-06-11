@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stickify/app/app.dart';
 import 'package:stickify/core/services/auth_service.dart';
 import 'package:stickify/core/services/local_database.dart';
 import 'package:stickify/core/services/remote_database_service.dart';
+import 'package:stickify/data/models/hive/print_job_hive_model.dart';
+import 'package:stickify/data/models/hive/product_hive_model.dart';
+import 'package:stickify/data/models/hive/template_hive_model.dart';
 import 'package:stickify/presentation/features/dashboard/presentation/dashboard_entry.dart';
 import 'package:stickify/presentation/login/login_screen.dart';
 
@@ -15,16 +19,28 @@ void main() {
   late MockAuthService mockAuth;
   late MockRemoteDatabaseService mockRemoteDb;
   late MockLocalDatabase mockLocalDb;
+  late StreamController<AppUser?> authStateController;
 
   setUp(() {
     mockAuth = MockAuthService();
     mockRemoteDb = MockRemoteDatabaseService();
     mockLocalDb = MockLocalDatabase();
+    authStateController = StreamController<AppUser?>.broadcast();
 
     // Stub initial service calls
     when(() => mockLocalDb.init()).thenAnswer((_) async {});
     when(() => mockLocalDb.clear()).thenAnswer((_) async {});
-    when(() => mockAuth.authStateChanges).thenAnswer((_) => Stream.value(null));
+    when(() => mockLocalDb.getAll<PrintJobHiveModel>(any())).thenAnswer((_) async => <PrintJobHiveModel>[]);
+    when(() => mockLocalDb.getAll<ProductHiveModel>(any())).thenAnswer((_) async => <ProductHiveModel>[]);
+    when(() => mockLocalDb.getAll<LabelTemplateHiveModel>(any())).thenAnswer((_) async => <LabelTemplateHiveModel>[]);
+    when(() => mockAuth.authStateChanges).thenAnswer((_) => authStateController.stream);
+    
+    // Seed initial unauthenticated state
+    authStateController.add(null);
+  });
+
+  tearDown(() {
+    authStateController.close();
   });
 
   group('App', () {
@@ -44,11 +60,11 @@ void main() {
 
       // Setup login success stubs
       when(() => mockAuth.signIn(any(), any())).thenAnswer(
-        (_) async => const AppUser(uid: 'user-123', email: 'test@example.com'),
-      );
-      // When login succeeds, authStateChanges should emit the authenticated user
-      when(() => mockAuth.authStateChanges).thenAnswer(
-        (_) => Stream.value(const AppUser(uid: 'user-123', email: 'test@example.com')),
+        (_) async {
+          const user = AppUser(uid: 'user-123', email: 'test@example.com');
+          authStateController.add(user);
+          return user;
+        },
       );
 
       await tester.enterText(find.bySemanticsLabel('Email Address'), 'test@example.com');

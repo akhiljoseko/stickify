@@ -3,21 +3,21 @@ import 'package:stickify/core/services/auth_service.dart';
 
 /// Concrete implementation of [AuthService] powered by the Firebase Auth SDK.
 class FirebaseAuthService implements AuthService {
-  /// Creates a [FirebaseAuthService] backed by [auth].
-  FirebaseAuthService({required FirebaseAuth auth}) : _auth = auth;
+  /// Creates a [FirebaseAuthService].
+  FirebaseAuthService({required this.auth});
 
-  final FirebaseAuth _auth;
+  final FirebaseAuth auth;
 
   @override
   Stream<AppUser?> get authStateChanges =>
-      _auth.authStateChanges().map(_mapFirebaseUser);
+      auth.authStateChanges().map(_mapFirebaseUser);
 
   @override
-  AppUser? get currentUser => _mapFirebaseUser(_auth.currentUser);
+  AppUser? get currentUser => _mapFirebaseUser(auth.currentUser);
 
   @override
   Future<AppUser?> signIn(String email, String password) async {
-    final credential = await _auth.signInWithEmailAndPassword(
+    final credential = await auth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
@@ -26,7 +26,7 @@ class FirebaseAuthService implements AuthService {
 
   @override
   Future<AppUser?> signUp(String email, String password) async {
-    final credential = await _auth.createUserWithEmailAndPassword(
+    final credential = await auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
@@ -35,12 +35,12 @@ class FirebaseAuthService implements AuthService {
 
   @override
   Future<void> sendPasswordResetEmail(String email) async {
-    await _auth.sendPasswordResetEmail(email: email);
+    await auth.sendPasswordResetEmail(email: email);
   }
 
   @override
   Future<void> signOut() async {
-    await _auth.signOut();
+    await auth.signOut();
   }
 
   AppUser? _mapFirebaseUser(User? user) {

@@ -8,16 +8,18 @@ import 'package:stickify/core/services/local_database.dart';
 class AuthCubit extends Cubit<AuthState> {
   /// Creates the [AuthCubit] and listens to the authentication state.
   AuthCubit({
-    required AuthService auth,
-    required LocalDatabase localDatabase,
-  })  : _auth = auth,
-        _localDb = localDatabase,
-        super(const AuthInitial()) {
-    _authStateSubscription = _auth.authStateChanges.listen(_onAuthStateChanged);
+    required this.auth,
+    required this.localDatabase,
+  })  : super(const AuthInitial()) {
+    _authStateSubscription = auth.authStateChanges.listen(_onAuthStateChanged);
   }
 
-  final AuthService _auth;
-  final LocalDatabase _localDb;
+  /// Interface for managing auth states.
+  final AuthService auth;
+
+  /// Interface for managing local database operations.
+  final LocalDatabase localDatabase;
+
   late final StreamSubscription<AppUser?> _authStateSubscription;
 
   void _onAuthStateChanged(AppUser? user) {
@@ -34,7 +36,7 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       // Clear local database to start fresh and avoid guest data leaks
       await _clearLocalDatabase();
-      await _auth.signIn(email, password);
+      await auth.signIn(email, password);
     } on Exception catch (e) {
       emit(AuthFailure(e.toString()));
     }
@@ -46,7 +48,7 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       // Clear local database to start fresh
       await _clearLocalDatabase();
-      await _auth.signUp(email, password);
+      await auth.signUp(email, password);
     } on Exception catch (e) {
       emit(AuthFailure(e.toString()));
     }
@@ -56,7 +58,7 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> resetPassword(String email) async {
     emit(const AuthLoading());
     try {
-      await _auth.sendPasswordResetEmail(email);
+      await auth.sendPasswordResetEmail(email);
       emit(const AuthUnauthenticated());
     } on Exception catch (e) {
       emit(AuthFailure(e.toString()));
@@ -67,7 +69,7 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> logout() async {
     emit(const AuthLoading());
     try {
-      await _auth.signOut();
+      await auth.signOut();
     } on Exception catch (e) {
       emit(AuthFailure(e.toString()));
     }
@@ -75,7 +77,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> _clearLocalDatabase() async {
     try {
-      await _localDb.clear();
+      await localDatabase.clear();
     } on Exception catch (_) {
       // Ignore directory cleanup exceptions silently
     }

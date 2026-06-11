@@ -1,26 +1,26 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:stickify/auth/auth_state.dart';
-import 'package:stickify/core/services/document_database.dart';
+import 'package:stickify/core/services/auth_service.dart';
+import 'package:stickify/core/services/local_database.dart';
 
 /// Manages the application-wide authentication state.
 class AuthCubit extends Cubit<AuthState> {
-  /// Creates the [AuthCubit] and listens to the Firebase authentication state.
+  /// Creates the [AuthCubit] and listens to the authentication state.
   AuthCubit({
-    required FirebaseAuth auth,
-    required DocumentDatabase localDatabase,
+    required AuthService auth,
+    required LocalDatabase localDatabase,
   })  : _auth = auth,
         _localDb = localDatabase,
         super(const AuthInitial()) {
-    _authStateSubscription = _auth.authStateChanges().listen(_onAuthStateChanged);
+    _authStateSubscription = _auth.authStateChanges.listen(_onAuthStateChanged);
   }
 
-  final FirebaseAuth _auth;
-  final DocumentDatabase _localDb;
-  late final StreamSubscription<User?> _authStateSubscription;
+  final AuthService _auth;
+  final LocalDatabase _localDb;
+  late final StreamSubscription<AppUser?> _authStateSubscription;
 
-  void _onAuthStateChanged(User? user) {
+  void _onAuthStateChanged(AppUser? user) {
     if (user != null) {
       emit(AuthAuthenticated(uid: user.uid, email: user.email));
     } else {
@@ -34,10 +34,8 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       // Clear local database to start fresh and avoid guest data leaks
       await _clearLocalDatabase();
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-    } on FirebaseAuthException catch (e) {
-      emit(AuthFailure(e.message ?? 'Authentication failed'));
-    } catch (e) {
+      await _auth.signIn(email, password);
+    } on Exception catch (e) {
       emit(AuthFailure(e.toString()));
     }
   }
@@ -48,10 +46,8 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       // Clear local database to start fresh
       await _clearLocalDatabase();
-      await _auth.createUserWithEmailAndPassword(email: email, password: password);
-    } on FirebaseAuthException catch (e) {
-      emit(AuthFailure(e.message ?? 'Registration failed'));
-    } catch (e) {
+      await _auth.signUp(email, password);
+    } on Exception catch (e) {
       emit(AuthFailure(e.toString()));
     }
   }
@@ -60,21 +56,19 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> resetPassword(String email) async {
     emit(const AuthLoading());
     try {
-      await _auth.sendPasswordResetEmail(email: email);
+      await _auth.sendPasswordResetEmail(email);
       emit(const AuthUnauthenticated());
-    } on FirebaseAuthException catch (e) {
-      emit(AuthFailure(e.message ?? 'Password reset failed'));
-    } catch (e) {
+    } on Exception catch (e) {
       emit(AuthFailure(e.toString()));
     }
   }
 
-  /// Logs out the user from Firebase.
+  /// Logs out the user.
   Future<void> logout() async {
     emit(const AuthLoading());
     try {
       await _auth.signOut();
-    } catch (e) {
+    } on Exception catch (e) {
       emit(AuthFailure(e.toString()));
     }
   }
@@ -82,7 +76,7 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> _clearLocalDatabase() async {
     try {
       await _localDb.clear();
-    } catch (_) {
+    } on Exception catch (_) {
       // Ignore directory cleanup exceptions silently
     }
   }

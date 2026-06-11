@@ -12,14 +12,17 @@ import 'package:stickify/presentation/features/product/presentation/mobile/mobil
 /// Resolves the layout dynamically between Desktop and Mobile optimized viewports.
 class ProductManagementScreen extends StatelessWidget {
   /// Creates a [ProductManagementScreen] instance.
-  const ProductManagementScreen({super.key});
+  const ProductManagementScreen({this.initialSubView, super.key});
+
+  /// The initial sub-view to open.
+  final String? initialSubView;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ProductCubit(
         context.read<ProductRepository>(),
-      )..loadProducts(),
+      )..loadProducts(initialSubView: initialSubView),
       child: const _ProductManagementView(),
     );
   }

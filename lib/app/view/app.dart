@@ -10,8 +10,10 @@ import 'package:stickify/app/theme.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/core/platform/file_picker_service.dart';
-import 'package:stickify/core/services/document_database.dart';
+import 'package:stickify/core/services/auth_service.dart';
+import 'package:stickify/core/services/local_database.dart';
 import 'package:stickify/core/services/pdf_print_service.dart';
+import 'package:stickify/core/services/remote_database_service.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
@@ -19,33 +21,32 @@ import 'package:stickify/data/repositories/database_template_repository.dart';
 import 'package:stickify/data/repositories/syncing_print_job_repository.dart';
 import 'package:stickify/data/repositories/syncing_product_repository.dart';
 import 'package:stickify/data/repositories/syncing_template_repository.dart';
+import 'package:stickify/data/services/firebase_auth_service.dart';
+import 'package:stickify/data/services/firestore_remote_database_service.dart';
+import 'package:stickify/data/services/hive_local_database.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/l10n/l10n.dart';
 
 /// Root application widget.
-///
-/// ## Provider Hierarchy
-///
-/// ```dart
-/// App
-/// └── MultiRepositoryProvider
-///     ├── RepositoryProvider<DocumentDatabase>
-///     ├── RepositoryProvider<ProductRepository>
-///     ├── RepositoryProvider<TemplateRepository>
-///     ├── RepositoryProvider<PrintJobRepository>
-///     └── RepositoryProvider<SearchRepository>
-///         └── BlocProvider<AuthCubit>   // provides auth state to the whole tree
-///             └── _AppView              // builds the router and MaterialApp
-/// ```
 class App extends StatefulWidget {
-  const App({super.key});
+  const App({
+    super.key,
+    this.auth,
+    this.remoteDb,
+    this.localDb,
+  });
+
+  final AuthService? auth;
+  final RemoteDatabaseService? remoteDb;
+  final LocalDatabase? localDb;
 
   @override
   State<App> createState() => _AppState();
 }
 
 class _AppState extends State<App> {
-  late final DocumentDatabase _database;
+  late final LocalDatabase _database;
+  late final AuthService _authService;
   late final ProductRepository _productRepository;
   late final TemplateRepository _templateRepository;
   late final PrintJobRepository _printJobRepository;
@@ -56,27 +57,31 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    _database = DocumentDatabase();
-    
+    _database = widget.localDb ?? HiveLocalDatabase();
+    _database.init();
+
+    _authService = widget.auth ?? FirebaseAuthService(auth: FirebaseAuth.instance);
+    final remoteDb = widget.remoteDb ?? FirestoreRemoteDatabaseService(firestore: FirebaseFirestore.instance);
+
     final localProductRepo = DatabaseProductRepository(database: _database);
     final localTemplateRepo = DatabaseTemplateRepository(database: _database);
     final localPrintJobRepo = DatabasePrintJobRepository(database: _database);
 
     _productRepository = SyncingProductRepository(
       local: localProductRepo,
-      auth: FirebaseAuth.instance,
-      firestore: FirebaseFirestore.instance,
+      auth: _authService,
+      remoteDb: remoteDb,
     );
     _templateRepository = SyncingTemplateRepository(
       local: localTemplateRepo,
-      auth: FirebaseAuth.instance,
-      firestore: FirebaseFirestore.instance,
+      auth: _authService,
+      remoteDb: remoteDb,
       localDatabase: _database,
     );
     _printJobRepository = SyncingPrintJobRepository(
       local: localPrintJobRepo,
-      auth: FirebaseAuth.instance,
-      firestore: FirebaseFirestore.instance,
+      auth: _authService,
+      remoteDb: remoteDb,
       localDatabase: _database,
     );
 
@@ -92,7 +97,7 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<DocumentDatabase>.value(value: _database),
+        RepositoryProvider<LocalDatabase>.value(value: _database),
         RepositoryProvider<ProductRepository>.value(value: _productRepository),
         RepositoryProvider<TemplateRepository>.value(value: _templateRepository),
         RepositoryProvider<PrintJobRepository>.value(value: _printJobRepository),
@@ -106,7 +111,7 @@ class _AppState extends State<App> {
       child: BlocProvider(
         // Create the AuthCubit once for the entire app lifetime.
         create: (_) => AuthCubit(
-          auth: FirebaseAuth.instance,
+          auth: _authService,
           localDatabase: _database,
         ),
         child: const _AppView(),

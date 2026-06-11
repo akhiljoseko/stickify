@@ -20,13 +20,13 @@ final class AuthLoading extends AuthState {
 
 /// Emitted when the user has successfully authenticated.
 final class AuthAuthenticated extends AuthState {
-  final String uid;
-  final String? email;
-
   const AuthAuthenticated({
     required this.uid,
     this.email,
   });
+
+  final String uid;
+  final String? email;
 }
 
 /// Emitted when the user is not authenticated (logged out or session expired).
@@ -36,7 +36,7 @@ final class AuthUnauthenticated extends AuthState {
 
 /// Emitted when an authentication operation fails with an error.
 final class AuthFailure extends AuthState {
-  final String message;
-
   const AuthFailure(this.message);
+
+  final String message;
 }

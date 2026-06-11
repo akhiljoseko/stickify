@@ -15,6 +15,6 @@ final class SyncSuccess extends SyncState {
 }
 
 final class SyncFailure extends SyncState {
-  final String error;
   const SyncFailure(this.error);
+  final String error;
 }

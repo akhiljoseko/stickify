@@ -122,6 +122,13 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
             onNext: cubit.saveAndContinue,
           );
 
+          final mobilePropertiesPanelWidget = PropertiesPanel(
+            selectedElement: state.selectedElement,
+            onBack: () {},
+            onNext: () {},
+            showNavigation: false,
+          );
+
           final zoomControlsWidget = ZoomControls(
             zoomLevel: state.zoomLevel,
             onZoomChanged: cubit.setZoom,
@@ -150,12 +157,18 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
                 ),
                 bottomNavigationBar: BottomAppBar(
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      // Palette Button
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        tooltip: 'Back',
+                        onPressed: () => StickerSetupRoute(
+                          templateId: cubit.templateId,
+                        ).go(context),
+                      ),
+                      const Spacer(),
                       TextButton.icon(
                         icon: const Icon(Icons.add_circle_outline),
-                        label: const Text('Add Elements'),
+                        label: const Text('Add'),
                         onPressed: () {
                           final _ = showModalBottomSheet<void>(
                             context: context,
@@ -166,7 +179,7 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
                           );
                         },
                       ),
-                      // Properties Button
+                      const SizedBox(width: 8),
                       TextButton.icon(
                         icon: const Icon(Icons.edit_note),
                         label: const Text('Properties'),
@@ -175,13 +188,31 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
                             : () {
                                 showModalBottomSheet<void>(
                                   context: context,
-                                  builder: (dialogContext) =>
-                                      BlocProvider.value(
-                                        value: cubit,
-                                        child: propertiesPanelWidget,
+                                  isScrollControlled: true,
+                                  builder: (dialogContext) {
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: MediaQuery.of(dialogContext).viewInsets.bottom,
                                       ),
+                                      child: Container(
+                                        constraints: BoxConstraints(
+                                          maxHeight: MediaQuery.of(dialogContext).size.height * 0.7,
+                                        ),
+                                        child: BlocProvider.value(
+                                          value: cubit,
+                                          child: mobilePropertiesPanelWidget,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 );
                               },
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward),
+                        tooltip: 'Next: Preview',
+                        onPressed: cubit.saveAndContinue,
                       ),
                     ],
                   ),
@@ -202,7 +233,10 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
                       ],
                     ),
                   ),
-                  propertiesPanelWidget,
+                  SizedBox(
+                    width: 320,
+                    child: propertiesPanelWidget,
+                  ),
                 ],
               ),
             ),

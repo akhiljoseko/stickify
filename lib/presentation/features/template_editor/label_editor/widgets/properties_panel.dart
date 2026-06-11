@@ -13,6 +13,7 @@ class PropertiesPanel extends StatelessWidget {
     required this.selectedElement,
     required this.onBack,
     required this.onNext,
+    this.showNavigation = true,
     super.key,
   });
 
@@ -25,13 +26,15 @@ class PropertiesPanel extends StatelessWidget {
   /// Callback when user hits next button.
   final VoidCallback onNext;
 
+  /// Whether to show the navigation footer actions.
+  final bool showNavigation;
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      width: 320,
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         border: Border(
@@ -66,25 +69,26 @@ class PropertiesPanel extends StatelessWidget {
             ),
           ),
 
-          const Divider(height: 1),
-
-          // Navigation Actions in Footer
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                OutlinedButton(
-                  onPressed: onBack,
-                  child: const Text('Back'),
-                ),
-                ElevatedButton(
-                  onPressed: onNext,
-                  child: const Text('Next: Preview'),
-                ),
-              ],
+          if (showNavigation) ...[
+            const Divider(height: 1),
+            // Navigation Actions in Footer
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  OutlinedButton(
+                    onPressed: onBack,
+                    child: const Text('Back'),
+                  ),
+                  ElevatedButton(
+                    onPressed: onNext,
+                    child: const Text('Next: Preview'),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

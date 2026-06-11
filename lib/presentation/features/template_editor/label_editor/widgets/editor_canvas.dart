@@ -226,118 +226,126 @@ class _EditorCanvasState extends State<EditorCanvas> {
                 ),
               ),
 
-              // Centered Canvas Board
+              // Centered Canvas Board with double-direction scroll support for small screens or high zoom
               Center(
-                child: DragTarget<ElementBlueprint>(
-                  onAcceptWithDetails: (details) {
-                    final renderBox = context.findRenderObject()! as RenderBox;
-                    final localOffset = renderBox.globalToLocal(details.offset);
+                child: SingleChildScrollView(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: DragTarget<ElementBlueprint>(
+                        onAcceptWithDetails: (details) {
+                          final renderBox = context.findRenderObject()! as RenderBox;
+                          final localOffset = renderBox.globalToLocal(details.offset);
 
-                    // Compute center of the Canvas in local coords
-                    final canvasCenterOffset = Offset(
-                      renderBox.size.width / 2,
-                      renderBox.size.height / 2,
-                    );
+                          // Compute center of the Canvas in local coords
+                          final canvasCenterOffset = Offset(
+                            renderBox.size.width / 2,
+                            renderBox.size.height / 2,
+                          );
 
-                    // Offset relative to the sticker board center
-                    final dx = localOffset.dx - canvasCenterOffset.dx;
-                    final dy = localOffset.dy - canvasCenterOffset.dy;
+                          // Offset relative to the sticker board center
+                          final dx = localOffset.dx - canvasCenterOffset.dx;
+                          final dy = localOffset.dy - canvasCenterOffset.dy;
 
-                    // Compute position relative to top-left of sticker board
-                    final dropX =
-                        (stickerWidth / 2) +
-                        (dx / widget.zoomLevel) -
-                        (details.data.width / 2);
-                    final dropY =
-                        (stickerHeight / 2) +
-                        (dy / widget.zoomLevel) -
-                        (details.data.height / 2);
+                          // Compute position relative to top-left of sticker board
+                          final dropX =
+                              (stickerWidth / 2) +
+                              (dx / widget.zoomLevel) -
+                              (details.data.width / 2);
+                          final dropY =
+                              (stickerHeight / 2) +
+                              (dy / widget.zoomLevel) -
+                              (details.data.height / 2);
 
-                    // Clamp to sticker bounds
-                    final finalX = dropX.clamp(
-                      0.0,
-                      stickerWidth - details.data.width,
-                    );
-                    final finalY = dropY.clamp(
-                      0.0,
-                      stickerHeight - details.data.height,
-                    );
+                          // Clamp to sticker bounds
+                          final finalX = dropX.clamp(
+                            0.0,
+                            stickerWidth - details.data.width,
+                          );
+                          final finalY = dropY.clamp(
+                            0.0,
+                            stickerHeight - details.data.height,
+                          );
 
-                    final element = details.data.copyWith(
-                      x: finalX,
-                      y: finalY,
-                    );
-                    context.read<EditorCubit>().addElement(element);
-                    _focusNode.requestFocus();
-                  },
-                  builder: (context, candidateData, rejectedData) {
-                    return Container(
-                      width: scaledWidth,
-                      height: scaledHeight,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(
-                          widget.stickerConfig.cornerRadiusMm *
-                              mmToPx *
-                              widget.zoomLevel,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 16,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          // Safe Area Polygon Border
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: PolygonPainter(
-                                points: widget.stickerConfig.printableArea,
-                                scale: mmToPx * widget.zoomLevel,
-                                color: Colors.red.shade300.withValues(
-                                  alpha: 0.45,
-                                ),
+                          final element = details.data.copyWith(
+                            x: finalX,
+                            y: finalY,
+                          );
+                          context.read<EditorCubit>().addElement(element);
+                          _focusNode.requestFocus();
+                        },
+                        builder: (context, candidateData, rejectedData) {
+                          return Container(
+                            width: scaledWidth,
+                            height: scaledHeight,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(
+                                widget.stickerConfig.cornerRadiusMm *
+                                    mmToPx *
+                                    widget.zoomLevel,
                               ),
-                            ),
-                          ),
-
-                          // Canvas Elements
-                          ...widget.elements.map((bp) {
-                            return CanvasElementWidget(
-                              blueprint: bp,
-                              isSelected: bp.id == widget.selectedElementId,
-                              zoomLevel: widget.zoomLevel,
-                              product: widget.product,
-                              onTap: () {
-                                _focusNode.requestFocus();
-                                context.read<EditorCubit>().selectElement(
-                                  bp.id,
-                                );
-                              },
-                            );
-                          }),
-
-                          // Alignment guides overlay
-                          if (guidelines.isNotEmpty)
-                            Positioned.fill(
-                              child: CustomPaint(
-                                painter: AlignmentGuidesPainter(
-                                  guidelines: guidelines,
-                                  zoomLevel: widget.zoomLevel,
-                                  color: const Color(
-                                    0xFFFF00FF,
-                                  ), // Dashed magenta
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 16,
+                                  offset: Offset(0, 4),
                                 ),
-                              ),
+                              ],
                             ),
-                        ],
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                // Safe Area Polygon Border
+                                Positioned.fill(
+                                  child: CustomPaint(
+                                    painter: PolygonPainter(
+                                      points: widget.stickerConfig.printableArea,
+                                      scale: mmToPx * widget.zoomLevel,
+                                      color: Colors.red.shade300.withValues(
+                                        alpha: 0.45,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                // Canvas Elements
+                                ...widget.elements.map((bp) {
+                                  return CanvasElementWidget(
+                                    blueprint: bp,
+                                    isSelected: bp.id == widget.selectedElementId,
+                                    zoomLevel: widget.zoomLevel,
+                                    product: widget.product,
+                                    onTap: () {
+                                      _focusNode.requestFocus();
+                                      context.read<EditorCubit>().selectElement(
+                                        bp.id,
+                                      );
+                                    },
+                                  );
+                                }),
+
+                                // Alignment guides overlay
+                                if (guidelines.isNotEmpty)
+                                  Positioned.fill(
+                                    child: CustomPaint(
+                                      painter: AlignmentGuidesPainter(
+                                        guidelines: guidelines,
+                                        zoomLevel: widget.zoomLevel,
+                                        color: const Color(
+                                          0xFFFF00FF,
+                                        ), // Dashed magenta
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ),
             ],

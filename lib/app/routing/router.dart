@@ -5,6 +5,8 @@ import 'package:stickify/auth/auth.dart';
 import 'package:stickify/presentation/features/dashboard/presentation/dashboard_entry.dart';
 import 'package:stickify/presentation/features/print/presentation/print_setup_entry.dart';
 import 'package:stickify/presentation/features/print/presentation/template_selection_page.dart';
+import 'package:stickify/presentation/features/product/presentation/product_details_screen.dart';
+import 'package:stickify/presentation/features/product/presentation/product_management_entry.dart';
 import 'package:stickify/presentation/features/search/presentation/search_entry.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/label_editor_screen.dart';
 import 'package:stickify/presentation/features/template_editor/preview/preview_screen.dart';
@@ -12,8 +14,6 @@ import 'package:stickify/presentation/features/template_editor/sheet_config/shee
 import 'package:stickify/presentation/features/template_editor/sticker_setup/sticker_setup_screen.dart';
 import 'package:stickify/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:stickify/presentation/login/login_screen.dart';
-import 'package:stickify/presentation/products/product_details_screen.dart';
-import 'package:stickify/presentation/products/product_management_screen.dart';
 import 'package:stickify/presentation/registration/register_screen.dart';
 import 'package:stickify/presentation/settings/settings_screen.dart';
 import 'package:stickify/presentation/template_management/template_management_screen.dart';

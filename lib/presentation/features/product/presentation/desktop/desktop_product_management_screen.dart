@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,43 +9,18 @@ import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
-import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_state.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/product_shared_widgets.dart';
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
-/// Resolves a dynamic [ImageProvider] from the given [path].
-///
-/// Supports network images (starting with http/https) and local filesystem images.
-ImageProvider getImageProvider(String path) {
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return NetworkImage(path);
-  } else {
-    return FileImage(File(path));
-  }
-}
-
-/// Screen displaying the catalogue list of products and allowing administration operations.
-///
-/// Integrates CRUD actions for adding and updating products and their variants.
-class ProductManagementScreen extends StatelessWidget {
-  /// Creates a [ProductManagementScreen] instance.
-  const ProductManagementScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ProductCubit(
-        context.read<ProductRepository>(),
-      )..loadProducts(),
-      child: const _ProductManagementView(),
-    );
-  }
-}
-
-class _ProductManagementView extends StatelessWidget {
-  const _ProductManagementView();
+/// Desktop-optimized Product Management Screen.
+/// Provides full catalogue administration, including product creation, details,
+/// and advanced properties editing (ingredients, nutrition facts).
+class DesktopProductManagementScreen extends StatelessWidget {
+  /// Creates a [DesktopProductManagementScreen] instance.
+  const DesktopProductManagementScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +156,7 @@ class _CatalogListView extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Manage SKU labels and print specifications across 428 active assets.',
+                                'Manage SKU labels and print specifications across active assets.',
                                 style: textTheme.bodyMedium?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
@@ -257,10 +231,7 @@ class _CatalogListView extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    AdaptiveLayoutSwitcher(
-                      mobile: _ProductCatalogMobileGrid(products: state.filteredProducts),
-                      desktop: _ProductCatalogDesktopTable(products: state.filteredProducts),
-                    ),
+                    _ProductCatalogDesktopTable(products: state.filteredProducts),
                   ]),
                 ),
               ),
@@ -284,7 +255,7 @@ class _ProductCatalogDesktopTable extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     if (products.isEmpty) {
-      return const _EmptyCatalogState();
+      return const EmptyCatalogState();
     }
 
     return Card(
@@ -344,138 +315,6 @@ class _ProductCatalogDesktopTable extends StatelessWidget {
             )).toList(),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ProductCatalogMobileGrid extends StatelessWidget {
-  const _ProductCatalogMobileGrid({required this.products});
-
-  final List<Product> products;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    if (products.isEmpty) {
-      return const _EmptyCatalogState();
-    }
-
-    return Column(
-      children: products.map((product) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: colorScheme.container,
-                          image: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                              ? DecorationImage(
-                                  image: getImageProvider(product.imageUrl!),
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
-                        ),
-                        child: product.imageUrl == null || product.imageUrl!.isEmpty
-                            ? Icon(Icons.inventory_2_outlined, color: colorScheme.primary)
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              product.name,
-                              style: textTheme.titleSmall,
-                            ),
-                            if (product.category != null && product.category!.isNotEmpty)
-                              Text(
-                                product.category!,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            const SizedBox(height: 4),
-                            Text(
-                              product.sku,
-                              style: textTheme.labelMedium?.copyWith(
-                                fontFamily: 'JetBrains Mono',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Divider(height: 1),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => context.read<ProductCubit>().setSubView('details', product),
-                      child: Text(
-                        'View Details',
-                        style: TextStyle(
-                          color: colorScheme.primary,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-class _EmptyCatalogState extends StatelessWidget {
-  const _EmptyCatalogState();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 64),
-        child: Column(
-          children: [
-            Icon(Icons.inventory_2_outlined, size: 64, color: colorScheme.outlineVariant),
-            const SizedBox(height: 16),
-            Text(
-              'No products found',
-              style: theme.textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try adjusting your search query or filter category.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -626,8 +465,6 @@ class _HighDensityProductRowState extends State<_HighDensityProductRow> {
     );
   }
 }
-
-
 
 class _ProductFormView extends StatefulWidget {
   const _ProductFormView({
@@ -1379,8 +1216,6 @@ class _ProductFormViewState extends State<_ProductFormView> {
     );
   }
 }
-
-
 
 class _ProductDetailView extends StatelessWidget {
   const _ProductDetailView({

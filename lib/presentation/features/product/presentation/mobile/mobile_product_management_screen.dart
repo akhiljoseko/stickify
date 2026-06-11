@@ -6,12 +6,12 @@ import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_state.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/product_form_view.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_shared_widgets.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
 /// Mobile-specific Product catalogue Screen.
-/// Restricted to browsing product catalogue list/details, and editing
-/// packaging variant prices only via bottom sheets. Creation/Deletion is blocked.
+/// Provides browsing product catalogue list/details, variant price editing, and full product creation/editing.
 class MobileProductManagementScreen extends StatelessWidget {
   /// Creates a [MobileProductManagementScreen] instance.
   const MobileProductManagementScreen({super.key});
@@ -20,9 +20,17 @@ class MobileProductManagementScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final cubitState = context.watch<ProductCubit>().state;
+    final showFab = cubitState is ProductCatalogSuccess && cubitState.subView == 'catalog';
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
+      floatingActionButton: showFab
+          ? FloatingActionButton(
+              onPressed: () => context.read<ProductCubit>().setSubView('create'),
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: BlocConsumer<ProductCubit, ProductState>(
         listener: (context, state) {
           if (state is ProductCatalogError) {
@@ -80,13 +88,16 @@ class MobileProductManagementScreen extends StatelessWidget {
                   onBack: () => context.read<ProductCubit>().setSubView('catalog'),
                 );
               case 'create':
+                return ProductFormView(
+                  onBack: () => context.read<ProductCubit>().setSubView('catalog'),
+                  onSave: (product) => context.read<ProductCubit>().saveProduct(product),
+                );
               case 'edit':
-                // SubView routing to edit/create is restricted on mobile.
-                // Fallback to catalog view.
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.read<ProductCubit>().setSubView('catalog');
-                });
-                return const Center(child: CircularProgressIndicator());
+                return ProductFormView(
+                  product: state.selectedProduct,
+                  onBack: () => context.read<ProductCubit>().setSubView('catalog'),
+                  onSave: (product) => context.read<ProductCubit>().saveProduct(product),
+                );
               case 'catalog':
               default:
                 return _MobileCatalogListView(state: state);
@@ -128,7 +139,7 @@ class _MobileCatalogListView extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Browse active product items. Admin controls are restricted to desktop.',
+                      'Browse and manage your active product items.',
                       style: textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -644,6 +655,40 @@ class _MobileProductDetailView extends StatelessWidget {
           onPressed: onBack,
         ),
         title: Text(product.name),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => context.read<ProductCubit>().setSubView('edit', product),
+            tooltip: 'Edit Product',
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (dialogCtx) => AlertDialog(
+                  title: const Text('Delete Product'),
+                  content: Text('Are you sure you want to delete ${product.name}?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogCtx, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogCtx, true),
+                      child: const Text('Delete'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true && context.mounted) {
+                await context.read<ProductCubit>().deleteProduct(product.id);
+                onBack();
+              }
+            },
+            tooltip: 'Delete Product',
+          ),
+        ],
       ),
       body: AdaptiveScrollWrapper(
         builder: (context, controller) {

@@ -43,7 +43,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 content: Row(
                   children: [
                     Icon(Icons.check_circle_outline, color: Colors.green),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text('Reset link sent! Please check your email inbox.'),
                     ),

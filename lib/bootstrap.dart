@@ -5,7 +5,9 @@ import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:stickify/firebase_options.dart';
+import 'package:stickify/hive_registrar.g.dart';
 
 /// Custom [BlocObserver] that logs Bloc state changes and errors.
 class AppBlocObserver extends BlocObserver {
@@ -36,6 +38,13 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
   );
+
+  await Hive.initFlutter();
+  try {
+    Hive.registerAdapters();
+  } on Object catch (_) {
+    // Already registered in tests or separate isolates
+  }
 
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);

@@ -110,14 +110,17 @@ RouteBase get $appShellRouteData => StatefulShellRouteData.$route(
           routes: [
             GoRouteData.$route(
               path: ':id',
+              parentNavigatorKey: ProductDetailsRoute.$parentNavigatorKey,
               factory: $ProductDetailsRoute._fromState,
             ),
             GoRouteData.$route(
               path: ':productId/variants/:variantSku/print/templates',
+              parentNavigatorKey: PrintTemplateSelectRoute.$parentNavigatorKey,
               factory: $PrintTemplateSelectRoute._fromState,
             ),
             GoRouteData.$route(
               path: ':productId/variants/:variantSku/print/setup/:templateId',
+              parentNavigatorKey: PrintSetupRoute.$parentNavigatorKey,
               factory: $PrintSetupRoute._fromState,
             ),
           ],
@@ -132,18 +135,22 @@ RouteBase get $appShellRouteData => StatefulShellRouteData.$route(
           routes: [
             GoRouteData.$route(
               path: 'new/sheets',
+              parentNavigatorKey: SheetConfigRoute.$parentNavigatorKey,
               factory: $SheetConfigRoute._fromState,
             ),
             GoRouteData.$route(
               path: 'new/stickers',
+              parentNavigatorKey: StickerSetupRoute.$parentNavigatorKey,
               factory: $StickerSetupRoute._fromState,
             ),
             GoRouteData.$route(
               path: ':templateId/editor',
+              parentNavigatorKey: LabelEditorRoute.$parentNavigatorKey,
               factory: $LabelEditorRoute._fromState,
             ),
             GoRouteData.$route(
               path: ':templateId/preview',
+              parentNavigatorKey: PreviewRoute.$parentNavigatorKey,
               factory: $PreviewRoute._fromState,
             ),
           ],

@@ -66,21 +66,53 @@ Rather than using a procedural `if-else` block to translate domain element bluep
 
 - **PdfElementRenderer Strategy**: Declares a generic rendering interface `PdfElementRenderer<T extends ElementBlueprint>`.
 - **PdfElementRendererRegistry**: Maps blueprint classes (e.g. `TextElementBlueprint`) to their concrete rendering strategies (e.g. `PdfTextElementRenderer`).
-- **Optimization**: To avoid layout duplication, elements are rendered **once** per print job to build a list of cached widgets (`cachedStickerElements`). The grid builder then wraps this pre-built list inside each active slot cell.
+- **Instance Isolation**: To prevent layout state contamination across multiple repeated slot placements, template element widget trees are compiled fresh for each individual sticker slot instance. Reusable binary resources like network/local image bytes and fonts are pre-cached on the main thread, while the widget tree itself is constructed on-demand.
 
 ---
 
 ## 5. Precise Metric Conversion & Layout
 
-To ensure sub-millimeter parity with on-screen templates:
+To ensure exact sub-millimeter parity with on-screen templates:
 - Physical coordinates in the PDF package are defined in points (1/72 inch).
-- The templates are defined in millimeters.
+- The templates are defined directly in physical millimeters.
 - All dimensions (page width, margins, sticker width, row gaps) are scaled using `PdfPageFormat.mm` (equivalent to `2.834645669291339` points per millimeter).
-- The virtual label canvas is designed at a 4x ratio (`widthMm * 4` by `heightMm * 4`) to allow high-density element layout. During print compilation, the elements are placed inside a `SizedBox` matching the virtual size and scaled into the physical millimeter container using `FittedBox`.
+- The grid model arranges slots dynamically. Active sticker slots are absolutely positioned inside a root `pw.Stack` page container using physical coordinates in millimeters:
+  ```dart
+  slotX = sheetConfig.marginLeft + columnIndex * (sticker.widthMm + sheetConfig.columnGap);
+  slotY = sheetConfig.marginTop + rowIndex * (sticker.heightMm + sheetConfig.rowGap);
+  ```
+- No global `FittedBox` or scaling is applied during PDF generation; elements are rendered directly at their designated millimeter dimensions.
 
 ---
 
-## 6. macOS Deadlock Prevention & App Sandbox
+## 6. Pre-Print Validation Layer
+
+Before compiling a PDF, a strict validation layer checks layout and design constraints:
+- **Sheet Bounds**: Validates that the total grid size (margins, stickers, gaps) does not exceed the configured physical sheet width and height.
+- **Element Containment**: Checks that all QR and Barcode elements fall completely inside the sticker's physical boundary. If a custom printable polygon is defined, the system verifies that the barcode's rotated corners are fully enclosed by the polygon using a ray-casting point-in-polygon algorithm. Non-barcode elements that lie outside generate a warning.
+- **Quantity & Configurations**: Ensures required configurations are present and quantities are valid.
+
+---
+
+## 7. Custom Printable Area Polygon Clipping
+
+When the physical sticker is non-rectangular (e.g., circular, oval, polygonal), the printable area is defined as a list of local vertices. The service clips the sticker's compiled stack using low-level PDF graphics paths inside a `pw.CustomPaint` widget:
+- Vertices are converted to PDF points using `PdfPageFormat.mm`.
+- Since PDF graphics paths start with a bottom-left origin (Y increases upwards), Y coordinates are flipped relative to the top-left sticker-local origin: `pdfY = (sticker.heightMm - localY) * PdfPageFormat.mm`.
+- The path is closed and clipped using `canvas.clipPath()`, containing all child widgets within the physical bounds of the sticker shape.
+
+---
+
+## 8. Printer Calibration
+
+Custom calibration profiles adjust print jobs per device model to correct for driver/hardware feed offsets:
+- Supports X/Y translation offsets in millimeters.
+- Supports X/Y scaling coefficients.
+- Settings are applied dynamically during physical coordinates computation, keeping design templates clean and portable.
+
+---
+
+## 9. macOS Deadlock Prevention & App Sandbox
 
 Enabling printing on macOS requires addressing two system boundaries:
 1. **App Sandbox boundary**: The macOS application manifests (`DebugProfile.entitlements` and `Release.entitlements`) explicitly declare the printing capability key:

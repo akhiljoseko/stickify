@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:stickify/auth/auth_state.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/auth_service.dart';
 import 'package:stickify/core/services/local_database.dart';
 
@@ -33,45 +34,55 @@ class AuthCubit extends Cubit<AuthState> {
   /// Signs in a user using email and password.
   Future<void> login(String email, String password) async {
     emit(const AuthLoading());
-    try {
-      // Clear local database to start fresh and avoid guest data leaks
-      await _clearLocalDatabase();
-      await auth.signIn(email, password);
-    } on Exception catch (e) {
-      emit(AuthFailure(e.toString()));
+    // Clear local database to start fresh and avoid guest data leaks
+    await _clearLocalDatabase();
+    final result = await auth.signIn(email, password);
+    switch (result) {
+      case Success():
+        // authStateChanges will trigger and emit AuthAuthenticated
+        break;
+      case Failure(error: final err):
+        emit(AuthFailure(err.message));
     }
   }
 
   /// Registers a new user using email and password.
   Future<void> register(String email, String password) async {
     emit(const AuthLoading());
-    try {
-      // Clear local database to start fresh
-      await _clearLocalDatabase();
-      await auth.signUp(email, password);
-    } on Exception catch (e) {
-      emit(AuthFailure(e.toString()));
+    // Clear local database to start fresh
+    await _clearLocalDatabase();
+    final result = await auth.signUp(email, password);
+    switch (result) {
+      case Success():
+        // authStateChanges will trigger and emit AuthAuthenticated
+        break;
+      case Failure(error: final err):
+        emit(AuthFailure(err.message));
     }
   }
 
   /// Sends a password reset email.
   Future<void> resetPassword(String email) async {
     emit(const AuthLoading());
-    try {
-      await auth.sendPasswordResetEmail(email);
-      emit(const AuthUnauthenticated());
-    } on Exception catch (e) {
-      emit(AuthFailure(e.toString()));
+    final result = await auth.sendPasswordResetEmail(email);
+    switch (result) {
+      case Success():
+        emit(const AuthUnauthenticated());
+      case Failure(error: final err):
+        emit(AuthFailure(err.message));
     }
   }
 
   /// Logs out the user.
   Future<void> logout() async {
     emit(const AuthLoading());
-    try {
-      await auth.signOut();
-    } on Exception catch (e) {
-      emit(AuthFailure(e.toString()));
+    final result = await auth.signOut();
+    switch (result) {
+      case Success():
+        // authStateChanges will trigger and emit AuthUnauthenticated
+        break;
+      case Failure(error: final err):
+        emit(AuthFailure(err.message));
     }
   }
 

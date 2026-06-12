@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stickify/app/app.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/auth_service.dart';
 import 'package:stickify/core/services/local_database.dart';
 import 'package:stickify/core/services/remote_database_service.dart';
@@ -63,7 +64,7 @@ void main() {
         (_) async {
           const user = AppUser(uid: 'user-123', email: 'test@example.com');
           authStateController.add(user);
-          return user;
+          return const Result.success(user);
         },
       );
 

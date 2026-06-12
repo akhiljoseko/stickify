@@ -1,3 +1,4 @@
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/print_job.dart';
 import 'package:stickify/domain/repositories/print_job_repository.dart';
 
@@ -50,7 +51,8 @@ class MockPrintJobRepository implements PrintJobRepository {
       printerStation: 'Station #02',
       printedAt: DateTime(2023, 10, 25, 8),
       labelCount: 200,
-    ),PrintJob(
+    ),
+    PrintJob(
       id: 'job-005',
       productName: 'Eco-Wrap Large 50m',
       sku: 'PKG-EW-LRG-50',
@@ -62,22 +64,24 @@ class MockPrintJobRepository implements PrintJobRepository {
   ];
 
   @override
-  Future<List<PrintJob>> getRecentJobs({int limit = 10}) async {
+  Future<Result<List<PrintJob>, AppError>> getRecentJobs({int limit = 10}) async {
     // Simulate a 600ms network round-trip.
     await Future<void>.delayed(const Duration(milliseconds: 600));
     final jobs = _mockJobs;
-    return jobs.take(limit).toList();
+    return Result.success(jobs.take(limit).toList());
   }
 
   @override
-  Future<List<PrintJob>> getJobsBySku(String sku) async {
+  Future<Result<List<PrintJob>, AppError>> getJobsBySku(String sku) async {
     await Future<void>.delayed(const Duration(milliseconds: 400));
-    return _mockJobs.where((j) => j.sku == sku).toList();
+    final filtered = _mockJobs.where((j) => j.sku == sku).toList();
+    return Result.success(filtered);
   }
 
   @override
-  Future<void> savePrintJob(PrintJob job) async {
+  Future<Result<void, AppError>> savePrintJob(PrintJob job) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     _mockJobs.insert(0, job);
+    return const Result.success(null);
   }
 }

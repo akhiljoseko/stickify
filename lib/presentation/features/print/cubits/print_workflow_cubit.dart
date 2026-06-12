@@ -52,24 +52,29 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
             orElse: () => throw Exception('Variant SKU $variantSku not found in product $productId.'),
           );
 
-          final templates = await templateRepository.fetchTemplates();
+          final templatesResult = await templateRepository.fetchTemplates();
+          switch (templatesResult) {
+            case Failure(error: final templateErr):
+              emit(PrintWorkflowError(message: templateErr.message));
+              return;
+            case Success(value: final templates):
+              LabelTemplate? selected;
+              if (templateId != null && templateId.isNotEmpty) {
+                selected = templates.firstWhere(
+                  (t) => t.id == templateId,
+                  orElse: () => templates.isNotEmpty ? templates.first : throw Exception('Template not found.'),
+                );
+              } else if (templates.isNotEmpty) {
+                selected = templates.first;
+              }
 
-          LabelTemplate? selected;
-          if (templateId != null && templateId.isNotEmpty) {
-            selected = templates.firstWhere(
-              (t) => t.id == templateId,
-              orElse: () => templates.isNotEmpty ? templates.first : throw Exception('Template not found.'),
-            );
-          } else if (templates.isNotEmpty) {
-            selected = templates.first;
+              emit(PrintWorkflowLoaded(
+                product: product,
+                variant: variant,
+                templates: templates,
+                selectedTemplate: selected,
+              ));
           }
-
-          emit(PrintWorkflowLoaded(
-            product: product,
-            variant: variant,
-            templates: templates,
-            selectedTemplate: selected,
-          ));
       }
     } on Object catch (e) {
       emit(PrintWorkflowError(message: e.toString()));
@@ -133,31 +138,37 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
       }
 
       emit(PrintWorkflowSubmitting(loadedState: s));
-      try {
-        await printService.printLabels(
-          product: s.product,
-          variant: s.variant,
-          template: template,
-          quantity: s.quantity,
-          disabledSlots: s.disabledSlots,
-          printerName: s.selectedPrinter,
-        );
+      final printResult = await printService.printLabels(
+        product: s.product,
+        variant: s.variant,
+        template: template,
+        quantity: s.quantity,
+        disabledSlots: s.disabledSlots,
+        printerName: s.selectedPrinter,
+      );
 
-        final jobId = 'job-${DateTime.now().millisecondsSinceEpoch}';
-        final job = PrintJob(
-          id: jobId,
-          productName: '${s.product.name} - ${s.variant.name}',
-          sku: s.variant.sku,
-          status: PrintJobStatus.completed, // complete immediately in mock
-          printerStation: s.selectedPrinter.split(' ').first, // station name prefix
-          printedAt: DateTime.now(),
-          labelCount: s.quantity,
-        );
+      switch (printResult) {
+        case Failure(error: final err):
+          emit(PrintWorkflowError(message: err.message));
+        case Success():
+          final jobId = 'job-${DateTime.now().millisecondsSinceEpoch}';
+          final job = PrintJob(
+            id: jobId,
+            productName: '${s.product.name} - ${s.variant.name}',
+            sku: s.variant.sku,
+            status: PrintJobStatus.completed,
+            printerStation: s.selectedPrinter.split(' ').first,
+            printedAt: DateTime.now(),
+            labelCount: s.quantity,
+          );
 
-        await printJobRepository.savePrintJob(job);
-        emit(PrintWorkflowSuccess(printJob: job));
-      } on Object catch (e) {
-        emit(PrintWorkflowError(message: e.toString()));
+          final saveResult = await printJobRepository.savePrintJob(job);
+          switch (saveResult) {
+            case Failure(error: final saveErr):
+              emit(PrintWorkflowError(message: saveErr.message));
+            case Success():
+              emit(PrintWorkflowSuccess(printJob: job));
+          }
       }
     }
   }

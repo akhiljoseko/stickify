@@ -1,3 +1,4 @@
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/local_database.dart';
 import 'package:stickify/data/models/hive/print_job_hive_model.dart';
 import 'package:stickify/domain/entities/print_job.dart';
@@ -12,29 +13,61 @@ class DatabasePrintJobRepository implements PrintJobRepository {
   static const String _collection = 'print_jobs';
 
   @override
-  Future<void> savePrintJob(PrintJob job) async {
-    await _db.save<PrintJobHiveModel>(
-      _collection,
-      job.id,
-      PrintJobHiveModel.fromDomain(job),
-    );
+  Future<Result<void, AppError>> savePrintJob(PrintJob job) async {
+    try {
+      await _db.save<PrintJobHiveModel>(
+        _collection,
+        job.id,
+        PrintJobHiveModel.fromDomain(job),
+      );
+      return const Result.success(null);
+    } catch (e, s) {
+      return Result.failure(
+        DatabaseError(
+          message: 'Failed to save print job locally.',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
   }
 
   @override
-  Future<List<PrintJob>> getRecentJobs({int limit = 10}) async {
-    final allModels = await _db.getAll<PrintJobHiveModel>(_collection);
-    final list = allModels.map((m) => m.toDomain()).toList()
-      ..sort((a, b) => b.printedAt.compareTo(a.printedAt));
-    return list.take(limit).toList();
-  }
-
-  @override
-  Future<List<PrintJob>> getJobsBySku(String sku) async {
-    final allModels = await _db.getAll<PrintJobHiveModel>(_collection);
-    return allModels
-        .map((m) => m.toDomain())
-        .where((j) => j.sku == sku)
-        .toList()
+  Future<Result<List<PrintJob>, AppError>> getRecentJobs({int limit = 10}) async {
+    try {
+      final allModels = await _db.getAll<PrintJobHiveModel>(_collection);
+      final list = allModels.map((m) => m.toDomain()).toList()
         ..sort((a, b) => b.printedAt.compareTo(a.printedAt));
+      return Result.success(list.take(limit).toList());
+    } catch (e, s) {
+      return Result.failure(
+        DatabaseError(
+          message: 'Failed to fetch recent print jobs.',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<List<PrintJob>, AppError>> getJobsBySku(String sku) async {
+    try {
+      final allModels = await _db.getAll<PrintJobHiveModel>(_collection);
+      final filtered = allModels
+          .map((m) => m.toDomain())
+          .where((j) => j.sku == sku)
+          .toList()
+          ..sort((a, b) => b.printedAt.compareTo(a.printedAt));
+      return Result.success(filtered);
+    } catch (e, s) {
+      return Result.failure(
+        DatabaseError(
+          message: 'Failed to fetch print jobs for SKU: $sku.',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
   }
 }

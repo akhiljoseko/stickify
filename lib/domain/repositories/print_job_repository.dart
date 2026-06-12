@@ -1,3 +1,4 @@
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/print_job.dart';
 
 /// Abstract repository interface for print job data operations.
@@ -9,11 +10,11 @@ abstract interface class PrintJobRepository {
   /// Returns the N most recently completed or in-progress print jobs.
   ///
   /// [limit] controls how many jobs to return (default: 10).
-  Future<List<PrintJob>> getRecentJobs({int limit = 10});
+  Future<Result<List<PrintJob>, AppError>> getRecentJobs({int limit = 10});
 
   /// Returns all print jobs associated with a specific product [sku].
-  Future<List<PrintJob>> getJobsBySku(String sku);
+  Future<Result<List<PrintJob>, AppError>> getJobsBySku(String sku);
 
   /// Saves a print job to the repository database.
-  Future<void> savePrintJob(PrintJob job);
+  Future<Result<void, AppError>> savePrintJob(PrintJob job);
 }

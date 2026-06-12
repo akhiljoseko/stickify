@@ -1,3 +1,5 @@
+import 'package:stickify/core/core.dart';
+import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/search_item.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/domain/repositories/search_repository.dart';
@@ -12,8 +14,8 @@ class DatabaseSearchRepository implements SearchRepository {
   DatabaseSearchRepository({
     required ProductRepository productRepository,
     required TemplateRepository templateRepository,
-  })  : _productRepo = productRepository,
-        _templateRepo = templateRepository;
+  }) : _productRepo = productRepository,
+       _templateRepo = templateRepository;
 
   final ProductRepository _productRepo;
   final TemplateRepository _templateRepo;
@@ -25,8 +27,14 @@ class DatabaseSearchRepository implements SearchRepository {
     Set<String>? tags,
     bool sortByRelevance = true,
   }) async {
-    // 1. Fetch dynamic products from repository
-    final products = await _productRepo.getAllProducts();
+    final productsResult = await _productRepo.getAllProducts();
+    final List<Product> products;
+    switch (productsResult) {
+      case Success(value: final list):
+        products = list;
+      case Failure():
+        products = const [];
+    }
     final productSearchItems = products.map((p) {
       final productTags = [
         'organic',
@@ -62,7 +70,9 @@ class DatabaseSearchRepository implements SearchRepository {
         title: t.name,
         sku: t.id,
         category: 'Templates',
-        description: t.isFinalized ? 'Finalized print layout.' : 'Draft layout.',
+        description: t.isFinalized
+            ? 'Finalized print layout.'
+            : 'Draft layout.',
         imageUrl: '',
         relevanceScore: 0.90,
         tags: templateTags,
@@ -76,7 +86,8 @@ class DatabaseSearchRepository implements SearchRepository {
         title: 'Printer Station #01',
         sku: 'PRN-STN-01',
         category: 'Stations',
-        description: 'High-speed industrial thermal printer node in Packing Zone A.',
+        description:
+            'High-speed industrial thermal printer node in Packing Zone A.',
         imageUrl: '',
         relevanceScore: 0.78,
         tags: ['printer', 'hardware', 'station-1', 'barcode'],
@@ -106,19 +117,27 @@ class DatabaseSearchRepository implements SearchRepository {
     var filtered = allItems.where((item) {
       final matchesTitle = item.title.toLowerCase().contains(cleanQuery);
       final matchesSku = (item.sku ?? '').toLowerCase().contains(cleanQuery);
-      final matchesDescription = item.description.toLowerCase().contains(cleanQuery);
-      final matchesTags = item.tags.any((t) => t.toLowerCase().contains(cleanQuery));
+      final matchesDescription = item.description.toLowerCase().contains(
+        cleanQuery,
+      );
+      final matchesTags = item.tags.any(
+        (t) => t.toLowerCase().contains(cleanQuery),
+      );
       return matchesTitle || matchesSku || matchesDescription || matchesTags;
     }).toList();
 
     // Filter by category facets
     if (categories != null && categories.isNotEmpty) {
-      filtered = filtered.where((item) => categories.contains(item.category)).toList();
+      filtered = filtered
+          .where((item) => categories.contains(item.category))
+          .toList();
     }
 
     // Filter by tag facets
     if (tags != null && tags.isNotEmpty) {
-      filtered = filtered.where((item) => item.tags.any((t) => tags.contains(t))).toList();
+      filtered = filtered
+          .where((item) => item.tags.any((t) => tags.contains(t)))
+          .toList();
     }
 
     // Sort items

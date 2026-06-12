@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/presentation/features/product/presentation/product_management_entry.dart';
@@ -53,10 +54,10 @@ void main() {
     ];
 
     when(() => productRepository.getAllProducts()).thenAnswer(
-      (_) async => mockProducts,
+      (_) async => Result.success(mockProducts),
     );
     when(() => productRepository.saveProduct(any())).thenAnswer(
-      (_) async => {},
+      (_) async => const Result.success(null),
     );
   });
 

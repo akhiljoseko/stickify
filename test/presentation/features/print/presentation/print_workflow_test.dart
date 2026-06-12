@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_cubit.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_state.dart';
@@ -169,7 +170,7 @@ void main() {
       printService = MockPrintService();
 
       when(() => productRepository.getProductById('prod-test'))
-          .thenAnswer((_) async => testProduct);
+          .thenAnswer((_) async => Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
           .thenAnswer((_) async => [testTemplate]);
       when(() => printJobRepository.savePrintJob(any()))
@@ -260,7 +261,7 @@ void main() {
       printService = MockPrintService();
 
       when(() => productRepository.getProductById('prod-test'))
-          .thenAnswer((_) async => testProduct);
+          .thenAnswer((_) async => Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
           .thenAnswer((_) async => [testTemplate]);
       when(() => printService.printLabels(

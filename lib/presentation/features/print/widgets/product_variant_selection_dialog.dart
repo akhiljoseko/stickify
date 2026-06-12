@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// A popup modal dialog for searching products and selecting a specific [ProductVariant] to print.
@@ -43,11 +44,17 @@ class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionD
   Future<void> _loadProducts() async {
     try {
       final repo = context.read<ProductRepository>();
-      final products = await repo.getAllProducts();
+      final result = await repo.getAllProducts();
       if (mounted) {
         setState(() {
-          _allProducts = products;
-          _filteredProducts = products;
+          switch (result) {
+            case Success(value: final products):
+              _allProducts = products;
+              _filteredProducts = products;
+            case Failure():
+              _allProducts = [];
+              _filteredProducts = [];
+          }
           _isLoading = false;
         });
       }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_state.dart';
 
@@ -35,35 +36,41 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   Future<void> loadWorkflow(String productId, String variantSku, [String? templateId]) async {
     emit(const PrintWorkflowLoading());
     try {
-      final product = await productRepository.getProductById(productId);
-      if (product == null) {
-        emit(const PrintWorkflowError(message: 'Product not found.'));
-        return;
+      final productResult = await productRepository.getProductById(productId);
+      switch (productResult) {
+        case Failure(error: final err):
+          emit(PrintWorkflowError(message: err.message));
+          return;
+        case Success(value: final product):
+          if (product == null) {
+            emit(const PrintWorkflowError(message: 'Product not found.'));
+            return;
+          }
+
+          final variant = product.variants.firstWhere(
+            (v) => v.sku == variantSku,
+            orElse: () => throw Exception('Variant SKU $variantSku not found in product $productId.'),
+          );
+
+          final templates = await templateRepository.fetchTemplates();
+
+          LabelTemplate? selected;
+          if (templateId != null && templateId.isNotEmpty) {
+            selected = templates.firstWhere(
+              (t) => t.id == templateId,
+              orElse: () => templates.isNotEmpty ? templates.first : throw Exception('Template not found.'),
+            );
+          } else if (templates.isNotEmpty) {
+            selected = templates.first;
+          }
+
+          emit(PrintWorkflowLoaded(
+            product: product,
+            variant: variant,
+            templates: templates,
+            selectedTemplate: selected,
+          ));
       }
-
-      final variant = product.variants.firstWhere(
-        (v) => v.sku == variantSku,
-        orElse: () => throw Exception('Variant SKU $variantSku not found in product $productId.'),
-      );
-
-      final templates = await templateRepository.fetchTemplates();
-
-      LabelTemplate? selected;
-      if (templateId != null && templateId.isNotEmpty) {
-        selected = templates.firstWhere(
-          (t) => t.id == templateId,
-          orElse: () => templates.isNotEmpty ? templates.first : throw Exception('Template not found.'),
-        );
-      } else if (templates.isNotEmpty) {
-        selected = templates.first;
-      }
-
-      emit(PrintWorkflowLoaded(
-        product: product,
-        variant: variant,
-        templates: templates,
-        selectedTemplate: selected,
-      ));
     } on Object catch (e) {
       emit(PrintWorkflowError(message: e.toString()));
     }

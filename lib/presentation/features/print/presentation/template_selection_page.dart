@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
@@ -42,32 +43,41 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
       final productRepo = context.read<ProductRepository>();
       final templateRepo = context.read<TemplateRepository>();
 
-      final product = await productRepo.getProductById(widget.productId);
-      if (product == null) {
-        setState(() {
-          _errorMessage = 'Product not found.';
-          _isLoading = false;
-        });
-        return;
+      final productResult = await productRepo.getProductById(widget.productId);
+      switch (productResult) {
+        case Failure(error: final err):
+          setState(() {
+            _errorMessage = err.message;
+            _isLoading = false;
+          });
+          return;
+        case Success(value: final product):
+          if (product == null) {
+            setState(() {
+              _errorMessage = 'Product not found.';
+              _isLoading = false;
+            });
+            return;
+          }
+
+          final variant = product.variants.firstWhere(
+            (v) => v.sku == widget.variantSku,
+            orElse: () => throw Exception('Variant SKU ${widget.variantSku} not found.'),
+          );
+
+          final templates = await templateRepo.fetchTemplates();
+          final finalized = templates.where((t) => t.isFinalized).toList();
+
+          setState(() {
+            _product = product;
+            _variant = variant;
+            _templates = finalized;
+            if (finalized.isNotEmpty) {
+              _selectedTemplateId = finalized.first.id;
+            }
+            _isLoading = false;
+          });
       }
-
-      final variant = product.variants.firstWhere(
-        (v) => v.sku == widget.variantSku,
-        orElse: () => throw Exception('Variant SKU ${widget.variantSku} not found.'),
-      );
-
-      final templates = await templateRepo.fetchTemplates();
-      final finalized = templates.where((t) => t.isFinalized).toList();
-
-      setState(() {
-        _product = product;
-        _variant = variant;
-        _templates = finalized;
-        if (finalized.isNotEmpty) {
-          _selectedTemplateId = finalized.first.id;
-        }
-        _isLoading = false;
-      });
     } on Object catch (e) {
       setState(() {
         _errorMessage = e.toString();

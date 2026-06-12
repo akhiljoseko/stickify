@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/routing/router.dart';
-import 'package:stickify/core/utils/app_breakpoints.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/element_renderer_registry.dart';
 import 'package:stickify/presentation/features/template_editor/preview/bloc/preview_cubit.dart';
@@ -58,11 +58,18 @@ class _PreviewViewState extends State<_PreviewView> {
   Future<void> _loadSampleProduct() async {
     try {
       final productRepository = context.read<ProductRepository>();
-      final products = await productRepository.getAllProducts();
-      if (products.isNotEmpty && mounted) {
-        setState(() {
-          _sampleProduct = products.first;
-        });
+      final result = await productRepository.getAllProducts();
+      if (mounted) {
+        switch (result) {
+          case Success(value: final products):
+            if (products.isNotEmpty) {
+              setState(() {
+                _sampleProduct = products.first;
+              });
+            }
+          case Failure():
+            break;
+        }
       }
     } on Object catch (_) {
       // Fallback sample product

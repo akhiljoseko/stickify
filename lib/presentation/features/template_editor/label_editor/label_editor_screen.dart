@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_state.dart';
@@ -53,11 +54,18 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
   Future<void> _loadSampleProduct() async {
     try {
       final productRepository = context.read<ProductRepository>();
-      final products = await productRepository.getAllProducts();
-      if (products.isNotEmpty && mounted) {
-        setState(() {
-          _sampleProduct = products.first;
-        });
+      final result = await productRepository.getAllProducts();
+      if (mounted) {
+        switch (result) {
+          case Success(value: final products):
+            if (products.isNotEmpty) {
+              setState(() {
+                _sampleProduct = products.first;
+              });
+            }
+          case Failure():
+            break;
+        }
       }
     } on Exception catch (_) {
       // Fallback sample product if repository loading fails

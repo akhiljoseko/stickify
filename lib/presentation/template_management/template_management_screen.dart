@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/core/environment/app_environment.dart';
 import 'package:stickify/core/environment/app_experience.dart';
@@ -198,6 +199,34 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                         Expanded(
                           child: AdaptiveScrollWrapper(
                             builder: (context, scrollController) {
+                              if (isMobile) {
+                                return ListView.separated(
+                                  controller: scrollController,
+                                  itemCount: paginatedTemplates.length,
+                                  separatorBuilder: (context, index) => const Divider(height: 1),
+                                  itemBuilder: (context, index) {
+                                    final template = paginatedTemplates[index];
+                                    return _CompactTemplateListTile(
+                                      template: template,
+                                      onSelect: () {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Selected "${template.name}" for printing'),
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
+                                        );
+                                      },
+                                      onEdit: () {
+                                        LabelEditorRoute(templateId: template.id).go(context);
+                                      },
+                                      onDelete: () {
+                                        unawaited(context.read<TemplateListCubit>().deleteTemplate(template.id));
+                                      },
+                                    );
+                                  },
+                                );
+                              }
+
                               final crossAxisCount = AdaptiveValue<int>(
                                 context,
                                 defaultValue: 1, // mobile
@@ -335,6 +364,138 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
             icon: const Icon(Icons.add),
             label: const Text('Create New Template'),
             onPressed: () => _showCreateTemplateDialog(context),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactTemplateListTile extends StatelessWidget {
+  const _CompactTemplateListTile({
+    required this.template,
+    required this.onSelect,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final LabelTemplate template;
+  final VoidCallback onSelect;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    final formattedDate = template.updatedAt != null
+        ? DateFormat.yMMMd().add_jm().format(template.updatedAt!)
+        : 'Never';
+
+    final sizeDesc = template.stickerConfig != null
+        ? '${template.stickerConfig!.widthMm.toStringAsFixed(1)} × ${template.stickerConfig!.heightMm.toStringAsFixed(1)} mm'
+        : 'Unconfigured size';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+      ),
+      child: Row(
+        children: [
+          // Left: Compact Thumbnail
+          Container(
+            width: 72,
+            height: 48,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: colorScheme.outlineVariant),
+            ),
+            child: Icon(
+              Icons.picture_in_picture_alt_outlined,
+              color: colorScheme.primary.withValues(alpha: 0.5),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Center: Template Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  template.name,
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  sizeDesc,
+                  style: textTheme.bodySmall?.copyWith(
+                    fontFamily: 'JetBrains Mono',
+                    color: colorScheme.primary,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Modified: $formattedDate',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Right: Actions
+          IconButton(
+            icon: const Icon(Icons.print_outlined),
+            color: colorScheme.primary,
+            tooltip: 'Select for Print',
+            onPressed: onSelect,
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (val) {
+              if (val == 'edit') {
+                onEdit();
+              } else if (val == 'delete') {
+                onDelete();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit_outlined, size: 20),
+                    SizedBox(width: 8),
+                    Text('Edit Template'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
+                    const SizedBox(width: 8),
+                    Text('Delete Template', style: TextStyle(color: colorScheme.error)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

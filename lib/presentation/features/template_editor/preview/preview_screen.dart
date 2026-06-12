@@ -358,18 +358,41 @@ class _PreviewViewState extends State<_PreviewView> {
                         top: BorderSide(color: colorScheme.outlineVariant),
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        OutlinedButton(
-                          onPressed: () => LabelEditorRoute(templateId: template.id).go(context),
-                          child: const Text('Back to Editor'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () => context.read<PreviewCubit>().finalizeAndSave(),
-                          child: const Text('Save & Finalize'),
-                        ),
-                      ],
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final useVerticalLayout = constraints.maxWidth < 340;
+                        if (useVerticalLayout) {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () => context.read<PreviewCubit>().finalizeAndSave(),
+                                child: const Text('Save & Finalize'),
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton(
+                                onPressed: () => LabelEditorRoute(templateId: template.id).go(context),
+                                child: const Text('Back to Editor'),
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              OutlinedButton(
+                                onPressed: () => LabelEditorRoute(templateId: template.id).go(context),
+                                child: const Text('Back to Editor'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => context.read<PreviewCubit>().finalizeAndSave(),
+                                child: const Text('Save & Finalize'),
+                              ),
+                            ],
+                          );
+                        }
+                      },
                     ),
                   ),
               ],

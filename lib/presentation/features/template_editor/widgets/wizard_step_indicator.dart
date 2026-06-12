@@ -26,11 +26,11 @@ class WizardStepIndicator extends StatelessWidget {
       'Final Preview',
     ];
 
-    // Check if we should show text labels based on width (e.g. hide on mobile)
+    // Check if we should show text labels based on width (e.g. hide on mobile/tablet)
     final showLabels = AdaptiveValue<bool>(
       context,
       defaultValue: false, // mobile
-      tablet: true,        // tablet
+      tablet: false,        // tablet
       desktop: true,       // desktop/4k
     ).value;
 

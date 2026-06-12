@@ -48,14 +48,14 @@ class ElementPalette extends StatelessWidget {
                   icon: Icons.title,
                   blueprint: () => TextElementBlueprint(
                     id: 'text-name-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 20,
-                    y: 20,
-                    width: 150,
-                    height: 24,
+                    x: 5.0,
+                    y: 5.0,
+                    width: 37.5,
+                    height: 6.0,
                     rotation: 0,
                     content: '{{product.name}}',
                     isDynamic: true,
-                    fontSize: 14,
+                    fontSize: 3.5,
                     fontWeightValue: 700,
                     textAlign: BlueprintTextAlign.left,
                     colorHex: 0xFF000000,
@@ -67,14 +67,14 @@ class ElementPalette extends StatelessWidget {
                   icon: Icons.qr_code_2,
                   blueprint: () => TextElementBlueprint(
                     id: 'text-sku-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 20,
-                    y: 50,
-                    width: 120,
-                    height: 20,
+                    x: 5.0,
+                    y: 12.5,
+                    width: 30.0,
+                    height: 5.0,
                     rotation: 0,
                     content: 'SKU: {{product.sku}}',
                     isDynamic: true,
-                    fontSize: 12,
+                    fontSize: 3.0,
                     fontWeightValue: 400,
                     textAlign: BlueprintTextAlign.left,
                     colorHex: 0xFF555555,
@@ -86,14 +86,14 @@ class ElementPalette extends StatelessWidget {
                   icon: Icons.calendar_today,
                   blueprint: () => TextElementBlueprint(
                     id: 'text-shelflife-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 20,
-                    y: 80,
-                    width: 150,
-                    height: 20,
+                    x: 5.0,
+                    y: 20.0,
+                    width: 37.5,
+                    height: 5.0,
                     rotation: 0,
                     content: 'Shelf Life: {{product.shelfLifeDays}} days',
                     isDynamic: true,
-                    fontSize: 12,
+                    fontSize: 3.0,
                     fontWeightValue: 400,
                     textAlign: BlueprintTextAlign.left,
                     colorHex: 0xFF000000,
@@ -108,14 +108,14 @@ class ElementPalette extends StatelessWidget {
                   icon: Icons.text_fields,
                   blueprint: () => TextElementBlueprint(
                     id: 'text-custom-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 30,
-                    y: 30,
-                    width: 100,
-                    height: 24,
+                    x: 7.5,
+                    y: 7.5,
+                    width: 25.0,
+                    height: 6.0,
                     rotation: 0,
                     content: 'Custom Text',
                     isDynamic: false,
-                    fontSize: 12,
+                    fontSize: 3.0,
                     fontWeightValue: 400,
                     textAlign: BlueprintTextAlign.left,
                     colorHex: 0xFF000000,
@@ -127,15 +127,15 @@ class ElementPalette extends StatelessWidget {
                   icon: Icons.check_box_outline_blank,
                   blueprint: () => ShapeElementBlueprint(
                     id: 'shape-rect-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 40,
-                    y: 40,
-                    width: 100,
-                    height: 60,
+                    x: 10.0,
+                    y: 10.0,
+                    width: 25.0,
+                    height: 15.0,
                     rotation: 0,
                     fillColorHex: 0x229E9E9E,
                     strokeColorHex: 0xFF000000,
-                    strokeWidth: 2,
-                    cornerRadius: 4,
+                    strokeWidth: 0.5,
+                    cornerRadius: 1.0,
                     isFilled: false,
                   ),
                 ),
@@ -145,16 +145,16 @@ class ElementPalette extends StatelessWidget {
                   icon: Icons.image_outlined,
                   blueprint: () => ImageElementBlueprint(
                     id: 'image-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 50,
-                    y: 50,
-                    width: 80,
-                    height: 80,
+                    x: 12.5,
+                    y: 12.5,
+                    width: 20.0,
+                    height: 20.0,
                     rotation: 0,
                     fit: BlueprintBoxFit.contain,
                   ),
                 ),
                 const SizedBox(height: 24),
-
+ 
                 _buildCategoryHeader(context, 'Dynamic Codes'),
                 _buildDraggableTile(
                   context: context,
@@ -162,10 +162,10 @@ class ElementPalette extends StatelessWidget {
                   icon: Icons.line_weight,
                   blueprint: () => BarcodeElementBlueprint(
                     id: 'barcode-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 10,
-                    y: 100,
-                    width: 200,
-                    height: 60,
+                    x: 2.5,
+                    y: 25.0,
+                    width: 50.0,
+                    height: 15.0,
                     rotation: 0,
                     data: '{{product.sku}}',
                     isDynamic: true,
@@ -179,10 +179,10 @@ class ElementPalette extends StatelessWidget {
                   icon: Icons.qr_code,
                   blueprint: () => QrElementBlueprint(
                     id: 'qr-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 40,
-                    y: 40,
-                    width: 100,
-                    height: 100,
+                    x: 10.0,
+                    y: 10.0,
+                    width: 25.0,
+                    height: 25.0,
                     rotation: 0,
                     data: '{{product.sku}}',
                     isDynamic: true,
@@ -275,17 +275,16 @@ class ElementPalette extends StatelessWidget {
             final editorState = context.read<EditorCubit>().state;
             var element = blueprint();
             if (editorState is EditorLoaded) {
-              const mmToPx = 4;
-              final stickerWidth = editorState.stickerConfig.widthMm * mmToPx;
-              final stickerHeight = editorState.stickerConfig.heightMm * mmToPx;
+              final stickerWidthMm = editorState.stickerConfig.widthMm;
+              final stickerHeightMm = editorState.stickerConfig.heightMm;
 
               // Center the element on the sticker board
-              final centerX = (stickerWidth / 2) - (element.width / 2);
-              final centerY = (stickerHeight / 2) - (element.height / 2);
+              final centerX = (stickerWidthMm / 2.0) - (element.width / 2.0);
+              final centerY = (stickerHeightMm / 2.0) - (element.height / 2.0);
 
               // Clamp inside sticker boundaries
-              final finalX = centerX.clamp(0.0, stickerWidth - element.width);
-              final finalY = centerY.clamp(0.0, stickerHeight - element.height);
+              final finalX = centerX.clamp(0.0, stickerWidthMm - element.width);
+              final finalY = centerY.clamp(0.0, stickerHeightMm - element.height);
 
               element = element.copyWith(x: finalX, y: finalY);
             }

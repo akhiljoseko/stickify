@@ -72,10 +72,10 @@ class _EditorCanvasState extends State<EditorCanvas> {
             widget.stickerConfig.heightMm - 4.0,
           );
 
-    final safeLeft = tl.x * mmToPx;
-    final safeTop = tl.y * mmToPx;
-    final safeRight = br.x * mmToPx;
-    final safeBottom = br.y * mmToPx;
+    final safeLeft = tl.x;
+    final safeTop = tl.y;
+    final safeRight = br.x;
+    final safeBottom = br.y;
 
     // Compute alignment guide lines
     final guidelines = <Guideline>[];
@@ -87,7 +87,7 @@ class _EditorCanvasState extends State<EditorCanvas> {
         final D = widget.elements[selectedIndex];
         final tolerance =
             3.0 /
-            widget.zoomLevel; // tolerance in canvas pixels (3.0 screen pixels)
+            widget.zoomLevel / 4.0; // tolerance in millimeters (3.0 screen pixels)
 
         final dl = D.x;
         final dc = D.x + D.width / 2;
@@ -238,35 +238,13 @@ class _EditorCanvasState extends State<EditorCanvas> {
                           final renderBox = context.findRenderObject()! as RenderBox;
                           final localOffset = renderBox.globalToLocal(details.offset);
 
-                          // Compute center of the Canvas in local coords
-                          final canvasCenterOffset = Offset(
-                            renderBox.size.width / 2,
-                            renderBox.size.height / 2,
-                          );
+                          // Convert screen logical pixels to millimeters (1mm = 4px)
+                          final dropX = (localOffset.dx / (widget.zoomLevel * 4.0)) - (details.data.width / 2.0);
+                          final dropY = (localOffset.dy / (widget.zoomLevel * 4.0)) - (details.data.height / 2.0);
 
-                          // Offset relative to the sticker board center
-                          final dx = localOffset.dx - canvasCenterOffset.dx;
-                          final dy = localOffset.dy - canvasCenterOffset.dy;
-
-                          // Compute position relative to top-left of sticker board
-                          final dropX =
-                              (stickerWidth / 2) +
-                              (dx / widget.zoomLevel) -
-                              (details.data.width / 2);
-                          final dropY =
-                              (stickerHeight / 2) +
-                              (dy / widget.zoomLevel) -
-                              (details.data.height / 2);
-
-                          // Clamp to sticker bounds
-                          final finalX = dropX.clamp(
-                            0.0,
-                            stickerWidth - details.data.width,
-                          );
-                          final finalY = dropY.clamp(
-                            0.0,
-                            stickerHeight - details.data.height,
-                          );
+                          // Clamp to sticker bounds (in mm)
+                          final finalX = dropX.clamp(0.0, widget.stickerConfig.widthMm - details.data.width);
+                          final finalY = dropY.clamp(0.0, widget.stickerConfig.heightMm - details.data.height);
 
                           final element = details.data.copyWith(
                             x: finalX,
@@ -380,8 +358,8 @@ class AlignmentGuidesPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     for (final guide in guidelines) {
-      final p1 = Offset(guide.start.dx * zoomLevel, guide.start.dy * zoomLevel);
-      final p2 = Offset(guide.end.dx * zoomLevel, guide.end.dy * zoomLevel);
+      final p1 = Offset(guide.start.dx * 4.0 * zoomLevel, guide.start.dy * 4.0 * zoomLevel);
+      final p2 = Offset(guide.end.dx * 4.0 * zoomLevel, guide.end.dy * 4.0 * zoomLevel);
       _drawDashedLine(canvas, p1, p2, paint);
     }
   }

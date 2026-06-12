@@ -401,11 +401,11 @@ class SheetsPreview extends StatelessWidget {
                                                 width: sticker.widthMm * 4,
                                                 height: sticker.heightMm * 4,
                                                 child: Stack(
-                                                  children: template.elements.map((bp) {
-                                                    final width = bp.width;
-                                                    final height = bp.height;
-                                                    final left = bp.x;
-                                                    final top = bp.y;
+                                                   children: template.elements.map((bp) {
+                                                    final width = bp.width * 4.0;
+                                                    final height = bp.height * 4.0;
+                                                    final left = bp.x * 4.0;
+                                                    final top = bp.y * 4.0;
                                                     final renderedChild = ElementRendererRegistry.forBlueprint(bp)
                                                         .render(context, bp, product: product, variant: variant);
 

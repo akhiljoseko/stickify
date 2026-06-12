@@ -25,8 +25,8 @@ class QrElementRenderer implements LabelElementRenderer {
     final data = qrData.isEmpty ? 'https://stickify.io' : qrData;
 
     return SizedBox(
-      width: bp.width,
-      height: bp.height,
+      width: bp.width * 4.0,
+      height: bp.height * 4.0,
       child: BarcodeWidget(
         barcode: Barcode.qrCode(),
         data: data,

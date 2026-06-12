@@ -88,16 +88,16 @@ class TextElementRenderer implements LabelElementRenderer {
     };
 
     return SizedBox(
-      width: bp.width,
-      height: bp.height,
+      width: bp.width * 4.0,
+      height: bp.height * 4.0,
       child: Text(
         text,
         textAlign: textAlign,
         style: TextStyle(
-          fontSize: bp.fontSize,
+          fontSize: bp.fontSize * 4.0,
           fontWeight: fontWeight,
           color: Color(bp.colorHex),
-          letterSpacing: bp.letterSpacing,
+          letterSpacing: bp.letterSpacing * 4.0,
         ),
       ),
     );

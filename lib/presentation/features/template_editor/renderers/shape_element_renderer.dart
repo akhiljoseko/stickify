@@ -17,15 +17,15 @@ class ShapeElementRenderer implements LabelElementRenderer {
     final bp = blueprint as ShapeElementBlueprint;
 
     return SizedBox(
-      width: bp.width,
-      height: bp.height,
+      width: bp.width * 4.0,
+      height: bp.height * 4.0,
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: bp.isFilled ? Color(bp.fillColorHex) : Colors.transparent,
-          borderRadius: BorderRadius.circular(bp.cornerRadius),
+          borderRadius: BorderRadius.circular(bp.cornerRadius * 4.0),
           border: Border.all(
             color: Color(bp.strokeColorHex),
-            width: bp.strokeWidth,
+            width: bp.strokeWidth * 4.0,
           ),
         ),
       ),

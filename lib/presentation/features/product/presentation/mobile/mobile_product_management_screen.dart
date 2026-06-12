@@ -340,7 +340,11 @@ class _MobileProductDetailView extends StatelessWidget {
   final Product product;
   final VoidCallback onBack;
 
-  void _showEditPriceBottomSheet(BuildContext context, Product product, ProductVariant variant) {
+  void _showEditVariantBottomSheet(BuildContext context, Product product, ProductVariant variant) {
+    final nameController = TextEditingController(text: variant.name);
+    final skuController = TextEditingController(text: variant.sku);
+    final quantityController = TextEditingController(text: variant.quantity.toString());
+    final unitController = TextEditingController(text: variant.unit);
     final wholesaleController = TextEditingController(text: variant.wholesale.toString());
     final mrpController = TextEditingController(text: variant.mrp.toString());
     final formKey = GlobalKey<FormState>();
@@ -356,75 +360,122 @@ class _MobileProductDetailView extends StatelessWidget {
             right: 24,
             top: 24,
           ),
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Edit Price - ${variant.name}',
-                  style: Theme.of(modalContext).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: wholesaleController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Wholesale Price (₹)'),
-                  validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: mrpController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'MRP (₹)'),
-                  validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      final newWholesale = double.parse(wholesaleController.text);
-                      final newMrp = double.parse(mrpController.text);
+          child: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Edit Variant - ${variant.name}',
+                    style: Theme.of(modalContext).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Variant Name'),
+                    validator: (val) => (val == null || val.trim().isEmpty) ? 'Name is required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: skuController,
+                    decoration: const InputDecoration(labelText: 'SKU'),
+                    validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: quantityController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'Quantity'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: unitController,
+                          decoration: const InputDecoration(labelText: 'Unit (e.g. gm, ml)'),
+                          validator: (val) => (val == null || val.trim().isEmpty) ? 'Unit is required' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: wholesaleController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'Wholesale Price (₹)'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: mrpController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'MRP (₹)'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        final newName = nameController.text.trim();
+                        final newSku = skuController.text.trim();
+                        final newQuantity = double.parse(quantityController.text);
+                        final newUnit = unitController.text.trim();
+                        final newWholesale = double.parse(wholesaleController.text);
+                        final newMrp = double.parse(mrpController.text);
 
-                      final updatedVariants = product.variants.map((v) {
-                        if (v.sku == variant.sku) {
-                          return ProductVariant(
-                            name: v.name,
-                            quantity: v.quantity,
-                            unit: v.unit,
-                            sku: v.sku,
-                            wholesale: newWholesale,
-                            mrp: newMrp,
-                          );
-                        }
-                        return v;
-                      }).toList();
+                        final updatedVariants = product.variants.map((v) {
+                          if (v.sku == variant.sku) {
+                            return ProductVariant(
+                              name: newName,
+                              quantity: newQuantity,
+                              unit: newUnit,
+                              sku: newSku,
+                              wholesale: newWholesale,
+                              mrp: newMrp,
+                            );
+                          }
+                          return v;
+                        }).toList();
 
-                      final updatedProduct = Product(
-                        id: product.id,
-                        name: product.name,
-                        sku: product.sku,
-                        totalPrints: product.totalPrints,
-                        lastPrintedAt: product.lastPrintedAt,
-                        assignedStation: product.assignedStation,
-                        stationStatus: product.stationStatus,
-                        category: product.category,
-                        shelfLifeDays: product.shelfLifeDays,
-                        storageConditions: product.storageConditions,
-                        imageUrl: product.imageUrl,
-                        ingredients: product.ingredients,
-                        nutritionFacts: product.nutritionFacts,
-                        variants: List.unmodifiable(updatedVariants),
-                      );
+                        final updatedProduct = Product(
+                          id: product.id,
+                          name: product.name,
+                          sku: product.sku,
+                          totalPrints: product.totalPrints,
+                          lastPrintedAt: product.lastPrintedAt,
+                          assignedStation: product.assignedStation,
+                          stationStatus: product.stationStatus,
+                          category: product.category,
+                          shelfLifeDays: product.shelfLifeDays,
+                          storageConditions: product.storageConditions,
+                          imageUrl: product.imageUrl,
+                          ingredients: product.ingredients,
+                          nutritionFacts: product.nutritionFacts,
+                          variants: List.unmodifiable(updatedVariants),
+                        );
 
-                      context.read<ProductCubit>().saveProduct(updatedProduct);
-                      Navigator.of(modalContext).pop();
-                    }
-                  },
-                  child: const Text('Save Prices'),
-                ),
-              ],
+                        context.read<ProductCubit>().saveProduct(updatedProduct);
+                        Navigator.of(modalContext).pop();
+                      }
+                    },
+                    child: const Text('Save Variant'),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -574,8 +625,8 @@ class _MobileProductDetailView extends StatelessWidget {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit_outlined, size: 20),
-                              onPressed: () => _showEditPriceBottomSheet(context, product, v),
-                              tooltip: 'Edit Variant Price',
+                              onPressed: () => _showEditVariantBottomSheet(context, product, v),
+                              tooltip: 'Edit Variant',
                             ),
                             IconButton(
                               icon: const Icon(Icons.print_outlined, size: 20),

@@ -396,10 +396,21 @@ class _MobileProductDetailView extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: TextFormField(
-                          controller: unitController,
-                          decoration: const InputDecoration(labelText: 'Unit (e.g. gm, ml)'),
-                          validator: (val) => (val == null || val.trim().isEmpty) ? 'Unit is required' : null,
+                        child: DropdownButtonFormField<String>(
+                          initialValue: const ['pcs', 'ml', 'gm', 'kg', 'L'].contains(unitController.text) ? unitController.text : 'gm',
+                          decoration: const InputDecoration(labelText: 'Unit'),
+                          items: const [
+                            DropdownMenuItem(value: 'pcs', child: Text('pcs')),
+                            DropdownMenuItem(value: 'ml', child: Text('ml')),
+                            DropdownMenuItem(value: 'gm', child: Text('gm')),
+                            DropdownMenuItem(value: 'kg', child: Text('kg')),
+                            DropdownMenuItem(value: 'L', child: Text('L')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) {
+                              unitController.text = val;
+                            }
+                          },
                         ),
                       ),
                     ],

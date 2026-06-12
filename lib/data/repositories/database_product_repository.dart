@@ -1,3 +1,4 @@
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/local_database.dart';
 import 'package:stickify/data/models/hive/product_hive_model.dart';
 import 'package:stickify/domain/entities/product.dart';
@@ -12,35 +13,83 @@ class DatabaseProductRepository implements ProductRepository {
   static const String _collection = 'products';
 
   @override
-  Future<List<Product>> getFrequentProducts({int limit = 20}) async {
-    final all = await getAllProducts();
-    all.sort((a, b) => b.totalPrints.compareTo(a.totalPrints));
-    return all.take(limit).toList();
+  Future<Result<List<Product>, AppError>> getFrequentProducts({int limit = 20}) async {
+    try {
+      final allResult = await getAllProducts();
+      switch (allResult) {
+        case Success(value: final all):
+          final list = List<Product>.from(all);
+          list.sort((a, b) => b.totalPrints.compareTo(a.totalPrints));
+          return Result.success(list.take(limit).toList());
+        case Failure(error: final err):
+          return Result.failure(err);
+      }
+    } catch (e, stackTrace) {
+      return Result.failure(DatabaseError(
+        message: 'Failed to retrieve frequent products from database.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
   }
 
   @override
-  Future<Product?> getProductById(String id) async {
-    final model = await _db.get<ProductHiveModel>(_collection, id);
-    return model?.toDomain();
+  Future<Result<Product?, AppError>> getProductById(String id) async {
+    try {
+      final model = await _db.get<ProductHiveModel>(_collection, id);
+      return Result.success(model?.toDomain());
+    } catch (e, stackTrace) {
+      return Result.failure(DatabaseError(
+        message: 'Failed to retrieve product from database.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
   }
 
   @override
-  Future<List<Product>> getAllProducts() async {
-    final allModels = await _db.getAll<ProductHiveModel>(_collection);
-    return allModels.map((m) => m.toDomain()).toList();
+  Future<Result<List<Product>, AppError>> getAllProducts() async {
+    try {
+      final allModels = await _db.getAll<ProductHiveModel>(_collection);
+      return Result.success(allModels.map((m) => m.toDomain()).toList());
+    } catch (e, stackTrace) {
+      return Result.failure(DatabaseError(
+        message: 'Failed to retrieve products from database.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
   }
 
   @override
-  Future<void> saveProduct(Product product) async {
-    await _db.save<ProductHiveModel>(
-      _collection,
-      product.id,
-      ProductHiveModel.fromDomain(product),
-    );
+  Future<Result<void, AppError>> saveProduct(Product product) async {
+    try {
+      await _db.save<ProductHiveModel>(
+        _collection,
+        product.id,
+        ProductHiveModel.fromDomain(product),
+      );
+      return const Result.success(null);
+    } catch (e, stackTrace) {
+      return Result.failure(DatabaseError(
+        message: 'Failed to save product to database.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
   }
 
   @override
-  Future<void> deleteProduct(String id) async {
-    await _db.delete(_collection, id);
+  Future<Result<void, AppError>> deleteProduct(String id) async {
+    try {
+      await _db.delete(_collection, id);
+      return const Result.success(null);
+    } catch (e, stackTrace) {
+      return Result.failure(DatabaseError(
+        message: 'Failed to delete product from database.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
   }
 }

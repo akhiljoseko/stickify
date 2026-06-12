@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/presentation/features/product/bloc/product_state.dart';
@@ -26,27 +27,28 @@ class ProductCubit extends Cubit<ProductState> {
       emit(const ProductCatalogLoading());
     }
 
-    try {
-      final products = await _productRepository.getAllProducts();
-      final filtered = products.where((product) {
-        final matchesQuery = query.isEmpty ||
-            product.name.toLowerCase().contains(query.toLowerCase()) ||
-            product.sku.toLowerCase().contains(query.toLowerCase());
-        final matchesCategory = category.isEmpty ||
-            (product.category ?? '').toLowerCase() == category.toLowerCase();
-        return matchesQuery && matchesCategory;
-      }).toList();
+    final result = await _productRepository.getAllProducts();
+    switch (result) {
+      case Success(value: final products):
+        final filtered = products.where((product) {
+          final matchesQuery = query.isEmpty ||
+              product.name.toLowerCase().contains(query.toLowerCase()) ||
+              product.sku.toLowerCase().contains(query.toLowerCase());
+          final matchesCategory = category.isEmpty ||
+              (product.category ?? '').toLowerCase() == category.toLowerCase();
+          return matchesQuery && matchesCategory;
+        }).toList();
 
-      emit(ProductCatalogSuccess(
-        products: products,
-        filteredProducts: filtered,
-        searchQuery: query,
-        categoryFilter: category,
-        subView: subView,
-        selectedProduct: selected,
-      ));
-    } on Exception catch (e) {
-      emit(ProductCatalogError(e.toString()));
+        emit(ProductCatalogSuccess(
+          products: products,
+          filteredProducts: filtered,
+          searchQuery: query,
+          categoryFilter: category,
+          subView: subView,
+          selectedProduct: selected,
+        ));
+      case Failure(error: final err):
+        emit(ProductCatalogError(err.message));
     }
   }
 
@@ -84,31 +86,33 @@ class ProductCubit extends Cubit<ProductState> {
 
   Future<void> saveProduct(Product product) async {
     emit(const ProductFormSubmitting());
-    try {
-      await _productRepository.saveProduct(product);
-      emit(const ProductFormSuccess());
-      await loadProducts();
-    } on Exception catch (e) {
-      emit(ProductCatalogError(e.toString()));
+    final result = await _productRepository.saveProduct(product);
+    switch (result) {
+      case Success():
+        emit(const ProductFormSuccess());
+        await loadProducts();
+      case Failure(error: final err):
+        emit(ProductCatalogError(err.message));
     }
   }
 
   Future<void> deleteProduct(String id) async {
     final currentState = state;
-    try {
-      await _productRepository.deleteProduct(id);
-      if (currentState is ProductCatalogSuccess) {
-        final updatedProducts = currentState.products.where((p) => p.id != id).toList();
-        final updatedFiltered = currentState.filteredProducts.where((p) => p.id != id).toList();
-        emit(currentState.copyWith(
-          products: updatedProducts,
-          filteredProducts: updatedFiltered,
-        ));
-      } else {
-        await loadProducts();
-      }
-    } on Exception catch (e) {
-      emit(ProductCatalogError(e.toString()));
+    final result = await _productRepository.deleteProduct(id);
+    switch (result) {
+      case Success():
+        if (currentState is ProductCatalogSuccess) {
+          final updatedProducts = currentState.products.where((p) => p.id != id).toList();
+          final updatedFiltered = currentState.filteredProducts.where((p) => p.id != id).toList();
+          emit(currentState.copyWith(
+            products: updatedProducts,
+            filteredProducts: updatedFiltered,
+          ));
+        } else {
+          await loadProducts();
+        }
+      case Failure(error: final err):
+        emit(ProductCatalogError(err.message));
     }
   }
 }

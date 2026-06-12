@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
@@ -57,7 +58,7 @@ void main() {
       'loadProducts emits Loading then Success with all products',
       build: () {
         when(() => productRepository.getAllProducts()).thenAnswer(
-          (_) async => mockProducts,
+          (_) async => Result.success(mockProducts),
         );
         return ProductCubit(productRepository);
       },
@@ -67,6 +68,23 @@ void main() {
         isA<ProductCatalogSuccess>()
             .having((s) => s.products.length, 'products length', 2)
             .having((s) => s.filteredProducts.length, 'filteredProducts length', 2),
+      ],
+    );
+
+    blocTest<ProductCubit, ProductState>(
+      'loadProducts emits Error when repository fails',
+      build: () {
+        when(() => productRepository.getAllProducts()).thenAnswer(
+          (_) async => const Result.failure(DatabaseError(
+            message: 'Local database is corrupted.',
+          )),
+        );
+        return ProductCubit(productRepository);
+      },
+      act: (cubit) => cubit.loadProducts(),
+      expect: () => [
+        const ProductCatalogLoading(),
+        const ProductCatalogError('Local database is corrupted.'),
       ],
     );
 
@@ -126,8 +144,8 @@ void main() {
     blocTest<ProductCubit, ProductState>(
       'saveProduct calls repository and loads products again',
       build: () {
-        when(() => productRepository.saveProduct(any())).thenAnswer((_) async => {});
-        when(() => productRepository.getAllProducts()).thenAnswer((_) async => mockProducts);
+        when(() => productRepository.saveProduct(any())).thenAnswer((_) async => const Result.success(null));
+        when(() => productRepository.getAllProducts()).thenAnswer((_) async => Result.success(mockProducts));
         return ProductCubit(productRepository);
       },
       act: (cubit) => cubit.saveProduct(mockProducts[0]),
@@ -143,9 +161,26 @@ void main() {
     );
 
     blocTest<ProductCubit, ProductState>(
+      'saveProduct emits error state when repository fails',
+      build: () {
+        when(() => productRepository.saveProduct(any())).thenAnswer(
+          (_) async => const Result.failure(NetworkError(
+            message: 'Network connection lost.',
+          )),
+        );
+        return ProductCubit(productRepository);
+      },
+      act: (cubit) => cubit.saveProduct(mockProducts[0]),
+      expect: () => [
+        const ProductFormSubmitting(),
+        const ProductCatalogError('Network connection lost.'),
+      ],
+    );
+
+    blocTest<ProductCubit, ProductState>(
       'deleteProduct calls repository and filters item out',
       build: () {
-        when(() => productRepository.deleteProduct(any())).thenAnswer((_) async => {});
+        when(() => productRepository.deleteProduct(any())).thenAnswer((_) async => const Result.success(null));
         return ProductCubit(productRepository);
       },
       seed: () => ProductCatalogSuccess(

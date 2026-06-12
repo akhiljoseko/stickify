@@ -1,3 +1,4 @@
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
 import 'package:stickify/domain/entities/product.dart';
@@ -134,30 +135,30 @@ class MockProductRepository implements ProductRepository {
   ];
 
   @override
-  Future<List<Product>> getFrequentProducts({int limit = 20}) async {
+  Future<Result<List<Product>, AppError>> getFrequentProducts({int limit = 20}) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
-    return _mockProducts.take(limit).toList();
+    return Result.success(_mockProducts.take(limit).toList());
   }
 
   @override
-  Future<Product?> getProductById(String id) async {
+  Future<Result<Product?, AppError>> getProductById(String id) async {
     await Future<void>.delayed(const Duration(milliseconds: 100));
     for (final product in _mockProducts) {
       if (product.id == id) {
-        return product;
+        return Result.success(product);
       }
     }
-    return null;
+    return const Result.success(null);
   }
 
   @override
-  Future<List<Product>> getAllProducts() async {
+  Future<Result<List<Product>, AppError>> getAllProducts() async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
-    return List.unmodifiable(_mockProducts);
+    return Result.success(List.unmodifiable(_mockProducts));
   }
 
   @override
-  Future<void> saveProduct(Product product) async {
+  Future<Result<void, AppError>> saveProduct(Product product) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     final index = _mockProducts.indexWhere((p) => p.id == product.id);
     if (index != -1) {
@@ -165,11 +166,13 @@ class MockProductRepository implements ProductRepository {
     } else {
       _mockProducts.add(product);
     }
+    return const Result.success(null);
   }
 
   @override
-  Future<void> deleteProduct(String id) async {
+  Future<Result<void, AppError>> deleteProduct(String id) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     _mockProducts.removeWhere((p) => p.id == id);
+    return const Result.success(null);
   }
 }

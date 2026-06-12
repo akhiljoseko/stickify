@@ -24,7 +24,7 @@ void main() {
 
   const testVariant = ProductVariant(
     name: 'Single Bottle',
-    quantity: 1.0,
+    quantity: 1,
     unit: 'bottle',
     wholesale: 2.5,
     mrp: 3.5,
@@ -270,7 +270,6 @@ void main() {
           cornerRadiusMm: 2,
           printableArea: [],
         ),
-        elements: [],
       );
 
       final result = await service.printLabels(
@@ -326,7 +325,6 @@ void main() {
             StickerPoint(40, 50),
           ],
         ),
-        elements: [],
       );
 
       final result = await service.printLabels(

@@ -172,7 +172,7 @@ void main() {
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
-          .thenAnswer((_) async => Result.success([testTemplate]));
+          .thenAnswer((_) async => const Result.success([testTemplate]));
       when(() => printJobRepository.savePrintJob(any()))
           .thenAnswer((_) async => const Result.success(null));
       when(() => printService.printLabels(
@@ -263,7 +263,7 @@ void main() {
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
-          .thenAnswer((_) async => Result.success([testTemplate]));
+          .thenAnswer((_) async => const Result.success([testTemplate]));
       when(() => printService.printLabels(
             product: any(named: 'product'),
             variant: any(named: 'variant'),

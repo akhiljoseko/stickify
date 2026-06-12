@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -89,8 +90,10 @@ class PdfPrintService implements PrintService {
       // Check slot indices
       final maxSlots = sheetConfig.columns * sheetConfig.rows;
       for (final slot in disabledSlots) {
-        if (slot < 0) {
-          return const Result.failure(ValidationError(message: 'Disabled slot index cannot be negative.'));
+        if (slot < 0 || slot >= maxSlots) {
+          return const Result.failure(
+            ValidationError(message: 'Disabled slot index is out of bounds.'),
+          );
         }
       }
 
@@ -137,7 +140,7 @@ class PdfPrintService implements PrintService {
           );
         } else if (!isInside) {
           // Log a warning for non-barcode elements that are clipped
-          print('WARNING: Element "${element.id}" is outside the printable area polygon.');
+          debugPrint('WARNING: Element "${element.id}" is outside the printable area polygon.');
         }
       }
 
@@ -173,8 +176,8 @@ class PdfPrintService implements PrintService {
         await customPrintChannel.invokeMethod<bool>('printPdf', {
           'name': '${product.name}_${variant.name}_labels',
           'bytes': pdfBytes,
-          'width': sheetConfig.pageWidth.toDouble(),
-          'height': sheetConfig.pageHeight.toDouble(),
+          'width': sheetConfig.pageWidth,
+          'height': sheetConfig.pageHeight,
         });
       } else {
         await Printing.layoutPdf(
@@ -254,7 +257,7 @@ class PdfPrintService implements PrintService {
     } else if (printerName.contains('Brother')) {
       return const PrinterCalibration(offsetX: -0.3, offsetY: 0.3);
     } else if (printerName.contains('Industrial')) {
-      return const PrinterCalibration(offsetX: 0.0, offsetY: 0.0, scaleX: 1.01, scaleY: 1.01);
+      return const PrinterCalibration(scaleX: 1.01, scaleY: 1.01);
     }
     return const PrinterCalibration();
   }
@@ -389,7 +392,7 @@ class PdfPrintService implements PrintService {
     // Apply polygon clipping if a custom shape is configured
     if (sticker.printableArea.length >= 3) {
       return pw.CustomPaint(
-        painter: (PdfGraphics canvas, PdfPoint size) {
+        painter: (canvas, size) {
           final vertices = sticker.printableArea;
           // Flip Y coordinate system for PDF Graphics (starts bottom-left)
           canvas.moveTo(
@@ -402,8 +405,9 @@ class PdfPrintService implements PrintService {
               (sticker.heightMm - vertices[i].y) * PdfPageFormat.mm,
             );
           }
-          canvas.closePath();
-          canvas.clipPath();
+          canvas
+            ..closePath()
+            ..clipPath();
         },
         child: content,
       );

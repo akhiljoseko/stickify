@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
@@ -30,10 +31,10 @@ class ProductFormView extends StatefulWidget {
   final ValueChanged<Product> onSave;
 
   @override
-  State<ProductFormView> createState() => _ProductFormViewState();
+  State<ProductFormView> createState() => ProductFormViewState();
 }
 
-class _ProductFormViewState extends State<ProductFormView> {
+class ProductFormViewState extends State<ProductFormView> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _nameController;
@@ -206,11 +207,58 @@ class _ProductFormViewState extends State<ProductFormView> {
     widget.onSave(product);
   }
 
+  /// Expose saveForm publicly for the parent Scaffold's AppBar.
+  void saveForm() {
+    _saveForm();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
+    final isMobile = context.watch<AppEnvironment>().experience == AppExperience.mobile;
+
+    void addIngredientAction() {
+      final name = _ingNameController.text;
+      final pct = double.tryParse(_ingPercentController.text) ?? 0;
+      if (name.isNotEmpty && pct > 0) {
+        setState(() {
+          _ingredients.add(Ingredient(name: name, percentage: pct));
+          _ingNameController.clear();
+          _ingPercentController.clear();
+        });
+      }
+    }
+
+    void addVariantAction() {
+      final name = _varNameController.text;
+      final sku = _varSkuController.text;
+      final qty = double.tryParse(_varQtyController.text) ?? 1.0;
+      final unit = _varUnitController.text;
+      final wholesale = double.tryParse(_varWholesaleController.text) ?? 0.0;
+      final mrp = double.tryParse(_varMrpController.text) ?? 0.0;
+
+      if (name.isNotEmpty && sku.isNotEmpty) {
+        setState(() {
+          _variants.add(
+            ProductVariant(
+              name: name,
+              quantity: qty,
+              unit: unit,
+              wholesale: wholesale,
+              mrp: mrp,
+              sku: sku,
+            ),
+          );
+          _varNameController.clear();
+          _varSkuController.text = _skuController.text; // reset to global sku
+          _varQtyController.clear();
+          _varWholesaleController.clear();
+          _varMrpController.clear();
+        });
+      }
+    }
 
     final basicInfoCard = Card(
       child: Padding(
@@ -232,40 +280,68 @@ class _ProductFormViewState extends State<ProductFormView> {
               validator: (val) => (val == null || val.isEmpty) ? 'Name is required' : null,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    initialValue: _categoryController.text.isEmpty ? 'Beverages' : _categoryController.text,
-                    decoration: const InputDecoration(labelText: 'Category'),
-                    items: const [
-                      DropdownMenuItem(value: 'Beverages', child: Text('Beverages')),
-                      DropdownMenuItem(value: 'Dry Goods', child: Text('Dry Goods')),
-                      DropdownMenuItem(value: 'Frozen Food', child: Text('Frozen Food')),
-                      DropdownMenuItem(value: 'Produce', child: Text('Produce')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) _categoryController.text = val;
-                    },
+            if (isMobile) ...[
+              DropdownButtonFormField<String>(
+                isExpanded: true,
+                initialValue: _categoryController.text.isEmpty ? 'Beverages' : _categoryController.text,
+                decoration: const InputDecoration(labelText: 'Category'),
+                items: const [
+                  DropdownMenuItem(value: 'Beverages', child: Text('Beverages')),
+                  DropdownMenuItem(value: 'Dry Goods', child: Text('Dry Goods')),
+                  DropdownMenuItem(value: 'Frozen Food', child: Text('Frozen Food')),
+                  DropdownMenuItem(value: 'Produce', child: Text('Produce')),
+                ],
+                onChanged: (val) {
+                  if (val != null) _categoryController.text = val;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _shelfLifeController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Shelf Life (Days)', hintText: 'e.g. 45'),
+                validator: (val) {
+                  if (val != null && val.isNotEmpty && int.tryParse(val) == null) {
+                    return 'Must be an integer';
+                  }
+                  return null;
+                },
+              ),
+            ] else
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: _categoryController.text.isEmpty ? 'Beverages' : _categoryController.text,
+                      decoration: const InputDecoration(labelText: 'Category'),
+                      items: const [
+                        DropdownMenuItem(value: 'Beverages', child: Text('Beverages')),
+                        DropdownMenuItem(value: 'Dry Goods', child: Text('Dry Goods')),
+                        DropdownMenuItem(value: 'Frozen Food', child: Text('Frozen Food')),
+                        DropdownMenuItem(value: 'Produce', child: Text('Produce')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) _categoryController.text = val;
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _shelfLifeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Shelf Life (Days)', hintText: 'e.g. 45'),
-                    validator: (val) {
-                      if (val != null && val.isNotEmpty && int.tryParse(val) == null) {
-                        return 'Must be an integer';
-                      }
-                      return null;
-                    },
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _shelfLifeController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Shelf Life (Days)', hintText: 'e.g. 45'),
+                      validator: (val) {
+                        if (val != null && val.isNotEmpty && int.tryParse(val) == null) {
+                          return 'Must be an integer';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _skuController,
@@ -374,40 +450,54 @@ class _ProductFormViewState extends State<ProductFormView> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _ingNameController,
-                    decoration: const InputDecoration(labelText: 'Ingredient Name', hintText: 'e.g. Organic Almonds'),
+            if (isMobile) ...[
+              TextField(
+                controller: _ingNameController,
+                decoration: const InputDecoration(labelText: 'Ingredient Name', hintText: 'e.g. Organic Almonds'),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _ingPercentController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Percent (%)', hintText: '12.5'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 100,
-                  child: TextField(
-                    controller: _ingPercentController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Percent (%)', hintText: '12.5'),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    onPressed: addIngredientAction,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add'),
                   ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: () {
-                    final name = _ingNameController.text;
-                    final pct = double.tryParse(_ingPercentController.text) ?? 0;
-                    if (name.isNotEmpty && pct > 0) {
-                      setState(() {
-                        _ingredients.add(Ingredient(name: name, percentage: pct));
-                        _ingNameController.clear();
-                        _ingPercentController.clear();
-                      });
-                    }
-                  },
-                  child: const Text('Add'),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ] else
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _ingNameController,
+                      decoration: const InputDecoration(labelText: 'Ingredient Name', hintText: 'e.g. Organic Almonds'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 100,
+                    child: TextField(
+                      controller: _ingPercentController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Percent (%)', hintText: '12.5'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: addIngredientAction,
+                    child: const Text('Add'),
+                  ),
+                ],
+              ),
             if (_ingredients.isNotEmpty) ...[
               const SizedBox(height: 16),
               ListView.builder(
@@ -548,105 +638,149 @@ class _ProductFormViewState extends State<ProductFormView> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: TextField(
-                    controller: _varNameController,
-                    decoration: const InputDecoration(labelText: 'Variant Name', hintText: 'e.g. 150g Pouch'),
+            if (isMobile) ...[
+              TextField(
+                controller: _varNameController,
+                decoration: const InputDecoration(labelText: 'Variant Name', hintText: 'e.g. 150g Pouch'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _varSkuController,
+                decoration: const InputDecoration(labelText: 'Variant SKU', hintText: 'e.g. ALM-150P-001'),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _varQtyController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Qty', hintText: '150'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 3,
-                  child: TextField(
-                    controller: _varSkuController,
-                    decoration: const InputDecoration(labelText: 'Variant SKU', hintText: 'e.g. ALM-150P-001'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: _varUnitController.text,
+                      decoration: const InputDecoration(labelText: 'Unit'),
+                      items: const [
+                        DropdownMenuItem(value: 'pcs', child: Text('pcs')),
+                        DropdownMenuItem(value: 'ml', child: Text('ml')),
+                        DropdownMenuItem(value: 'gm', child: Text('gm')),
+                        DropdownMenuItem(value: 'kg', child: Text('kg')),
+                        DropdownMenuItem(value: 'L', child: Text('L')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) _varUnitController.text = val;
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                SizedBox(
-                  width: 80,
-                  child: TextField(
-                    controller: _varQtyController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Qty', hintText: '150'),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _varWholesaleController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Wholesale (₹)', hintText: '8.50'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 90,
-                  child: DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    initialValue: _varUnitController.text,
-                    decoration: const InputDecoration(labelText: 'Unit'),
-                    items: const [
-                      DropdownMenuItem(value: 'pcs', child: Text('pcs')),
-                      DropdownMenuItem(value: 'ml', child: Text('ml')),
-                      DropdownMenuItem(value: 'gm', child: Text('gm')),
-                      DropdownMenuItem(value: 'kg', child: Text('kg')),
-                      DropdownMenuItem(value: 'L', child: Text('L')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) _varUnitController.text = val;
-                    },
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _varMrpController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'MRP (₹)', hintText: '12.50'),
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: addVariantAction,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Variant'),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _varWholesaleController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Wholesale (₹)', hintText: '8.50'),
+              ),
+            ] else ...[
+              Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      controller: _varNameController,
+                      decoration: const InputDecoration(labelText: 'Variant Name', hintText: 'e.g. 150g Pouch'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _varMrpController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'MRP (₹)', hintText: '12.50'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      controller: _varSkuController,
+                      decoration: const InputDecoration(labelText: 'Variant SKU', hintText: 'e.g. ALM-150P-001'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: () {
-                    final name = _varNameController.text;
-                    final sku = _varSkuController.text;
-                    final qty = double.tryParse(_varQtyController.text) ?? 1.0;
-                    final unit = _varUnitController.text;
-                    final wholesale = double.tryParse(_varWholesaleController.text) ?? 0.0;
-                    final mrp = double.tryParse(_varMrpController.text) ?? 0.0;
-
-                    if (name.isNotEmpty && sku.isNotEmpty) {
-                      setState(() {
-                        _variants.add(
-                          ProductVariant(
-                            name: name,
-                            quantity: qty,
-                            unit: unit,
-                            wholesale: wholesale,
-                            mrp: mrp,
-                            sku: sku,
-                          ),
-                        );
-                        _varNameController.clear();
-                        _varSkuController.text = _skuController.text; // reset to global sku
-                        _varQtyController.clear();
-                        _varWholesaleController.clear();
-                        _varMrpController.clear();
-                      });
-                    }
-                  },
-                  child: const Text('Add'),
-                ),
-              ],
-            ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 80,
+                    child: TextField(
+                      controller: _varQtyController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Qty', hintText: '150'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 90,
+                    child: DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: _varUnitController.text,
+                      decoration: const InputDecoration(labelText: 'Unit'),
+                      items: const [
+                        DropdownMenuItem(value: 'pcs', child: Text('pcs')),
+                        DropdownMenuItem(value: 'ml', child: Text('ml')),
+                        DropdownMenuItem(value: 'gm', child: Text('gm')),
+                        DropdownMenuItem(value: 'kg', child: Text('kg')),
+                        DropdownMenuItem(value: 'L', child: Text('L')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) _varUnitController.text = val;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _varWholesaleController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Wholesale (₹)', hintText: '8.50'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _varMrpController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'MRP (₹)', hintText: '12.50'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: addVariantAction,
+                    child: const Text('Add'),
+                  ),
+                ],
+              ),
+            ],
             if (_variants.isNotEmpty) ...[
               const SizedBox(height: 16),
               ListView.builder(
@@ -733,27 +867,29 @@ class _ProductFormViewState extends State<ProductFormView> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          OutlinedButton.icon(
-                            onPressed: widget.onBack,
-                            icon: const Icon(Icons.arrow_back, size: 16),
-                            label: const Text('Back to Catalog'),
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: _saveForm,
-                            icon: const Icon(Icons.save, size: 16),
-                            label: Text(widget.product != null ? 'Update Product' : 'Create Product'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        widget.product != null ? 'Edit Product' : 'Add New Product',
-                        style: textTheme.displayLarge,
-                      ),
-                      const SizedBox(height: 24),
+                      if (!isMobile) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: widget.onBack,
+                              icon: const Icon(Icons.arrow_back, size: 16),
+                              label: const Text('Back to Catalog'),
+                            ),
+                            ElevatedButton.icon(
+                              onPressed: _saveForm,
+                              icon: const Icon(Icons.save, size: 16),
+                              label: Text(widget.product != null ? 'Update Product' : 'Create Product'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          widget.product != null ? 'Edit Product' : 'Add New Product',
+                          style: textTheme.displayLarge,
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                       formFields,
                     ]),
                   ),

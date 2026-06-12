@@ -38,11 +38,11 @@ class CanvasElementWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Apply zoom scaling to dimensions
-    final width = blueprint.width * zoomLevel;
-    final height = blueprint.height * zoomLevel;
-    final left = blueprint.x * zoomLevel;
-    final top = blueprint.y * zoomLevel;
+    // Apply zoom scaling to dimensions (1mm = 4 logical pixels)
+    final width = blueprint.width * 4.0 * zoomLevel;
+    final height = blueprint.height * 4.0 * zoomLevel;
+    final left = blueprint.x * 4.0 * zoomLevel;
+    final top = blueprint.y * 4.0 * zoomLevel;
 
     final renderedChild = ElementRendererRegistry.forBlueprint(blueprint)
         .render(context, blueprint, product: product);
@@ -57,9 +57,9 @@ class CanvasElementWidget extends StatelessWidget {
         child: GestureDetector(
           onTapDown: (_) => onTap(),
           onPanUpdate: (details) {
-            // Factor in zoom level when calculating position update
-            final dx = details.delta.dx / zoomLevel;
-            final dy = details.delta.dy / zoomLevel;
+            // Factor in zoom level and mm-to-pixel ratio when calculating position update
+            final dx = details.delta.dx / zoomLevel / 4.0;
+            final dy = details.delta.dy / zoomLevel / 4.0;
             context.read<EditorCubit>().dragElement(blueprint.id, dx, dy);
           },
           child: Stack(
@@ -72,8 +72,8 @@ class CanvasElementWidget extends StatelessWidget {
                 child: FittedBox(
                   fit: BoxFit.fill,
                   child: SizedBox(
-                    width: blueprint.width,
-                    height: blueprint.height,
+                    width: blueprint.width * 4.0,
+                    height: blueprint.height * 4.0,
                     child: renderedChild,
                   ),
                 ),

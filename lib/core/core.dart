@@ -21,3 +21,5 @@ export 'presentation/shared/error_view.dart';
 export 'presentation/shared/loading_view.dart';
 export 'utils/adaptive_value.dart';
 export 'utils/app_breakpoints.dart';
+export 'utils/polygon_utils.dart';
+

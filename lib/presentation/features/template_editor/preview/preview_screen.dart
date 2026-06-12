@@ -172,10 +172,10 @@ class _PreviewViewState extends State<_PreviewView> {
                   
                   // Rendered elements
                   ...template.elements.map((bp) {
-                    final width = bp.width;
-                    final height = bp.height;
-                    final left = bp.x;
-                    final top = bp.y;
+                    final width = bp.width * mmToPx;
+                    final height = bp.height * mmToPx;
+                    final left = bp.x * mmToPx;
+                    final top = bp.y * mmToPx;
 
                     final renderedChild = ElementRendererRegistry.forBlueprint(bp)
                         .render(context, bp, product: _sampleProduct);

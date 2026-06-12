@@ -30,8 +30,8 @@ class BarcodeElementRenderer implements LabelElementRenderer {
     };
 
     return SizedBox(
-      width: bp.width,
-      height: bp.height,
+      width: bp.width * 4.0,
+      height: bp.height * 4.0,
       child: BarcodeWidget(
         barcode: barcodeSymbology,
         data: data,

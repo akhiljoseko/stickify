@@ -126,12 +126,12 @@ void main() {
 
       group('DatabaseTemplateRepository', () {
         test('starts empty', () async {
-          final templates = await templateRepository.fetchTemplates();
+          final templates = (await templateRepository.fetchTemplates()).getOrThrow();
           expect(templates, isEmpty);
         });
 
         test('create, update configs, and finalize template', () async {
-          final created = await templateRepository.createTemplate('Custom Shipping Box');
+          final created = (await templateRepository.createTemplate('Custom Shipping Box')).getOrThrow();
           expect(created.name, 'Custom Shipping Box');
           expect(created.id, startsWith('temp-'));
 
@@ -148,9 +148,9 @@ void main() {
             columnGap: 0,
             rowGap: 0,
           );
-          await templateRepository.saveSheetConfig(created.id, sheet);
+          (await templateRepository.saveSheetConfig(created.id, sheet)).getOrThrow();
 
-          var updated = await templateRepository.fetchTemplate(created.id);
+          var updated = (await templateRepository.fetchTemplate(created.id)).getOrThrow();
           expect(updated.sheetConfig!.pageWidth, 200);
 
           // Save elements
@@ -170,22 +170,22 @@ void main() {
               colorHex: 0xFF000000,
             ),
           ];
-          await templateRepository.saveElements(created.id, elements);
-          updated = await templateRepository.fetchTemplate(created.id);
+          (await templateRepository.saveElements(created.id, elements)).getOrThrow();
+          updated = (await templateRepository.fetchTemplate(created.id)).getOrThrow();
           expect(updated.elements.length, 1);
           expect(updated.elements.first, isA<TextElementBlueprint>());
           expect((updated.elements.first as TextElementBlueprint).content, 'Hello World');
 
           // Finalize
-          await templateRepository.finalizeTemplate(created.id);
-          updated = await templateRepository.fetchTemplate(created.id);
+          (await templateRepository.finalizeTemplate(created.id)).getOrThrow();
+          updated = (await templateRepository.fetchTemplate(created.id)).getOrThrow();
           expect(updated.isFinalized, isTrue);
         });
       });
 
       group('DatabasePrintJobRepository', () {
         test('starts empty', () async {
-          final jobs = await printJobRepository.getRecentJobs();
+          final jobs = (await printJobRepository.getRecentJobs()).getOrThrow();
           expect(jobs, isEmpty);
         });
 
@@ -200,9 +200,9 @@ void main() {
             printedAt: DateTime.now(),
             labelCount: 15,
           );
-          await printJobRepository.savePrintJob(newJob);
+          (await printJobRepository.savePrintJob(newJob)).getOrThrow();
 
-          final matches = await printJobRepository.getJobsBySku(targetSku);
+          final matches = (await printJobRepository.getJobsBySku(targetSku)).getOrThrow();
           expect(matches.length, 1);
           expect(matches.first.id, 'job-test-12');
         });
@@ -221,7 +221,7 @@ void main() {
           );
           (await productRepository.saveProduct(p1)).getOrThrow();
 
-          final results = await searchRepository.search('ChronoMaster');
+          final results = (await searchRepository.search('ChronoMaster')).getOrThrow();
           expect(results, isNotEmpty);
           expect(results.any((r) => r.title.contains('ChronoMaster')), isTrue);
         });
@@ -238,10 +238,10 @@ void main() {
           );
           (await productRepository.saveProduct(p1)).getOrThrow();
 
-          await templateRepository.createTemplate('Search Template');
+          (await templateRepository.createTemplate('Search Template')).getOrThrow();
 
-          final productsOnly = await searchRepository.search('', categories: {'Products'});
-          final templatesOnly = await searchRepository.search('', categories: {'Templates'});
+          final productsOnly = (await searchRepository.search('', categories: {'Products'})).getOrThrow();
+          final templatesOnly = (await searchRepository.search('', categories: {'Templates'})).getOrThrow();
 
           expect(productsOnly.every((r) => r.category == 'Products'), isTrue);
           expect(templatesOnly.every((r) => r.category == 'Templates'), isTrue);

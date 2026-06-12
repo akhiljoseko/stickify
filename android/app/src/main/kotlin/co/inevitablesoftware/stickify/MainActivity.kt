@@ -75,6 +75,24 @@ class MainActivity : FlutterActivity() {
                     return
                 }
 
+                val selectedMediaSize = newAttributes?.mediaSize
+                if (selectedMediaSize != null) {
+                    val toleranceMils = 100 // ~2.54 mm tolerance
+                    val isPortraitMatch = Math.abs(selectedMediaSize.widthMils - widthMils) <= toleranceMils &&
+                            Math.abs(selectedMediaSize.heightMils - heightMils) <= toleranceMils
+                    val isLandscapeMatch = Math.abs(selectedMediaSize.widthMils - heightMils) <= toleranceMils &&
+                            Math.abs(selectedMediaSize.heightMils - widthMils) <= toleranceMils
+
+                    if (!isPortraitMatch && !isLandscapeMatch) {
+                        val selectedWidthMm = selectedMediaSize.widthMils * 25.4 / 1000.0
+                        val selectedHeightMm = selectedMediaSize.heightMils * 25.4 / 1000.0
+                        callback?.onLayoutFailed(
+                            "Print cancelled: Selected printer does not support the required custom paper size (${widthMm}x${heightMm} mm). Page was resized to ${"%.1f".format(selectedWidthMm)}x${"%.1f".format(selectedHeightMm)} mm."
+                        )
+                        return
+                    }
+                }
+
                 val info = PrintDocumentInfo.Builder(name)
                     .setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
                     .build()

@@ -143,5 +143,6 @@ To guarantee exact physical paper sizes and prevent scaling on Android devices, 
   ```
 - **Zero Margins Enforcement**: Instructs the builder to use zero physical margins (`PrintAttributes.Margins.NO_MARGINS`) to prevent offsets.
 - **Direct Spooler Feeding**: A native `PrintDocumentAdapter` writes the raw generated PDF bytes directly to the printer file descriptor in `onWrite`.
+- **Active Mismatch Protection**: Within the adapter's `onLayout` callback, the native bridge compares the spooler's selected print size (`newAttributes.mediaSize`) against our requested custom width and height (converted to mils). A tolerance of `100 mils` (~2.54 mm) is used to account for minor printer-driver rounding errors, and orientation checks cover both portrait and landscape orientation matches. If the host OS or chosen printer forces the job to resize to an unsupported standard size (like A4 or Letter), the adapter invokes `callback.onLayoutFailed()`. This immediately halts the print job, displays a descriptive error in the system print dialog, and disables physical printing to protect physical sticker sheets.
 
 This custom platform channel is automatically active for all Android print jobs in release and debug modes. In unit test environments (`FLUTTER_TEST`), it falls back to `Printing.layoutPdf` to ensure compatibility with standard Dart platform interface mocking.

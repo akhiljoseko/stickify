@@ -1,3 +1,4 @@
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/remote_database_service.dart';
 import 'package:stickify/data/models/firestore/print_job_firestore_model.dart';
 import 'package:stickify/domain/entities/print_job.dart';
@@ -20,37 +21,69 @@ class FirestorePrintJobRepository implements PrintJobRepository {
   String get _collectionPath => 'users/$userId/print_jobs';
 
   @override
-  Future<void> savePrintJob(PrintJob job) async {
-    await remoteDb.setData(
-      '$_collectionPath/${job.id}',
-      PrintJobFirestoreModel.fromDomain(job).toMap(),
-    );
+  Future<Result<void, AppError>> savePrintJob(PrintJob job) async {
+    try {
+      await remoteDb.setData(
+        '$_collectionPath/${job.id}',
+        PrintJobFirestoreModel.fromDomain(job).toMap(),
+      );
+      return const Result.success(null);
+    } catch (e, s) {
+      return Result.failure(
+        NetworkError(
+          message: 'Failed to upload print job to remote database.',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
   }
 
   @override
-  Future<List<PrintJob>> getRecentJobs({int limit = 10}) async {
-    final list = await remoteDb.getCollection(
-      _collectionPath,
-      orderBy: 'printedAt',
-      descending: true,
-      limit: limit,
-    );
-    return list.map((json) {
-      return PrintJobFirestoreModel.fromMap(json['id'] as String, json).toDomain();
-    }).toList();
+  Future<Result<List<PrintJob>, AppError>> getRecentJobs({int limit = 10}) async {
+    try {
+      final list = await remoteDb.getCollection(
+        _collectionPath,
+        orderBy: 'printedAt',
+        descending: true,
+        limit: limit,
+      );
+      final mapped = list.map((json) {
+        return PrintJobFirestoreModel.fromMap(json['id'] as String, json).toDomain();
+      }).toList();
+      return Result.success(mapped);
+    } catch (e, s) {
+      return Result.failure(
+        NetworkError(
+          message: 'Failed to fetch recent print jobs from remote database.',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
   }
 
   @override
-  Future<List<PrintJob>> getJobsBySku(String sku) async {
-    final list = await remoteDb.queryCollection(
-      _collectionPath,
-      field: 'sku',
-      isEqualTo: sku,
-    );
-    final mapped = list.map((json) {
-      return PrintJobFirestoreModel.fromMap(json['id'] as String, json).toDomain();
-    }).toList()
-      ..sort((a, b) => b.printedAt.compareTo(a.printedAt));
-    return mapped;
+  Future<Result<List<PrintJob>, AppError>> getJobsBySku(String sku) async {
+    try {
+      final list = await remoteDb.queryCollection(
+        _collectionPath,
+        field: 'sku',
+        isEqualTo: sku,
+      );
+      final mapped = list.map((json) {
+        return PrintJobFirestoreModel.fromMap(json['id'] as String, json).toDomain();
+      }).toList()
+        ..sort((a, b) => b.printedAt.compareTo(a.printedAt));
+      return Result.success(mapped);
+    } catch (e, s) {
+      return Result.failure(
+        NetworkError(
+          message: 'Failed to query remote print jobs for SKU: $sku.',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
   }
 }

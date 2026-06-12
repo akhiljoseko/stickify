@@ -1,6 +1,7 @@
 // The Domain Service pattern defines clean single-purpose service boundaries.
 // ignore_for_file: one_member_abstracts
 
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Abstract service interface for printing dynamic labels to physical/system printers.
@@ -9,7 +10,7 @@ import 'package:stickify/domain/domain.dart';
 /// `lib/core/services/` or `lib/data/services/`.
 abstract interface class PrintService {
   /// Generates a PDF document for the label sheet grids and sends it to the system printer.
-  Future<void> printLabels({
+  Future<Result<void, AppError>> printLabels({
     required Product product,
     required ProductVariant variant,
     required LabelTemplate template,

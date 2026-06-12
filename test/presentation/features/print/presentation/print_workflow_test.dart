@@ -172,9 +172,9 @@ void main() {
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
-          .thenAnswer((_) async => [testTemplate]);
+          .thenAnswer((_) async => Result.success([testTemplate]));
       when(() => printJobRepository.savePrintJob(any()))
-          .thenAnswer((_) async => {});
+          .thenAnswer((_) async => const Result.success(null));
       when(() => printService.printLabels(
             product: any(named: 'product'),
             variant: any(named: 'variant'),
@@ -182,7 +182,7 @@ void main() {
             quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printerName: any(named: 'printerName'),
-          )).thenAnswer((_) async => {});
+          )).thenAnswer((_) async => const Result.success(null));
     });
 
     test('loads workflow successfully and sets initial state', () async {
@@ -263,7 +263,7 @@ void main() {
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
-          .thenAnswer((_) async => [testTemplate]);
+          .thenAnswer((_) async => Result.success([testTemplate]));
       when(() => printService.printLabels(
             product: any(named: 'product'),
             variant: any(named: 'variant'),
@@ -271,7 +271,7 @@ void main() {
             quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printerName: any(named: 'printerName'),
-          )).thenAnswer((_) async => {});
+          )).thenAnswer((_) async => const Result.success(null));
     });
 
     Widget buildTestableWidget() {

@@ -1,8 +1,8 @@
-// Doc-comment code blocks reference framework types outside doc scope;
 // prefer_int_literals suppressed for Duration clarity.
-// ignore_for_file: missing_code_block_language_in_doc_comment, comment_references
+// ignore_for_file: comment_references
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/print_job.dart';
 import 'package:stickify/domain/repositories/print_job_repository.dart';
 
@@ -12,7 +12,7 @@ part 'recent_print_jobs_state.dart';
 /// of the Dashboard screen.
 ///
 /// ## State Lifecycle
-/// ```
+/// ```text
 /// Initial ──(loadRecentJobs)──▶ Loading ──(success)──▶ Loaded
 ///                                        └──(failure)──▶ Error
 ///          Error ──(loadRecentJobs retry)──▶ Loading
@@ -37,12 +37,12 @@ class RecentPrintJobsCubit extends Cubit<RecentPrintJobsState> {
   /// transitions through [RecentPrintJobsLoading] first.
   Future<void> loadRecentJobs() async {
     emit(const RecentPrintJobsLoading());
-    try {
-      final jobs = await _repository.getRecentJobs(limit: 5);
-      emit(RecentPrintJobsLoaded(jobs: jobs));
-    } on Exception catch (e, stackTrace) {
-      addError(e, stackTrace);
-      emit(RecentPrintJobsError(message: e.toString()));
+    final result = await _repository.getRecentJobs(limit: 5);
+    switch (result) {
+      case Success(value: final jobs):
+        emit(RecentPrintJobsLoaded(jobs: jobs));
+      case Failure(error: final err):
+        emit(RecentPrintJobsError(message: err.message));
     }
   }
 }

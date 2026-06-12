@@ -65,8 +65,18 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             orElse: () => throw Exception('Variant SKU ${widget.variantSku} not found.'),
           );
 
-          final templates = await templateRepo.fetchTemplates();
-          final finalized = templates.where((t) => t.isFinalized).toList();
+          final templatesResult = await templateRepo.fetchTemplates();
+          final List<LabelTemplate> finalized;
+          switch (templatesResult) {
+            case Failure(error: final err):
+              setState(() {
+                _errorMessage = err.message;
+                _isLoading = false;
+              });
+              return;
+            case Success(value: final templates):
+              finalized = templates.where((t) => t.isFinalized).toList();
+          }
 
           setState(() {
             _product = product;

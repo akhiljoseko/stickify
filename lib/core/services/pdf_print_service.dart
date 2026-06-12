@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/pdf/pdf_element_renderer_registry.dart';
 import 'package:stickify/domain/domain.dart';
 
@@ -19,7 +20,7 @@ class PdfPrintService implements PrintService {
   const PdfPrintService();
 
   @override
-  Future<void> printLabels({
+  Future<Result<void, AppError>> printLabels({
     required Product product,
     required ProductVariant variant,
     required LabelTemplate template,
@@ -27,56 +28,68 @@ class PdfPrintService implements PrintService {
     required Set<int> disabledSlots,
     required String printerName,
   }) async {
-    // 1. Pre-cache all network/asset/file images on the main thread
-    // to prevent asynchronous layout blocks or platform channel errors during background Isolate execution.
-    final imageCache = await _preCacheImages(template);
+    try {
+      // 1. Pre-cache all network/asset/file images on the main thread
+      // to prevent asynchronous layout blocks or platform channel errors during background Isolate execution.
+      final imageCache = await _preCacheImages(template);
 
-    // 2. Offload the heavy compilation and saving process to a background Isolate
-    final pdfBytes = await Isolate.run(
-      () => _buildPdfDocumentInBackground(
-        _PdfJobInput(
-          product: product,
-          variant: variant,
-          template: template,
-          quantity: quantity,
-          disabledSlots: disabledSlots,
-          imageCache: imageCache,
+      // 2. Offload the heavy compilation and saving process to a background Isolate
+      final pdfBytes = await Isolate.run(
+        () => _buildPdfDocumentInBackground(
+          _PdfJobInput(
+            product: product,
+            variant: variant,
+            template: template,
+            quantity: quantity,
+            disabledSlots: disabledSlots,
+            imageCache: imageCache,
+          ),
         ),
-      ),
-    );
+      );
 
-    // 3. Launch the native system print dialog
-    final sheetConfig =
-        template.sheetConfig ??
-        const SheetConfig(
-          pageWidth: 210,
-          pageHeight: 297,
-          marginTop: 10,
-          marginBottom: 10,
-          marginLeft: 10,
-          marginRight: 10,
-          columns: 2,
-          rows: 5,
-          columnGap: 5,
-          rowGap: 5,
-        );
+      // 3. Launch the native system print dialog
+      final sheetConfig =
+          template.sheetConfig ??
+          const SheetConfig(
+            pageWidth: 210,
+            pageHeight: 297,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 2,
+            rows: 5,
+            columnGap: 5,
+            rowGap: 5,
+          );
 
-    final targetFormat = PdfPageFormat(
-      sheetConfig.pageWidth * PdfPageFormat.mm,
-      sheetConfig.pageHeight * PdfPageFormat.mm,
-      marginTop: sheetConfig.marginTop * PdfPageFormat.mm,
-      marginBottom: sheetConfig.marginBottom * PdfPageFormat.mm,
-      marginLeft: sheetConfig.marginLeft * PdfPageFormat.mm,
-      marginRight: sheetConfig.marginRight * PdfPageFormat.mm,
-    );
+      final targetFormat = PdfPageFormat(
+        sheetConfig.pageWidth * PdfPageFormat.mm,
+        sheetConfig.pageHeight * PdfPageFormat.mm,
+        marginTop: sheetConfig.marginTop * PdfPageFormat.mm,
+        marginBottom: sheetConfig.marginBottom * PdfPageFormat.mm,
+        marginLeft: sheetConfig.marginLeft * PdfPageFormat.mm,
+        marginRight: sheetConfig.marginRight * PdfPageFormat.mm,
+      );
 
-    await Printing.layoutPdf(
-      name: '${product.name}_${variant.name}_labels',
-      onLayout: (format) async => pdfBytes,
-      format: targetFormat,
-      dynamicLayout: false,
-      forceCustomPrintPaper: true,
-    );
+      await Printing.layoutPdf(
+        name: '${product.name}_${variant.name}_labels',
+        onLayout: (format) async => pdfBytes,
+        format: targetFormat,
+        dynamicLayout: false,
+        forceCustomPrintPaper: true,
+      );
+
+      return const Result.success(null);
+    } catch (e, s) {
+      return Result.failure(
+        UnexpectedError(
+          message: 'Failed to compile and print PDF document.',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
   }
 
   /// Asynchronously pre-caches all images on the main thread where platform channels are active.

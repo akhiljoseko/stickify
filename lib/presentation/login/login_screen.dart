@@ -62,8 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
         builder: (context, state) {
           final isLoading = state is AuthLoading;
 
-          return Center(
-            child: SingleChildScrollView(
+          return SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
                 child: Card(
@@ -233,7 +234,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-          );
+          ),
+        );
         },
       ),
     );

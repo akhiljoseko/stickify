@@ -9,10 +9,10 @@ environment:
 dependencies:
   barcode_widget: ^2.0.4
   bloc: ^9.2.0
-  cloud_firestore: ^5.0.1
+  cloud_firestore: ^6.5.0
   equatable: ^2.0.8
-  firebase_auth: ^5.1.1
-  firebase_core: ^3.1.0
+  firebase_auth: ^6.5.2
+  firebase_core: ^4.10.0
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1

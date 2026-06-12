@@ -27,10 +27,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.macOS:
         return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -77,4 +74,14 @@ class DefaultFirebaseOptions {
     storageBucket: 'stickify-akhil-3705.firebasestorage.app',
     iosBundleId: 'com.example.myApp',
   );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyDrLndIn0BmdiLxp4uaPessGEGKy5Pd6Wc',
+    appId: '1:218736345851:web:9dfeab6af0ec00e17ea65e',
+    messagingSenderId: '218736345851',
+    projectId: 'stickify-akhil-3705',
+    authDomain: 'stickify-akhil-3705.firebaseapp.com',
+    storageBucket: 'stickify-akhil-3705.firebasestorage.app',
+  );
+
 }

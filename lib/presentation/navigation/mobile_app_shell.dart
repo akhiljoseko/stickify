@@ -24,12 +24,16 @@ class MobileAppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final topPadding = MediaQuery.paddingOf(context).top;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      appBar: const PreferredSize(
-        preferredSize: Size.fromHeight(64),
-        child: GlobalHeaderBar(),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(64 + topPadding),
+        child: const SafeArea(
+          bottom: false,
+          child: GlobalHeaderBar(),
+        ),
       ),
       body: SafeArea(child: body),
       bottomNavigationBar: NavigationBar(

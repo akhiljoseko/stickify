@@ -42,7 +42,10 @@ class TabletAppShell extends StatelessWidget {
           Expanded(
             child: Column(
               children: [
-                const GlobalHeaderBar(),
+                const SafeArea(
+                  bottom: false,
+                  child: GlobalHeaderBar(),
+                ),
                 Expanded(child: body),
               ],
             ),

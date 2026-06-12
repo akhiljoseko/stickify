@@ -36,15 +36,15 @@ The editor interface follows a split-view design optimized for desktop viewports
 
 ---
 
-## 3. Coordinate Space & Virtual Scaling
+## 3. Coordinate Space & Presentation Scaling
 
-Stickers are defined in physical millimeters (e.g. `100mm` by `60mm`), but rendering millimeters directly on screens with varying pixel densities (DPI) causes scaling issues.
+Stickers and elements are designed and persisted directly in **physical millimeters** (e.g. `100mm` by `60mm`). This keeps the layout data completely decoupled from screen pixel densities and output media.
 
-### The 4x Coordinate Space Solution
-- To decoupling editor layouts from screen DPI, Stickify uses a virtual coordinate system where **1 millimeter = 4 pixels**.
-- A sticker with dimension `100mm` by `60mm` maps to a virtual canvas of size `400px` by `240px` inside the editor.
-- Elements placed on the canvas are positioned using this 4x coordinate space.
-- When displaying on-screen previews (such as inside the sheet print configuration preview), the entire Stack is wrapped in a `FittedBox` which scales the virtual canvas down/up to fit the viewport constraints without changing coordinate ratios.
+### The Millimeter-first Architecture
+- All coordinates and dimensions (`x`, `y`, `width`, `height`, `fontSize`, `strokeWidth`, etc.) are saved as physical millimeter values in the domain models.
+- **UI Scaling**: To display these elements on screens at a readable scale, the presentation layer uses a rendering conversion factor of **1 millimeter = 4 logical pixels**.
+- When rendering elements on the editor canvas, their physical dimensions are multiplied by `4.0` to obtain logical screen dimensions. When drag/resize events occur, the pixel changes are divided by `4.0` before updating the domain model to ensure persistence is always in pure millimeters.
+- When generating the final PDF, this `4.0` presentation scale is completely ignored; dimensions are converted directly from physical millimeters to PDF points by multiplying with `PdfPageFormat.mm`.
 
 ---
 

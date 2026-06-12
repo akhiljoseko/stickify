@@ -11,6 +11,8 @@ export 'commands/command_registry.dart';
 export 'environment/app_environment.dart';
 export 'environment/app_environment_resolver.dart';
 export 'environment/app_experience.dart';
+export 'error/app_error.dart';
+export 'error/result.dart';
 export 'features/feature_access_service.dart';
 export 'features/feature_availability.dart';
 export 'features/feature_id.dart';

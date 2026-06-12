@@ -44,6 +44,7 @@ class _LabelEditorView extends StatefulWidget {
 
 class _LabelEditorViewState extends State<_LabelEditorView> {
   Product? _sampleProduct;
+  bool _showHorizontalPalette = false;
 
   @override
   void initState() {
@@ -142,6 +143,11 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
             onZoomChanged: cubit.setZoom,
           );
 
+          // Auto-hide horizontal palette if an element is selected
+          if (state.selectedElementId != null && _showHorizontalPalette) {
+            _showHorizontalPalette = false;
+          }
+
           return Scaffold(
             backgroundColor: colorScheme.surface,
             appBar: AppBar(
@@ -152,79 +158,82 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
               ),
             ),
             body: AdaptiveLayoutSwitcher(
-              mobile: Scaffold(
-                body: Stack(
-                  children: [
-                    canvasWidget,
-                    Positioned(
-                      right: 16,
-                      bottom: 76,
-                      child: zoomControlsWidget,
+              mobile: Column(
+                children: [
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        canvasWidget,
+                        Positioned(
+                          right: 16,
+                          bottom: 16,
+                          child: zoomControlsWidget,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                bottomNavigationBar: BottomAppBar(
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        tooltip: 'Back',
-                        onPressed: () => StickerSetupRoute(
-                          templateId: cubit.templateId,
-                        ).go(context),
-                      ),
-                      const Spacer(),
-                      TextButton.icon(
-                        icon: const Icon(Icons.add_circle_outline),
-                        label: const Text('Add'),
-                        onPressed: () {
-                          final _ = showModalBottomSheet<void>(
-                            context: context,
-                            builder: (dialogContext) => BlocProvider.value(
-                              value: cubit,
-                              child: const ElementPalette(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton.icon(
-                        icon: const Icon(Icons.edit_note),
-                        label: const Text('Properties'),
-                        onPressed: state.selectedElementId == null
-                            ? null
-                            : () {
-                                showModalBottomSheet<void>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (dialogContext) {
-                                    return Padding(
-                                      padding: EdgeInsets.only(
-                                        bottom: MediaQuery.of(dialogContext).viewInsets.bottom,
-                                      ),
-                                      child: Container(
-                                        constraints: BoxConstraints(
-                                          maxHeight: MediaQuery.of(dialogContext).size.height * 0.7,
-                                        ),
-                                        child: BlocProvider.value(
-                                          value: cubit,
-                                          child: mobilePropertiesPanelWidget,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.arrow_forward),
-                        tooltip: 'Next: Preview',
-                        onPressed: cubit.saveAndContinue,
-                      ),
-                    ],
                   ),
-                ),
+                  if (state.selectedElementId != null)
+                    Container(
+                      height: 250,
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerLow,
+                        border: Border(
+                          top: BorderSide(color: colorScheme.outlineVariant),
+                        ),
+                      ),
+                      child: mobilePropertiesPanelWidget,
+                    )
+                  else if (_showHorizontalPalette)
+                    const ElementPalette(isHorizontal: true),
+                  BottomAppBar(
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          tooltip: 'Back',
+                          onPressed: () => StickerSetupRoute(
+                            templateId: cubit.templateId,
+                          ).go(context),
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          icon: Icon(
+                            _showHorizontalPalette ? Icons.close : Icons.add_circle_outline,
+                            color: _showHorizontalPalette ? colorScheme.error : colorScheme.primary,
+                          ),
+                          label: Text(
+                            _showHorizontalPalette ? 'Close' : 'Add',
+                            style: TextStyle(
+                              color: _showHorizontalPalette ? colorScheme.error : colorScheme.primary,
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _showHorizontalPalette = !_showHorizontalPalette;
+                              if (_showHorizontalPalette) {
+                                cubit.deselectAll();
+                              }
+                            });
+                          },
+                        ),
+                        if (state.selectedElementId != null) ...[
+                          const SizedBox(width: 16),
+                          TextButton.icon(
+                            icon: const Icon(Icons.deselect, color: Colors.grey),
+                            label: const Text('Deselect', style: TextStyle(color: Colors.grey)),
+                            onPressed: cubit.deselectAll,
+                          ),
+                        ],
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_forward),
+                          tooltip: 'Next: Preview',
+                          onPressed: cubit.saveAndContinue,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               desktop: Row(
                 children: [

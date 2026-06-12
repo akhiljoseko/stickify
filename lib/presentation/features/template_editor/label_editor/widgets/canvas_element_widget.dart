@@ -94,13 +94,73 @@ class CanvasElementWidget extends StatelessWidget {
                   ),
                 ),
                 // Corner handle top-left
-                _buildGrabHandle(left: -4, top: -4, color: colorScheme.primary),
+                _buildGrabHandle(
+                  left: -4,
+                  top: -4,
+                  color: colorScheme.primary,
+                  onDrag: (details) {
+                    final dx = details.delta.dx / zoomLevel / 4.0;
+                    final dy = details.delta.dy / zoomLevel / 4.0;
+                    final newX = (blueprint.x + dx).clamp(0.0, blueprint.x + blueprint.width - 2.0);
+                    final newY = (blueprint.y + dy).clamp(0.0, blueprint.y + blueprint.height - 2.0);
+                    final newWidth = (blueprint.width - dx).clamp(2.0, 500.0);
+                    final newHeight = (blueprint.height - dy).clamp(2.0, 500.0);
+                    context.read<EditorCubit>().updateElementProperty(
+                      blueprint.id,
+                      blueprint.copyWith(x: newX, y: newY, width: newWidth, height: newHeight),
+                    );
+                  },
+                ),
                 // Corner handle top-right
-                _buildGrabHandle(right: -4, top: -4, color: colorScheme.primary),
+                _buildGrabHandle(
+                  right: -4,
+                  top: -4,
+                  color: colorScheme.primary,
+                  onDrag: (details) {
+                    final dx = details.delta.dx / zoomLevel / 4.0;
+                    final dy = details.delta.dy / zoomLevel / 4.0;
+                    final newY = (blueprint.y + dy).clamp(0.0, blueprint.y + blueprint.height - 2.0);
+                    final newWidth = (blueprint.width + dx).clamp(2.0, 500.0);
+                    final newHeight = (blueprint.height - dy).clamp(2.0, 500.0);
+                    context.read<EditorCubit>().updateElementProperty(
+                      blueprint.id,
+                      blueprint.copyWith(y: newY, width: newWidth, height: newHeight),
+                    );
+                  },
+                ),
                 // Corner handle bottom-left
-                _buildGrabHandle(left: -4, bottom: -4, color: colorScheme.primary),
+                _buildGrabHandle(
+                  left: -4,
+                  bottom: -4,
+                  color: colorScheme.primary,
+                  onDrag: (details) {
+                    final dx = details.delta.dx / zoomLevel / 4.0;
+                    final dy = details.delta.dy / zoomLevel / 4.0;
+                    final newX = (blueprint.x + dx).clamp(0.0, blueprint.x + blueprint.width - 2.0);
+                    final newWidth = (blueprint.width - dx).clamp(2.0, 500.0);
+                    final newHeight = (blueprint.height + dy).clamp(2.0, 500.0);
+                    context.read<EditorCubit>().updateElementProperty(
+                      blueprint.id,
+                      blueprint.copyWith(x: newX, width: newWidth, height: newHeight),
+                    );
+                  },
+                ),
                 // Corner handle bottom-right
-                _buildGrabHandle(right: -4, bottom: -4, color: colorScheme.primary),
+                _buildGrabHandle(
+                  right: -4,
+                  bottom: -4,
+                  color: colorScheme.primary,
+                  onDrag: (details) {
+                    final dx = details.delta.dx / zoomLevel / 4.0;
+                    final dy = details.delta.dy / zoomLevel / 4.0;
+                    final newWidth = (blueprint.width + dx).clamp(2.0, 500.0);
+                    final newHeight = (blueprint.height + dy).clamp(2.0, 500.0);
+                    context.read<EditorCubit>().updateElementProperty(
+                      blueprint.id,
+                      blueprint.copyWith(width: newWidth, height: newHeight),
+                    );
+                  },
+                ),
               ],
             ],
           ),
@@ -110,23 +170,32 @@ class CanvasElementWidget extends StatelessWidget {
   }
 
   Widget _buildGrabHandle({
-    required Color color, double? left,
+    required Color color,
+    required void Function(DragUpdateDetails details) onDrag,
+    double? left,
     double? top,
     double? right,
     double? bottom,
   }) {
     return Positioned(
-      left: left,
-      top: top,
-      right: right,
-      bottom: bottom,
-      child: IgnorePointer(
+      left: left != null ? left - 8 : null,
+      top: top != null ? top - 8 : null,
+      right: right != null ? right - 8 : null,
+      bottom: bottom != null ? bottom - 8 : null,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanUpdate: onDrag,
         child: Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: color, width: 2),
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          child: Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: color, width: 2),
+            ),
           ),
         ),
       ),

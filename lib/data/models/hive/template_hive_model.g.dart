@@ -242,13 +242,14 @@ class ElementBlueprintHiveModelAdapter
       networkUrl: fields[22] as String?,
       localFilePath: fields[23] as String?,
       fit: fields[24] as String?,
+      maxLines: (fields[25] as num?)?.toInt(),
     );
   }
 
   @override
   void write(BinaryWriter writer, ElementBlueprintHiveModel obj) {
     writer
-      ..writeByte(25)
+      ..writeByte(26)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -298,7 +299,9 @@ class ElementBlueprintHiveModelAdapter
       ..writeByte(23)
       ..write(obj.localFilePath)
       ..writeByte(24)
-      ..write(obj.fit);
+      ..write(obj.fit)
+      ..writeByte(25)
+      ..write(obj.maxLines);
   }
 
   @override

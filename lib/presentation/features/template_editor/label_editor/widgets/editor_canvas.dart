@@ -307,13 +307,15 @@ class _EditorCanvasState extends State<EditorCanvas> {
                                 // Alignment guides overlay
                                 if (guidelines.isNotEmpty)
                                   Positioned.fill(
-                                    child: CustomPaint(
-                                      painter: AlignmentGuidesPainter(
-                                        guidelines: guidelines,
-                                        zoomLevel: widget.zoomLevel,
-                                        color: const Color(
-                                          0xFFFF00FF,
-                                        ), // Dashed magenta
+                                    child: IgnorePointer(
+                                      child: CustomPaint(
+                                        painter: AlignmentGuidesPainter(
+                                          guidelines: guidelines,
+                                          zoomLevel: widget.zoomLevel,
+                                          color: const Color(
+                                            0xFFFF00FF,
+                                          ), // Dashed magenta
+                                        ),
                                       ),
                                     ),
                                   ),

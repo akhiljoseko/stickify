@@ -10,6 +10,17 @@ class TextElementRenderer implements LabelElementRenderer {
   /// Utility to resolve dynamic metadata evaluation tokens (e.g. `{{product.name}}`, `{{variant.sku}}`) inside a [template] string.
   static String resolveToken(String template, Product? product, [ProductVariant? variant]) {
     var result = template;
+
+    // Resolve MFG / Manufacturing Date
+    final mfgDate = DateTime.now();
+    final day = mfgDate.day.toString().padLeft(2, '0');
+    final month = mfgDate.month.toString().padLeft(2, '0');
+    final year = mfgDate.year.toString();
+    final formattedMfg = '$day-$month-$year';
+
+    result = result.replaceAll('{{mfg}}', formattedMfg);
+    result = result.replaceAll('{{mfgDate}}', formattedMfg);
+
     if (product != null) {
       result = result.replaceAllMapped(RegExp(r'\{\{product\.([a-zA-Z0-9_]+)\}\}'), (match) {
         final field = match.group(1);
@@ -34,6 +45,11 @@ class TextElementRenderer implements LabelElementRenderer {
             return product.storageConditions ?? '';
           case 'imageUrl':
             return product.imageUrl ?? '';
+          case 'ingredients':
+            return product.ingredientsString;
+          case 'mfg':
+          case 'mfgDate':
+            return formattedMfg;
           default:
             return match.group(0) ?? '';
         }
@@ -93,6 +109,8 @@ class TextElementRenderer implements LabelElementRenderer {
       child: Text(
         text,
         textAlign: textAlign,
+        maxLines: bp.maxLines,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: bp.fontSize * 4.0,
           fontWeight: fontWeight,

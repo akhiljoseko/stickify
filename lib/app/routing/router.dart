@@ -259,6 +259,8 @@ class ProductManagementRoute extends GoRouteData with $ProductManagementRoute {
 class ProductDetailsRoute extends GoRouteData with $ProductDetailsRoute {
   const ProductDetailsRoute({required this.id});
 
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
   /// The product identifier extracted from the URL path segment `:id`.
   ///
   /// Example URL: `/products/abc-123` → `id == 'abc-123'`
@@ -276,6 +278,8 @@ class PrintTemplateSelectRoute extends GoRouteData with $PrintTemplateSelectRout
     required this.productId,
     required this.variantSku,
   });
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
 
   final String productId;
   final String variantSku;
@@ -296,6 +300,8 @@ class PrintSetupRoute extends GoRouteData with $PrintSetupRoute {
     required this.variantSku,
     required this.templateId,
   });
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
 
   final String productId;
   final String variantSku;
@@ -329,6 +335,8 @@ class TemplateManagementRoute extends GoRouteData
 class SheetConfigRoute extends GoRouteData with $SheetConfigRoute {
   const SheetConfigRoute({required this.templateId});
 
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
   final String templateId;
 
   @override
@@ -341,6 +349,8 @@ class SheetConfigRoute extends GoRouteData with $SheetConfigRoute {
 @immutable
 class StickerSetupRoute extends GoRouteData with $StickerSetupRoute {
   const StickerSetupRoute({required this.templateId});
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
 
   final String templateId;
 
@@ -355,6 +365,8 @@ class StickerSetupRoute extends GoRouteData with $StickerSetupRoute {
 class LabelEditorRoute extends GoRouteData with $LabelEditorRoute {
   const LabelEditorRoute({required this.templateId});
 
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
   final String templateId;
 
   @override
@@ -367,6 +379,8 @@ class LabelEditorRoute extends GoRouteData with $LabelEditorRoute {
 @immutable
 class PreviewRoute extends GoRouteData with $PreviewRoute {
   const PreviewRoute({required this.templateId});
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
 
   final String templateId;
 
@@ -393,6 +407,9 @@ class SettingsRoute extends GoRouteData with $SettingsRoute {
 // of your widget tree and provide the returned GoRouter via routerConfig.
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// The global root navigator key to navigate outside the shell.
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 /// Factory that constructs and configures the application's [GoRouter].
 ///
 /// Inject the [AuthCubit] here so the router can:
@@ -408,6 +425,7 @@ class AppRouter {
   /// `context.read<AuthCubit>()` to trigger login/logout.
   static GoRouter createRouter(AuthCubit authCubit) {
     return GoRouter(
+      navigatorKey: rootNavigatorKey,
       // ── Initial Location ──────────────────────────────────────────────────
       // GoRouter always runs the `redirect` callback on the initial location,
       // so even if we start at `/dashboard`, an unauthenticated user will be

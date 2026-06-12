@@ -589,9 +589,9 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
           style: widget.textTheme.bodySmall,
         ),
         Slider(
-          min: 6,
+          min: 1,
           max: 72,
-          value: bp.fontSize,
+          value: bp.fontSize.clamp(1.0, 72.0),
           onChanged: (val) {
             final oldFontSize = bp.fontSize;
             final scale = val / oldFontSize;

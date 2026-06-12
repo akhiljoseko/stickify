@@ -123,3 +123,25 @@ Enabling printing on macOS requires addressing two system boundaries:
 2. **Platform Channel Deadlock**: Under experimental merged UI/Platform threading configurations on macOS, a synchronous callback loop between native printing and Dart can cause a deadlock. We resolve this by:
    - Setting `dynamicLayout: false` inside the `Printing.layoutPdf` call.
    - Disabling the experimental merged thread model via the `FLTEnableMergedPlatformUIThread` key set to `false` in `Info.plist`.
+
+---
+
+## 10. Android Custom MediaSize Print Bridge
+
+By default, the third-party `printing` plugin's native Android implementation does not configure a custom native `PrintAttributes.MediaSize` when a non-standard page size is requested. Instead, if the requested size falls outside standard predefined dimensions (such as ISO A4 or NA Letter), it defaults to `PrintAttributes.MediaSize.UNKNOWN_PORTRAIT` or `UNKNOWN_LANDSCAPE`. This causes the native Android print spooler and printer drivers to fallback to standard A4/Letter formats, scaling or cropping custom sticker sheets.
+
+### Native Custom Bridge Solution
+To guarantee exact physical paper sizes and prevent scaling on Android devices, Stickify bypasses the plugin's print pathway on Android using a custom platform method channel `co.inevitablesoftware.stickify/custom_print` implemented natively in `MainActivity.kt`:
+- **Dimensions Conversion**: The requested custom sheet width and height (defined in millimeters) are converted to mils:
+  ```kotlin
+  val widthMils = (widthMm / 25.4 * 1000.0).toInt()
+  val heightMils = (heightMm / 25.4 * 1000.0).toInt()
+  ```
+- **Custom MediaSize Instantiation**: Instantiates a custom `PrintAttributes.MediaSize` using these exact mils values:
+  ```kotlin
+  val customMediaSize = PrintAttributes.MediaSize("custom_sticker_sheet", "Custom Sticker Sheet", widthMils, heightMils)
+  ```
+- **Zero Margins Enforcement**: Instructs the builder to use zero physical margins (`PrintAttributes.Margins.NO_MARGINS`) to prevent offsets.
+- **Direct Spooler Feeding**: A native `PrintDocumentAdapter` writes the raw generated PDF bytes directly to the printer file descriptor in `onWrite`.
+
+This custom platform channel is automatically active for all Android print jobs in release and debug modes. In unit test environments (`FLUTTER_TEST`), it falls back to `Printing.layoutPdf` to ensure compatibility with standard Dart platform interface mocking.

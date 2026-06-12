@@ -244,12 +244,11 @@ class SheetsPreview extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Sheet Layout Preview', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            // Legend
-            Row(
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final useVerticalHeader = constraints.maxWidth < 460;
+            final legendRow = Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   width: 12,
@@ -276,8 +275,27 @@ class SheetsPreview extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text('Used/Skipped', style: textTheme.bodySmall),
               ],
-            ),
-          ],
+            );
+
+            if (useVerticalHeader) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Sheet Layout Preview', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  legendRow,
+                ],
+              );
+            } else {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Sheet Layout Preview', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  legendRow,
+                ],
+              );
+            }
+          },
         ),
         const SizedBox(height: 16),
 

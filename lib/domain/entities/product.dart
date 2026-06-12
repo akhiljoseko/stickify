@@ -97,6 +97,13 @@ class Product extends Equatable {
   /// List of variants.
   final List<ProductVariant> variants;
 
+  /// Returns a comma-separated string of ingredient names, sorted by their percentage descending.
+  String get ingredientsString {
+    final sorted = List<Ingredient>.from(ingredients)
+      ..sort((a, b) => b.percentage.compareTo(a.percentage));
+    return sorted.map((i) => i.name).join(', ');
+  }
+
   @override
   List<Object?> get props => [
         id,

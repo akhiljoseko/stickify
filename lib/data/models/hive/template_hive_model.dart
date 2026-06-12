@@ -234,6 +234,7 @@ class ElementBlueprintHiveModel extends HiveObject {
     this.networkUrl,
     this.localFilePath,
     this.fit,
+    this.maxLines,
   });
 
   factory ElementBlueprintHiveModel.fromDomain(ElementBlueprint eb) {
@@ -256,6 +257,7 @@ class ElementBlueprintHiveModel extends HiveObject {
     String? networkUrl;
     String? localFilePath;
     String? fit;
+    int? maxLines;
 
     if (eb is TextElementBlueprint) {
       type = 'text';
@@ -265,6 +267,7 @@ class ElementBlueprintHiveModel extends HiveObject {
       fontWeightValue = eb.fontWeightValue;
       textAlign = eb.textAlign.name;
       colorHex = eb.colorHex;
+      maxLines = eb.maxLines;
     } else if (eb is ShapeElementBlueprint) {
       type = 'shape';
       fillColorHex = eb.fillColorHex;
@@ -316,6 +319,7 @@ class ElementBlueprintHiveModel extends HiveObject {
       networkUrl: networkUrl,
       localFilePath: localFilePath,
       fit: fit,
+      maxLines: maxLines,
     );
   }
 
@@ -398,6 +402,9 @@ class ElementBlueprintHiveModel extends HiveObject {
   @HiveField(24)
   final String? fit;
 
+  @HiveField(25)
+  final int? maxLines;
+
   ElementBlueprint toDomain() {
     switch (type) {
       case 'text':
@@ -417,6 +424,7 @@ class ElementBlueprintHiveModel extends HiveObject {
             orElse: () => BlueprintTextAlign.left,
           ),
           colorHex: colorHex ?? 0xFF000000,
+          maxLines: maxLines ?? 1,
         );
       case 'shape':
         return ShapeElementBlueprint(

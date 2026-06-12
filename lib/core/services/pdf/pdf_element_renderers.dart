@@ -36,6 +36,8 @@ class PdfTextElementRenderer implements PdfElementRenderer<TextElementBlueprint>
     return pw.Text(
       text,
       textAlign: textAlign,
+      maxLines: blueprint.maxLines,
+      overflow: pw.TextOverflow.clip,
       style: pw.TextStyle(
         fontSize: blueprint.fontSize * PdfPageFormat.mm,
         fontWeight: fontWeight,

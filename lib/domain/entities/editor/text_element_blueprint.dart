@@ -32,6 +32,7 @@ class TextElementBlueprint extends ElementBlueprint {
     required this.textAlign,
     required this.colorHex,
     this.letterSpacing = 0.0,
+    this.maxLines = 1,
   });
 
   /// The raw content string (e.g., "Ingredients:") or a dynamic token expression (e.g., `{{product.name}}`).
@@ -55,6 +56,9 @@ class TextElementBlueprint extends ElementBlueprint {
   /// Letter spacing of the text characters.
   final double letterSpacing;
 
+  /// Maximum number of lines to display.
+  final int maxLines;
+
   @override
   List<Object?> get props => [
         ...super.props,
@@ -65,6 +69,7 @@ class TextElementBlueprint extends ElementBlueprint {
         textAlign,
         colorHex,
         letterSpacing,
+        maxLines,
       ];
 
   @override
@@ -82,6 +87,7 @@ class TextElementBlueprint extends ElementBlueprint {
     BlueprintTextAlign? textAlign,
     int? colorHex,
     double? letterSpacing,
+    int? maxLines,
   }) {
     return TextElementBlueprint(
       id: id ?? this.id,
@@ -97,6 +103,7 @@ class TextElementBlueprint extends ElementBlueprint {
       textAlign: textAlign ?? this.textAlign,
       colorHex: colorHex ?? this.colorHex,
       letterSpacing: letterSpacing ?? this.letterSpacing,
+      maxLines: maxLines ?? this.maxLines,
     );
   }
 }

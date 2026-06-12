@@ -523,6 +523,14 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
     'Assigned Station': '{{product.assignedStation}}',
     'Shelf Life (Days)': '{{product.shelfLifeDays}}',
     'Storage Conditions': '{{product.storageConditions}}',
+    'Ingredients': '{{product.ingredients}}',
+    'MFG Date': '{{product.mfgDate}}',
+    'MRP': '{{variant.mrp}}',
+    'Wholesale Price': '{{variant.wholesale}}',
+    'Variant Name': '{{variant.name}}',
+    'Variant SKU': '{{variant.sku}}',
+    'Variant Quantity': '{{variant.quantity}}',
+    'Variant Unit': '{{variant.unit}}',
   };
 
   @override
@@ -585,9 +593,40 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
           max: 72,
           value: bp.fontSize,
           onChanged: (val) {
+            final oldFontSize = bp.fontSize;
+            final scale = val / oldFontSize;
+            final newWidth = bp.width * scale;
+            final newHeight = bp.maxLines * val * 1.3;
             widget.cubit.updateElementProperty(
               bp.id,
-              bp.copyWith(fontSize: val),
+              bp.copyWith(
+                fontSize: val,
+                width: newWidth,
+                height: newHeight,
+              ),
+            );
+          },
+        ),
+
+        // Max lines slider
+        Text(
+          'Max Lines: ${bp.maxLines}',
+          style: widget.textTheme.bodySmall,
+        ),
+        Slider(
+          min: 1,
+          max: 10,
+          divisions: 9,
+          value: bp.maxLines.toDouble(),
+          onChanged: (val) {
+            final newMaxLines = val.toInt();
+            final newHeight = newMaxLines * bp.fontSize * 1.3;
+            widget.cubit.updateElementProperty(
+              bp.id,
+              bp.copyWith(
+                maxLines: newMaxLines,
+                height: newHeight,
+              ),
             );
           },
         ),
@@ -776,6 +815,14 @@ class _BarcodePropertiesWidgetState extends State<BarcodePropertiesWidget> {
     'Assigned Station': '{{product.assignedStation}}',
     'Shelf Life (Days)': '{{product.shelfLifeDays}}',
     'Storage Conditions': '{{product.storageConditions}}',
+    'Ingredients': '{{product.ingredients}}',
+    'MFG Date': '{{product.mfgDate}}',
+    'MRP': '{{variant.mrp}}',
+    'Wholesale Price': '{{variant.wholesale}}',
+    'Variant Name': '{{variant.name}}',
+    'Variant SKU': '{{variant.sku}}',
+    'Variant Quantity': '{{variant.quantity}}',
+    'Variant Unit': '{{variant.unit}}',
   };
 
   @override
@@ -948,6 +995,14 @@ class _QrPropertiesWidgetState extends State<QrPropertiesWidget> {
     'Assigned Station': '{{product.assignedStation}}',
     'Shelf Life (Days)': '{{product.shelfLifeDays}}',
     'Storage Conditions': '{{product.storageConditions}}',
+    'Ingredients': '{{product.ingredients}}',
+    'MFG Date': '{{product.mfgDate}}',
+    'MRP': '{{variant.mrp}}',
+    'Wholesale Price': '{{variant.wholesale}}',
+    'Variant Name': '{{variant.name}}',
+    'Variant SKU': '{{variant.sku}}',
+    'Variant Quantity': '{{variant.quantity}}',
+    'Variant Unit': '{{variant.unit}}',
   };
 
   @override

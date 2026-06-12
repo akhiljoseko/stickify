@@ -4,17 +4,204 @@ import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_state.dart';
 
-/// Sidebar palette displaying available label element types that can be dragged onto the canvas.
+/// Sidebar or bottom toolbar palette displaying available label element types that can be added onto the canvas.
 ///
-/// Contains preconfigured text fields, dynamic values, barcodes, and shapes.
+/// Supports vertical category list for desktop and horizontally scrollable photo-editor-style strip for mobile.
 class ElementPalette extends StatelessWidget {
   /// Creates an [ElementPalette] instance.
-  const ElementPalette({super.key});
+  const ElementPalette({this.isHorizontal = false, super.key});
+
+  /// If true, renders as a horizontally scrollable bar suited for mobile footers.
+  final bool isHorizontal;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    final items = [
+      _PaletteItemData(
+        label: 'Product Name',
+        shortLabel: 'Name',
+        icon: Icons.title,
+        blueprint: () => TextElementBlueprint(
+          id: 'text-name-${DateTime.now().millisecondsSinceEpoch}',
+          x: 5,
+          y: 5,
+          width: 37.5,
+          height: 6,
+          rotation: 0,
+          content: '{{product.name}}',
+          isDynamic: true,
+          fontSize: 3.5,
+          fontWeightValue: 700,
+          textAlign: BlueprintTextAlign.center,
+          colorHex: 0xFF000000,
+        ),
+      ),
+      _PaletteItemData(
+        label: 'Product SKU',
+        shortLabel: 'SKU',
+        icon: Icons.qr_code_2,
+        blueprint: () => TextElementBlueprint(
+          id: 'text-sku-${DateTime.now().millisecondsSinceEpoch}',
+          x: 5,
+          y: 12.5,
+          width: 30,
+          height: 5,
+          rotation: 0,
+          content: 'SKU: {{product.sku}}',
+          isDynamic: true,
+          fontSize: 3,
+          fontWeightValue: 400,
+          textAlign: BlueprintTextAlign.center,
+          colorHex: 0xFF555555,
+        ),
+      ),
+      _PaletteItemData(
+        label: 'Shelf Life',
+        shortLabel: 'Shelf Life',
+        icon: Icons.calendar_today,
+        blueprint: () => TextElementBlueprint(
+          id: 'text-shelflife-${DateTime.now().millisecondsSinceEpoch}',
+          x: 5,
+          y: 20,
+          width: 37.5,
+          height: 5,
+          rotation: 0,
+          content: 'Shelf Life: {{product.shelfLifeDays}} days',
+          isDynamic: true,
+          fontSize: 3,
+          fontWeightValue: 400,
+          textAlign: BlueprintTextAlign.center,
+          colorHex: 0xFF000000,
+        ),
+      ),
+      _PaletteItemData(
+        label: 'MFG Date',
+        shortLabel: 'MFG Date',
+        icon: Icons.date_range,
+        blueprint: () => TextElementBlueprint(
+          id: 'text-mfg-${DateTime.now().millisecondsSinceEpoch}',
+          x: 5,
+          y: 27.5,
+          width: 30,
+          height: 5,
+          rotation: 0,
+          content: 'MFG: {{product.mfgDate}}',
+          isDynamic: true,
+          fontSize: 3,
+          fontWeightValue: 400,
+          textAlign: BlueprintTextAlign.center,
+          colorHex: 0xFF000000,
+        ),
+      ),
+      _PaletteItemData(
+        label: 'Custom Text',
+        shortLabel: 'Text',
+        icon: Icons.text_fields,
+        blueprint: () => TextElementBlueprint(
+          id: 'text-custom-${DateTime.now().millisecondsSinceEpoch}',
+          x: 7.5,
+          y: 7.5,
+          width: 25,
+          height: 6,
+          rotation: 0,
+          content: 'Custom Text',
+          isDynamic: false,
+          fontSize: 3,
+          fontWeightValue: 400,
+          textAlign: BlueprintTextAlign.center,
+          colorHex: 0xFF000000,
+        ),
+      ),
+      _PaletteItemData(
+        label: 'Rectangle Shape',
+        shortLabel: 'Shape',
+        icon: Icons.check_box_outline_blank,
+        blueprint: () => ShapeElementBlueprint(
+          id: 'shape-rect-${DateTime.now().millisecondsSinceEpoch}',
+          x: 10,
+          y: 10,
+          width: 25,
+          height: 15,
+          rotation: 0,
+          fillColorHex: 0x229E9E9E,
+          strokeColorHex: 0xFF000000,
+          strokeWidth: 0.5,
+          cornerRadius: 1,
+          isFilled: false,
+        ),
+      ),
+      _PaletteItemData(
+        label: 'Local Image',
+        shortLabel: 'Image',
+        icon: Icons.image_outlined,
+        blueprint: () => ImageElementBlueprint(
+          id: 'image-${DateTime.now().millisecondsSinceEpoch}',
+          x: 12.5,
+          y: 12.5,
+          width: 20,
+          height: 20,
+          rotation: 0,
+          fit: BlueprintBoxFit.contain,
+        ),
+      ),
+      _PaletteItemData(
+        label: '1D Barcode',
+        shortLabel: 'Barcode',
+        icon: Icons.line_weight,
+        blueprint: () => BarcodeElementBlueprint(
+          id: 'barcode-${DateTime.now().millisecondsSinceEpoch}',
+          x: 2.5,
+          y: 25,
+          width: 50,
+          height: 15,
+          rotation: 0,
+          data: '{{product.sku}}',
+          isDynamic: true,
+          barcodeType: BlueprintBarcodeType.code128,
+          showLabel: true,
+        ),
+      ),
+      _PaletteItemData(
+        label: 'QR Code',
+        shortLabel: 'QR Code',
+        icon: Icons.qr_code,
+        blueprint: () => QrElementBlueprint(
+          id: 'qr-${DateTime.now().millisecondsSinceEpoch}',
+          x: 10,
+          y: 10,
+          width: 25,
+          height: 25,
+          rotation: 0,
+          data: '{{product.sku}}',
+          isDynamic: true,
+        ),
+      ),
+    ];
+
+    if (isHorizontal) {
+      return Container(
+        height: 84,
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          border: Border(
+            top: BorderSide(color: colorScheme.outlineVariant),
+          ),
+        ),
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          itemCount: items.length,
+          separatorBuilder: (context, index) => const SizedBox(width: 12),
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return _buildHorizontalTile(context, item);
+          },
+        ),
+      );
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -42,152 +229,13 @@ class ElementPalette extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 _buildCategoryHeader(context, 'Product Details'),
-                _buildDraggableTile(
-                  context: context,
-                  label: 'Product Name',
-                  icon: Icons.title,
-                  blueprint: () => TextElementBlueprint(
-                    id: 'text-name-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 5,
-                    y: 5,
-                    width: 37.5,
-                    height: 6,
-                    rotation: 0,
-                    content: '{{product.name}}',
-                    isDynamic: true,
-                    fontSize: 3.5,
-                    fontWeightValue: 700,
-                    textAlign: BlueprintTextAlign.left,
-                    colorHex: 0xFF000000,
-                  ),
-                ),
-                _buildDraggableTile(
-                  context: context,
-                  label: 'Product SKU',
-                  icon: Icons.qr_code_2,
-                  blueprint: () => TextElementBlueprint(
-                    id: 'text-sku-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 5,
-                    y: 12.5,
-                    width: 30,
-                    height: 5,
-                    rotation: 0,
-                    content: 'SKU: {{product.sku}}',
-                    isDynamic: true,
-                    fontSize: 3,
-                    fontWeightValue: 400,
-                    textAlign: BlueprintTextAlign.left,
-                    colorHex: 0xFF555555,
-                  ),
-                ),
-                _buildDraggableTile(
-                  context: context,
-                  label: 'Shelf Life',
-                  icon: Icons.calendar_today,
-                  blueprint: () => TextElementBlueprint(
-                    id: 'text-shelflife-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 5,
-                    y: 20,
-                    width: 37.5,
-                    height: 5,
-                    rotation: 0,
-                    content: 'Shelf Life: {{product.shelfLifeDays}} days',
-                    isDynamic: true,
-                    fontSize: 3,
-                    fontWeightValue: 400,
-                    textAlign: BlueprintTextAlign.left,
-                    colorHex: 0xFF000000,
-                  ),
-                ),
+                ...items.take(4).map((item) => _buildDraggableTile(context, item)),
                 const SizedBox(height: 24),
-                
                 _buildCategoryHeader(context, 'General & Design'),
-                _buildDraggableTile(
-                  context: context,
-                  label: 'Custom Text',
-                  icon: Icons.text_fields,
-                  blueprint: () => TextElementBlueprint(
-                    id: 'text-custom-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 7.5,
-                    y: 7.5,
-                    width: 25,
-                    height: 6,
-                    rotation: 0,
-                    content: 'Custom Text',
-                    isDynamic: false,
-                    fontSize: 3,
-                    fontWeightValue: 400,
-                    textAlign: BlueprintTextAlign.left,
-                    colorHex: 0xFF000000,
-                  ),
-                ),
-                _buildDraggableTile(
-                  context: context,
-                  label: 'Rectangle Shape',
-                  icon: Icons.check_box_outline_blank,
-                  blueprint: () => ShapeElementBlueprint(
-                    id: 'shape-rect-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 10,
-                    y: 10,
-                    width: 25,
-                    height: 15,
-                    rotation: 0,
-                    fillColorHex: 0x229E9E9E,
-                    strokeColorHex: 0xFF000000,
-                    strokeWidth: 0.5,
-                    cornerRadius: 1,
-                    isFilled: false,
-                  ),
-                ),
-                _buildDraggableTile(
-                  context: context,
-                  label: 'Local Image',
-                  icon: Icons.image_outlined,
-                  blueprint: () => ImageElementBlueprint(
-                    id: 'image-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 12.5,
-                    y: 12.5,
-                    width: 20,
-                    height: 20,
-                    rotation: 0,
-                    fit: BlueprintBoxFit.contain,
-                  ),
-                ),
+                ...items.skip(4).take(3).map((item) => _buildDraggableTile(context, item)),
                 const SizedBox(height: 24),
- 
                 _buildCategoryHeader(context, 'Dynamic Codes'),
-                _buildDraggableTile(
-                  context: context,
-                  label: '1D Barcode',
-                  icon: Icons.line_weight,
-                  blueprint: () => BarcodeElementBlueprint(
-                    id: 'barcode-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 2.5,
-                    y: 25,
-                    width: 50,
-                    height: 15,
-                    rotation: 0,
-                    data: '{{product.sku}}',
-                    isDynamic: true,
-                    barcodeType: BlueprintBarcodeType.code128,
-                    showLabel: true,
-                  ),
-                ),
-                _buildDraggableTile(
-                  context: context,
-                  label: 'QR Code',
-                  icon: Icons.qr_code,
-                  blueprint: () => QrElementBlueprint(
-                    id: 'qr-${DateTime.now().millisecondsSinceEpoch}',
-                    x: 10,
-                    y: 10,
-                    width: 25,
-                    height: 25,
-                    rotation: 0,
-                    data: '{{product.sku}}',
-                    isDynamic: true,
-                  ),
-                ),
+                ...items.skip(7).map((item) => _buildDraggableTile(context, item)),
               ],
             ),
           ),
@@ -211,18 +259,52 @@ class ElementPalette extends StatelessWidget {
     );
   }
 
-  Widget _buildDraggableTile({
-    required BuildContext context,
-    required String label,
-    required IconData icon,
-    required ElementBlueprint Function() blueprint,
-  }) {
+  Widget _buildHorizontalTile(BuildContext context, _PaletteItemData item) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _handleItemSelection(context, item.blueprint),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 68,
+          decoration: BoxDecoration(
+            border: Border.all(color: colorScheme.outlineVariant),
+            borderRadius: BorderRadius.circular(8),
+            color: colorScheme.surface,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(item.icon, size: 20, color: colorScheme.primary),
+              const SizedBox(height: 4),
+              Text(
+                item.shortLabel,
+                style: textTheme.bodySmall?.copyWith(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDraggableTile(BuildContext context, _PaletteItemData item) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Draggable<ElementBlueprint>(
-        data: blueprint(),
+        data: item.blueprint(),
         feedback: Material(
           color: Colors.transparent,
           child: Container(
@@ -242,10 +324,10 @@ class ElementPalette extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 18, color: colorScheme.primary),
+                Icon(item.icon, size: 18, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  label,
+                  item.label,
                   style: TextStyle(color: colorScheme.onSurface, fontSize: 13),
                 ),
               ],
@@ -261,39 +343,17 @@ class ElementPalette extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
+              Icon(item.icon, size: 18, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
               const SizedBox(width: 8),
               Text(
-                label,
+                item.label,
                 style: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4), fontSize: 13),
               ),
             ],
           ),
         ),
         child: GestureDetector(
-          onTap: () {
-            final editorState = context.read<EditorCubit>().state;
-            var element = blueprint();
-            if (editorState is EditorLoaded) {
-              final stickerWidthMm = editorState.stickerConfig.widthMm;
-              final stickerHeightMm = editorState.stickerConfig.heightMm;
-
-              // Center the element on the sticker board
-              final centerX = (stickerWidthMm / 2.0) - (element.width / 2.0);
-              final centerY = (stickerHeightMm / 2.0) - (element.height / 2.0);
-
-              // Clamp inside sticker boundaries
-              final finalX = centerX.clamp(0.0, stickerWidthMm - element.width);
-              final finalY = centerY.clamp(0.0, stickerHeightMm - element.height);
-
-              element = element.copyWith(x: finalX, y: finalY);
-            }
-            context.read<EditorCubit>().addElement(element);
-
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            }
-          },
+          onTap: () => _handleItemSelection(context, item.blueprint),
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -303,10 +363,10 @@ class ElementPalette extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(icon, size: 18, color: colorScheme.primary),
+                Icon(item.icon, size: 18, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  label,
+                  item.label,
                   style: TextStyle(color: colorScheme.onSurface, fontSize: 13),
                 ),
                 const Spacer(),
@@ -318,4 +378,38 @@ class ElementPalette extends StatelessWidget {
       ),
     );
   }
+
+  void _handleItemSelection(BuildContext context, ElementBlueprint Function() blueprint) {
+    final editorState = context.read<EditorCubit>().state;
+    var element = blueprint();
+    if (editorState is EditorLoaded) {
+      final stickerWidthMm = editorState.stickerConfig.widthMm;
+      final stickerHeightMm = editorState.stickerConfig.heightMm;
+
+      // Center the element on the sticker board
+      final centerX = (stickerWidthMm / 2.0) - (element.width / 2.0);
+      final centerY = (stickerHeightMm / 2.0) - (element.height / 2.0);
+
+      // Clamp inside sticker boundaries
+      final finalX = centerX.clamp(0.0, stickerWidthMm - element.width);
+      final finalY = centerY.clamp(0.0, stickerHeightMm - element.height);
+
+      element = element.copyWith(x: finalX, y: finalY);
+    }
+    context.read<EditorCubit>().addElement(element);
+  }
+}
+
+class _PaletteItemData {
+  const _PaletteItemData({
+    required this.label,
+    required this.shortLabel,
+    required this.icon,
+    required this.blueprint,
+  });
+
+  final String label;
+  final String shortLabel;
+  final IconData icon;
+  final ElementBlueprint Function() blueprint;
 }

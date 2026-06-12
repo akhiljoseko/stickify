@@ -272,6 +272,7 @@ class ElementBlueprintFirestoreModel {
     this.networkUrl,
     this.localFilePath,
     this.fit,
+    this.maxLines,
   });
 
   factory ElementBlueprintFirestoreModel.fromDomain(ElementBlueprint eb) {
@@ -294,6 +295,7 @@ class ElementBlueprintFirestoreModel {
     String? networkUrl;
     String? localFilePath;
     String? fit;
+    int? maxLines;
 
     if (eb is TextElementBlueprint) {
       type = 'text';
@@ -303,6 +305,7 @@ class ElementBlueprintFirestoreModel {
       fontWeightValue = eb.fontWeightValue;
       textAlign = eb.textAlign.name;
       colorHex = eb.colorHex;
+      maxLines = eb.maxLines;
     } else if (eb is ShapeElementBlueprint) {
       type = 'shape';
       fillColorHex = eb.fillColorHex;
@@ -354,6 +357,7 @@ class ElementBlueprintFirestoreModel {
       networkUrl: networkUrl,
       localFilePath: localFilePath,
       fit: fit,
+      maxLines: maxLines,
     );
   }
 
@@ -384,6 +388,7 @@ class ElementBlueprintFirestoreModel {
       networkUrl: json['networkUrl'] as String?,
       localFilePath: json['localFilePath'] as String?,
       fit: json['fit'] as String?,
+      maxLines: json['maxLines'] as int?,
     );
   }
 
@@ -421,6 +426,9 @@ class ElementBlueprintFirestoreModel {
   final String? localFilePath;
   final String? fit;
 
+  // text max lines
+  final int? maxLines;
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -448,6 +456,7 @@ class ElementBlueprintFirestoreModel {
       'networkUrl': networkUrl,
       'localFilePath': localFilePath,
       'fit': fit,
+      'maxLines': maxLines,
     };
   }
 
@@ -470,6 +479,7 @@ class ElementBlueprintFirestoreModel {
             orElse: () => BlueprintTextAlign.left,
           ),
           colorHex: colorHex ?? 0xFF000000,
+          maxLines: maxLines ?? 1,
         );
       case 'shape':
         return ShapeElementBlueprint(

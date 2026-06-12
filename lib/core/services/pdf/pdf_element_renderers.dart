@@ -37,10 +37,10 @@ class PdfTextElementRenderer implements PdfElementRenderer<TextElementBlueprint>
       text,
       textAlign: textAlign,
       style: pw.TextStyle(
-        fontSize: blueprint.fontSize,
+        fontSize: blueprint.fontSize * PdfPageFormat.mm,
         fontWeight: fontWeight,
         color: PdfColor.fromInt(blueprint.colorHex),
-        letterSpacing: blueprint.letterSpacing,
+        letterSpacing: blueprint.letterSpacing * PdfPageFormat.mm,
       ),
     );
   }
@@ -59,14 +59,14 @@ class PdfShapeElementRenderer implements PdfElementRenderer<ShapeElementBlueprin
     Map<String, Uint8List> imageCache,
   ) {
     return pw.Container(
-      width: blueprint.width,
-      height: blueprint.height,
+      width: blueprint.width * PdfPageFormat.mm,
+      height: blueprint.height * PdfPageFormat.mm,
       decoration: pw.BoxDecoration(
         color: blueprint.isFilled ? PdfColor.fromInt(blueprint.fillColorHex) : null,
-        borderRadius: pw.BorderRadius.circular(blueprint.cornerRadius),
+        borderRadius: pw.BorderRadius.circular(blueprint.cornerRadius * PdfPageFormat.mm),
         border: pw.Border.all(
           color: PdfColor.fromInt(blueprint.strokeColorHex),
-          width: blueprint.strokeWidth,
+          width: blueprint.strokeWidth * PdfPageFormat.mm,
         ),
       ),
     );
@@ -98,8 +98,8 @@ class PdfBarcodeElementRenderer implements PdfElementRenderer<BarcodeElementBlue
     return pw.BarcodeWidget(
       barcode: symbology,
       data: data,
-      width: blueprint.width,
-      height: blueprint.height,
+      width: blueprint.width * PdfPageFormat.mm,
+      height: blueprint.height * PdfPageFormat.mm,
     );
   }
 }
@@ -124,8 +124,8 @@ class PdfQrElementRenderer implements PdfElementRenderer<QrElementBlueprint> {
     return pw.BarcodeWidget(
       barcode: pw.Barcode.qrCode(),
       data: data,
-      width: blueprint.width,
-      height: blueprint.height,
+      width: blueprint.width * PdfPageFormat.mm,
+      height: blueprint.height * PdfPageFormat.mm,
     );
   }
 }

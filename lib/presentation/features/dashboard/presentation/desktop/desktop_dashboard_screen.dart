@@ -143,16 +143,6 @@ class _QuickActionsGrid extends StatelessWidget {
       title: 'Create Template',
       subtitle: 'Visual designer tool',
     ),
-    _QuickActionData(
-      icon: Icons.layers_outlined,
-      title: 'Batch Print',
-      subtitle: 'Process CSV or Excel lists',
-    ),
-    _QuickActionData(
-      icon: Icons.settings_input_component_outlined,
-      title: 'Printer Config',
-      subtitle: 'Manage hardware nodes',
-    ),
   ];
 
   @override
@@ -160,7 +150,7 @@ class _QuickActionsGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final crossAxisCount = w < 960 ? 2 : 4;
+        final crossAxisCount = w < 480 ? 1 : 2;
         const targetHeight = 160.0;
 
         final itemWidth = (w - (crossAxisCount - 1) * 16) / crossAxisCount;

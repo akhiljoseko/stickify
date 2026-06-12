@@ -192,8 +192,8 @@ class _QuickActionsList extends StatelessWidget {
     _QuickActionData(
       id: FeatureId.productCatalogAdmin,
       icon: Icons.add_circle_outline,
-      title: 'Add New Product',
-      subtitle: 'Register SKU & Metadata',
+      title: 'Add Product',
+      subtitle: 'Register SKU details',
       isPrimary: true,
     ),
     _QuickActionData(
@@ -202,138 +202,38 @@ class _QuickActionsList extends StatelessWidget {
       title: 'Create Template',
       subtitle: 'Visual designer tool',
     ),
-    _QuickActionData(
-      id: FeatureId.printSetup,
-      icon: Icons.layers_outlined,
-      title: 'Batch Print',
-      subtitle: 'Process CSV or Excel lists',
-      requiresBulkOps: true,
-    ),
-    _QuickActionData(
-      id: FeatureId.dashboard,
-      icon: Icons.settings_input_component_outlined,
-      title: 'Printer Config',
-      subtitle: 'Manage hardware nodes',
-    ),
   ];
 
-  void _handleAction(BuildContext context, _QuickActionData action, AppEnvironment env) {
-    final featureAccess = context.read<FeatureAccessService>();
-    final availability = featureAccess.availabilityOf(action.id, env);
-
-    final isRestricted = availability == FeatureAvailability.desktopOnly ||
-        (action.requiresBulkOps && !env.supportsBulkOperations);
-
-    if (isRestricted) {
-      _showDesktopOnlySheet(context, action.title);
-    } else {
-      if (action.id == FeatureId.productCatalogAdmin) {
-        context.go('/products?subView=create');
-      } else if (action.id == FeatureId.templateCreation) {
-        context.go('/templates?action=create');
-      }
+  void _handleAction(BuildContext context, _QuickActionData action) {
+    if (action.id == FeatureId.productCatalogAdmin) {
+      context.go('/products?subView=create');
+    } else if (action.id == FeatureId.templateCreation) {
+      context.go('/templates?action=create');
     }
-  }
-
-  void _showDesktopOnlySheet(BuildContext context, String actionName) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Icon(
-              Icons.computer_outlined,
-              size: 48,
-              color: colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Desktop Feature Only',
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'The "$actionName" feature requires a desktop or tablet viewport. '
-              'Please log in on a computer to access this workspace and controls.',
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(sheetContext),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Understood'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final env = context.watch<AppEnvironment>();
-    final featureAccess = context.read<FeatureAccessService>();
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final crossAxisCount = w < 480 ? 1 : 2;
-        final targetHeight = w < 480 ? 90.0 : 100.0;
-
-        final itemWidth = (w - (crossAxisCount - 1) * 12) / crossAxisCount;
-        final childAspectRatio = itemWidth / targetHeight;
-
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: childAspectRatio,
+            childAspectRatio: 1.4,
           ),
           itemCount: _actions.length,
           itemBuilder: (context, i) {
             final action = _actions[i];
-            final availability = featureAccess.availabilityOf(action.id, env);
-            final isRestricted = availability == FeatureAvailability.desktopOnly ||
-                (action.requiresBulkOps && !env.supportsBulkOperations);
-
             return _MobileQuickActionCard(
               icon: action.icon,
               title: action.title,
               subtitle: action.subtitle,
-              isPrimary: action.isPrimary && !isRestricted,
-              isRestricted: isRestricted,
-              onTap: () => _handleAction(context, action, env),
+              isPrimary: action.isPrimary,
+              onTap: () => _handleAction(context, action),
             );
           },
         );
@@ -349,7 +249,6 @@ class _QuickActionData {
     required this.title,
     required this.subtitle,
     this.isPrimary = false,
-    this.requiresBulkOps = false,
   });
 
   final FeatureId id;
@@ -357,7 +256,6 @@ class _QuickActionData {
   final String title;
   final String subtitle;
   final bool isPrimary;
-  final bool requiresBulkOps;
 }
 
 class _MobileQuickActionCard extends StatelessWidget {
@@ -366,7 +264,6 @@ class _MobileQuickActionCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.isPrimary,
-    required this.isRestricted,
     required this.onTap,
   });
 
@@ -374,7 +271,6 @@ class _MobileQuickActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool isPrimary;
-  final bool isRestricted;
   final VoidCallback onTap;
 
   @override
@@ -386,48 +282,40 @@ class _MobileQuickActionCard extends StatelessWidget {
         ? colorScheme.primaryContainer
         : colorScheme.surfaceContainerLow;
 
-    final titleColor = isRestricted
-        ? colorScheme.onSurface.withValues(alpha: 0.38)
-        : isPrimary
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.onSurface;
+    final titleColor = isPrimary
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurface;
 
-    final subtitleColor = isRestricted
-        ? colorScheme.onSurfaceVariant.withValues(alpha: 0.38)
-        : isPrimary
-            ? colorScheme.onPrimaryContainer.withValues(alpha: 0.8)
-            : colorScheme.onSurfaceVariant;
+    final subtitleColor = isPrimary
+        ? colorScheme.onPrimaryContainer.withValues(alpha: 0.8)
+        : colorScheme.onSurfaceVariant;
 
-    final iconColor = isRestricted
-        ? colorScheme.primary.withValues(alpha: 0.38)
-        : isPrimary
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.primary;
+    final iconColor = isPrimary
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.primary;
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Ink(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: baseBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isRestricted
-                ? colorScheme.outlineVariant.withValues(alpha: 0.38)
-                : colorScheme.outlineVariant,
+            color: colorScheme.outlineVariant,
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isRestricted
-                    ? colorScheme.onSurface.withValues(alpha: 0.05)
-                    : isPrimary
-                        ? colorScheme.onPrimaryContainer.withValues(alpha: 0.15)
-                        : colorScheme.primary.withValues(alpha: 0.08),
+                color: isPrimary
+                    ? colorScheme.onPrimaryContainer.withValues(alpha: 0.15)
+                    : colorScheme.primary.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -436,47 +324,31 @@ class _MobileQuickActionCard extends StatelessWidget {
                 color: iconColor,
               ),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: titleColor,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (isRestricted) ...[
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.lock_outline,
-                          size: 14,
-                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                        ),
-                      ],
-                    ],
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: titleColor,
+                    fontSize: 13,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: subtitleColor,
-                      fontSize: 11,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: subtitleColor,
+                    fontSize: 10,
                   ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ],
         ),
@@ -544,7 +416,7 @@ class _RecentPrintsCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 280,
+      height: 310,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: jobs.length,

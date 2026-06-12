@@ -15,6 +15,7 @@ class RecentPrintCard extends StatefulWidget {
   const RecentPrintCard({
     required this.job,
     this.onRepeatPrint,
+    this.width,
     super.key,
   });
 
@@ -23,6 +24,9 @@ class RecentPrintCard extends StatefulWidget {
 
   /// Called when the "Repeat Print" button is tapped.
   final VoidCallback? onRepeatPrint;
+
+  /// Optional card width. Defaults to 320.
+  final double? width;
 
   @override
   State<RecentPrintCard> createState() => _RecentPrintCardState();
@@ -48,7 +52,7 @@ class _RecentPrintCardState extends State<RecentPrintCard> {
       onExit: isDesktopOrLarger ? (_) => setState(() => _isHovered = false) : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        width: 320,
+        width: widget.width ?? 320,
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),

@@ -5,7 +5,6 @@ import 'package:stickify/presentation/features/dashboard/cubits/frequent_product
 import 'package:stickify/presentation/features/dashboard/cubits/recent_print_jobs_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/sync_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/sync_state.dart';
-import 'package:stickify/presentation/features/dashboard/widgets/connectivity_status_chip.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/frequent_product_row.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/quick_action_card.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/recent_print_card.dart';
@@ -105,8 +104,6 @@ class _HeroHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 24),
-        const ConnectivityStatusChip(isOnline: true),
-        const SizedBox(width: 16),
         BlocBuilder<SyncCubit, SyncState>(
           builder: (context, state) {
             final isLoading = state is SyncLoading;

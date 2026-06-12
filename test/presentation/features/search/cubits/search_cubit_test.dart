@@ -1,19 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/search/cubits/search_cubit.dart';
 import 'package:stickify/presentation/features/search/cubits/search_state.dart';
 
 class MockSearchRepo implements SearchRepository {
-  MockSearchRepo({required this.mockResults});
+  MockSearchRepo({required this.mockResults, this.error});
 
   final List<SearchItem> mockResults;
+  final AppError? error;
   String? lastQuery;
   Set<String>? lastCategories;
   Set<String>? lastTags;
   bool? lastSortByRelevance;
 
   @override
-  Future<List<SearchItem>> search(
+  Future<Result<List<SearchItem>, AppError>> search(
     String query, {
     Set<String>? categories,
     Set<String>? tags,
@@ -23,7 +25,11 @@ class MockSearchRepo implements SearchRepository {
     lastCategories = categories;
     lastTags = tags;
     lastSortByRelevance = sortByRelevance;
-    return mockResults;
+    final err = error;
+    if (err != null) {
+      return Result.failure(err);
+    }
+    return Result.success(mockResults);
   }
 }
 

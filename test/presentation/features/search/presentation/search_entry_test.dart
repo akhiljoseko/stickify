@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/search/presentation/search_entry.dart';
 
@@ -11,13 +12,13 @@ class TestSearchRepository implements SearchRepository {
   final List<SearchItem> results;
 
   @override
-  Future<List<SearchItem>> search(
+  Future<Result<List<SearchItem>, AppError>> search(
     String query, {
     Set<String>? categories,
     Set<String>? tags,
     bool sortByRelevance = true,
   }) async {
-    return results;
+    return Result.success(results);
   }
 }
 

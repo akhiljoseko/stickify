@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/search/cubits/search_state.dart';
 
@@ -36,26 +37,27 @@ class SearchCubit extends Cubit<SearchState> {
 
     emit(const SearchLoading());
 
-    try {
-      final results = await _repository.search(
-        query,
-        categories: {},
-        tags: {},
-      );
+    final searchResult = await _repository.search(
+      query,
+      categories: const {},
+      tags: const {},
+    );
 
-      if (results.isEmpty) {
-        emit(SearchEmpty(query: query));
-      } else {
-        emit(SearchSuccess(
-          query: query,
-          results: results,
-          selectedCategories: const {},
-          selectedTags: const {},
-          sortByRelevance: true,
-        ));
-      }
-    } on Object catch (e) {
-      emit(SearchError(message: e.toString()));
+    switch (searchResult) {
+      case Success(value: final results):
+        if (results.isEmpty) {
+          emit(SearchEmpty(query: query));
+        } else {
+          emit(SearchSuccess(
+            query: query,
+            results: results,
+            selectedCategories: const {},
+            selectedTags: const {},
+            sortByRelevance: true,
+          ));
+        }
+      case Failure(error: final err):
+        emit(SearchError(message: err.message));
     }
   }
 
@@ -132,27 +134,28 @@ class SearchCubit extends Cubit<SearchState> {
     required bool sortByRelevance,
   }) async {
     emit(const SearchLoading());
-    try {
-      final results = await _repository.search(
-        query,
-        categories: categories,
-        tags: tags,
-        sortByRelevance: sortByRelevance,
-      );
+    final searchResult = await _repository.search(
+      query,
+      categories: categories,
+      tags: tags,
+      sortByRelevance: sortByRelevance,
+    );
 
-      if (results.isEmpty) {
-        emit(SearchEmpty(query: query));
-      } else {
-        emit(SearchSuccess(
-          query: query,
-          results: results,
-          selectedCategories: categories,
-          selectedTags: tags,
-          sortByRelevance: sortByRelevance,
-        ));
-      }
-    } on Object catch (e) {
-      emit(SearchError(message: e.toString()));
+    switch (searchResult) {
+      case Success(value: final results):
+        if (results.isEmpty) {
+          emit(SearchEmpty(query: query));
+        } else {
+          emit(SearchSuccess(
+            query: query,
+            results: results,
+            selectedCategories: categories,
+            selectedTags: tags,
+            sortByRelevance: sortByRelevance,
+          ));
+        }
+      case Failure(error: final err):
+        emit(SearchError(message: err.message));
     }
   }
 

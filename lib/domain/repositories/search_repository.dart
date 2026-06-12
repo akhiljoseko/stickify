@@ -1,3 +1,4 @@
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/search_item.dart';
 
 /// Abstract repository interface for Search operations.
@@ -10,7 +11,7 @@ abstract interface class SearchRepository {
   ///
   /// Supports optional filtering by [categories] and [tags], and custom
   /// sorting by relevance score vs alphabetical order.
-  Future<List<SearchItem>> search(
+  Future<Result<List<SearchItem>, AppError>> search(
     String query, {
     Set<String>? categories,
     Set<String>? tags,

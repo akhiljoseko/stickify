@@ -1,3 +1,4 @@
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/search_item.dart';
 import 'package:stickify/domain/repositories/search_repository.dart';
 
@@ -136,7 +137,7 @@ class MockSearchRepository implements SearchRepository {
   ];
 
   @override
-  Future<List<SearchItem>> search(
+  Future<Result<List<SearchItem>, AppError>> search(
     String query, {
     Set<String>? categories,
     Set<String>? tags,
@@ -173,6 +174,6 @@ class MockSearchRepository implements SearchRepository {
       items.sort((a, b) => a.title.compareTo(b.title));
     }
 
-    return items;
+    return Result.success(items);
   }
 }

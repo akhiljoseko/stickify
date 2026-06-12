@@ -22,6 +22,7 @@ class MobileProductManagementScreen extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final cubitState = context.watch<ProductCubit>().state;
     final showFab = cubitState is ProductCatalogSuccess && cubitState.subView == 'catalog';
+    final formKey = GlobalKey<ProductFormViewState>();
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -88,15 +89,49 @@ class MobileProductManagementScreen extends StatelessWidget {
                   onBack: () => context.read<ProductCubit>().setSubView('catalog'),
                 );
               case 'create':
-                return ProductFormView(
-                  onBack: () => context.read<ProductCubit>().setSubView('catalog'),
-                  onSave: (product) => context.read<ProductCubit>().saveProduct(product),
+                return Scaffold(
+                  appBar: AppBar(
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => context.read<ProductCubit>().setSubView('catalog'),
+                    ),
+                    title: const Text('Add Product'),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.check),
+                        tooltip: 'Save Product',
+                        onPressed: () => formKey.currentState?.saveForm(),
+                      ),
+                    ],
+                  ),
+                  body: ProductFormView(
+                    key: formKey,
+                    onBack: () => context.read<ProductCubit>().setSubView('catalog'),
+                    onSave: (product) => context.read<ProductCubit>().saveProduct(product),
+                  ),
                 );
               case 'edit':
-                return ProductFormView(
-                  product: state.selectedProduct,
-                  onBack: () => context.read<ProductCubit>().setSubView('catalog'),
-                  onSave: (product) => context.read<ProductCubit>().saveProduct(product),
+                return Scaffold(
+                  appBar: AppBar(
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => context.read<ProductCubit>().setSubView('catalog'),
+                    ),
+                    title: const Text('Edit Product'),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.check),
+                        tooltip: 'Save Product',
+                        onPressed: () => formKey.currentState?.saveForm(),
+                      ),
+                    ],
+                  ),
+                  body: ProductFormView(
+                    key: formKey,
+                    product: state.selectedProduct,
+                    onBack: () => context.read<ProductCubit>().setSubView('catalog'),
+                    onSave: (product) => context.read<ProductCubit>().saveProduct(product),
+                  ),
                 );
               case 'catalog':
               default:

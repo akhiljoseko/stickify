@@ -168,13 +168,23 @@ class PdfPrintService implements PrintService {
         marginAll: 0,
       );
 
-      await Printing.layoutPdf(
-        name: '${product.name}_${variant.name}_labels',
-        onLayout: (format) async => pdfBytes,
-        format: targetFormat,
-        dynamicLayout: false,
-        forceCustomPrintPaper: true,
-      );
+      if (Platform.isAndroid && !Platform.environment.containsKey('FLUTTER_TEST')) {
+        const customPrintChannel = MethodChannel('co.inevitablesoftware.stickify/custom_print');
+        await customPrintChannel.invokeMethod<bool>('printPdf', {
+          'name': '${product.name}_${variant.name}_labels',
+          'bytes': pdfBytes,
+          'width': sheetConfig.pageWidth.toDouble(),
+          'height': sheetConfig.pageHeight.toDouble(),
+        });
+      } else {
+        await Printing.layoutPdf(
+          name: '${product.name}_${variant.name}_labels',
+          onLayout: (format) async => pdfBytes,
+          format: targetFormat,
+          dynamicLayout: false,
+          forceCustomPrintPaper: true,
+        );
+      }
 
       return const Result.success(null);
     } catch (e, s) {
@@ -253,7 +263,9 @@ class PdfPrintService implements PrintService {
   static Future<Uint8List> _buildPdfDocumentInBackground(
     _PdfJobInput input,
   ) async {
-    final doc = pw.Document();
+    final doc = pw.Document(
+      compress: !Platform.environment.containsKey('FLUTTER_TEST'),
+    );
 
     final sheetConfig = input.template.sheetConfig!;
     final sticker = input.template.stickerConfig!;

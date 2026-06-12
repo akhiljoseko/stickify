@@ -1,3 +1,4 @@
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/remote_database_service.dart';
 import 'package:stickify/data/models/firestore/product_firestore_model.dart';
 import 'package:stickify/domain/entities/product.dart';
@@ -20,43 +21,87 @@ class FirestoreProductRepository implements ProductRepository {
   String get _collectionPath => 'users/$userId/products';
 
   @override
-  Future<List<Product>> getFrequentProducts({int limit = 20}) async {
-    final list = await remoteDb.getCollection(
-      _collectionPath,
-      orderBy: 'totalPrints',
-      descending: true,
-      limit: limit,
-    );
-    return list.map((json) {
-      return ProductFirestoreModel.fromMap(json['id'] as String, json).toDomain();
-    }).toList();
+  Future<Result<List<Product>, AppError>> getFrequentProducts({int limit = 20}) async {
+    try {
+      final list = await remoteDb.getCollection(
+        _collectionPath,
+        orderBy: 'totalPrints',
+        descending: true,
+        limit: limit,
+      );
+      final mapped = list.map((json) {
+        return ProductFirestoreModel.fromMap(json['id'] as String, json).toDomain();
+      }).toList();
+      return Result.success(mapped);
+    } catch (e, stackTrace) {
+      return Result.failure(NetworkError(
+        message: 'Failed to retrieve frequent products from remote server.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
   }
 
   @override
-  Future<Product?> getProductById(String id) async {
-    final data = await remoteDb.getData('$_collectionPath/$id');
-    if (data == null) return null;
-    return ProductFirestoreModel.fromMap(id, data).toDomain();
+  Future<Result<Product?, AppError>> getProductById(String id) async {
+    try {
+      final data = await remoteDb.getData('$_collectionPath/$id');
+      if (data == null) return const Result.success(null);
+      return Result.success(ProductFirestoreModel.fromMap(id, data).toDomain());
+    } catch (e, stackTrace) {
+      return Result.failure(NetworkError(
+        message: 'Failed to retrieve product from remote server.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
   }
 
   @override
-  Future<List<Product>> getAllProducts() async {
-    final list = await remoteDb.getCollection(_collectionPath);
-    return list.map((json) {
-      return ProductFirestoreModel.fromMap(json['id'] as String, json).toDomain();
-    }).toList();
+  Future<Result<List<Product>, AppError>> getAllProducts() async {
+    try {
+      final list = await remoteDb.getCollection(_collectionPath);
+      final mapped = list.map((json) {
+        return ProductFirestoreModel.fromMap(json['id'] as String, json).toDomain();
+      }).toList();
+      return Result.success(mapped);
+    } catch (e, stackTrace) {
+      return Result.failure(NetworkError(
+        message: 'Failed to retrieve products from remote server.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
   }
 
   @override
-  Future<void> saveProduct(Product product) async {
-    await remoteDb.setData(
-      '$_collectionPath/${product.id}',
-      ProductFirestoreModel.fromDomain(product).toMap(),
-    );
+  Future<Result<void, AppError>> saveProduct(Product product) async {
+    try {
+      await remoteDb.setData(
+        '$_collectionPath/${product.id}',
+        ProductFirestoreModel.fromDomain(product).toMap(),
+      );
+      return const Result.success(null);
+    } catch (e, stackTrace) {
+      return Result.failure(NetworkError(
+        message: 'Failed to save product to remote server.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
   }
 
   @override
-  Future<void> deleteProduct(String id) async {
-    await remoteDb.deleteData('$_collectionPath/$id');
+  Future<Result<void, AppError>> deleteProduct(String id) async {
+    try {
+      await remoteDb.deleteData('$_collectionPath/$id');
+      return const Result.success(null);
+    } catch (e, stackTrace) {
+      return Result.failure(NetworkError(
+        message: 'Failed to delete product from remote server.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
   }
 }

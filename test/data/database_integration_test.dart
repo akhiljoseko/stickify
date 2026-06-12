@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/local_database.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
@@ -58,7 +59,7 @@ void main() {
 
       group('DatabaseProductRepository', () {
         test('starts empty', () async {
-          final products = await productRepository.getAllProducts();
+          final products = (await productRepository.getAllProducts()).getOrThrow();
           expect(products, isEmpty);
         });
 
@@ -74,13 +75,13 @@ void main() {
             category: 'Dry Goods',
           );
 
-          await productRepository.saveProduct(newProduct);
-          var fetched = await productRepository.getProductById('prod-new-99');
+          (await productRepository.saveProduct(newProduct)).getOrThrow();
+          var fetched = (await productRepository.getProductById('prod-new-99')).getOrThrow();
           expect(fetched, isNotNull);
           expect(fetched!.name, 'Super Sticker Pack');
 
-          await productRepository.deleteProduct('prod-new-99');
-          fetched = await productRepository.getProductById('prod-new-99');
+          (await productRepository.deleteProduct('prod-new-99')).getOrThrow();
+          fetched = (await productRepository.getProductById('prod-new-99')).getOrThrow();
           expect(fetched, isNull);
         });
 
@@ -112,11 +113,11 @@ void main() {
             assignedStation: 'Station #01',
             stationStatus: StationStatus.online,
           );
-          await productRepository.saveProduct(p1);
-          await productRepository.saveProduct(p2);
-          await productRepository.saveProduct(p3);
+          (await productRepository.saveProduct(p1)).getOrThrow();
+          (await productRepository.saveProduct(p2)).getOrThrow();
+          (await productRepository.saveProduct(p3)).getOrThrow();
 
-          final frequent = await productRepository.getFrequentProducts(limit: 2);
+          final frequent = (await productRepository.getFrequentProducts(limit: 2)).getOrThrow();
           expect(frequent.length, 2);
           expect(frequent[0].id, 'prod-2');
           expect(frequent[1].id, 'prod-1');
@@ -218,7 +219,7 @@ void main() {
             assignedStation: 'Station #01',
             stationStatus: StationStatus.online,
           );
-          await productRepository.saveProduct(p1);
+          (await productRepository.saveProduct(p1)).getOrThrow();
 
           final results = await searchRepository.search('ChronoMaster');
           expect(results, isNotEmpty);
@@ -235,7 +236,7 @@ void main() {
             assignedStation: 'Station #01',
             stationStatus: StationStatus.online,
           );
-          await productRepository.saveProduct(p1);
+          (await productRepository.saveProduct(p1)).getOrThrow();
 
           await templateRepository.createTemplate('Search Template');
 
@@ -249,5 +250,16 @@ void main() {
         });
       });
     });
+  }
+}
+
+extension<T> on Result<T, AppError> {
+  T getOrThrow() {
+    switch (this) {
+      case Success(value: final val):
+        return val;
+      case Failure(error: final err):
+        throw Exception(err.message);
+    }
   }
 }

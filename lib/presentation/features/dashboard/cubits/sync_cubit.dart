@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/auth_service.dart';
 import 'package:stickify/data/repositories/syncing_print_job_repository.dart';
 import 'package:stickify/data/repositories/syncing_product_repository.dart';
@@ -42,7 +43,14 @@ class SyncCubit extends Cubit<SyncState> {
       // 1. Sync Products
       final pRepo = productRepo;
       if (pRepo is SyncingProductRepository) {
-        await pRepo.sync(uid);
+        final result = await pRepo.sync(uid);
+        switch (result) {
+          case Failure(error: final err):
+            emit(SyncFailure(err.message));
+            return;
+          case Success():
+            break;
+        }
       }
 
       // 2. Sync Templates

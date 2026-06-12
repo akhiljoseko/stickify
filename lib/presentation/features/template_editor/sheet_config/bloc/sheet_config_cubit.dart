@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/sheet_config/bloc/sheet_config_state.dart';
 
@@ -22,25 +23,26 @@ class SheetConfigCubit extends Cubit<SheetConfigState> {
   /// configuration (or default values if none exist yet).
   Future<void> load() async {
     emit(const SheetConfigLoading());
-    try {
-      final template = await _templateRepository.fetchTemplate(templateId);
-      final config =
-          template.sheetConfig ??
-          const SheetConfig(
-            pageWidth: 210,
-            pageHeight: 297,
-            marginTop: 10,
-            marginBottom: 10,
-            marginLeft: 10,
-            marginRight: 10,
-            columns: 3,
-            rows: 6,
-            columnGap: 5,
-            rowGap: 5,
-          );
-      emit(SheetConfigEditing(config));
-    } on Exception catch (e) {
-      emit(SheetConfigError(e.toString()));
+    final result = await _templateRepository.fetchTemplate(templateId);
+    switch (result) {
+      case Success(value: final template):
+        final config =
+            template.sheetConfig ??
+            const SheetConfig(
+              pageWidth: 210,
+              pageHeight: 297,
+              marginTop: 10,
+              marginBottom: 10,
+              marginLeft: 10,
+              marginRight: 10,
+              columns: 3,
+              rows: 6,
+              columnGap: 5,
+              rowGap: 5,
+            );
+        emit(SheetConfigEditing(config));
+      case Failure(error: final err):
+        emit(SheetConfigError(err.message));
     }
   }
 
@@ -57,16 +59,17 @@ class SheetConfigCubit extends Cubit<SheetConfigState> {
     if (currentState is! SheetConfigEditing) return;
 
     emit(const SheetConfigSaving());
-    try {
-      await _templateRepository.saveSheetConfig(
-        templateId,
-        currentState.config,
-      );
-      emit(SheetConfigSaved(templateId));
-    } on Object catch (e) {
-      emit(SheetConfigError(e.toString()));
-      // Restore editing state with previous config
-      emit(SheetConfigEditing(currentState.config));
+    final result = await _templateRepository.saveSheetConfig(
+      templateId,
+      currentState.config,
+    );
+    switch (result) {
+      case Success():
+        emit(SheetConfigSaved(templateId));
+      case Failure(error: final err):
+        emit(SheetConfigError(err.message));
+        // Restore editing state with previous config
+        emit(SheetConfigEditing(currentState.config));
     }
   }
 }

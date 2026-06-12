@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/bloc/sticker_setup_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/bloc/sticker_setup_state.dart';
@@ -49,7 +50,7 @@ void main() {
       'loads sticker config from template successfully',
       build: () {
         when(() => templateRepository.fetchTemplate(templateId))
-            .thenAnswer((_) async => mockTemplate);
+            .thenAnswer((_) async => Result.success(mockTemplate));
         return StickerSetupCubit(templateRepository, templateId);
       },
       act: (cubit) => cubit.load(),
@@ -68,7 +69,7 @@ void main() {
       'updateFields modifies basic fields',
       build: () {
         when(() => templateRepository.fetchTemplate(templateId))
-            .thenAnswer((_) async => mockTemplate);
+            .thenAnswer((_) async => Result.success(mockTemplate));
         return StickerSetupCubit(templateRepository, templateId);
       },
       seed: () => const StickerSetupEditing(
@@ -286,7 +287,7 @@ void main() {
       'saveAndContinue invokes repo save and emits saved state',
       build: () {
         when(() => templateRepository.saveStickerConfig(any(), any()))
-            .thenAnswer((_) async => {});
+            .thenAnswer((_) async => const Result.success(null));
         return StickerSetupCubit(templateRepository, templateId);
       },
       seed: () => const StickerSetupEditing(

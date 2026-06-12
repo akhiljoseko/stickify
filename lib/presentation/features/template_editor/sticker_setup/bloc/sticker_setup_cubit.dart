@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/bloc/sticker_setup_state.dart';
 
@@ -12,86 +13,87 @@ class StickerSetupCubit extends Cubit<StickerSetupState> {
 
   Future<void> load() async {
     emit(const StickerSetupLoading());
-    try {
-      final template = await _templateRepository.fetchTemplate(templateId);
-      final config = template.stickerConfig;
-      
-      if (config != null) {
-        // Deconstruct printable area polygon to find padding
-        // TL is (L, T)
-        final tl = config.printableArea.isNotEmpty ? config.printableArea[0] : const StickerPoint(4, 4);
-        final br = config.printableArea.length > 2 ? config.printableArea[2] : const StickerPoint(96, 56);
+    final result = await _templateRepository.fetchTemplate(templateId);
+    switch (result) {
+      case Success(value: final template):
+        final config = template.stickerConfig;
         
-        final paddingLeft = tl.x;
-        final paddingTop = tl.y;
-        final paddingRight = config.widthMm - br.x;
-        final paddingBottom = config.heightMm - br.y;
-
-        // Verify if it is standard rectangle
-        var isCustom = true;
-        if (config.printableArea.length == 4) {
-          final p0 = config.printableArea[0];
-          final p1 = config.printableArea[1];
-          final p2 = config.printableArea[2];
-          final p3 = config.printableArea[3];
+        if (config != null) {
+          // Deconstruct printable area polygon to find padding
+          // TL is (L, T)
+          final tl = config.printableArea.isNotEmpty ? config.printableArea[0] : const StickerPoint(4, 4);
+          final br = config.printableArea.length > 2 ? config.printableArea[2] : const StickerPoint(96, 56);
           
-          final expectedP0 = StickerPoint(paddingLeft, paddingTop);
-          final expectedP1 = StickerPoint(config.widthMm - paddingRight, paddingTop);
-          final expectedP2 = StickerPoint(config.widthMm - paddingRight, config.heightMm - paddingBottom);
-          final expectedP3 = StickerPoint(paddingLeft, config.heightMm - paddingBottom);
+          final paddingLeft = tl.x;
+          final paddingTop = tl.y;
+          final paddingRight = config.widthMm - br.x;
+          final paddingBottom = config.heightMm - br.y;
 
-          const tol = 0.01;
-          bool match(StickerPoint a, StickerPoint b) =>
-              (a.x - b.x).abs() < tol && (a.y - b.y).abs() < tol;
+          // Verify if it is standard rectangle
+          var isCustom = true;
+          if (config.printableArea.length == 4) {
+            final p0 = config.printableArea[0];
+            final p1 = config.printableArea[1];
+            final p2 = config.printableArea[2];
+            final p3 = config.printableArea[3];
+            
+            final expectedP0 = StickerPoint(paddingLeft, paddingTop);
+            final expectedP1 = StickerPoint(config.widthMm - paddingRight, paddingTop);
+            final expectedP2 = StickerPoint(config.widthMm - paddingRight, config.heightMm - paddingBottom);
+            final expectedP3 = StickerPoint(paddingLeft, config.heightMm - paddingBottom);
 
-          if (match(p0, expectedP0) &&
-              match(p1, expectedP1) &&
-              match(p2, expectedP2) &&
-              match(p3, expectedP3)) {
-            isCustom = false;
+            const tol = 0.01;
+            bool match(StickerPoint a, StickerPoint b) =>
+                (a.x - b.x).abs() < tol && (a.y - b.y).abs() < tol;
+
+            if (match(p0, expectedP0) &&
+                match(p1, expectedP1) &&
+                match(p2, expectedP2) &&
+                match(p3, expectedP3)) {
+              isCustom = false;
+            }
           }
-        }
 
-        final pointIds = List.generate(
-          config.printableArea.length,
-          (i) => 'point_${i}_${DateTime.now().microsecondsSinceEpoch}',
-        );
-        emit(StickerSetupEditing(
-          widthMm: config.widthMm,
-          heightMm: config.heightMm,
-          cornerRadiusMm: config.cornerRadiusMm,
-          paddingTop: paddingTop,
-          paddingBottom: paddingBottom,
-          paddingLeft: paddingLeft,
-          paddingRight: paddingRight,
-          isCustomPolygon: isCustom,
-          polygonPoints: config.printableArea,
-          polygonPointIds: pointIds,
-        ));
-      } else {
-        final pointIds = List.generate(
-          4,
-          (i) => 'point_${i}_${DateTime.now().microsecondsSinceEpoch}',
-        );
-        emit(StickerSetupEditing(
-          widthMm: 100,
-          heightMm: 60,
-          cornerRadiusMm: 4,
-          paddingTop: 4,
-          paddingBottom: 4,
-          paddingLeft: 4,
-          paddingRight: 4,
-          polygonPoints: const [
-            StickerPoint(4, 4),
-            StickerPoint(96, 4),
-            StickerPoint(96, 56),
-            StickerPoint(4, 56),
-          ],
-          polygonPointIds: pointIds,
-        ));
-      }
-    } on Object catch (e) {
-      emit(StickerSetupError(e.toString()));
+          final pointIds = List.generate(
+            config.printableArea.length,
+            (i) => 'point_${i}_${DateTime.now().microsecondsSinceEpoch}',
+          );
+          emit(StickerSetupEditing(
+            widthMm: config.widthMm,
+            heightMm: config.heightMm,
+            cornerRadiusMm: config.cornerRadiusMm,
+            paddingTop: paddingTop,
+            paddingBottom: paddingBottom,
+            paddingLeft: paddingLeft,
+            paddingRight: paddingRight,
+            isCustomPolygon: isCustom,
+            polygonPoints: config.printableArea,
+            polygonPointIds: pointIds,
+          ));
+        } else {
+          final pointIds = List.generate(
+            4,
+            (i) => 'point_${i}_${DateTime.now().microsecondsSinceEpoch}',
+          );
+          emit(StickerSetupEditing(
+            widthMm: 100,
+            heightMm: 60,
+            cornerRadiusMm: 4,
+            paddingTop: 4,
+            paddingBottom: 4,
+            paddingLeft: 4,
+            paddingRight: 4,
+            polygonPoints: const [
+              StickerPoint(4, 4),
+              StickerPoint(96, 4),
+              StickerPoint(96, 56),
+              StickerPoint(4, 56),
+            ],
+            polygonPointIds: pointIds,
+          ));
+        }
+      case Failure(error: final err):
+        emit(StickerSetupError(err.message));
     }
   }
 
@@ -243,13 +245,14 @@ class StickerSetupCubit extends Cubit<StickerSetupState> {
     if (currentState is! StickerSetupEditing) return;
 
     emit(const StickerSetupSaving());
-    try {
-      final config = currentState.toConfig();
-      await _templateRepository.saveStickerConfig(templateId, config);
-      emit(StickerSetupSaved(templateId));
-    } on Object catch (e) {
-      emit(StickerSetupError(e.toString()));
-      emit(currentState);
+    final config = currentState.toConfig();
+    final result = await _templateRepository.saveStickerConfig(templateId, config);
+    switch (result) {
+      case Success():
+        emit(StickerSetupSaved(templateId));
+      case Failure(error: final err):
+        emit(StickerSetupError(err.message));
+        emit(currentState);
     }
   }
 }

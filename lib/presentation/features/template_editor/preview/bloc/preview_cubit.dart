@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/preview/bloc/preview_state.dart';
 
@@ -18,24 +19,26 @@ class PreviewCubit extends Cubit<PreviewState> {
   /// Loads the template from repository to display in the preview.
   Future<void> loadPreview() async {
     emit(const PreviewLoading());
-    try {
-      final template = await _templateRepository.fetchTemplate(templateId);
-      emit(PreviewLoaded(template));
-    } on Exception catch (e) {
-      emit(PreviewError(e.toString()));
+    final result = await _templateRepository.fetchTemplate(templateId);
+    switch (result) {
+      case Success(value: final template):
+        emit(PreviewLoaded(template));
+      case Failure(error: final err):
+        emit(PreviewError(err.message));
     }
   }
 
   /// Finalizes the template structure and saves it to the database.
   Future<void> finalizeAndSave() async {
     emit(const PreviewFinalizing());
-    try {
-      await _templateRepository.finalizeTemplate(templateId);
-      emit(const PreviewFinalized());
-    } on Object catch (e) {
-      emit(PreviewError(e.toString()));
-      // Reload preview to recover
-      await loadPreview();
+    final result = await _templateRepository.finalizeTemplate(templateId);
+    switch (result) {
+      case Success():
+        emit(const PreviewFinalized());
+      case Failure(error: final err):
+        emit(PreviewError(err.message));
+        // Reload preview to recover
+        await loadPreview();
     }
   }
 }

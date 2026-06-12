@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_state.dart';
@@ -51,12 +52,12 @@ void main() {
       'loads elements successfully from repository',
       build: () {
         when(() => templateRepository.fetchTemplate(templateId)).thenAnswer(
-          (_) async => LabelTemplate(
+          (_) async => Result.success(LabelTemplate(
             id: templateId,
             name: 'Test Template',
             stickerConfig: defaultStickerConfig,
             elements: [defaultElement],
-          ),
+          )),
         );
         return EditorCubit(templateRepository, templateId);
       },
@@ -145,7 +146,7 @@ void main() {
       'saveAndContinue calls saveElements and emits saved state',
       build: () {
         when(() => templateRepository.saveElements(any(), any()))
-            .thenAnswer((_) async => {});
+            .thenAnswer((_) async => const Result.success(null));
         return EditorCubit(templateRepository, templateId);
       },
       seed: () => EditorLoaded(

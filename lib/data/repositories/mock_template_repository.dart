@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Mock implementation of [TemplateRepository] providing seed layouts.
@@ -278,25 +279,28 @@ class MockTemplateRepository implements TemplateRepository {
   }
 
   @override
-  Future<List<LabelTemplate>> fetchTemplates() async {
+  Future<Result<List<LabelTemplate>, AppError>> fetchTemplates() async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
-    return _templates.values.toList()
+    final list = _templates.values.toList()
       ..sort((a, b) => (b.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
           .compareTo(a.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0)));
+    return Result.success(list);
   }
 
   @override
-  Future<LabelTemplate> fetchTemplate(String id) async {
+  Future<Result<LabelTemplate, AppError>> fetchTemplate(String id) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     final template = _templates[id];
     if (template == null) {
-      throw Exception('Template not found: $id');
+      return Result.failure(
+        UnexpectedError(message: 'Template not found: $id'),
+      );
     }
-    return template;
+    return Result.success(template);
   }
 
   @override
-  Future<LabelTemplate> createTemplate(String name) async {
+  Future<Result<LabelTemplate, AppError>> createTemplate(String name) async {
     await Future<void>.delayed(const Duration(milliseconds: 250));
     final id = 'temp-${DateTime.now().millisecondsSinceEpoch}';
     final template = LabelTemplate(
@@ -305,63 +309,85 @@ class MockTemplateRepository implements TemplateRepository {
       updatedAt: DateTime.now(),
     );
     _templates[id] = template;
-    return template;
+    return Result.success(template);
   }
 
   @override
-  Future<void> saveSheetConfig(String templateId, SheetConfig config) async {
+  Future<Result<void, AppError>> saveSheetConfig(String templateId, SheetConfig config) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     final template = _templates[templateId];
-    if (template == null) throw Exception('Template not found: $templateId');
+    if (template == null) {
+      return Result.failure(
+        UnexpectedError(message: 'Template not found: $templateId'),
+      );
+    }
     _templates[templateId] = template.copyWith(
       sheetConfig: config,
       updatedAt: DateTime.now(),
     );
+    return const Result.success(null);
   }
 
   @override
-  Future<void> saveStickerConfig(String templateId, StickerConfig config) async {
+  Future<Result<void, AppError>> saveStickerConfig(String templateId, StickerConfig config) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     final template = _templates[templateId];
-    if (template == null) throw Exception('Template not found: $templateId');
+    if (template == null) {
+      return Result.failure(
+        UnexpectedError(message: 'Template not found: $templateId'),
+      );
+    }
     _templates[templateId] = template.copyWith(
       stickerConfig: config,
       updatedAt: DateTime.now(),
     );
+    return const Result.success(null);
   }
 
   @override
-  Future<void> saveElements(
+  Future<Result<void, AppError>> saveElements(
       String templateId, List<ElementBlueprint> elements) async {
     await Future<void>.delayed(const Duration(milliseconds: 250));
     final template = _templates[templateId];
-    if (template == null) throw Exception('Template not found: $templateId');
+    if (template == null) {
+      return Result.failure(
+        UnexpectedError(message: 'Template not found: $templateId'),
+      );
+    }
     _templates[templateId] = template.copyWith(
       elements: elements,
       updatedAt: DateTime.now(),
     );
+    return const Result.success(null);
   }
 
   @override
-  Future<void> finalizeTemplate(String templateId) async {
+  Future<Result<void, AppError>> finalizeTemplate(String templateId) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     final template = _templates[templateId];
-    if (template == null) throw Exception('Template not found: $templateId');
+    if (template == null) {
+      return Result.failure(
+        UnexpectedError(message: 'Template not found: $templateId'),
+      );
+    }
     _templates[templateId] = template.copyWith(
       isFinalized: true,
       updatedAt: DateTime.now(),
     );
+    return const Result.success(null);
   }
 
   @override
-  Future<void> saveTemplate(LabelTemplate template) async {
+  Future<Result<void, AppError>> saveTemplate(LabelTemplate template) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     _templates[template.id] = template;
+    return const Result.success(null);
   }
 
   @override
-  Future<void> deleteTemplate(String id) async {
+  Future<Result<void, AppError>> deleteTemplate(String id) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     _templates.remove(id);
+    return const Result.success(null);
   }
 }

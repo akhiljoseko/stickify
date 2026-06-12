@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_state.dart';
 
@@ -18,24 +19,25 @@ class EditorCubit extends Cubit<EditorState> {
   /// Loads the template from repository to initiate the label design canvas editing.
   Future<void> load() async {
     emit(const EditorLoading());
-    try {
-      final template = await _templateRepository.fetchTemplate(templateId);
-      final stickerConfig =
-          template.stickerConfig ??
-          const StickerConfig(
-            widthMm: 100,
-            heightMm: 60,
-            cornerRadiusMm: 4,
-            printableArea: [],
-          );
-      emit(
-        EditorLoaded(
-          stickerConfig: stickerConfig,
-          elements: template.elements,
-        ),
-      );
-    } on Exception catch (e) {
-      emit(EditorError(e.toString()));
+    final result = await _templateRepository.fetchTemplate(templateId);
+    switch (result) {
+      case Success(value: final template):
+        final stickerConfig =
+            template.stickerConfig ??
+            const StickerConfig(
+              widthMm: 100,
+              heightMm: 60,
+              cornerRadiusMm: 4,
+              printableArea: [],
+            );
+        emit(
+          EditorLoaded(
+            stickerConfig: stickerConfig,
+            elements: template.elements,
+          ),
+        );
+      case Failure(error: final err):
+        emit(EditorError(err.message));
     }
   }
 
@@ -181,12 +183,13 @@ class EditorCubit extends Cubit<EditorState> {
     if (currentState is! EditorLoaded) return;
 
     emit(const EditorSaving());
-    try {
-      await _templateRepository.saveElements(templateId, currentState.elements);
-      emit(EditorSaved(templateId));
-    } on Exception catch (e) {
-      emit(EditorError(e.toString()));
-      emit(currentState);
+    final result = await _templateRepository.saveElements(templateId, currentState.elements);
+    switch (result) {
+      case Success():
+        emit(EditorSaved(templateId));
+      case Failure(error: final err):
+        emit(EditorError(err.message));
+        emit(currentState);
     }
   }
 }

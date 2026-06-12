@@ -1,3 +1,6 @@
+import 'package:stickify/core/error/app_error.dart';
+import 'package:stickify/core/error/result.dart';
+
 /// Domain representation of an authenticated user.
 class AppUser {
   /// Creates an [AppUser] instance.
@@ -24,14 +27,14 @@ abstract class AuthService {
   AppUser? get currentUser;
 
   /// Signs in a user using email and password.
-  Future<AppUser?> signIn(String email, String password);
+  Future<Result<AppUser, AppError>> signIn(String email, String password);
 
   /// Registers a new user using email and password.
-  Future<AppUser?> signUp(String email, String password);
+  Future<Result<AppUser, AppError>> signUp(String email, String password);
 
   /// Sends a password reset email.
-  Future<void> sendPasswordResetEmail(String email);
+  Future<Result<void, AppError>> sendPasswordResetEmail(String email);
 
   /// Logs out the user.
-  Future<void> signOut();
+  Future<Result<void, AppError>> signOut();
 }

@@ -98,7 +98,7 @@ void main() {
       rowGap: 5,
     ),
     stickerConfig: StickerConfig(
-      widthMm: 95,
+      widthMm: 90,
       heightMm: 50,
       cornerRadiusMm: 2,
       printableArea: [],

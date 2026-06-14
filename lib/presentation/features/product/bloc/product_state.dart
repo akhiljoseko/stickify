@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:stickify/domain/entities/product.dart';
+import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 
 sealed class ProductState extends Equatable {
   const ProductState();
@@ -22,16 +23,14 @@ class ProductCatalogSuccess extends ProductState {
     required this.filteredProducts,
     this.searchQuery = '',
     this.categoryFilter = '',
-    this.subView = 'catalog', // 'catalog', 'create', 'edit'
-    this.selectedProduct,
+    this.subView = const ProductCatalogView(),
   });
 
   final List<Product> products;
   final List<Product> filteredProducts;
   final String searchQuery;
   final String categoryFilter;
-  final String subView;
-  final Product? selectedProduct;
+  final ProductSubView subView;
 
   @override
   List<Object?> get props => [
@@ -40,7 +39,6 @@ class ProductCatalogSuccess extends ProductState {
         searchQuery,
         categoryFilter,
         subView,
-        selectedProduct,
       ];
 
   ProductCatalogSuccess copyWith({
@@ -48,8 +46,7 @@ class ProductCatalogSuccess extends ProductState {
     List<Product>? filteredProducts,
     String? searchQuery,
     String? categoryFilter,
-    String? subView,
-    Product? Function()? selectedProduct,
+    ProductSubView? subView,
   }) {
     return ProductCatalogSuccess(
       products: products ?? this.products,
@@ -57,7 +54,6 @@ class ProductCatalogSuccess extends ProductState {
       searchQuery: searchQuery ?? this.searchQuery,
       categoryFilter: categoryFilter ?? this.categoryFilter,
       subView: subView ?? this.subView,
-      selectedProduct: selectedProduct != null ? selectedProduct() : this.selectedProduct,
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_state.dart';
+import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_form_view.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_shared_widgets.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
@@ -21,14 +22,14 @@ class MobileProductManagementScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final cubitState = context.watch<ProductCubit>().state;
-    final showFab = cubitState is ProductCatalogSuccess && cubitState.subView == 'catalog';
+    final showFab = cubitState is ProductCatalogSuccess && cubitState.subView is ProductCatalogView;
     final formKey = GlobalKey<ProductFormViewState>();
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
       floatingActionButton: showFab
           ? FloatingActionButton(
-              onPressed: () => context.read<ProductCubit>().setSubView('create'),
+              onPressed: () => context.read<ProductCubit>().setSubView(const ProductCreateView()),
               child: const Icon(Icons.add),
             )
           : null,
@@ -83,17 +84,17 @@ class MobileProductManagementScreen extends StatelessWidget {
 
           if (state is ProductCatalogSuccess) {
             switch (state.subView) {
-              case 'details':
+              case ProductDetailView(:final product):
                 return _MobileProductDetailView(
-                  product: state.selectedProduct!,
-                  onBack: () => context.read<ProductCubit>().setSubView('catalog'),
+                  product: product,
+                  onBack: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
                 );
-              case 'create':
+              case ProductCreateView():
                 return Scaffold(
                   appBar: AppBar(
                     leading: IconButton(
                       icon: const Icon(Icons.arrow_back),
-                      onPressed: () => context.read<ProductCubit>().setSubView('catalog'),
+                      onPressed: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
                     ),
                     title: const Text('Add Product'),
                     actions: [
@@ -106,16 +107,16 @@ class MobileProductManagementScreen extends StatelessWidget {
                   ),
                   body: ProductFormView(
                     key: formKey,
-                    onBack: () => context.read<ProductCubit>().setSubView('catalog'),
+                    onBack: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
                     onSave: (product) => context.read<ProductCubit>().saveProduct(product),
                   ),
                 );
-              case 'edit':
+              case ProductEditView(:final product):
                 return Scaffold(
                   appBar: AppBar(
                     leading: IconButton(
                       icon: const Icon(Icons.arrow_back),
-                      onPressed: () => context.read<ProductCubit>().setSubView('catalog'),
+                      onPressed: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
                     ),
                     title: const Text('Edit Product'),
                     actions: [
@@ -128,13 +129,12 @@ class MobileProductManagementScreen extends StatelessWidget {
                   ),
                   body: ProductFormView(
                     key: formKey,
-                    product: state.selectedProduct,
-                    onBack: () => context.read<ProductCubit>().setSubView('catalog'),
+                    product: product,
+                    onBack: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
                     onSave: (product) => context.read<ProductCubit>().saveProduct(product),
                   ),
                 );
-              case 'catalog':
-              default:
+              case ProductCatalogView():
                 return _MobileCatalogListView(state: state);
             }
           }
@@ -311,7 +311,7 @@ class _MobileProductGrid extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () => context.read<ProductCubit>().setSubView('details', product),
+                      onPressed: () => context.read<ProductCubit>().setSubView(ProductDetailView(product)),
                       child: Text(
                         'View Details',
                         style: TextStyle(
@@ -753,7 +753,7 @@ class _MobileProductDetailView extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            onPressed: () => context.read<ProductCubit>().setSubView('edit', product),
+            onPressed: () => context.read<ProductCubit>().setSubView(ProductEditView(product)),
             tooltip: 'Edit Product',
           ),
           IconButton(

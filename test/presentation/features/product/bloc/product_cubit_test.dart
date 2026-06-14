@@ -46,6 +46,23 @@ void main() {
         category: 'Peripherals',
       ),
     ];
+
+    when(() => productRepository.getFilteredProducts(
+          query: any(named: 'query'),
+          category: any(named: 'category'),
+        )).thenAnswer((invocation) async {
+      final query = invocation.namedArguments[const Symbol('query')] as String? ?? '';
+      final category = invocation.namedArguments[const Symbol('category')] as String? ?? '';
+      final filtered = mockProducts.where((p) {
+        final matchesQuery = query.isEmpty ||
+            p.name.toLowerCase().contains(query.toLowerCase()) ||
+            p.sku.toLowerCase().contains(query.toLowerCase());
+        final matchesCategory = category.isEmpty ||
+            (p.category ?? '').toLowerCase() == category.toLowerCase();
+        return matchesQuery && matchesCategory;
+      }).toList();
+      return Result.success(filtered);
+    });
   });
 
   group('ProductCubit Tests', () {

@@ -48,6 +48,11 @@ class SyncingProductRepository implements ProductRepository {
   }
 
   @override
+  Future<Result<List<Product>, AppError>> getFilteredProducts({String query = '', String category = ''}) async {
+    return local.getFilteredProducts(query: query, category: category);
+  }
+
+  @override
   Future<Result<void, AppError>> saveProduct(Product product) async {
     developer.log('saveProduct: Saving product locally. ID: ${product.id}, Name: ${product.name}', name: 'SYNC_DEBUG');
     final localResult = await local.saveProduct(product);

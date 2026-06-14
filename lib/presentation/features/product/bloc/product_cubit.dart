@@ -35,51 +35,51 @@ class ProductCubit extends Cubit<ProductState> {
       }
     }
 
-    final result = await _productRepository.getAllProducts();
-    switch (result) {
-      case Success(value: final products):
-        final filtered = products.where((product) {
-          final matchesQuery = query.isEmpty ||
-              product.name.toLowerCase().contains(query.toLowerCase()) ||
-              product.sku.toLowerCase().contains(query.toLowerCase());
-          final matchesCategory = category.isEmpty ||
-              (product.category ?? '').toLowerCase() == category.toLowerCase();
-          return matchesQuery && matchesCategory;
-        }).toList();
+    final productsResult = await _productRepository.getAllProducts();
+    final filteredResult = await _productRepository.getFilteredProducts(
+      query: query,
+      category: category,
+    );
 
-        emit(ProductCatalogSuccess(
-          products: products,
-          filteredProducts: filtered,
-          searchQuery: query,
-          categoryFilter: category,
-          subView: subView,
-        ));
-      case Failure(error: final err):
-        emit(ProductCatalogError(err.message));
+    if (productsResult is Success<List<Product>, AppError> &&
+        filteredResult is Success<List<Product>, AppError>) {
+      emit(ProductCatalogSuccess(
+        products: productsResult.value,
+        filteredProducts: filteredResult.value,
+        searchQuery: query,
+        categoryFilter: category,
+        subView: subView,
+      ));
+    } else {
+      final err = (productsResult is Failure)
+          ? (productsResult as Failure).error
+          : (filteredResult as Failure).error;
+      emit(ProductCatalogError(err.message));
     }
   }
 
-  void applyFilter({String? query, String? category}) {
+  Future<void> applyFilter({String? query, String? category}) async {
     final currentState = state;
     if (currentState is! ProductCatalogSuccess) return;
 
     final newQuery = query ?? currentState.searchQuery;
     final newCategory = category ?? currentState.categoryFilter;
 
-    final filtered = currentState.products.where((product) {
-      final matchesQuery = newQuery.isEmpty ||
-          product.name.toLowerCase().contains(newQuery.toLowerCase()) ||
-          product.sku.toLowerCase().contains(newQuery.toLowerCase());
-      final matchesCategory = newCategory.isEmpty ||
-          (product.category ?? '').toLowerCase() == newCategory.toLowerCase();
-      return matchesQuery && matchesCategory;
-    }).toList();
+    final result = await _productRepository.getFilteredProducts(
+      query: newQuery,
+      category: newCategory,
+    );
 
-    emit(currentState.copyWith(
-      searchQuery: newQuery,
-      categoryFilter: newCategory,
-      filteredProducts: filtered,
-    ));
+    switch (result) {
+      case Success(value: final filtered):
+        emit(currentState.copyWith(
+          searchQuery: newQuery,
+          categoryFilter: newCategory,
+          filteredProducts: filtered,
+        ));
+      case Failure(error: final err):
+        emit(ProductCatalogError(err.message));
+    }
   }
 
   void setSubView(ProductSubView subView) {

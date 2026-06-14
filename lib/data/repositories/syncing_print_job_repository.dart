@@ -5,7 +5,7 @@ import 'package:stickify/data/repositories/firestore_print_job_repository.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Syncing wrapper for [PrintJobRepository] implementing local caching and manual synchronization.
-class SyncingPrintJobRepository implements PrintJobRepository {
+class SyncingPrintJobRepository implements SyncablePrintJobRepository {
   /// Creates a [SyncingPrintJobRepository] instance.
   SyncingPrintJobRepository({
     required this.local,
@@ -70,6 +70,7 @@ class SyncingPrintJobRepository implements PrintJobRepository {
   }
 
   /// Pulls all print jobs from Firestore and overwrites the local cache.
+  @override
   Future<Result<void, AppError>> sync(String uid) async {
     try {
       final remoteRepo = FirestorePrintJobRepository(remoteDb: remoteDb, userId: uid);

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +12,8 @@ import 'package:stickify/app/theme.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/core/platform/file_picker_service.dart';
-import 'dart:io';
 import 'package:stickify/core/services/pdf_print_service.dart';
+import 'package:stickify/core/services/print_job/timestamp_print_job_id_generator.dart';
 import 'package:stickify/core/services/printing/label_pdf_layout_engine.dart';
 import 'package:stickify/core/services/printing/windows/windows_devmode_manager.dart';
 import 'package:stickify/core/services/printing/windows/windows_paper_validator.dart';
@@ -25,7 +27,6 @@ import 'package:stickify/data/repositories/syncing_product_repository.dart';
 import 'package:stickify/data/repositories/syncing_template_repository.dart';
 import 'package:stickify/data/services/firebase_auth_service.dart';
 import 'package:stickify/data/services/firestore_remote_database_service.dart';
-import 'package:stickify/core/services/print_job/timestamp_print_job_id_generator.dart';
 import 'package:stickify/data/services/hive_local_database.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/l10n/l10n.dart';
@@ -50,9 +51,9 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   late final LocalDatabase _database;
   late final AuthService _authService;
-  late final ProductRepository _productRepository;
-  late final TemplateRepository _templateRepository;
-  late final PrintJobRepository _printJobRepository;
+  late final SyncableProductRepository _productRepository;
+  late final SyncableTemplateRepository _templateRepository;
+  late final SyncablePrintJobRepository _printJobRepository;
   late final SearchRepository _searchRepository;
   late final PrintService _printService;
   late final FilePickerService _filePickerService;
@@ -94,14 +95,14 @@ class _AppState extends State<App> {
       productRepository: _productRepository,
       templateRepository: _templateRepository,
     );
-    final layoutEngine = const LabelPdfLayoutEngine();
+    const layoutEngine = LabelPdfLayoutEngine();
     _printService = Platform.isWindows
         ? WindowsPrintService(
             layoutEngine: layoutEngine,
             paperValidator: WindowsPaperValidator(),
             devModeManager: WindowsDevModeManager(),
           )
-        : PdfPrintService(layoutEngine: layoutEngine);
+        : const PdfPrintService(layoutEngine: layoutEngine);
     _filePickerService = ImagePickerServiceImpl(ImagePicker());
     _printJobIdGenerator = const TimestampPrintJobIdGenerator();
   }
@@ -113,8 +114,11 @@ class _AppState extends State<App> {
         RepositoryProvider<LocalDatabase>.value(value: _database),
         RepositoryProvider<AuthService>.value(value: _authService),
         RepositoryProvider<ProductRepository>.value(value: _productRepository),
+        RepositoryProvider<SyncableProductRepository>.value(value: _productRepository),
         RepositoryProvider<TemplateRepository>.value(value: _templateRepository),
+        RepositoryProvider<SyncableTemplateRepository>.value(value: _templateRepository),
         RepositoryProvider<PrintJobRepository>.value(value: _printJobRepository),
+        RepositoryProvider<SyncablePrintJobRepository>.value(value: _printJobRepository),
         RepositoryProvider<SearchRepository>.value(value: _searchRepository),
         RepositoryProvider<PrintService>.value(value: _printService),
         RepositoryProvider<PrinterDiscoveryService>.value(value: _printService as PrinterDiscoveryService),

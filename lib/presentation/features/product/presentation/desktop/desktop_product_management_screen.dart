@@ -7,6 +7,7 @@ import 'package:stickify/core/utils/adaptive_value.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_state.dart';
+import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_form_view.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_shared_widgets.dart';
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
@@ -77,31 +78,30 @@ class DesktopProductManagementScreen extends StatelessWidget {
 
           if (state is ProductCatalogSuccess) {
             switch (state.subView) {
-              case 'create':
+              case ProductCreateView():
                 return ProductFormView(
-                  onBack: () => context.read<ProductCubit>().setSubView('catalog'),
+                  onBack: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
                   onSave: (product) => context.read<ProductCubit>().saveProduct(product),
                 );
-              case 'edit':
+              case ProductEditView(:final product):
                 return ProductFormView(
-                  product: state.selectedProduct,
-                  onBack: () => context.read<ProductCubit>().setSubView('catalog'),
+                  product: product,
+                  onBack: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
                   onSave: (product) => context.read<ProductCubit>().saveProduct(product),
                 );
-              case 'details':
+              case ProductDetailView(:final product):
                 return _ProductDetailView(
-                  product: state.selectedProduct!,
-                  onBack: () => context.read<ProductCubit>().setSubView('catalog'),
-                  onEdit: (product) => context.read<ProductCubit>().setSubView('edit', product),
+                  product: product,
+                  onBack: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
+                  onEdit: (product) => context.read<ProductCubit>().setSubView(ProductEditView(product)),
                   onDelete: (id) async {
                     await context.read<ProductCubit>().deleteProduct(id);
                     if (context.mounted) {
-                      context.read<ProductCubit>().setSubView('catalog');
+                      context.read<ProductCubit>().setSubView(const ProductCatalogView());
                     }
                   },
                 );
-              case 'catalog':
-              default:
+              case ProductCatalogView():
                 return _CatalogListView(state: state);
             }
           }
@@ -162,7 +162,7 @@ class _CatalogListView extends StatelessWidget {
                           ),
                         ),
                         ElevatedButton.icon(
-                          onPressed: () => context.read<ProductCubit>().setSubView('create'),
+                          onPressed: () => context.read<ProductCubit>().setSubView(const ProductCreateView()),
                           icon: const Icon(Icons.add, size: 18),
                           label: const Text('Add Product'),
                         ),
@@ -308,7 +308,7 @@ class _ProductCatalogDesktopTable extends StatelessWidget {
           Column(
             children: products.map((product) => _HighDensityProductRow(
               product: product,
-              onViewDetails: () => context.read<ProductCubit>().setSubView('details', product),
+              onViewDetails: () => context.read<ProductCubit>().setSubView(ProductDetailView(product)),
             )).toList(),
           ),
         ],

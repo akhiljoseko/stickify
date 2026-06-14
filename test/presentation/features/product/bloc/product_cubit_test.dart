@@ -6,6 +6,7 @@ import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_state.dart';
+import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 
 class MockProductRepository extends Mock implements ProductRepository {}
 
@@ -127,11 +128,10 @@ void main() {
         products: mockProducts,
         filteredProducts: mockProducts,
       ),
-      act: (cubit) => cubit.setSubView('create'),
+      act: (cubit) => cubit.setSubView(const ProductCreateView()),
       expect: () => [
         isA<ProductCatalogSuccess>()
-            .having((s) => s.subView, 'subView', 'create')
-            .having((s) => s.selectedProduct, 'selectedProduct', null),
+            .having((s) => s.subView, 'subView', const ProductCreateView()),
       ],
     );
 

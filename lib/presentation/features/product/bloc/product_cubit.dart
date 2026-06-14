@@ -3,6 +3,7 @@ import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/presentation/features/product/bloc/product_state.dart';
+import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 
 class ProductCubit extends Cubit<ProductState> {
   ProductCubit(this._productRepository) : super(const ProductCatalogInitial());
@@ -13,18 +14,25 @@ class ProductCubit extends Cubit<ProductState> {
     final currentState = state;
     var query = '';
     var category = '';
-    var subView = initialSubView ?? 'catalog';
-    Product? selected;
+    ProductSubView subView = const ProductCatalogView();
     
     if (currentState is ProductCatalogSuccess) {
       query = currentState.searchQuery;
       category = currentState.categoryFilter;
       if (initialSubView == null) {
         subView = currentState.subView;
+      } else {
+        if (initialSubView == 'create') {
+          subView = const ProductCreateView();
+        } else {
+          subView = const ProductCatalogView();
+        }
       }
-      selected = currentState.selectedProduct;
     } else {
       emit(const ProductCatalogLoading());
+      if (initialSubView == 'create') {
+        subView = const ProductCreateView();
+      }
     }
 
     final result = await _productRepository.getAllProducts();
@@ -45,7 +53,6 @@ class ProductCubit extends Cubit<ProductState> {
           searchQuery: query,
           categoryFilter: category,
           subView: subView,
-          selectedProduct: selected,
         ));
       case Failure(error: final err):
         emit(ProductCatalogError(err.message));
@@ -75,12 +82,11 @@ class ProductCubit extends Cubit<ProductState> {
     ));
   }
 
-  void setSubView(String view, [Product? productToEdit]) {
+  void setSubView(ProductSubView subView) {
     final currentState = state;
     if (currentState is! ProductCatalogSuccess) return;
     emit(currentState.copyWith(
-      subView: view,
-      selectedProduct: () => productToEdit,
+      subView: subView,
     ));
   }
 

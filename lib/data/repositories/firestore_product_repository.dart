@@ -1,8 +1,6 @@
 import 'package:stickify/core/core.dart';
-import 'package:stickify/core/services/remote_database_service.dart';
 import 'package:stickify/data/models/firestore/product_firestore_model.dart';
-import 'package:stickify/domain/entities/product.dart';
-import 'package:stickify/domain/repositories/product_repository.dart';
+import 'package:stickify/domain/domain.dart';
 
 /// Remote repository implementation of [ProductRepository] backed by [RemoteDatabaseService].
 class FirestoreProductRepository implements ProductRepository {

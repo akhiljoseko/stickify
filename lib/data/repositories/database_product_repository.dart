@@ -1,8 +1,6 @@
 import 'package:stickify/core/core.dart';
-import 'package:stickify/core/services/local_database.dart';
 import 'package:stickify/data/models/hive/product_hive_model.dart';
-import 'package:stickify/domain/entities/product.dart';
-import 'package:stickify/domain/repositories/product_repository.dart';
+import 'package:stickify/domain/domain.dart';
 
 /// Local storage implementation of [ProductRepository] backed by [LocalDatabase].
 class DatabaseProductRepository implements ProductRepository {

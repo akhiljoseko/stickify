@@ -1,8 +1,5 @@
 import 'dart:developer' as developer;
 import 'package:stickify/core/core.dart';
-import 'package:stickify/core/services/auth_service.dart';
-import 'package:stickify/core/services/local_database.dart';
-import 'package:stickify/core/services/remote_database_service.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/firestore_product_repository.dart';
 import 'package:stickify/domain/domain.dart';

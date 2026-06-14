@@ -1,5 +1,5 @@
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
-import 'package:stickify/core/services/local_database.dart';
+import 'package:stickify/domain/domain.dart';
 import 'package:stickify/hive_registrar.g.dart';
 
 /// Local database implementation powered by Hive Community Edition (`hive_ce`).

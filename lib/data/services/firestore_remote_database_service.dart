@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:stickify/core/services/remote_database_service.dart';
+import 'package:stickify/domain/domain.dart';
 
 /// Concrete implementation of [RemoteDatabaseService] powered by Cloud Firestore.
 class FirestoreRemoteDatabaseService implements RemoteDatabaseService {

@@ -1,7 +1,4 @@
 import 'package:stickify/core/core.dart';
-import 'package:stickify/core/services/auth_service.dart';
-import 'package:stickify/core/services/local_database.dart';
-import 'package:stickify/core/services/remote_database_service.dart';
 import 'package:stickify/data/models/hive/template_hive_model.dart';
 import 'package:stickify/data/repositories/database_template_repository.dart';
 import 'package:stickify/data/repositories/firestore_template_repository.dart';

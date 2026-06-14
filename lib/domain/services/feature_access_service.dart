@@ -1,6 +1,6 @@
 import 'package:stickify/core/environment/app_environment.dart';
-import 'package:stickify/core/features/feature_availability.dart';
-import 'package:stickify/core/features/feature_id.dart';
+import 'package:stickify/domain/entities/feature_availability.dart';
+import 'package:stickify/domain/entities/feature_id.dart';
 
 /// Centralized service to evaluate if a feature is available on the current platform/form-factor.
 class FeatureAccessService {

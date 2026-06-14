@@ -1,6 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:stickify/core/core.dart';
-import 'package:stickify/core/services/auth_service.dart';
 import 'package:stickify/data/repositories/syncing_print_job_repository.dart';
 import 'package:stickify/data/repositories/syncing_product_repository.dart';
 import 'package:stickify/data/repositories/syncing_template_repository.dart';

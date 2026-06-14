@@ -6,7 +6,11 @@ class PrintJobFirestoreModel {
   PrintJobFirestoreModel({
     required this.id,
     required this.productName,
-    required this.sku,
+    required this.variantId,
+    required this.variantName,
+    required this.variantSku,
+    required this.templateId,
+    required this.templateName,
     required this.status,
     required this.printerStation,
     required this.printedAt,
@@ -18,7 +22,11 @@ class PrintJobFirestoreModel {
     return PrintJobFirestoreModel(
       id: j.id,
       productName: j.productName,
-      sku: j.sku,
+      variantId: j.variantId,
+      variantName: j.variantName,
+      variantSku: j.variantSku,
+      templateId: j.templateId,
+      templateName: j.templateName,
       status: j.status.name,
       printerStation: j.printerStation,
       printedAt: j.printedAt,
@@ -40,7 +48,11 @@ class PrintJobFirestoreModel {
     return PrintJobFirestoreModel(
       id: id,
       productName: json['productName'] as String? ?? '',
-      sku: json['sku'] as String? ?? '',
+      variantId: json['variantId'] as String? ?? '',
+      variantName: json['variantName'] as String? ?? '',
+      variantSku: json['variantSku'] as String? ?? '',
+      templateId: json['templateId'] as String? ?? '',
+      templateName: json['templateName'] as String? ?? '',
       status: json['status'] as String? ?? 'completed',
       printerStation: json['printerStation'] as String? ?? '',
       printedAt: parseDateTime(json['printedAt']),
@@ -51,7 +63,11 @@ class PrintJobFirestoreModel {
 
   final String id;
   final String productName;
-  final String sku;
+  final String variantId;
+  final String variantName;
+  final String variantSku;
+  final String templateId;
+  final String templateName;
   final String status;
   final String printerStation;
   final DateTime printedAt;
@@ -62,7 +78,11 @@ class PrintJobFirestoreModel {
     return {
       'id': id,
       'productName': productName,
-      'sku': sku,
+      'variantId': variantId,
+      'variantName': variantName,
+      'variantSku': variantSku,
+      'templateId': templateId,
+      'templateName': templateName,
       'status': status,
       'printerStation': printerStation,
       'printedAt': Timestamp.fromDate(printedAt),
@@ -75,7 +95,11 @@ class PrintJobFirestoreModel {
     return PrintJob(
       id: id,
       productName: productName,
-      sku: sku,
+      variantId: variantId,
+      variantName: variantName,
+      variantSku: variantSku,
+      templateId: templateId,
+      templateName: templateName,
       status: PrintJobStatus.values.firstWhere(
         (e) => e.name == status,
         orElse: () => PrintJobStatus.completed,

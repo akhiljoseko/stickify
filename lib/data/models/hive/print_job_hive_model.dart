@@ -8,7 +8,11 @@ class PrintJobHiveModel extends HiveObject {
   PrintJobHiveModel({
     required this.id,
     required this.productName,
-    required this.sku,
+    required this.variantId,
+    required this.variantName,
+    required this.variantSku,
+    required this.templateId,
+    required this.templateName,
     required this.status,
     required this.printerStation,
     required this.printedAt,
@@ -20,7 +24,11 @@ class PrintJobHiveModel extends HiveObject {
     return PrintJobHiveModel(
       id: j.id,
       productName: j.productName,
-      sku: j.sku,
+      variantId: j.variantId,
+      variantName: j.variantName,
+      variantSku: j.variantSku,
+      templateId: j.templateId,
+      templateName: j.templateName,
       status: j.status.name,
       printerStation: j.printerStation,
       printedAt: j.printedAt,
@@ -36,28 +44,44 @@ class PrintJobHiveModel extends HiveObject {
   final String productName;
 
   @HiveField(2)
-  final String sku;
+  final String variantId;
 
   @HiveField(3)
-  final String status;
+  final String variantName;
 
   @HiveField(4)
-  final String printerStation;
+  final String variantSku;
 
   @HiveField(5)
-  final DateTime printedAt;
+  final String templateId;
 
   @HiveField(6)
-  final int labelCount;
+  final String templateName;
 
   @HiveField(7)
+  final String status;
+
+  @HiveField(8)
+  final String printerStation;
+
+  @HiveField(9)
+  final DateTime printedAt;
+
+  @HiveField(10)
+  final int labelCount;
+
+  @HiveField(11)
   final bool isVerified;
 
   PrintJob toDomain() {
     return PrintJob(
       id: id,
       productName: productName,
-      sku: sku,
+      variantId: variantId,
+      variantName: variantName,
+      variantSku: variantSku,
+      templateId: templateId,
+      templateName: templateName,
       status: PrintJobStatus.values.firstWhere(
         (e) => e.name == status,
         orElse: () => PrintJobStatus.completed,

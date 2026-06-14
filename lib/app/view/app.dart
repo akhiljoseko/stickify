@@ -25,6 +25,7 @@ import 'package:stickify/data/repositories/syncing_product_repository.dart';
 import 'package:stickify/data/repositories/syncing_template_repository.dart';
 import 'package:stickify/data/services/firebase_auth_service.dart';
 import 'package:stickify/data/services/firestore_remote_database_service.dart';
+import 'package:stickify/core/services/print_job/timestamp_print_job_id_generator.dart';
 import 'package:stickify/data/services/hive_local_database.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/l10n/l10n.dart';
@@ -55,6 +56,7 @@ class _AppState extends State<App> {
   late final SearchRepository _searchRepository;
   late final PrintService _printService;
   late final FilePickerService _filePickerService;
+  late final PrintJobIdGenerator _printJobIdGenerator;
 
   @override
   void initState() {
@@ -101,6 +103,7 @@ class _AppState extends State<App> {
           )
         : PdfPrintService(layoutEngine: layoutEngine);
     _filePickerService = ImagePickerServiceImpl(ImagePicker());
+    _printJobIdGenerator = const TimestampPrintJobIdGenerator();
   }
 
   @override
@@ -115,6 +118,7 @@ class _AppState extends State<App> {
         RepositoryProvider<SearchRepository>.value(value: _searchRepository),
         RepositoryProvider<PrintService>.value(value: _printService),
         RepositoryProvider<PrinterDiscoveryService>.value(value: _printService as PrinterDiscoveryService),
+        RepositoryProvider<PrintJobIdGenerator>.value(value: _printJobIdGenerator),
         RepositoryProvider<FilePickerService>.value(value: _filePickerService),
         RepositoryProvider<FeatureAccessService>(
           create: (_) => const FeatureAccessService(),

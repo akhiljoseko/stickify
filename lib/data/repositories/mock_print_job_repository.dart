@@ -17,7 +17,11 @@ class MockPrintJobRepository implements PrintJobRepository {
     PrintJob(
       id: 'job-001',
       productName: 'Pro-X Gaming Headset',
-      sku: 'GAM-2024-XP01',
+      variantId: 'GAM-2024-XP01',
+      variantName: 'Standard',
+      variantSku: 'GAM-2024-XP01',
+      templateId: 'template-001',
+      templateName: 'Standard Shipping',
       status: PrintJobStatus.completed,
       printerStation: 'Station #03',
       printedAt: DateTime(2023, 10, 24, 14, 30),
@@ -27,7 +31,11 @@ class MockPrintJobRepository implements PrintJobRepository {
     PrintJob(
       id: 'job-002',
       productName: 'Industrial Drill Bit Set',
-      sku: 'TL-DR-9922',
+      variantId: 'TL-DR-9922',
+      variantName: 'Standard',
+      variantSku: 'TL-DR-9922',
+      templateId: 'template-002',
+      templateName: 'Standard Shipping',
       status: PrintJobStatus.completed,
       printerStation: 'Station #01',
       printedAt: DateTime(2023, 10, 24, 12, 10),
@@ -36,7 +44,11 @@ class MockPrintJobRepository implements PrintJobRepository {
     PrintJob(
       id: 'job-003',
       productName: 'LED Panel XL-400',
-      sku: 'LT-LP-0400',
+      variantId: 'LT-LP-0400',
+      variantName: 'Standard',
+      variantSku: 'LT-LP-0400',
+      templateId: 'template-001',
+      templateName: 'Standard Shipping',
       status: PrintJobStatus.completed,
       printerStation: 'Station #02',
       printedAt: DateTime(2023, 10, 23, 9, 45),
@@ -46,7 +58,11 @@ class MockPrintJobRepository implements PrintJobRepository {
     PrintJob(
       id: 'job-004',
       productName: 'Organic Cold Brew 12oz',
-      sku: 'BEV-CB-ORG-12',
+      variantId: 'BEV-CB-ORG-12',
+      variantName: 'Standard',
+      variantSku: 'BEV-CB-ORG-12',
+      templateId: 'template-003',
+      templateName: 'Standard Shipping',
       status: PrintJobStatus.printing,
       printerStation: 'Station #02',
       printedAt: DateTime(2023, 10, 25, 8),
@@ -55,7 +71,11 @@ class MockPrintJobRepository implements PrintJobRepository {
     PrintJob(
       id: 'job-005',
       productName: 'Eco-Wrap Large 50m',
-      sku: 'PKG-EW-LRG-50',
+      variantId: 'PKG-EW-LRG-50',
+      variantName: 'Standard',
+      variantSku: 'PKG-EW-LRG-50',
+      templateId: 'template-001',
+      templateName: 'Standard Shipping',
       status: PrintJobStatus.queued,
       printerStation: 'Station #05',
       printedAt: DateTime(2023, 10, 25, 8, 15),
@@ -72,9 +92,9 @@ class MockPrintJobRepository implements PrintJobRepository {
   }
 
   @override
-  Future<Result<List<PrintJob>, AppError>> getJobsBySku(String sku) async {
+  Future<Result<List<PrintJob>, AppError>> getJobsByVariantSku(String variantSku) async {
     await Future<void>.delayed(const Duration(milliseconds: 400));
-    final filtered = _mockJobs.where((j) => j.sku == sku).toList();
+    final filtered = _mockJobs.where((j) => j.variantSku == variantSku).toList();
     return Result.success(filtered);
   }
 

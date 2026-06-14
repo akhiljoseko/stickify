@@ -94,7 +94,7 @@ class _RecentPrintCardState extends State<RecentPrintCard> {
             ),
             const SizedBox(height: 2),
             Text(
-              'SKU: ${widget.job.sku}',
+              'SKU: ${widget.job.variantSku}',
               style: textTheme.labelSmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontSize: 12,

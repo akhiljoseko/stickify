@@ -29,7 +29,7 @@ void main() {
   );
 
   setUp(() {
-    engine = const LabelPdfLayoutEngine();
+    engine = const LabelPdfLayoutEngine(useIsolate: false);
   });
 
   group('LabelPdfLayoutEngine Output Inspection Tests', () {

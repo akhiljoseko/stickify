@@ -33,7 +33,7 @@ void main() {
   );
 
   setUp(() {
-    service = PdfPrintService(layoutEngine: const LabelPdfLayoutEngine());
+    service = PdfPrintService(layoutEngine: const LabelPdfLayoutEngine(useIsolate: false));
     mockPrintingPlatform = FakePrintingPlatform();
     PrintingPlatform.instance = mockPrintingPlatform;
   });

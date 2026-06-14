@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:stickify/core/core.dart';
+import 'package:stickify/core/services/pdf/pdf_element_renderer.dart';
 import 'package:stickify/core/services/pdf/pdf_element_renderer_registry.dart';
 import 'package:stickify/domain/domain.dart';
 
@@ -185,7 +186,16 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     final elements = <pw.Widget>[];
 
     for (final bp in template.elements) {
-      final renderer = PdfElementRendererRegistry.getRenderer(bp);
+      final PdfElementRenderer renderer;
+      try {
+        renderer = PdfElementRendererRegistry.getRenderer(bp);
+      } on Object catch (e, s) {
+        throw UnexpectedError(
+          message: 'Unknown element type: No PDF renderer found for ${bp.runtimeType}.',
+          originalError: e,
+          stackTrace: s,
+        );
+      }
       final childWidget = renderer.render(
         bp,
         product,

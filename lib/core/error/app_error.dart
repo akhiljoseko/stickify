@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 ///
 /// An error holds a user-friendly [message], an optional error [code],
 /// and optional original error objects and stack traces for logging.
-sealed class AppError extends Equatable {
+sealed class AppError extends Equatable implements Exception {
   const AppError({
     required this.message,
     this.code,

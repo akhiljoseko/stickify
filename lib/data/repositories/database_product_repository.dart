@@ -22,6 +22,8 @@ class DatabaseProductRepository implements ProductRepository {
         case Failure(error: final err):
           return Result.failure(err);
       }
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, stackTrace) {
       return Result.failure(DatabaseError(
         message: 'Failed to retrieve frequent products from database.',
@@ -36,6 +38,8 @@ class DatabaseProductRepository implements ProductRepository {
     try {
       final model = await _db.get<ProductHiveModel>(_collection, id);
       return Result.success(model?.toDomain());
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, stackTrace) {
       return Result.failure(DatabaseError(
         message: 'Failed to retrieve product from database.',
@@ -50,6 +54,8 @@ class DatabaseProductRepository implements ProductRepository {
     try {
       final allModels = await _db.getAll<ProductHiveModel>(_collection);
       return Result.success(allModels.map((m) => m.toDomain()).toList());
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, stackTrace) {
       return Result.failure(DatabaseError(
         message: 'Failed to retrieve products from database.',
@@ -77,6 +83,8 @@ class DatabaseProductRepository implements ProductRepository {
         case Failure(error: final err):
           return Result.failure(err);
       }
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, stackTrace) {
       return Result.failure(DatabaseError(
         message: 'Failed to retrieve filtered products from database.',
@@ -95,6 +103,8 @@ class DatabaseProductRepository implements ProductRepository {
         ProductHiveModel.fromDomain(product),
       );
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, stackTrace) {
       return Result.failure(DatabaseError(
         message: 'Failed to save product to database.',
@@ -109,6 +119,8 @@ class DatabaseProductRepository implements ProductRepository {
     try {
       await _db.delete(_collection, id);
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, stackTrace) {
       return Result.failure(DatabaseError(
         message: 'Failed to delete product from database.',

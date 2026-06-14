@@ -14,7 +14,7 @@ class DatabaseTemplateRepository implements TemplateRepository {
   Future<LabelTemplate> _getTemplate(String id) async {
     final model = await _db.get<LabelTemplateHiveModel>(_collection, id);
     if (model == null) {
-      throw Exception('Template not found: $id');
+      throw TemplateNotFoundError(templateId: id);
     }
     return model.toDomain();
   }
@@ -29,6 +29,8 @@ class DatabaseTemplateRepository implements TemplateRepository {
               .compareTo(a.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0)),
         );
       return Result.success(list);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         DatabaseError(
@@ -45,6 +47,8 @@ class DatabaseTemplateRepository implements TemplateRepository {
     try {
       final template = await _getTemplate(id);
       return Result.success(template);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         DatabaseError(
@@ -71,6 +75,8 @@ class DatabaseTemplateRepository implements TemplateRepository {
         LabelTemplateHiveModel.fromDomain(template),
       );
       return Result.success(template);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         DatabaseError(
@@ -96,6 +102,8 @@ class DatabaseTemplateRepository implements TemplateRepository {
         LabelTemplateHiveModel.fromDomain(updated),
       );
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         DatabaseError(
@@ -121,6 +129,8 @@ class DatabaseTemplateRepository implements TemplateRepository {
         LabelTemplateHiveModel.fromDomain(updated),
       );
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         DatabaseError(
@@ -146,6 +156,8 @@ class DatabaseTemplateRepository implements TemplateRepository {
         LabelTemplateHiveModel.fromDomain(updated),
       );
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         DatabaseError(
@@ -171,6 +183,8 @@ class DatabaseTemplateRepository implements TemplateRepository {
         LabelTemplateHiveModel.fromDomain(updated),
       );
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         DatabaseError(
@@ -191,6 +205,8 @@ class DatabaseTemplateRepository implements TemplateRepository {
         LabelTemplateHiveModel.fromDomain(template),
       );
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         DatabaseError(
@@ -207,6 +223,8 @@ class DatabaseTemplateRepository implements TemplateRepository {
     try {
       await _db.delete(_collection, id);
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         DatabaseError(

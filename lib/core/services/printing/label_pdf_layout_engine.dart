@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -14,7 +15,12 @@ import 'package:stickify/domain/domain.dart';
 /// Concrete layout engine that compiles sticker layouts into PDF bytes.
 class LabelPdfLayoutEngine implements LabelLayoutEngine {
   /// Instantiates a new [LabelPdfLayoutEngine].
-  const LabelPdfLayoutEngine();
+  const LabelPdfLayoutEngine({
+    this.useIsolate = true,
+  });
+
+  /// Whether to run the layout generation in a background isolate.
+  final bool useIsolate;
 
   @override
   Future<Uint8List> buildPdfBytes({
@@ -27,7 +33,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     // 1. Pre-cache all network/asset/file images on the main thread
     final imageCache = await _preCacheImages(template);
 
-    // 2. Offload compilation to a background Isolate (unless in flutter test)
+    // 2. Offload compilation to a background Isolate (unless configured not to)
     final jobInput = _PdfJobInput(
       product: product,
       variant: variant,
@@ -35,12 +41,13 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       quantity: quantity,
       disabledSlots: disabledSlots,
       imageCache: imageCache,
+      compress: useIsolate,
     );
 
-    if (Platform.environment.containsKey('FLUTTER_TEST')) {
-      return _buildPdfDocumentInBackground(jobInput);
-    } else {
+    if (useIsolate) {
       return Isolate.run(() => _buildPdfDocumentInBackground(jobInput));
+    } else {
+      return _buildPdfDocumentInBackground(jobInput);
     }
   }
 
@@ -98,7 +105,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     _PdfJobInput input,
   ) async {
     final doc = pw.Document(
-      compress: !Platform.environment.containsKey('FLUTTER_TEST'),
+      compress: input.compress,
     );
 
     final sheetConfig = input.template.sheetConfig!;
@@ -208,7 +215,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
           left: bp.x * PdfPageFormat.mm,
           top: bp.y * PdfPageFormat.mm,
           child: pw.Transform.rotate(
-            angle: bp.rotation * (3.141592653589793 / 180),
+            angle: bp.rotation * (pi / 180),
             child: pw.SizedBox(
               width: bp.width * PdfPageFormat.mm,
               height: bp.height * PdfPageFormat.mm,
@@ -296,6 +303,7 @@ class _PdfJobInput {
     required this.quantity,
     required this.disabledSlots,
     required this.imageCache,
+    required this.compress,
   });
 
   /// The active product.
@@ -315,4 +323,7 @@ class _PdfJobInput {
 
   /// Pre-cached image asset bytes indexed by source path/URL.
   final Map<String, Uint8List> imageCache;
+
+  /// Whether to compress the generated PDF.
+  final bool compress;
 }

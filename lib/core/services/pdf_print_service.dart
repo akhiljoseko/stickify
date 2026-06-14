@@ -11,7 +11,7 @@ import 'package:stickify/domain/domain.dart';
 /// This service coordinates the rendering of structured sticker layouts on print sheets
 /// by delegating PDF compilation to a [LabelLayoutEngine], and then dispatching the
 /// job to the printing system.
-class PdfPrintService implements PrintService {
+class PdfPrintService implements PrintService, PrinterDiscoveryService {
   /// Instantiates a new [PdfPrintService].
   const PdfPrintService({
     required LabelLayoutEngine layoutEngine,

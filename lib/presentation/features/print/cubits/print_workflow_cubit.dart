@@ -15,6 +15,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     required this.templateRepository,
     required this.printJobRepository,
     required this.printService,
+    required this.printerDiscoveryService,
   }) : super(const PrintWorkflowInitial());
 
   /// Repository providing product catalog records.
@@ -28,6 +29,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
 
   /// Service dispatching compiled labels to physical printer hardware.
   final PrintService printService;
+
+  /// Service discovering physical/system printers.
+  final PrinterDiscoveryService printerDiscoveryService;
 
   /// Loads the initial metadata needed to configure the print job.
   ///
@@ -68,7 +72,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 selected = templates.first;
               }
 
-              final printers = await printService.getAvailablePrinters();
+              final printers = await printerDiscoveryService.getAvailablePrinters();
               final defaultPrinter = printers.firstWhere(
                 (p) => p.isDefault,
                 orElse: () => printers.isNotEmpty ? printers.first : const PrinterDevice(name: 'No Printer Found', url: ''),

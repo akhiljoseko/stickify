@@ -36,3 +36,4 @@ export 'services/auth_service.dart';
 export 'services/local_database.dart';
 export 'services/remote_database_service.dart';
 export 'services/feature_access_service.dart';
+export 'services/printer_discovery_service.dart';

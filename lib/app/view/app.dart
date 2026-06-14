@@ -14,8 +14,8 @@ import 'package:stickify/l10n/l10n.dart';
 /// Root application widget.
 class App extends StatefulWidget {
   const App({
-    super.key,
     required this.locator,
+    super.key,
   });
 
   final AppServiceLocator locator;

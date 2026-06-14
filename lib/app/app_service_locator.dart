@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:stickify/core/core.dart';
 import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/core/services/pdf_print_service.dart';
 import 'package:stickify/core/services/print_job/timestamp_print_job_id_generator.dart';
@@ -41,8 +40,8 @@ class AppServiceLocator {
     required this.filePickerService,
     required this.printJobIdGenerator,
     required this.featureAccessService,
-    required StreamSubscription<AppUser?> authSubscription,
-  }) : _authSubscription = authSubscription;
+    required this._authSubscription,
+  });
 
   /// Async factory to build and initialize all dependencies.
   static Future<AppServiceLocator> create({
@@ -81,18 +80,20 @@ class AppServiceLocator {
     );
 
     const layoutEngine = LabelPdfLayoutEngine();
-    final PrintService printService = Platform.isWindows
+    final printService = Platform.isWindows
         ? WindowsPrintService(
             layoutEngine: layoutEngine,
             paperValidator: WindowsPaperValidator(),
             devModeManager: WindowsDevModeManager(),
-          )
-        : const PdfPrintService(layoutEngine: layoutEngine);
+          ) as PrintService
+        : const PdfPrintService(layoutEngine: layoutEngine) as PrintService;
 
     final filePickerService = ImagePickerServiceImpl(ImagePicker());
-    final printJobIdGenerator = const TimestampPrintJobIdGenerator();
+    const printJobIdGenerator = TimestampPrintJobIdGenerator();
     const featureAccessService = FeatureAccessService();
 
+    // The subscription is saved in a private field and cancelled inside locator dispose method.
+    // ignore: cancel_subscriptions
     final authSubscription = authService.authStateChanges.listen((user) {
       if (user != null) {
         final uid = user.uid;

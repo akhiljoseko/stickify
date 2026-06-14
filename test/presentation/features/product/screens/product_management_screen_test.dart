@@ -22,8 +22,6 @@ void main() {
         sku: 'SKU-FALLBACK',
         totalPrints: 0,
         lastPrintedAt: DateTime(2023, 10, 24),
-        assignedStation: 'Station #01',
-        stationStatus: StationStatus.online,
       ),
     );
   });
@@ -37,8 +35,6 @@ void main() {
         sku: 'WTCH-293-882-EL',
         totalPrints: 1240,
         lastPrintedAt: DateTime(2023, 10, 24),
-        assignedStation: 'Station #02',
-        stationStatus: StationStatus.online,
         category: 'Electronics',
       ),
       Product(
@@ -47,8 +43,6 @@ void main() {
         sku: 'AUD-HX0-912-PR',
         totalPrints: 892,
         lastPrintedAt: DateTime(2023, 10, 24),
-        assignedStation: 'Station #05',
-        stationStatus: StationStatus.online,
         category: 'Peripherals',
       ),
     ];

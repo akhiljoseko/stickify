@@ -37,8 +37,6 @@ class TextElementRenderer implements LabelElementRenderer {
             return product.totalPrints.toString();
           case 'lastPrintedAt':
             return product.lastPrintedAt.toIso8601String();
-          case 'assignedStation':
-            return product.assignedStation;
           case 'shelfLifeDays':
             return product.shelfLifeDays?.toString() ?? '';
           case 'storageConditions':

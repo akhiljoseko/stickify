@@ -22,8 +22,6 @@ class ProductHiveModelAdapter extends TypeAdapter<ProductHiveModel> {
       sku: fields[2] as String,
       totalPrints: (fields[3] as num).toInt(),
       lastPrintedAt: fields[4] as DateTime,
-      assignedStation: fields[5] as String,
-      stationStatus: fields[6] as String,
       category: fields[7] as String?,
       shelfLifeDays: (fields[8] as num?)?.toInt(),
       storageConditions: fields[9] as String?,
@@ -41,7 +39,7 @@ class ProductHiveModelAdapter extends TypeAdapter<ProductHiveModel> {
   @override
   void write(BinaryWriter writer, ProductHiveModel obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -52,10 +50,6 @@ class ProductHiveModelAdapter extends TypeAdapter<ProductHiveModel> {
       ..write(obj.totalPrints)
       ..writeByte(4)
       ..write(obj.lastPrintedAt)
-      ..writeByte(5)
-      ..write(obj.assignedStation)
-      ..writeByte(6)
-      ..write(obj.stationStatus)
       ..writeByte(7)
       ..write(obj.category)
       ..writeByte(8)

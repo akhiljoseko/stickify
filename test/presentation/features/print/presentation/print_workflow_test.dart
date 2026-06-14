@@ -41,8 +41,6 @@ void main() {
         sku: 'SKU',
         totalPrints: 0,
         lastPrintedAt: DateTime(2026),
-        assignedStation: '',
-        stationStatus: StationStatus.offline,
       ),
     );
     registerFallbackValue(
@@ -82,8 +80,6 @@ void main() {
     sku: 'PROD-SKU',
     totalPrints: 10,
     lastPrintedAt: DateTime(2026),
-    assignedStation: 'Station #01',
-    stationStatus: StationStatus.online,
     variants: const [
       ProductVariant(
         name: 'Pack of 10',

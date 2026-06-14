@@ -11,8 +11,6 @@ class ProductHiveModel extends HiveObject {
     required this.sku,
     required this.totalPrints,
     required this.lastPrintedAt,
-    required this.assignedStation,
-    required this.stationStatus,
     this.category,
     this.shelfLifeDays,
     this.storageConditions,
@@ -30,8 +28,6 @@ class ProductHiveModel extends HiveObject {
       sku: p.sku,
       totalPrints: p.totalPrints,
       lastPrintedAt: p.lastPrintedAt,
-      assignedStation: p.assignedStation,
-      stationStatus: p.stationStatus.name,
       category: p.category,
       shelfLifeDays: p.shelfLifeDays,
       storageConditions: p.storageConditions,
@@ -58,12 +54,6 @@ class ProductHiveModel extends HiveObject {
 
   @HiveField(4)
   final DateTime lastPrintedAt;
-
-  @HiveField(5)
-  final String assignedStation;
-
-  @HiveField(6)
-  final String stationStatus;
 
   @HiveField(7)
   final String? category;
@@ -94,11 +84,6 @@ class ProductHiveModel extends HiveObject {
       sku: sku,
       totalPrints: totalPrints,
       lastPrintedAt: lastPrintedAt,
-      assignedStation: assignedStation,
-      stationStatus: StationStatus.values.firstWhere(
-        (e) => e.name == stationStatus,
-        orElse: () => StationStatus.online,
-      ),
       category: category,
       shelfLifeDays: shelfLifeDays,
       storageConditions: storageConditions,

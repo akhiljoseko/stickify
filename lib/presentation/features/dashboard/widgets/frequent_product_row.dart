@@ -51,12 +51,6 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
             ? colorScheme.surfaceContainerLow.withValues(alpha: 0.4)
             : Colors.transparent;
 
-    final stationDotColor = switch (widget.product.stationStatus) {
-      StationStatus.online  => const Color(0xFF10B981),
-      StationStatus.warning => const Color(0xFFF59E0B),
-      StationStatus.offline => const Color(0xFFEF4444),
-    };
-
     final totalPrintsFormatted = widget.product.totalPrints >= 1000
         ? '${(widget.product.totalPrints / 1000).toStringAsFixed(1)}k'
         : widget.product.totalPrints.toString();
@@ -136,36 +130,6 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                ),
-              ),
-            ),
-            // ── Printer Station ───────────────────────────────────────────
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: stationDotColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        widget.product.assignedStation,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ),

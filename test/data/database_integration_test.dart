@@ -69,8 +69,6 @@ void main() {
             sku: 'STK-99-SUPER',
             totalPrints: 5,
             lastPrintedAt: DateTime.now(),
-            assignedStation: 'Station #01',
-            stationStatus: StationStatus.online,
             category: 'Dry Goods',
           );
 
@@ -91,8 +89,6 @@ void main() {
             sku: 'SKU-A',
             totalPrints: 10,
             lastPrintedAt: DateTime.now(),
-            assignedStation: 'Station #01',
-            stationStatus: StationStatus.online,
           );
           final p2 = Product(
             id: 'prod-2',
@@ -100,8 +96,6 @@ void main() {
             sku: 'SKU-B',
             totalPrints: 20,
             lastPrintedAt: DateTime.now(),
-            assignedStation: 'Station #01',
-            stationStatus: StationStatus.online,
           );
           final p3 = Product(
             id: 'prod-3',
@@ -109,8 +103,6 @@ void main() {
             sku: 'SKU-C',
             totalPrints: 5,
             lastPrintedAt: DateTime.now(),
-            assignedStation: 'Station #01',
-            stationStatus: StationStatus.online,
           );
           (await productRepository.saveProduct(p1)).getOrThrow();
           (await productRepository.saveProduct(p2)).getOrThrow();
@@ -219,8 +211,6 @@ void main() {
             sku: 'CHRONO-01',
             totalPrints: 0,
             lastPrintedAt: DateTime.now(),
-            assignedStation: 'Station #01',
-            stationStatus: StationStatus.online,
           );
           (await productRepository.saveProduct(p1)).getOrThrow();
 
@@ -236,8 +226,6 @@ void main() {
             sku: 'SP-01',
             totalPrints: 0,
             lastPrintedAt: DateTime.now(),
-            assignedStation: 'Station #01',
-            stationStatus: StationStatus.online,
           );
           (await productRepository.saveProduct(p1)).getOrThrow();
 

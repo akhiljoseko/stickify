@@ -1,5 +1,4 @@
 import 'package:stickify/core/core.dart';
-import 'package:stickify/core/services/local_database.dart';
 import 'package:stickify/data/models/hive/template_hive_model.dart';
 import 'package:stickify/domain/domain.dart';
 

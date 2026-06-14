@@ -2,8 +2,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:stickify/auth/auth_state.dart';
 import 'package:stickify/core/core.dart';
-import 'package:stickify/core/services/auth_service.dart';
-import 'package:stickify/core/services/local_database.dart';
+import 'package:stickify/domain/domain.dart';
 
 /// Manages the application-wide authentication state.
 class AuthCubit extends Cubit<AuthState> {

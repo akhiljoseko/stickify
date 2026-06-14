@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:stickify/core/error/app_error.dart';
 import 'package:stickify/core/error/result.dart';
-import 'package:stickify/core/services/auth_service.dart';
+import 'package:stickify/domain/domain.dart';
 
 /// Concrete implementation of [AuthService] powered by the Firebase Auth SDK.
 class FirebaseAuthService implements AuthService {

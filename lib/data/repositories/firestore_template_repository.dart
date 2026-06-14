@@ -1,5 +1,4 @@
 import 'package:stickify/core/core.dart';
-import 'package:stickify/core/services/remote_database_service.dart';
 import 'package:stickify/data/models/firestore/template_firestore_model.dart';
 import 'package:stickify/domain/domain.dart';
 

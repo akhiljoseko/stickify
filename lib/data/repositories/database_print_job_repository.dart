@@ -1,8 +1,6 @@
 import 'package:stickify/core/core.dart';
-import 'package:stickify/core/services/local_database.dart';
 import 'package:stickify/data/models/hive/print_job_hive_model.dart';
-import 'package:stickify/domain/entities/print_job.dart';
-import 'package:stickify/domain/repositories/print_job_repository.dart';
+import 'package:stickify/domain/domain.dart';
 
 /// Local storage implementation of [PrintJobRepository] backed by [LocalDatabase].
 class DatabasePrintJobRepository implements PrintJobRepository {

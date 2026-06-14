@@ -73,6 +73,33 @@ class FirestoreProductRepository implements ProductRepository {
   }
 
   @override
+  Future<Result<List<Product>, AppError>> getFilteredProducts({String query = '', String category = ''}) async {
+    try {
+      final allResult = await getAllProducts();
+      switch (allResult) {
+        case Success(value: final all):
+          final filtered = all.where((product) {
+            final matchesQuery = query.isEmpty ||
+                product.name.toLowerCase().contains(query.toLowerCase()) ||
+                product.sku.toLowerCase().contains(query.toLowerCase());
+            final matchesCategory = category.isEmpty ||
+                (product.category ?? '').toLowerCase() == category.toLowerCase();
+            return matchesQuery && matchesCategory;
+          }).toList();
+          return Result.success(filtered);
+        case Failure(error: final err):
+          return Result.failure(err);
+      }
+    } catch (e, stackTrace) {
+      return Result.failure(NetworkError(
+        message: 'Failed to retrieve filtered products from remote server.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
+  }
+
+  @override
   Future<Result<void, AppError>> saveProduct(Product product) async {
     try {
       await remoteDb.setData(

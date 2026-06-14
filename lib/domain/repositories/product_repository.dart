@@ -20,6 +20,9 @@ abstract interface class ProductRepository {
   /// Returns all products in the catalogue.
   Future<Result<List<Product>, AppError>> getAllProducts();
 
+  /// Returns products matching [query] and/or [category] filters.
+  Future<Result<List<Product>, AppError>> getFilteredProducts({String query = '', String category = ''});
+
   /// Saves (creates or updates) a product in the catalogue.
   Future<Result<void, AppError>> saveProduct(Product product);
 

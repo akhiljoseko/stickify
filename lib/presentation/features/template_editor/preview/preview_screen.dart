@@ -81,8 +81,6 @@ class _PreviewViewState extends State<_PreviewView> {
             sku: 'BEV-CB-ORG-12',
             totalPrints: 1240,
             lastPrintedAt: DateTime.now(),
-            assignedStation: 'Station #02',
-            stationStatus: StationStatus.online,
             category: 'Beverages',
             shelfLifeDays: 90,
             storageConditions: 'Keep refrigerated below 5°C',

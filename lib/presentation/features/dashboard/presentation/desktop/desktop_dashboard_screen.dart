@@ -341,7 +341,6 @@ class _TableColumnHeaders extends StatelessWidget {
           _HeaderCell(label: 'Product Name & SKU', flex: 3, textTheme: textTheme, colorScheme: colorScheme),
           _HeaderCell(label: 'Last Printed', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
           _HeaderCell(label: 'Total Prints', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
-          _HeaderCell(label: 'Printer Assignment', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             child: SizedBox(width: 80),

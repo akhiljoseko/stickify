@@ -86,8 +86,6 @@ void main() {
     sku: 'CB-100',
     totalPrints: 5,
     lastPrintedAt: DateTime(2026),
-    assignedStation: 'Station 1',
-    stationStatus: StationStatus.online,
   );
 
   const testVariant = ProductVariant(
@@ -146,8 +144,6 @@ void main() {
       sku: '',
       totalPrints: 0,
       lastPrintedAt: DateTime(2026),
-      assignedStation: '',
-      stationStatus: StationStatus.offline,
     ));
     registerFallbackValue(const ProductVariant(
       name: '',

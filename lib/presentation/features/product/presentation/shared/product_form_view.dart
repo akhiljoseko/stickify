@@ -193,8 +193,6 @@ class ProductFormViewState extends State<ProductFormView> {
       sku: sku,
       totalPrints: widget.product?.totalPrints ?? 0,
       lastPrintedAt: widget.product?.lastPrintedAt ?? DateTime.now(),
-      assignedStation: widget.product?.assignedStation ?? 'Station #01',
-      stationStatus: widget.product?.stationStatus ?? StationStatus.online,
       category: category,
       shelfLifeDays: shelfLife,
       storageConditions: storage,

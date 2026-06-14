@@ -3,18 +3,6 @@ import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 
-/// Represents the online/connectivity status of a printer station.
-enum StationStatus {
-  /// The station is online and ready to accept jobs.
-  online,
-
-  /// The station is experiencing low ink, media, or a warning state.
-  warning,
-
-  /// The station is offline or unreachable.
-  offline,
-}
-
 /// A pure business entity representing a product in the Stickify catalogue.
 ///
 /// This entity belongs to the global domain layer and must contain no
@@ -28,8 +16,6 @@ enum StationStatus {
 /// - [sku] — Stock-keeping unit code (monospaced in the UI).
 /// - [totalPrints] — Lifetime count of labels printed for this product.
 /// - [lastPrintedAt] — Timestamp of the most recent print job.
-/// - [assignedStation] — The printer station currently assigned to this product.
-/// - [stationStatus] — Online/warning/offline state of the assigned station.
 /// - [category] — Optional product category for filtering.
 /// - [shelfLifeDays] — Optional shelf life in days.
 /// - [storageConditions] — Optional storage conditions description.
@@ -44,8 +30,6 @@ class Product extends Equatable {
     required this.sku,
     required this.totalPrints,
     required this.lastPrintedAt,
-    required this.assignedStation,
-    required this.stationStatus,
     this.category,
     this.shelfLifeDays,
     this.storageConditions,
@@ -69,12 +53,6 @@ class Product extends Equatable {
 
   /// Timestamp of the most recent print operation for this product.
   final DateTime lastPrintedAt;
-
-  /// Printer station currently assigned (e.g., `'Station #02'`).
-  final String assignedStation;
-
-  /// Current connectivity status of the assigned printer station.
-  final StationStatus stationStatus;
 
   /// Optional product category (e.g., `'Beverages'`, `'Industrial'`).
   final String? category;
@@ -111,8 +89,6 @@ class Product extends Equatable {
         sku,
         totalPrints,
         lastPrintedAt,
-        assignedStation,
-        stationStatus,
         category,
         shelfLifeDays,
         storageConditions,
@@ -129,8 +105,6 @@ class Product extends Equatable {
     String? sku,
     int? totalPrints,
     DateTime? lastPrintedAt,
-    String? assignedStation,
-    StationStatus? stationStatus,
     String? category,
     int? shelfLifeDays,
     String? storageConditions,
@@ -145,8 +119,6 @@ class Product extends Equatable {
       sku: sku ?? this.sku,
       totalPrints: totalPrints ?? this.totalPrints,
       lastPrintedAt: lastPrintedAt ?? this.lastPrintedAt,
-      assignedStation: assignedStation ?? this.assignedStation,
-      stationStatus: stationStatus ?? this.stationStatus,
       category: category ?? this.category,
       shelfLifeDays: shelfLifeDays ?? this.shelfLifeDays,
       storageConditions: storageConditions ?? this.storageConditions,

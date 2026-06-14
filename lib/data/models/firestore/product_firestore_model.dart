@@ -9,8 +9,6 @@ class ProductFirestoreModel {
     required this.sku,
     required this.totalPrints,
     required this.lastPrintedAt,
-    required this.assignedStation,
-    required this.stationStatus,
     this.category,
     this.shelfLifeDays,
     this.storageConditions,
@@ -27,8 +25,6 @@ class ProductFirestoreModel {
       sku: p.sku,
       totalPrints: p.totalPrints,
       lastPrintedAt: p.lastPrintedAt,
-      assignedStation: p.assignedStation,
-      stationStatus: p.stationStatus.name,
       category: p.category,
       shelfLifeDays: p.shelfLifeDays,
       storageConditions: p.storageConditions,
@@ -57,8 +53,6 @@ class ProductFirestoreModel {
       sku: json['sku'] as String? ?? '',
       totalPrints: json['totalPrints'] as int? ?? 0,
       lastPrintedAt: parseDateTime(json['lastPrintedAt']),
-      assignedStation: json['assignedStation'] as String? ?? '',
-      stationStatus: json['stationStatus'] as String? ?? 'online',
       category: json['category'] as String?,
       shelfLifeDays: json['shelfLifeDays'] as int?,
       storageConditions: json['storageConditions'] as String?,
@@ -80,8 +74,6 @@ class ProductFirestoreModel {
   final String sku;
   final int totalPrints;
   final DateTime lastPrintedAt;
-  final String assignedStation;
-  final String stationStatus;
   final String? category;
   final int? shelfLifeDays;
   final String? storageConditions;
@@ -97,8 +89,6 @@ class ProductFirestoreModel {
       'sku': sku,
       'totalPrints': totalPrints,
       'lastPrintedAt': Timestamp.fromDate(lastPrintedAt),
-      'assignedStation': assignedStation,
-      'stationStatus': stationStatus,
       'category': category,
       'shelfLifeDays': shelfLifeDays,
       'storageConditions': storageConditions,
@@ -116,11 +106,6 @@ class ProductFirestoreModel {
       sku: sku,
       totalPrints: totalPrints,
       lastPrintedAt: lastPrintedAt,
-      assignedStation: assignedStation,
-      stationStatus: StationStatus.values.firstWhere(
-        (e) => e.name == stationStatus,
-        orElse: () => StationStatus.online,
-      ),
       category: category,
       shelfLifeDays: shelfLifeDays,
       storageConditions: storageConditions,

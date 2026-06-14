@@ -31,7 +31,8 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     required this.templates,
     this.selectedTemplate,
     this.quantity = 20,
-    this.selectedPrinter = 'Zebra ZT411-A (Default)',
+    this.availablePrinters = const [],
+    this.selectedPrinter,
     this.disabledSlots = const {},
   });
 
@@ -50,8 +51,11 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
   /// Label sheet slot index count or quantity to print.
   final int quantity;
 
-  /// Selected printer name.
-  final String selectedPrinter;
+  /// List of available system printers.
+  final List<PrinterDevice> availablePrinters;
+
+  /// Selected printer device.
+  final PrinterDevice? selectedPrinter;
 
   /// Set of disabled label slot grid indices to skip when compiling.
   final Set<int> disabledSlots;
@@ -63,7 +67,8 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     List<LabelTemplate>? templates,
     LabelTemplate? Function()? selectedTemplate,
     int? quantity,
-    String? selectedPrinter,
+    List<PrinterDevice>? availablePrinters,
+    PrinterDevice? Function()? selectedPrinter,
     Set<int>? disabledSlots,
   }) {
     return PrintWorkflowLoaded(
@@ -72,7 +77,8 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
       templates: templates ?? this.templates,
       selectedTemplate: selectedTemplate != null ? selectedTemplate() : this.selectedTemplate,
       quantity: quantity ?? this.quantity,
-      selectedPrinter: selectedPrinter ?? this.selectedPrinter,
+      availablePrinters: availablePrinters ?? this.availablePrinters,
+      selectedPrinter: selectedPrinter != null ? selectedPrinter() : this.selectedPrinter,
       disabledSlots: disabledSlots ?? this.disabledSlots,
     );
   }
@@ -84,6 +90,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
         templates,
         selectedTemplate,
         quantity,
+        availablePrinters,
         selectedPrinter,
         disabledSlots,
       ];

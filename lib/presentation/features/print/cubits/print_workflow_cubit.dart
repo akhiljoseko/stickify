@@ -68,11 +68,19 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 selected = templates.first;
               }
 
+              final printers = await printService.getAvailablePrinters();
+              final defaultPrinter = printers.firstWhere(
+                (p) => p.isDefault,
+                orElse: () => printers.isNotEmpty ? printers.first : const PrinterDevice(name: 'No Printer Found', url: ''),
+              );
+
               emit(PrintWorkflowLoaded(
                 product: product,
                 variant: variant,
                 templates: templates,
                 selectedTemplate: selected,
+                availablePrinters: printers,
+                selectedPrinter: defaultPrinter,
               ));
           }
       }
@@ -101,10 +109,10 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   }
 
   /// Updates the selected destination printer.
-  void updatePrinter(String printer) {
+  void updatePrinter(PrinterDevice printer) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
-      emit(s.copyWith(selectedPrinter: printer));
+      emit(s.copyWith(selectedPrinter: () => printer));
     }
   }
 
@@ -136,6 +144,11 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         emit(const PrintWorkflowError(message: 'No label template selected.'));
         return;
       }
+      final printer = s.selectedPrinter;
+      if (printer == null) {
+        emit(const PrintWorkflowError(message: 'No printer selected.'));
+        return;
+      }
 
       emit(PrintWorkflowSubmitting(loadedState: s));
       final printResult = await printService.printLabels(
@@ -144,7 +157,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         template: template,
         quantity: s.quantity,
         disabledSlots: s.disabledSlots,
-        printer: PrinterDevice(name: s.selectedPrinter, url: ''),
+        printer: printer,
       );
 
       switch (printResult) {
@@ -157,7 +170,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
             productName: '${s.product.name} - ${s.variant.name}',
             sku: s.variant.sku,
             status: PrintJobStatus.completed,
-            printerStation: s.selectedPrinter.split(' ').first,
+            printerStation: printer.name,
             printedAt: DateTime.now(),
             labelCount: s.quantity,
           );

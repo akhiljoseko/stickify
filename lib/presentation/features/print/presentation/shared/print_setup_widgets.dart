@@ -63,18 +63,19 @@ class ParametersPanel extends StatelessWidget {
             ),
             const SizedBox(height: 20),
              // Printer Selection
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<PrinterDevice>(
               isExpanded: true,
-              initialValue: loadedState.selectedPrinter,
+              value: loadedState.selectedPrinter,
               decoration: const InputDecoration(
                 labelText: 'Printer Selection',
                 border: OutlineInputBorder(),
               ),
-              items: const [
-                DropdownMenuItem(value: 'Zebra ZT411-A (Default)', child: Text('Zebra ZT411-A (Default)')),
-                DropdownMenuItem(value: 'Brother QL-820NWB', child: Text('Brother QL-820NWB')),
-                DropdownMenuItem(value: 'Industrial Master B3', child: Text('Industrial Master B3')),
-              ],
+              items: loadedState.availablePrinters.map((p) =>
+                DropdownMenuItem<PrinterDevice>(
+                  value: p,
+                  child: Text(p.name),
+                ),
+              ).toList(),
               onChanged: (val) {
                 if (val != null) {
                   context.read<PrintWorkflowCubit>().updatePrinter(val);

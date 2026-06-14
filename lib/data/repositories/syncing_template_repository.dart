@@ -1,36 +1,24 @@
 import 'package:stickify/core/core.dart';
-import 'package:stickify/data/models/hive/template_hive_model.dart';
-import 'package:stickify/data/repositories/database_template_repository.dart';
-import 'package:stickify/data/repositories/firestore_template_repository.dart';
+import 'package:stickify/data/repositories/syncing_base.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Syncing wrapper for [TemplateRepository] implementing local caching and manual synchronization.
-class SyncingTemplateRepository implements SyncableTemplateRepository {
+class SyncingTemplateRepository with SyncableRepository<LabelTemplate> implements SyncableTemplateRepository {
   /// Creates a [SyncingTemplateRepository] instance.
   SyncingTemplateRepository({
     required this.local,
-    required this.auth,
-    required this.remoteDb,
-    required this.localDatabase,
+    required this.syncQueue,
+    this.remote,
   });
 
   /// The local template repository.
-  final DatabaseTemplateRepository local;
+  final TemplateRepository local;
 
-  /// The auth service interface.
-  final AuthService auth;
+  /// The sync queue service.
+  final SyncQueue syncQueue;
 
-  /// The remote database service interface.
-  final RemoteDatabaseService remoteDb;
-
-  /// The local database service interface.
-  final LocalDatabase localDatabase;
-
-  FirestoreTemplateRepository? get _remote {
-    final uid = auth.currentUser?.uid;
-    if (uid == null) return null;
-    return FirestoreTemplateRepository(remoteDb: remoteDb, userId: uid);
-  }
+  /// The remote template repository.
+  TemplateRepository? remote;
 
   @override
   Future<Result<List<LabelTemplate>, AppError>> fetchTemplates() async {
@@ -47,24 +35,20 @@ class SyncingTemplateRepository implements SyncableTemplateRepository {
     final localResult = await local.createTemplate(name);
     switch (localResult) {
       case Success(value: final template):
-        final syncKey = 'templates_${template.id}';
-
-        await localDatabase.save('sync_queue', syncKey, {
-          'id': template.id,
-          'collection': 'templates',
-          'action': 'save',
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
-
-        final remoteRepo = _remote;
-        if (remoteRepo != null) {
-          final remoteResult = await remoteRepo.saveTemplate(template);
-          if (remoteResult is Success) {
-            await localDatabase.delete('sync_queue', syncKey);
-          }
+        final syncResult = await executeSyncMutation(
+          localCall: () async => Result.success(template),
+          remoteCall: remote != null ? () => remote!.saveTemplate(template) : null,
+          syncQueue: syncQueue,
+          collection: 'templates',
+          id: template.id,
+          action: SyncAction.save,
+        );
+        switch (syncResult) {
+          case Success():
+            return Result.success(template);
+          case Failure(error: final err):
+            return Result.failure(err);
         }
-        return Result.success(template);
-
       case Failure(error: final err):
         return Result.failure(err);
     }
@@ -72,218 +56,163 @@ class SyncingTemplateRepository implements SyncableTemplateRepository {
 
   @override
   Future<Result<void, AppError>> saveSheetConfig(String templateId, SheetConfig config) async {
-    final localResult = await local.saveSheetConfig(templateId, config);
-    switch (localResult) {
-      case Success():
-        final syncKey = 'templates_$templateId';
-        await localDatabase.save('sync_queue', syncKey, {
-          'id': templateId,
-          'collection': 'templates',
-          'action': 'save',
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
-
-        final remoteRepo = _remote;
-        if (remoteRepo != null) {
-          final updatedResult = await local.fetchTemplate(templateId);
-          if (updatedResult is Success<LabelTemplate, AppError>) {
-            final remoteResult = await remoteRepo.saveTemplate(updatedResult.value);
-            if (remoteResult is Success) {
-              await localDatabase.delete('sync_queue', syncKey);
+    return executeSyncMutation(
+      localCall: () => local.saveSheetConfig(templateId, config),
+      remoteCall: remote != null
+          ? () async {
+              final updatedResult = await local.fetchTemplate(templateId);
+              switch (updatedResult) {
+                case Success(value: final template):
+                  return remote!.saveTemplate(template);
+                case Failure(error: final err):
+                  return Result.failure(err);
+              }
             }
-          }
-        }
-        return const Result.success(null);
-
-      case Failure(error: final err):
-        return Result.failure(err);
-    }
+          : null,
+      syncQueue: syncQueue,
+      collection: 'templates',
+      id: templateId,
+      action: SyncAction.save,
+    );
   }
 
   @override
   Future<Result<void, AppError>> saveStickerConfig(String templateId, StickerConfig config) async {
-    final localResult = await local.saveStickerConfig(templateId, config);
-    switch (localResult) {
-      case Success():
-        final syncKey = 'templates_$templateId';
-        await localDatabase.save('sync_queue', syncKey, {
-          'id': templateId,
-          'collection': 'templates',
-          'action': 'save',
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
-
-        final remoteRepo = _remote;
-        if (remoteRepo != null) {
-          final updatedResult = await local.fetchTemplate(templateId);
-          if (updatedResult is Success<LabelTemplate, AppError>) {
-            final remoteResult = await remoteRepo.saveTemplate(updatedResult.value);
-            if (remoteResult is Success) {
-              await localDatabase.delete('sync_queue', syncKey);
+    return executeSyncMutation(
+      localCall: () => local.saveStickerConfig(templateId, config),
+      remoteCall: remote != null
+          ? () async {
+              final updatedResult = await local.fetchTemplate(templateId);
+              switch (updatedResult) {
+                case Success(value: final template):
+                  return remote!.saveTemplate(template);
+                case Failure(error: final err):
+                  return Result.failure(err);
+              }
             }
-          }
-        }
-        return const Result.success(null);
-
-      case Failure(error: final err):
-        return Result.failure(err);
-    }
+          : null,
+      syncQueue: syncQueue,
+      collection: 'templates',
+      id: templateId,
+      action: SyncAction.save,
+    );
   }
 
   @override
   Future<Result<void, AppError>> saveElements(String templateId, List<ElementBlueprint> elements) async {
-    final localResult = await local.saveElements(templateId, elements);
-    switch (localResult) {
-      case Success():
-        final syncKey = 'templates_$templateId';
-        await localDatabase.save('sync_queue', syncKey, {
-          'id': templateId,
-          'collection': 'templates',
-          'action': 'save',
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
-
-        final remoteRepo = _remote;
-        if (remoteRepo != null) {
-          final updatedResult = await local.fetchTemplate(templateId);
-          if (updatedResult is Success<LabelTemplate, AppError>) {
-            final remoteResult = await remoteRepo.saveTemplate(updatedResult.value);
-            if (remoteResult is Success) {
-              await localDatabase.delete('sync_queue', syncKey);
+    return executeSyncMutation(
+      localCall: () => local.saveElements(templateId, elements),
+      remoteCall: remote != null
+          ? () async {
+              final updatedResult = await local.fetchTemplate(templateId);
+              switch (updatedResult) {
+                case Success(value: final template):
+                  return remote!.saveTemplate(template);
+                case Failure(error: final err):
+                  return Result.failure(err);
+              }
             }
-          }
-        }
-        return const Result.success(null);
-
-      case Failure(error: final err):
-        return Result.failure(err);
-    }
+          : null,
+      syncQueue: syncQueue,
+      collection: 'templates',
+      id: templateId,
+      action: SyncAction.save,
+    );
   }
 
   @override
   Future<Result<void, AppError>> finalizeTemplate(String templateId) async {
-    final localResult = await local.finalizeTemplate(templateId);
-    switch (localResult) {
-      case Success():
-        final syncKey = 'templates_$templateId';
-        await localDatabase.save('sync_queue', syncKey, {
-          'id': templateId,
-          'collection': 'templates',
-          'action': 'save',
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
-
-        final remoteRepo = _remote;
-        if (remoteRepo != null) {
-          final updatedResult = await local.fetchTemplate(templateId);
-          if (updatedResult is Success<LabelTemplate, AppError>) {
-            final remoteResult = await remoteRepo.saveTemplate(updatedResult.value);
-            if (remoteResult is Success) {
-              await localDatabase.delete('sync_queue', syncKey);
+    return executeSyncMutation(
+      localCall: () => local.finalizeTemplate(templateId),
+      remoteCall: remote != null
+          ? () async {
+              final updatedResult = await local.fetchTemplate(templateId);
+              switch (updatedResult) {
+                case Success(value: final template):
+                  return remote!.saveTemplate(template);
+                case Failure(error: final err):
+                  return Result.failure(err);
+              }
             }
-          }
-        }
-        return const Result.success(null);
-
-      case Failure(error: final err):
-        return Result.failure(err);
-    }
+          : null,
+      syncQueue: syncQueue,
+      collection: 'templates',
+      id: templateId,
+      action: SyncAction.save,
+    );
   }
 
   @override
   Future<Result<void, AppError>> saveTemplate(LabelTemplate template) async {
-    final localResult = await local.saveTemplate(template);
-    switch (localResult) {
-      case Success():
-        final syncKey = 'templates_${template.id}';
-        await localDatabase.save('sync_queue', syncKey, {
-          'id': template.id,
-          'collection': 'templates',
-          'action': 'save',
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
-
-        final remoteRepo = _remote;
-        if (remoteRepo != null) {
-          final remoteResult = await remoteRepo.saveTemplate(template);
-          if (remoteResult is Success) {
-            await localDatabase.delete('sync_queue', syncKey);
-          }
-        }
-        return const Result.success(null);
-
-      case Failure(error: final err):
-        return Result.failure(err);
-    }
+    return executeSyncMutation(
+      localCall: () => local.saveTemplate(template),
+      remoteCall: remote != null ? () => remote!.saveTemplate(template) : null,
+      syncQueue: syncQueue,
+      collection: 'templates',
+      id: template.id,
+      action: SyncAction.save,
+    );
   }
 
   @override
   Future<Result<void, AppError>> deleteTemplate(String id) async {
-    final localResult = await local.deleteTemplate(id);
-    switch (localResult) {
-      case Success():
-        final syncKey = 'templates_$id';
-        await localDatabase.save('sync_queue', syncKey, {
-          'id': id,
-          'collection': 'templates',
-          'action': 'delete',
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
-
-        final remoteRepo = _remote;
-        if (remoteRepo != null) {
-          final remoteResult = await remoteRepo.deleteTemplate(id);
-          if (remoteResult is Success) {
-            await localDatabase.delete('sync_queue', syncKey);
-          }
-        }
-        return const Result.success(null);
-
-      case Failure(error: final err):
-        return Result.failure(err);
-    }
+    return executeSyncMutation(
+      localCall: () => local.deleteTemplate(id),
+      remoteCall: remote != null ? () => remote!.deleteTemplate(id) : null,
+      syncQueue: syncQueue,
+      collection: 'templates',
+      id: id,
+      action: SyncAction.delete,
+    );
   }
 
   /// Pulls all templates from Firestore and overwrites the local cache.
   @override
   Future<Result<void, AppError>> sync(String uid) async {
-    try {
-      final remoteRepo = FirestoreTemplateRepository(remoteDb: remoteDb, userId: uid);
+    if (remote == null) {
+      return const Result.failure(
+        UnexpectedError(
+          message: 'Cannot sync templates: remote repository is not configured.',
+        ),
+      );
+    }
 
+    try {
       // 1. Process pending changes in sync queue for templates
-      final allQueue = await localDatabase.getAll<dynamic>('sync_queue');
-      final templateQueue = allQueue
-          .where((entry) => entry is Map && entry['collection'] == 'templates')
-          .cast<Map<dynamic, dynamic>>()
-          .toList();
+      final pendingResult = await syncQueue.getPending();
+      final List<SyncOperation> templateQueue;
+      switch (pendingResult) {
+        case Success(value: final pending):
+          templateQueue = pending
+              .where((entry) => entry.collection == 'templates')
+              .toList();
+        case Failure(error: final err):
+          return Result.failure(err);
+      }
 
       for (final entry in templateQueue) {
-        final id = entry['id'] as String;
-        final action = entry['action'] as String;
-        final syncKey = 'templates_$id';
-
-        if (action == 'save') {
-          final localResult = await local.fetchTemplate(id);
+        if (entry.action == SyncAction.save) {
+          final localResult = await local.fetchTemplate(entry.id);
           switch (localResult) {
             case Success(value: final template):
-              final remoteResult = await remoteRepo.saveTemplate(template);
+              final remoteResult = await remote!.saveTemplate(template);
               if (remoteResult is Failure) {
                 return remoteResult;
               }
             case Failure(error: final err):
               return Result.failure(err);
           }
-        } else if (action == 'delete') {
-          final remoteResult = await remoteRepo.deleteTemplate(id);
+        } else if (entry.action == SyncAction.delete) {
+          final remoteResult = await remote!.deleteTemplate(entry.id);
           if (remoteResult is Failure) {
             return remoteResult;
           }
         }
-        await localDatabase.delete('sync_queue', syncKey);
+        await syncQueue.complete(entry);
       }
 
       // 2. Pull from remote and overwrite local
-      final remoteResult = await remoteRepo.fetchTemplates();
+      final remoteResult = await remote!.fetchTemplates();
       switch (remoteResult) {
         case Success(value: final remoteTemplates):
           // Clear local cache
@@ -302,11 +231,10 @@ class SyncingTemplateRepository implements SyncableTemplateRepository {
 
           // Overwrite local cache with remote data (preserving original IDs)
           for (final t in remoteTemplates) {
-            await localDatabase.save<LabelTemplateHiveModel>(
-              'templates',
-              t.id,
-              LabelTemplateHiveModel.fromDomain(t),
-            );
+            final saveResult = await local.saveTemplate(t);
+            if (saveResult is Failure) {
+              return saveResult;
+            }
           }
           return const Result.success(null);
 

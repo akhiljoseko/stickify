@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,12 +23,16 @@ import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
 import 'package:stickify/data/repositories/database_template_repository.dart';
+import 'package:stickify/data/repositories/firestore_print_job_repository.dart';
+import 'package:stickify/data/repositories/firestore_product_repository.dart';
+import 'package:stickify/data/repositories/firestore_template_repository.dart';
 import 'package:stickify/data/repositories/syncing_print_job_repository.dart';
 import 'package:stickify/data/repositories/syncing_product_repository.dart';
 import 'package:stickify/data/repositories/syncing_template_repository.dart';
 import 'package:stickify/data/services/firebase_auth_service.dart';
 import 'package:stickify/data/services/firestore_remote_database_service.dart';
 import 'package:stickify/data/services/hive_local_database.dart';
+import 'package:stickify/data/services/hive_sync_queue.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/l10n/l10n.dart';
 
@@ -58,6 +63,7 @@ class _AppState extends State<App> {
   late final PrintService _printService;
   late final FilePickerService _filePickerService;
   late final PrintJobIdGenerator _printJobIdGenerator;
+  StreamSubscription<AppUser?>? _authSubscription;
 
   @override
   void initState() {
@@ -71,25 +77,37 @@ class _AppState extends State<App> {
     final localProductRepo = DatabaseProductRepository(database: _database);
     final localTemplateRepo = DatabaseTemplateRepository(database: _database);
     final localPrintJobRepo = DatabasePrintJobRepository(database: _database);
+    final syncQueue = HiveSyncQueue(database: _database);
 
     _productRepository = SyncingProductRepository(
       local: localProductRepo,
-      auth: _authService,
-      remoteDb: remoteDb,
-      localDatabase: _database,
+      syncQueue: syncQueue,
     );
     _templateRepository = SyncingTemplateRepository(
       local: localTemplateRepo,
-      auth: _authService,
-      remoteDb: remoteDb,
-      localDatabase: _database,
+      syncQueue: syncQueue,
     );
     _printJobRepository = SyncingPrintJobRepository(
       local: localPrintJobRepo,
-      auth: _authService,
-      remoteDb: remoteDb,
+      syncQueue: syncQueue,
       localDatabase: _database,
     );
+
+    _authSubscription = _authService.authStateChanges.listen((user) {
+      if (user != null) {
+        final uid = user.uid;
+        (_productRepository as SyncingProductRepository).remote =
+            FirestoreProductRepository(remoteDb: remoteDb, userId: uid);
+        (_templateRepository as SyncingTemplateRepository).remote =
+            FirestoreTemplateRepository(remoteDb: remoteDb, userId: uid);
+        (_printJobRepository as SyncingPrintJobRepository).remote =
+            FirestorePrintJobRepository(remoteDb: remoteDb, userId: uid);
+      } else {
+        (_productRepository as SyncingProductRepository).remote = null;
+        (_templateRepository as SyncingTemplateRepository).remote = null;
+        (_printJobRepository as SyncingPrintJobRepository).remote = null;
+      }
+    });
 
     _searchRepository = DatabaseSearchRepository(
       productRepository: _productRepository,
@@ -105,6 +123,12 @@ class _AppState extends State<App> {
         : const PdfPrintService(layoutEngine: layoutEngine);
     _filePickerService = ImagePickerServiceImpl(ImagePicker());
     _printJobIdGenerator = const TimestampPrintJobIdGenerator();
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   @override

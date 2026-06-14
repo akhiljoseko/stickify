@@ -1,52 +1,71 @@
 # Printing System Module Documentation
 
-This document describes the architectural design, requirements, and concrete implementation details of the physical PDF printing engine in the Stickify application.
+This document describes the architectural design, requirements, concrete implementation details, and extensibility guidelines of the physical PDF printing engine in the Stickify application.
 
 ---
 
 ## 1. Requirements
 
-The printing module is designed to map visual labels designed in the editor to actual physical sheets (e.g., A4 pages) and dispatch them to the host operating system's printing dialog.
+The printing module is designed to map visual labels designed in the editor to actual physical sheets (e.g., custom label sheets) and dispatch them to physical printer hardware.
 
 Key operational requirements include:
-- **Sheet Configuration Grid**: Calculate slots on print sheets from column/row layouts and margins.
+- **Sheet Configuration Grid**: Calculate slots on print sheets from column/row layouts and margins in physical millimeters.
 - **Dynamic Reflowing Grid**: Support toggling individual slots on a sheet to mark them as "skipped/used" (e.g., when reusing partially printed label sheets). Enable automatic downstream reflowing.
 - **Millimeter Accuracy**: Scale all layout calculations in points to match precise millimeter dimensions on physical paper.
-- **Responsive Parameter Panel**: Adapt the printer selection, quantity input, and sheet previews dynamically across all desktop, tablet, and mobile viewports.
+- **Dynamic Printer Listing**: Query available system printer devices dynamically and pre-select the system default printer.
+- **Windows Alignment Parity**: Resolve the systematic 15 mm left-alignment shift when printing custom sheet sizes on Windows printer drivers.
 - **Thread Safety & Performance**: Prevent blocking the main UI thread during CPU-intensive PDF page construction.
-- **Direct System Dispatch**: Hand off compiled documents directly to the operating system's native print manager.
+- **Direct System Dispatch**: Send compiled print jobs directly to selected printer devices without presenting duplicate OS print dialogs on Windows.
 
 ---
 
 ## 2. Architecture & System Decoupling
 
-To enforce Clean Architecture boundaries, the printing infrastructure is completely decoupled from the presentation layer:
+Following SOLID design principles, the printing system is modularized to separate layout composition, printer validation, and operating-system-specific hardware settings.
 
 ```
-[UI: PrintSetupPage] ──▶ [State: PrintWorkflowCubit]
-                                │
-                                ▼ (abstract interface)
-                      [Domain: PrintService]
-                                ▲
-                                │ (concrete implementation)
-                     [Core: PdfPrintService]
+                     Application Layer (DI Root: app.dart)
+                                    │
+                                    ▼
+                          PrintWorkflowCubit
+                                    │
+                                    ▼
+                      PrintService (domain interface)
+                                    ▲
+                 ┌──────────────────┴──────────────────┐
+                 │                                     │
+        WindowsPrintService                      PdfPrintService
+      (Platform.isWindows)                   (All Other Platforms)
+        ├── LabelPdfLayoutEngine                └── LabelPdfLayoutEngine
+        ├── WindowsDevModeManager
+        └── WindowsPaperValidator
 ```
 
-- **Domain Layer (`lib/domain/services/print_service.dart`)**: Exposes an abstract service interface `PrintService` specifying the `printLabels` call contract. This layer has no dependencies on packages like `pdf` or `printing`.
-- **Infrastructure Layer (`lib/core/services/pdf_print_service.dart`)**: Implements `PdfPrintService` using the third-party `pdf` and `printing` packages.
-- **UI Injection**: Placed in `RepositoryProvider<PrintService>` at the application root (`lib/app/view/app.dart`) and injected directly into `PrintWorkflowCubit` inside `PrintSetupPage`.
+### Key Interfaces & Components
+
+1. **[PrintService](file:///g:/GitHub/stickify/lib/domain/services/print_service.dart) (Domain Interface)**:
+   Specifies the contract for querying available printers and printing label sheets. It has no third-party package dependencies.
+2. **[LabelLayoutEngine](file:///g:/GitHub/stickify/lib/domain/services/label_layout_engine.dart) (Domain Interface)**:
+   Defines the interface for compiling label designs and generating raw PDF bytes.
+3. **[PaperValidationEngine](file:///g:/GitHub/stickify/lib/domain/services/paper_validation_engine.dart) (Domain Interface)**:
+   Provides checking mechanism to verify if a given printer supports the requested sheet dimensions.
+4. **[LabelPdfLayoutEngine](file:///g:/GitHub/stickify/lib/core/services/printing/label_pdf_layout_engine.dart) (Core Shared Engine)**:
+   Implements `LabelLayoutEngine`. Operates as a pure, platform-independent builder class that renders elements, handles image caches, and compiles pages in a background Isolate.
+5. **[PdfPrintService](file:///g:/GitHub/stickify/lib/core/services/pdf_print_service.dart) (Core Implementation)**:
+   Implements `PrintService` for macOS, Linux, and mobile platforms. Delegates PDF generation to `LabelPdfLayoutEngine` and uses the standard dialog-based print manager pathway via `Printing.layoutPdf`.
+6. **[WindowsPrintService](file:///g:/GitHub/stickify/lib/core/services/printing/windows/windows_print_service.dart) (Core Windows-Specific Implementation)**:
+   Implements `PrintService` for Windows. Orchestrates pre-print validations, paper form checks, Windows-specific DEVMODE overrides, and direct spooler dispatch.
 
 ---
 
 ## 3. Background Isolate Compilation
 
-Creating documents with hundreds of elements, rendering high-resolution barcodes, and saving the output bytes is a CPU-intensive operation. Running this synchronously on the main Dart UI thread blocks frames, causing the application to hang and displaying the macOS spinning loading indicator.
+Creating documents with hundreds of elements, rendering high-resolution barcodes, and saving the output bytes is a CPU-intensive operation. Running this synchronously on the main Dart UI thread blocks frames, causing the application to hang.
 
-### Solution: Spawning a Dart Isolate
-- Image assets, network URLs, and local file images are pre-cached in memory on the main thread (since reading files and assets uses platform channels that are only available on the main thread).
-- The pre-cached image bytes, template layout, product, and variant configuration are sent to a background Dart Isolate via `Isolate.run()`.
-- The background isolate constructs the `pw.Document` and serializes it to `Uint8List` using `doc.save()`.
-- The main thread awaits the compiled bytes and forwards them directly to the native printing channel.
+- **Main Thread Caching**: Image assets, network URLs, and local file images are pre-cached in memory on the main thread (since reading files and assets uses platform channels that are only available on the main thread).
+- **Background Isolate**: The pre-cached image bytes, template layout, product, and variant configuration are sent to a background Dart Isolate via `Isolate.run()` (bypassed in unit tests via `FLUTTER_TEST` check).
+- **Compilation**: The background isolate constructs the `pw.Document` and serializes it to `Uint8List` using `doc.save()`.
+- **Result Return**: The compiled bytes are returned to the main thread and forwarded to the printing pipeline.
 
 ---
 
@@ -65,7 +84,7 @@ Rather than using a procedural `if-else` block to translate domain element bluep
 ```
 
 - **PdfElementRenderer Strategy**: Declares a generic rendering interface `PdfElementRenderer<T extends ElementBlueprint>`.
-- **PdfElementRendererRegistry**: Maps blueprint classes (e.g. `TextElementBlueprint`) to their concrete rendering strategies (e.g. `PdfTextElementRenderer`).
+- **PdfElementRendererRegistry**: Maps blueprint classes (e.g. `TextElementBlueprint`) to their concrete rendering strategies.
 - **Instance Isolation**: To prevent layout state contamination across multiple repeated slot placements, template element widget trees are compiled fresh for each individual sticker slot instance. Reusable binary resources like network/local image bytes and fonts are pre-cached on the main thread, while the widget tree itself is constructed on-demand.
 
 ---
@@ -103,46 +122,68 @@ When the physical sticker is non-rectangular (e.g., circular, oval, polygonal), 
 
 ---
 
-## 8. Printer Calibration
+## 8. Windows Registry-Level Alignment Correction
 
-Custom calibration profiles adjust print jobs per device model to correct for driver/hardware feed offsets:
-- Supports X/Y translation offsets in millimeters.
-- Supports X/Y scaling coefficients.
-- Settings are applied dynamically during physical coordinates computation, keeping design templates clean and portable.
+On Windows, standard print spoolers read printer driver preferences (`DEVMODE`) from the system registry to determine the paper size for a print job. When a custom size (e.g., 180×300 mm) is requested, Windows defaults to the printer's registered default size (typically A4 = 210 mm) if the target form is not explicitly set in the registry. This mismatch shifts layout origins by half the difference (`(210 - 180) / 2 = 15 mm`), throwing labels out of alignment.
+
+Stickify resolves this driver-level issue on Windows by performing a localized registry override before printing, invalidating caches, printing directly, and then restoring original system configurations.
+
+### 1. DEVMODE Override Lifecycle ([WindowsDevModeManager](file:///g:/GitHub/stickify/lib/core/services/printing/windows/windows_devmode_manager.dart))
+- **Settings Backup**: Reads current print configuration binary preferences from the Windows Registry keys `HKCU:\Printers\DevModes2` and `HKCU:\Printers\DevModePerUser`. It writes a recovery entry to `HKCU:\Printers\DevModeBackup` in case of application crash.
+- **DEVMODE Override**: Sets `dmPaperWidth` and `dmPaperLength` (in tenths-of-millimeter), updates `dmPaperSize` to the matched registered paper form ID (`RawKind`), and enables custom layout dimensions.
+- **Cache Invalidation**: Broadcasts the `WM_DEVMODECHANGE` window notification using win32 API to force active system print spoolers to reload configurations.
+- **Spooler Printing**: Calls `Printing.directPrintPdf(..., usePrinterSettings: true)` to bypass duplicate dialog prompts, routing the job directly through the newly-applied registry preferences.
+- **Registry Restoration**: A 5-second delay is introduced to give the OS print queue enough time to ingest and lock the customized print settings. Afterwards, the manager restores original backup preferences and broadcasts `WM_DEVMODECHANGE` again.
+- **Self-Healing Startup**: On application startup, `healOnStartup()` scans `HKCU:\Printers\DevModeBackup` and restores any preferences that were left modified due to unexpected application exits or crashes.
+- **Job Mutex**: A serialized execution queue prevents overlapping print jobs from concurrently overwriting and corrupting registry values.
+
+### 2. Paper Form Size Verification ([WindowsPaperValidator](file:///g:/GitHub/stickify/lib/core/services/printing/windows/windows_paper_validator.dart))
+- Before initiating a print job on Windows, the system queries the target printer using `System.Drawing.Printing.PrinterSettings.PaperSizes` via PowerShell.
+- It verifies that a registered paper form size matches the requested layout within a `±1.5 mm` tolerance (supporting standard and landscape/flipped orientations).
+- If no matching paper size is registered on the system, the print job fails with a clear validation instruction directing the user to register the custom paper sheet in Windows Print Server Properties first.
 
 ---
 
-## 9. macOS Deadlock Prevention & App Sandbox
+## 9. Future Platform Extensibility Guide
 
-Enabling printing on macOS requires addressing two system boundaries:
-1. **App Sandbox boundary**: The macOS application manifests (`DebugProfile.entitlements` and `Release.entitlements`) explicitly declare the printing capability key:
-   ```xml
-   <key>com.apple.security.print</key>
-   <true/>
-   ```
-2. **Platform Channel Deadlock**: Under experimental merged UI/Platform threading configurations on macOS, a synchronous callback loop between native printing and Dart can cause a deadlock. We resolve this by:
-   - Setting `dynamicLayout: false` inside the `Printing.layoutPdf` call.
-   - Disabling the experimental merged thread model via the `FLTEnableMergedPlatformUIThread` key set to `false` in `Info.plist`.
+The decoupling of layout engines and concrete print services makes it simple to extend custom hardware/driver corrections to other operating systems (such as macOS, Linux, or Android).
 
----
+### Extensibility Roadmap
 
-## 10. Android Custom MediaSize Print Bridge
+To add specialized support for a new operating system, follow this three-step checklist:
 
-By default, the third-party `printing` plugin's native Android implementation does not configure a custom native `PrintAttributes.MediaSize` when a non-standard page size is requested. Instead, if the requested size falls outside standard predefined dimensions (such as ISO A4 or NA Letter), it defaults to `PrintAttributes.MediaSize.UNKNOWN_PORTRAIT` or `UNKNOWN_LANDSCAPE`. This causes the native Android print spooler and printer drivers to fallback to standard A4/Letter formats, scaling or cropping custom sticker sheets.
+#### 1. Implement Custom Validation (Optional)
+If the new platform requires verifying hardware capabilities or forms (similar to the Windows paper validator):
+- Create `lib/core/services/printing/new_platform/new_platform_paper_validator.dart`.
+- Implement [PaperValidationEngine](file:///g:/GitHub/stickify/lib/domain/services/paper_validation_engine.dart).
+- Return `true` on other platforms.
 
-### Native Custom Bridge Solution
-To guarantee exact physical paper sizes and prevent scaling on Android devices, Stickify bypasses the plugin's print pathway on Android using a custom platform method channel `co.inevitablesoftware.stickify/custom_print` implemented natively in `MainActivity.kt`:
-- **Dimensions Conversion**: The requested custom sheet width and height (defined in millimeters) are converted to mils:
-  ```kotlin
-  val widthMils = (widthMm / 25.4 * 1000.0).toInt()
-  val heightMils = (heightMm / 25.4 * 1000.0).toInt()
+#### 2. Implement Platform Print Service
+Create a dedicated print service subclass under `lib/core/services/printing/new_platform/`:
+- Create `new_platform_print_service.dart` implementing [PrintService](file:///g:/GitHub/stickify/lib/domain/services/print_service.dart).
+- Pass [LabelLayoutEngine](file:///g:/GitHub/stickify/lib/domain/services/label_layout_engine.dart) in the constructor to reuse the platform-independent PDF generator.
+- Implement any platform-specific setup, native printer calls, or driver configurations inside `printLabels`.
+
+#### 3. Inject Platform-Specific Service
+Register the new class conditionally in the application's dependency injection root [app.dart](file:///g:/GitHub/stickify/lib/app/view/app.dart):
+- Import the new service.
+- Modify the `_printService` setup block:
+  ```dart
+  final layoutEngine = const LabelPdfLayoutEngine();
+  if (Platform.isWindows) {
+    _printService = WindowsPrintService(
+      layoutEngine: layoutEngine,
+      paperValidator: WindowsPaperValidator(),
+      devModeManager: WindowsDevModeManager(),
+    );
+  } else if (Platform.isMacOS) { // Example for macOS custom implementation
+    _printService = MacOSPrintService(
+      layoutEngine: layoutEngine,
+      // Pass other macOS-specific managers
+    );
+  } else {
+    _printService = PdfPrintService(layoutEngine: layoutEngine);
+  }
   ```
-- **Custom MediaSize Instantiation**: Instantiates a custom `PrintAttributes.MediaSize` using these exact mils values:
-  ```kotlin
-  val customMediaSize = PrintAttributes.MediaSize("custom_sticker_sheet", "Custom Sticker Sheet", widthMils, heightMils)
-  ```
-- **Zero Margins Enforcement**: Instructs the builder to use zero physical margins (`PrintAttributes.Margins.NO_MARGINS`) to prevent offsets.
-- **Direct Spooler Feeding**: A native `PrintDocumentAdapter` writes the raw generated PDF bytes directly to the printer file descriptor in `onWrite`.
-- **Active Mismatch Protection**: Within the adapter's `onLayout` callback, the native bridge compares the spooler's selected print size (`newAttributes.mediaSize`) against our requested custom width and height (converted to mils). A tolerance of `100 mils` (~2.54 mm) is used to account for minor printer-driver rounding errors, and orientation checks cover both portrait and landscape orientation matches. If the host OS or chosen printer forces the job to resize to an unsupported standard size (like A4 or Letter), the adapter invokes `callback.onLayoutFailed()`. This immediately halts the print job, displays a descriptive error in the system print dialog, and disables physical printing to protect physical sticker sheets.
 
-This custom platform channel is automatically active for all Android print jobs in release and debug modes. In unit test environments (`FLUTTER_TEST`), it falls back to `Printing.layoutPdf` to ensure compatibility with standard Dart platform interface mocking.
+This architecture guarantees that existing layout calculations and platform implementations are left completely untouched and free of regressions when new target operating systems are introduced.

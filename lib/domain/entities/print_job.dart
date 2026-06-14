@@ -23,7 +23,11 @@ enum PrintJobStatus {
 /// ## Fields
 /// - [id] — Unique job identifier (UUID or server-assigned key).
 /// - [productName] — Human-readable product name shown on the dashboard.
-/// - [sku] — Stock-keeping unit code rendered in monospaced label font.
+/// - [variantId] — Unique identifier of the product variant.
+/// - [variantName] — Human-readable name of the product variant.
+/// - [variantSku] — Stock-keeping unit code of the product variant.
+/// - [templateId] — Unique identifier of the label template used.
+/// - [templateName] — Human-readable name of the label template.
 /// - [status] — Current lifecycle status of this print job.
 /// - [printerStation] — The hardware station that processed/is processing
 ///   this job (e.g., `'Station #02'`).
@@ -34,7 +38,11 @@ class PrintJob extends Equatable {
   const PrintJob({
     required this.id,
     required this.productName,
-    required this.sku,
+    required this.variantId,
+    required this.variantName,
+    required this.variantSku,
+    required this.templateId,
+    required this.templateName,
     required this.status,
     required this.printerStation,
     required this.printedAt,
@@ -48,8 +56,20 @@ class PrintJob extends Equatable {
   /// Human-readable product name (e.g., `'Pro-X Gaming Headset'`).
   final String productName;
 
-  /// SKU code (e.g., `'GAM-2024-XP01'`). Rendered in JetBrains Mono.
-  final String sku;
+  /// Unique identifier of the product variant.
+  final String variantId;
+
+  /// Human-readable name of the product variant (e.g., `'Black / 1TB'`).
+  final String variantName;
+
+  /// SKU code (e.g., `'GAM-2024-XP01'`).
+  final String variantSku;
+
+  /// Unique identifier of the template used.
+  final String templateId;
+
+  /// Human-readable name of the template used (e.g., `'Default Shipping Label'`).
+  final String templateName;
 
   /// Current lifecycle status of this print job.
   final PrintJobStatus status;
@@ -70,7 +90,11 @@ class PrintJob extends Equatable {
   List<Object?> get props => [
         id,
         productName,
-        sku,
+        variantId,
+        variantName,
+        variantSku,
+        templateId,
+        templateName,
         status,
         printerStation,
         printedAt,
@@ -82,7 +106,11 @@ class PrintJob extends Equatable {
   PrintJob copyWith({
     String? id,
     String? productName,
-    String? sku,
+    String? variantId,
+    String? variantName,
+    String? variantSku,
+    String? templateId,
+    String? templateName,
     PrintJobStatus? status,
     String? printerStation,
     DateTime? printedAt,
@@ -92,7 +120,11 @@ class PrintJob extends Equatable {
     return PrintJob(
       id: id ?? this.id,
       productName: productName ?? this.productName,
-      sku: sku ?? this.sku,
+      variantId: variantId ?? this.variantId,
+      variantName: variantName ?? this.variantName,
+      variantSku: variantSku ?? this.variantSku,
+      templateId: templateId ?? this.templateId,
+      templateName: templateName ?? this.templateName,
       status: status ?? this.status,
       printerStation: printerStation ?? this.printerStation,
       printedAt: printedAt ?? this.printedAt,

@@ -188,12 +188,16 @@ void main() {
           expect(jobs, isEmpty);
         });
 
-        test('getRecentJobs sorting and getJobsBySku filter', () async {
+        test('getRecentJobs sorting and getJobsByVariantSku filter', () async {
           const targetSku = 'TEST-SKU-PRINT';
           final newJob = PrintJob(
             id: 'job-test-12',
             productName: 'Dynamic Test Sticker',
-            sku: targetSku,
+            variantId: 'TEST-SKU-PRINT',
+            variantName: 'Standard',
+            variantSku: targetSku,
+            templateId: 'template-test',
+            templateName: 'Test Template',
             status: PrintJobStatus.completed,
             printerStation: 'Station #01',
             printedAt: DateTime.now(),
@@ -201,7 +205,7 @@ void main() {
           );
           (await printJobRepository.savePrintJob(newJob)).getOrThrow();
 
-          final matches = (await printJobRepository.getJobsBySku(targetSku)).getOrThrow();
+          final matches = (await printJobRepository.getJobsByVariantSku(targetSku)).getOrThrow();
           expect(matches.length, 1);
           expect(matches.first.id, 'job-test-12');
         });

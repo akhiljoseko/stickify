@@ -19,34 +19,46 @@ class PrintJobHiveModelAdapter extends TypeAdapter<PrintJobHiveModel> {
     return PrintJobHiveModel(
       id: fields[0] as String,
       productName: fields[1] as String,
-      sku: fields[2] as String,
-      status: fields[3] as String,
-      printerStation: fields[4] as String,
-      printedAt: fields[5] as DateTime,
-      labelCount: (fields[6] as num).toInt(),
-      isVerified: fields[7] as bool,
+      variantId: fields[2] as String,
+      variantName: fields[3] as String,
+      variantSku: fields[4] as String,
+      templateId: fields[5] as String,
+      templateName: fields[6] as String,
+      status: fields[7] as String,
+      printerStation: fields[8] as String,
+      printedAt: fields[9] as DateTime,
+      labelCount: (fields[10] as num).toInt(),
+      isVerified: fields[11] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, PrintJobHiveModel obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.productName)
       ..writeByte(2)
-      ..write(obj.sku)
+      ..write(obj.variantId)
       ..writeByte(3)
-      ..write(obj.status)
+      ..write(obj.variantName)
       ..writeByte(4)
-      ..write(obj.printerStation)
+      ..write(obj.variantSku)
       ..writeByte(5)
-      ..write(obj.printedAt)
+      ..write(obj.templateId)
       ..writeByte(6)
-      ..write(obj.labelCount)
+      ..write(obj.templateName)
       ..writeByte(7)
+      ..write(obj.status)
+      ..writeByte(8)
+      ..write(obj.printerStation)
+      ..writeByte(9)
+      ..write(obj.printedAt)
+      ..writeByte(10)
+      ..write(obj.labelCount)
+      ..writeByte(11)
       ..write(obj.isVerified);
   }
 

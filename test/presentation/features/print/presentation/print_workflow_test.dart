@@ -15,6 +15,7 @@ class MockTemplateRepository extends Mock implements TemplateRepository {}
 class MockPrintJobRepository extends Mock implements PrintJobRepository {}
 class MockPrintService extends Mock implements PrintService {}
 class MockPrinterDiscoveryService extends Mock implements PrinterDiscoveryService {}
+class MockPrintJobIdGenerator extends Mock implements PrintJobIdGenerator {}
 
 void main() {
   setUpAll(() {
@@ -22,7 +23,11 @@ void main() {
       PrintJob(
         id: 'fallback-job',
         productName: 'Fallback',
-        sku: 'SKU',
+        variantId: 'SKU',
+        variantName: 'Standard',
+        variantSku: 'SKU',
+        templateId: 'temp',
+        templateName: 'Standard Template',
         status: PrintJobStatus.completed,
         printerStation: 'Zebra',
         printedAt: DateTime.now(),
@@ -69,6 +74,7 @@ void main() {
   late PrintJobRepository printJobRepository;
   late PrintService printService;
   late PrinterDiscoveryService printerDiscoveryService;
+  late PrintJobIdGenerator printJobIdGenerator;
 
   final testProduct = Product(
     id: 'prod-test',
@@ -177,7 +183,9 @@ void main() {
       printJobRepository = MockPrintJobRepository();
       printService = MockPrintService();
       printerDiscoveryService = MockPrinterDiscoveryService();
+      printJobIdGenerator = MockPrintJobIdGenerator();
 
+      when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
@@ -206,6 +214,7 @@ void main() {
         printJobRepository: printJobRepository,
         printService: printService,
         printerDiscoveryService: printerDiscoveryService,
+        printJobIdGenerator: printJobIdGenerator,
       );
 
       expect(cubit.state, const PrintWorkflowInitial());
@@ -228,6 +237,7 @@ void main() {
         printJobRepository: printJobRepository,
         printService: printService,
         printerDiscoveryService: printerDiscoveryService,
+        printJobIdGenerator: printJobIdGenerator,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -252,6 +262,7 @@ void main() {
         printJobRepository: printJobRepository,
         printService: printService,
         printerDiscoveryService: printerDiscoveryService,
+        printJobIdGenerator: printJobIdGenerator,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -277,7 +288,9 @@ void main() {
       printJobRepository = MockPrintJobRepository();
       printService = MockPrintService();
       printerDiscoveryService = MockPrinterDiscoveryService();
+      printJobIdGenerator = MockPrintJobIdGenerator();
 
+      when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
@@ -307,6 +320,7 @@ void main() {
           RepositoryProvider.value(value: printJobRepository),
           RepositoryProvider.value(value: printService),
           RepositoryProvider.value(value: printerDiscoveryService),
+          RepositoryProvider.value(value: printJobIdGenerator),
         ],
         child: const PrintSetupPage(
           productId: 'prod-test',

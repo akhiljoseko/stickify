@@ -65,8 +65,8 @@ class SyncingPrintJobRepository implements PrintJobRepository {
   }
 
   @override
-  Future<Result<List<PrintJob>, AppError>> getJobsBySku(String sku) async {
-    return local.getJobsBySku(sku);
+  Future<Result<List<PrintJob>, AppError>> getJobsByVariantSku(String variantSku) async {
+    return local.getJobsByVariantSku(variantSku);
   }
 
   /// Pulls all print jobs from Firestore and overwrites the local cache.

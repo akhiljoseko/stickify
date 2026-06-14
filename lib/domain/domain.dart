@@ -37,3 +37,4 @@ export 'services/local_database.dart';
 export 'services/remote_database_service.dart';
 export 'services/feature_access_service.dart';
 export 'services/printer_discovery_service.dart';
+export 'services/print_job_id_generator.dart';

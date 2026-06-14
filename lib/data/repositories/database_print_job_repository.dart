@@ -49,19 +49,19 @@ class DatabasePrintJobRepository implements PrintJobRepository {
   }
 
   @override
-  Future<Result<List<PrintJob>, AppError>> getJobsBySku(String sku) async {
+  Future<Result<List<PrintJob>, AppError>> getJobsByVariantSku(String variantSku) async {
     try {
       final allModels = await _db.getAll<PrintJobHiveModel>(_collection);
       final filtered = allModels
           .map((m) => m.toDomain())
-          .where((j) => j.sku == sku)
+          .where((j) => j.variantSku == variantSku)
           .toList()
           ..sort((a, b) => b.printedAt.compareTo(a.printedAt));
       return Result.success(filtered);
     } catch (e, s) {
       return Result.failure(
         DatabaseError(
-          message: 'Failed to fetch print jobs for SKU: $sku.',
+          message: 'Failed to fetch print jobs for SKU: $variantSku.',
           originalError: e,
           stackTrace: s,
         ),

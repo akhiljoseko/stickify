@@ -62,12 +62,12 @@ class FirestorePrintJobRepository implements PrintJobRepository {
   }
 
   @override
-  Future<Result<List<PrintJob>, AppError>> getJobsBySku(String sku) async {
+  Future<Result<List<PrintJob>, AppError>> getJobsByVariantSku(String variantSku) async {
     try {
       final list = await remoteDb.queryCollection(
         _collectionPath,
-        field: 'sku',
-        isEqualTo: sku,
+        field: 'variantSku',
+        isEqualTo: variantSku,
       );
       final mapped = list.map((json) {
         return PrintJobFirestoreModel.fromMap(json['id'] as String, json).toDomain();
@@ -77,7 +77,7 @@ class FirestorePrintJobRepository implements PrintJobRepository {
     } catch (e, s) {
       return Result.failure(
         NetworkError(
-          message: 'Failed to query remote print jobs for SKU: $sku.',
+          message: 'Failed to query remote print jobs for SKU: $variantSku.',
           originalError: e,
           stackTrace: s,
         ),

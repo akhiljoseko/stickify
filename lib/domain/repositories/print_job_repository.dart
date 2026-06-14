@@ -12,8 +12,8 @@ abstract interface class PrintJobRepository {
   /// [limit] controls how many jobs to return (default: 10).
   Future<Result<List<PrintJob>, AppError>> getRecentJobs({int limit = 10});
 
-  /// Returns all print jobs associated with a specific product [sku].
-  Future<Result<List<PrintJob>, AppError>> getJobsBySku(String sku);
+  /// Returns all print jobs associated with a specific product [variantSku].
+  Future<Result<List<PrintJob>, AppError>> getJobsByVariantSku(String variantSku);
 
   /// Saves a print job to the repository database.
   Future<Result<void, AppError>> savePrintJob(PrintJob job);

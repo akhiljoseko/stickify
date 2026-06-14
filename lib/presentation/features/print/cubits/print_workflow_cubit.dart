@@ -16,6 +16,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     required this.printJobRepository,
     required this.printService,
     required this.printerDiscoveryService,
+    required this.printJobIdGenerator,
   }) : super(const PrintWorkflowInitial());
 
   /// Repository providing product catalog records.
@@ -32,6 +33,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
 
   /// Service discovering physical/system printers.
   final PrinterDiscoveryService printerDiscoveryService;
+
+  /// Generator for print job IDs.
+  final PrintJobIdGenerator printJobIdGenerator;
 
   /// Loads the initial metadata needed to configure the print job.
   ///
@@ -168,11 +172,15 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         case Failure(error: final err):
           emit(PrintWorkflowError(message: err.message));
         case Success():
-          final jobId = 'job-${DateTime.now().millisecondsSinceEpoch}';
+          final jobId = printJobIdGenerator.generateId();
           final job = PrintJob(
             id: jobId,
-            productName: '${s.product.name} - ${s.variant.name}',
-            sku: s.variant.sku,
+            productName: s.product.name,
+            variantId: s.variant.sku,
+            variantName: s.variant.name,
+            variantSku: s.variant.sku,
+            templateId: template.id,
+            templateName: template.name,
             status: PrintJobStatus.completed,
             printerStation: printer.name,
             printedAt: DateTime.now(),

@@ -230,8 +230,8 @@ void main() {
       cubit.updateQuantity(35);
       expect((cubit.state as PrintWorkflowLoaded).quantity, 35);
 
-      cubit.updatePrinter('Industrial Master B3');
-      expect((cubit.state as PrintWorkflowLoaded).selectedPrinter, 'Industrial Master B3');
+      cubit.updatePrinter(const PrinterDevice(name: 'Industrial Master B3', url: 'industrial-url'));
+      expect((cubit.state as PrintWorkflowLoaded).selectedPrinter?.name, 'Industrial Master B3');
 
       cubit.toggleSlot(3);
       expect((cubit.state as PrintWorkflowLoaded).disabledSlots, contains(3));

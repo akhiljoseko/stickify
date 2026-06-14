@@ -12,8 +12,12 @@ import 'package:stickify/core/core.dart';
 import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/core/services/auth_service.dart';
 import 'package:stickify/core/services/local_database.dart';
+import 'dart:io';
 import 'package:stickify/core/services/pdf_print_service.dart';
 import 'package:stickify/core/services/printing/label_pdf_layout_engine.dart';
+import 'package:stickify/core/services/printing/windows/windows_devmode_manager.dart';
+import 'package:stickify/core/services/printing/windows/windows_paper_validator.dart';
+import 'package:stickify/core/services/printing/windows/windows_print_service.dart';
 import 'package:stickify/core/services/remote_database_service.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
@@ -91,7 +95,14 @@ class _AppState extends State<App> {
       productRepository: _productRepository,
       templateRepository: _templateRepository,
     );
-    _printService = PdfPrintService(layoutEngine: const LabelPdfLayoutEngine());
+    final layoutEngine = const LabelPdfLayoutEngine();
+    _printService = Platform.isWindows
+        ? WindowsPrintService(
+            layoutEngine: layoutEngine,
+            paperValidator: WindowsPaperValidator(),
+            devModeManager: WindowsDevModeManager(),
+          )
+        : PdfPrintService(layoutEngine: layoutEngine);
     _filePickerService = ImagePickerServiceImpl(ImagePicker());
   }
 

@@ -39,9 +39,8 @@ class WindowsDevModeManager {
   /// future as the new tail.
   Future<void> _pendingJob = Future.value();
 
-  /// The [Completer] for the currently active job, set by [applySettings]
-  /// and completed by [restoreSettings].
-  Completer<void>? _currentJobCompleter;
+  /// Active jobs (completers) map, keyed by their backup token.
+  final Map<String, Completer<void>> _activeJobs = {};
 
   /// Restores any leftover DEVMODE registry backups on startup.
   Future<void> healOnStartup() async {
@@ -77,11 +76,11 @@ class WindowsDevModeManager {
     final previous = _pendingJob;
     final thisJob = Completer<void>();
     _pendingJob = thisJob.future;
-    _currentJobCompleter = thisJob;
 
     // Wait for the previous job to fully complete (apply + restore).
     await previous;
 
+    String? token;
     try {
       final tempDir = Directory.systemTemp;
       final scriptFile = File('${tempDir.path}/devmode_settings.ps1');
@@ -107,18 +106,20 @@ class WindowsDevModeManager {
         final output = result.stdout.toString().trim();
         final match = RegExp('BACKUP:(.*)').firstMatch(output);
         if (match != null) {
-          return match.group(1)?.trim();
+          token = match.group(1)?.trim();
         }
       }
     } catch (_) {
-      // On failure release the lock immediately — restoreSettings will not
-      // be called when applySettings returns null.
-      _releaseCurrentJob();
+      // Fail silently
     }
 
-    // No backup token obtained — release the lock.
-    _releaseCurrentJob();
-    return null;
+    if (token != null) {
+      _activeJobs[token] = thisJob;
+      return token;
+    } else {
+      thisJob.complete();
+      return null;
+    }
   }
 
   /// Restores original DEVMODE settings back to the printer in the registry.
@@ -128,7 +129,7 @@ class WindowsDevModeManager {
   /// mutex and allows the next queued job to proceed.
   Future<void> restoreSettings(PrinterDevice printer, String backupToken) async {
     if (!Platform.isWindows) {
-      _releaseCurrentJob();
+      _releaseJob(backupToken);
       return;
     }
 
@@ -156,15 +157,14 @@ class WindowsDevModeManager {
     } catch (_) {
       // Fallback — still release lock below
     } finally {
-      _releaseCurrentJob();
+      _releaseJob(backupToken);
     }
   }
 
-  /// Completes the current job's [Completer], releasing the mutex for the next
-  /// queued caller.
-  void _releaseCurrentJob() {
-    final completer = _currentJobCompleter;
-    _currentJobCompleter = null;
+  /// Completes the job's [Completer] associated with [token], releasing the
+  /// mutex for the next queued caller.
+  void _releaseJob(String token) {
+    final completer = _activeJobs.remove(token);
     if (completer != null && !completer.isCompleted) {
       completer.complete();
     }

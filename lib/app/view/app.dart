@@ -114,6 +114,7 @@ class _AppState extends State<App> {
         RepositoryProvider<PrintJobRepository>.value(value: _printJobRepository),
         RepositoryProvider<SearchRepository>.value(value: _searchRepository),
         RepositoryProvider<PrintService>.value(value: _printService),
+        RepositoryProvider<PrinterDiscoveryService>.value(value: _printService as PrinterDiscoveryService),
         RepositoryProvider<FilePickerService>.value(value: _filePickerService),
         RepositoryProvider<FeatureAccessService>(
           create: (_) => const FeatureAccessService(),

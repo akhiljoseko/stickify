@@ -14,6 +14,7 @@ class MockProductRepository extends Mock implements ProductRepository {}
 class MockTemplateRepository extends Mock implements TemplateRepository {}
 class MockPrintJobRepository extends Mock implements PrintJobRepository {}
 class MockPrintService extends Mock implements PrintService {}
+class MockPrinterDiscoveryService extends Mock implements PrinterDiscoveryService {}
 
 void main() {
   setUpAll(() {
@@ -67,6 +68,7 @@ void main() {
   late TemplateRepository templateRepository;
   late PrintJobRepository printJobRepository;
   late PrintService printService;
+  late PrinterDiscoveryService printerDiscoveryService;
 
   final testProduct = Product(
     id: 'prod-test',
@@ -174,6 +176,7 @@ void main() {
       templateRepository = MockTemplateRepository();
       printJobRepository = MockPrintJobRepository();
       printService = MockPrintService();
+      printerDiscoveryService = MockPrinterDiscoveryService();
 
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => Result.success(testProduct));
@@ -181,7 +184,7 @@ void main() {
           .thenAnswer((_) async => const Result.success([testTemplate]));
       when(() => printJobRepository.savePrintJob(any()))
           .thenAnswer((_) async => const Result.success(null));
-      when(() => printService.getAvailablePrinters()).thenAnswer(
+      when(() => printerDiscoveryService.getAvailablePrinters()).thenAnswer(
         (_) async => const [
           PrinterDevice(name: 'Zebra ZT411-A', url: 'zebra-url', isDefault: true),
         ],
@@ -202,6 +205,7 @@ void main() {
         templateRepository: templateRepository,
         printJobRepository: printJobRepository,
         printService: printService,
+        printerDiscoveryService: printerDiscoveryService,
       );
 
       expect(cubit.state, const PrintWorkflowInitial());
@@ -223,6 +227,7 @@ void main() {
         templateRepository: templateRepository,
         printJobRepository: printJobRepository,
         printService: printService,
+        printerDiscoveryService: printerDiscoveryService,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -246,6 +251,7 @@ void main() {
         templateRepository: templateRepository,
         printJobRepository: printJobRepository,
         printService: printService,
+        printerDiscoveryService: printerDiscoveryService,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -270,12 +276,13 @@ void main() {
       templateRepository = MockTemplateRepository();
       printJobRepository = MockPrintJobRepository();
       printService = MockPrintService();
+      printerDiscoveryService = MockPrinterDiscoveryService();
 
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
           .thenAnswer((_) async => const Result.success([testTemplate]));
-      when(() => printService.getAvailablePrinters()).thenAnswer(
+      when(() => printerDiscoveryService.getAvailablePrinters()).thenAnswer(
         (_) async => const [
           PrinterDevice(name: 'Zebra ZT411-A (Default)', url: 'zebra-url', isDefault: true),
           PrinterDevice(name: 'Brother QL-820NWB', url: 'brother-url'),
@@ -299,6 +306,7 @@ void main() {
           RepositoryProvider.value(value: templateRepository),
           RepositoryProvider.value(value: printJobRepository),
           RepositoryProvider.value(value: printService),
+          RepositoryProvider.value(value: printerDiscoveryService),
         ],
         child: const PrintSetupPage(
           productId: 'prod-test',

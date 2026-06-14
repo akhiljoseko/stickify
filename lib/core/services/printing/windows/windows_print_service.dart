@@ -11,7 +11,7 @@ import 'package:stickify/domain/domain.dart';
 ///
 /// Interacts with the Windows registry to temporarily override device page settings
 /// to guarantee accurate alignment for custom sheet label printing.
-class WindowsPrintService implements PrintService {
+class WindowsPrintService implements PrintService, PrinterDiscoveryService {
   /// Instantiates a new [WindowsPrintService].
   WindowsPrintService({
     required LabelLayoutEngine layoutEngine,

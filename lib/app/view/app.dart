@@ -13,6 +13,7 @@ import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/core/services/auth_service.dart';
 import 'package:stickify/core/services/local_database.dart';
 import 'package:stickify/core/services/pdf_print_service.dart';
+import 'package:stickify/core/services/printing/label_pdf_layout_engine.dart';
 import 'package:stickify/core/services/remote_database_service.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
@@ -90,7 +91,7 @@ class _AppState extends State<App> {
       productRepository: _productRepository,
       templateRepository: _templateRepository,
     );
-    _printService = const PdfPrintService();
+    _printService = PdfPrintService(layoutEngine: const LabelPdfLayoutEngine());
     _filePickerService = ImagePickerServiceImpl(ImagePicker());
   }
 

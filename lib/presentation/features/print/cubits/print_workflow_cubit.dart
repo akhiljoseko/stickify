@@ -1,3 +1,10 @@
+// The initializer list pattern `_field = param` is intentional: constructor
+// parameter names must stay public (e.g. `productRepository`) to provide a
+// clean named-parameter API for call sites, while field names are private
+// (`_productRepository`) to enforce encapsulation. Using `this._field`
+// initializing formals would expose underscore-prefixed names in the public
+// constructor API.
+// ignore_for_file: prefer_initializing_formals
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
@@ -11,31 +18,37 @@ import 'package:stickify/presentation/features/print/cubits/print_workflow_state
 class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   /// Creates a [PrintWorkflowCubit] with the necessary repositories and services.
   PrintWorkflowCubit({
-    required this.productRepository,
-    required this.templateRepository,
-    required this.printJobRepository,
-    required this.printService,
-    required this.printerDiscoveryService,
-    required this.printJobIdGenerator,
-  }) : super(const PrintWorkflowInitial());
+    required ProductRepository productRepository,
+    required TemplateRepository templateRepository,
+    required PrintJobRepository printJobRepository,
+    required PrintService printService,
+    required PrinterDiscoveryService printerDiscoveryService,
+    required PrintJobIdGenerator printJobIdGenerator,
+  })  : _productRepository = productRepository,
+        _templateRepository = templateRepository,
+        _printJobRepository = printJobRepository,
+        _printService = printService,
+        _printerDiscoveryService = printerDiscoveryService,
+        _printJobIdGenerator = printJobIdGenerator,
+        super(const PrintWorkflowInitial());
 
   /// Repository providing product catalog records.
-  final ProductRepository productRepository;
+  final ProductRepository _productRepository;
 
   /// Repository providing label templates.
-  final TemplateRepository templateRepository;
+  final TemplateRepository _templateRepository;
 
   /// Repository tracking and saving print logs.
-  final PrintJobRepository printJobRepository;
+  final PrintJobRepository _printJobRepository;
 
   /// Service dispatching compiled labels to physical printer hardware.
-  final PrintService printService;
+  final PrintService _printService;
 
   /// Service discovering physical/system printers.
-  final PrinterDiscoveryService printerDiscoveryService;
+  final PrinterDiscoveryService _printerDiscoveryService;
 
   /// Generator for print job IDs.
-  final PrintJobIdGenerator printJobIdGenerator;
+  final PrintJobIdGenerator _printJobIdGenerator;
 
   /// Loads the initial metadata needed to configure the print job.
   ///
@@ -44,7 +57,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   Future<void> loadWorkflow(String productId, String variantSku, [String? templateId]) async {
     emit(const PrintWorkflowLoading());
     try {
-      final productResult = await productRepository.getProductById(productId);
+      final productResult = await _productRepository.getProductById(productId);
       switch (productResult) {
         case Failure(error: final err):
           emit(PrintWorkflowError(message: err.message));
@@ -60,7 +73,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
             orElse: () => throw Exception('Variant SKU $variantSku not found in product $productId.'),
           );
 
-          final templatesResult = await templateRepository.fetchTemplates();
+          final templatesResult = await _templateRepository.fetchTemplates();
           switch (templatesResult) {
             case Failure(error: final templateErr):
               emit(PrintWorkflowError(message: templateErr.message));
@@ -76,7 +89,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 selected = templates.first;
               }
 
-              final printers = await printerDiscoveryService.getAvailablePrinters();
+              final printers = await _printerDiscoveryService.getAvailablePrinters();
               final defaultPrinter = printers.firstWhere(
                 (p) => p.isDefault,
                 orElse: () => printers.isNotEmpty ? printers.first : const PrinterDevice(name: 'No Printer Found', url: ''),
@@ -159,7 +172,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
       }
 
       emit(PrintWorkflowSubmitting(loadedState: s));
-      final printResult = await printService.printLabels(
+      final printResult = await _printService.printLabels(
         product: s.product,
         variant: s.variant,
         template: template,
@@ -172,7 +185,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         case Failure(error: final err):
           emit(PrintWorkflowError(message: err.message));
         case Success():
-          final jobId = printJobIdGenerator.generateId();
+          final jobId = _printJobIdGenerator.generateId();
           final job = PrintJob(
             id: jobId,
             productName: s.product.name,
@@ -187,7 +200,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
             labelCount: s.quantity,
           );
 
-          final saveResult = await printJobRepository.savePrintJob(job);
+          final saveResult = await _printJobRepository.savePrintJob(job);
           switch (saveResult) {
             case Failure(error: final saveErr):
               emit(PrintWorkflowError(message: saveErr.message));

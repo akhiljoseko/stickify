@@ -3,5 +3,5 @@ import 'package:stickify/bootstrap.dart';
 
 /// Production entry point of the Stickify application.
 Future<void> main() async {
-  await bootstrap(() => const App());
+  await bootstrap((locator) => App(locator: locator));
 }

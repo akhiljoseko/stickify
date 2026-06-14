@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+import 'package:stickify/app/app.dart';
 import 'package:stickify/core/services/pdf/pdf_element_renderer_registry.dart';
 import 'package:stickify/firebase_options.dart';
 import 'package:stickify/hive_registrar.g.dart';
@@ -29,7 +30,7 @@ class AppBlocObserver extends BlocObserver {
 }
 
 /// Global initialization block to configure cross-flavor logic and launch the application.
-Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
+Future<void> bootstrap(FutureOr<Widget> Function(AppServiceLocator locator) builder) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   PdfElementRendererRegistry.registerDefaults();
@@ -56,6 +57,7 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   // Bloc.observer = const AppBlocObserver();
 
   // Add cross-flavor configuration here
+  final locator = await AppServiceLocator.create();
 
-  runApp(await builder());
+  runApp(await builder(locator));
 }

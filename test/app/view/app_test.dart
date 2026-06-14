@@ -44,11 +44,14 @@ void main() {
 
   group('App', () {
     testWidgets('renders LoginScreen initially, and DashboardPage after signing in', (tester) async {
+      final locator = await AppServiceLocator.create(
+        localDbOverride: mockLocalDb,
+        authServiceOverride: mockAuth,
+        remoteDbOverride: mockRemoteDb,
+      );
       await tester.pumpWidget(
         App(
-          auth: mockAuth,
-          remoteDb: mockRemoteDb,
-          localDb: mockLocalDb,
+          locator: locator,
         ),
       );
       

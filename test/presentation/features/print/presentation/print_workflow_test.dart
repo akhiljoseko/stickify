@@ -55,6 +55,12 @@ void main() {
         name: 'Fallback',
       ),
     );
+    registerFallbackValue(
+      const PrinterDevice(
+        name: 'fallback-printer',
+        url: 'fallback-url',
+      ),
+    );
   });
 
   late ProductRepository productRepository;
@@ -175,13 +181,18 @@ void main() {
           .thenAnswer((_) async => const Result.success([testTemplate]));
       when(() => printJobRepository.savePrintJob(any()))
           .thenAnswer((_) async => const Result.success(null));
+      when(() => printService.getAvailablePrinters()).thenAnswer(
+        (_) async => const [
+          PrinterDevice(name: 'Zebra ZT411-A', url: 'zebra-url', isDefault: true),
+        ],
+      );
       when(() => printService.printLabels(
             product: any(named: 'product'),
             variant: any(named: 'variant'),
             template: any(named: 'template'),
             quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
-            printerName: any(named: 'printerName'),
+            printer: any(named: 'printer'),
           )).thenAnswer((_) async => const Result.success(null));
     });
 
@@ -248,7 +259,7 @@ void main() {
             template: any(named: 'template'),
             quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
-            printerName: any(named: 'printerName'),
+            printer: any(named: 'printer'),
           )).called(1);
     });
   });
@@ -264,13 +275,20 @@ void main() {
           .thenAnswer((_) async => Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
           .thenAnswer((_) async => const Result.success([testTemplate]));
+      when(() => printService.getAvailablePrinters()).thenAnswer(
+        (_) async => const [
+          PrinterDevice(name: 'Zebra ZT411-A (Default)', url: 'zebra-url', isDefault: true),
+          PrinterDevice(name: 'Brother QL-820NWB', url: 'brother-url'),
+          PrinterDevice(name: 'Industrial Master B3', url: 'industrial-url'),
+        ],
+      );
       when(() => printService.printLabels(
             product: any(named: 'product'),
             variant: any(named: 'variant'),
             template: any(named: 'template'),
             quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
-            printerName: any(named: 'printerName'),
+            printer: any(named: 'printer'),
           )).thenAnswer((_) async => const Result.success(null));
     });
 

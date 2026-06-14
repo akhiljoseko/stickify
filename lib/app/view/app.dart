@@ -1,38 +1,13 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:stickify/app/app.dart';
 import 'package:stickify/app/routing/routing.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/core/platform/file_picker_service.dart';
-import 'package:stickify/core/services/pdf_print_service.dart';
-import 'package:stickify/core/services/print_job/timestamp_print_job_id_generator.dart';
-import 'package:stickify/core/services/printing/label_pdf_layout_engine.dart';
-import 'package:stickify/core/services/printing/windows/windows_devmode_manager.dart';
-import 'package:stickify/core/services/printing/windows/windows_paper_validator.dart';
-import 'package:stickify/core/services/printing/windows/windows_print_service.dart';
-import 'package:stickify/data/repositories/database_print_job_repository.dart';
-import 'package:stickify/data/repositories/database_product_repository.dart';
-import 'package:stickify/data/repositories/database_search_repository.dart';
-import 'package:stickify/data/repositories/database_template_repository.dart';
-import 'package:stickify/data/repositories/firestore_print_job_repository.dart';
-import 'package:stickify/data/repositories/firestore_product_repository.dart';
-import 'package:stickify/data/repositories/firestore_template_repository.dart';
-import 'package:stickify/data/repositories/syncing_print_job_repository.dart';
-import 'package:stickify/data/repositories/syncing_product_repository.dart';
-import 'package:stickify/data/repositories/syncing_template_repository.dart';
-import 'package:stickify/data/services/firebase_auth_service.dart';
-import 'package:stickify/data/services/firestore_remote_database_service.dart';
-import 'package:stickify/data/services/hive_local_database.dart';
-import 'package:stickify/data/services/hive_sync_queue.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/l10n/l10n.dart';
 
@@ -40,123 +15,47 @@ import 'package:stickify/l10n/l10n.dart';
 class App extends StatefulWidget {
   const App({
     super.key,
-    this.auth,
-    this.remoteDb,
-    this.localDb,
+    required this.locator,
   });
 
-  final AuthService? auth;
-  final RemoteDatabaseService? remoteDb;
-  final LocalDatabase? localDb;
+  final AppServiceLocator locator;
 
   @override
   State<App> createState() => _AppState();
 }
 
 class _AppState extends State<App> {
-  late final LocalDatabase _database;
-  late final AuthService _authService;
-  late final SyncableProductRepository _productRepository;
-  late final SyncableTemplateRepository _templateRepository;
-  late final SyncablePrintJobRepository _printJobRepository;
-  late final SearchRepository _searchRepository;
-  late final PrintService _printService;
-  late final FilePickerService _filePickerService;
-  late final PrintJobIdGenerator _printJobIdGenerator;
-  StreamSubscription<AppUser?>? _authSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _database = widget.localDb ?? HiveLocalDatabase();
-    _database.init();
-
-    _authService = widget.auth ?? FirebaseAuthService(auth: FirebaseAuth.instance);
-    final remoteDb = widget.remoteDb ?? FirestoreRemoteDatabaseService(firestore: FirebaseFirestore.instance);
-
-    final localProductRepo = DatabaseProductRepository(database: _database);
-    final localTemplateRepo = DatabaseTemplateRepository(database: _database);
-    final localPrintJobRepo = DatabasePrintJobRepository(database: _database);
-    final syncQueue = HiveSyncQueue(database: _database);
-
-    _productRepository = SyncingProductRepository(
-      local: localProductRepo,
-      syncQueue: syncQueue,
-    );
-    _templateRepository = SyncingTemplateRepository(
-      local: localTemplateRepo,
-      syncQueue: syncQueue,
-    );
-    _printJobRepository = SyncingPrintJobRepository(
-      local: localPrintJobRepo,
-      syncQueue: syncQueue,
-      localDatabase: _database,
-    );
-
-    _authSubscription = _authService.authStateChanges.listen((user) {
-      if (user != null) {
-        final uid = user.uid;
-        (_productRepository as SyncingProductRepository).remote =
-            FirestoreProductRepository(remoteDb: remoteDb, userId: uid);
-        (_templateRepository as SyncingTemplateRepository).remote =
-            FirestoreTemplateRepository(remoteDb: remoteDb, userId: uid);
-        (_printJobRepository as SyncingPrintJobRepository).remote =
-            FirestorePrintJobRepository(remoteDb: remoteDb, userId: uid);
-      } else {
-        (_productRepository as SyncingProductRepository).remote = null;
-        (_templateRepository as SyncingTemplateRepository).remote = null;
-        (_printJobRepository as SyncingPrintJobRepository).remote = null;
-      }
-    });
-
-    _searchRepository = DatabaseSearchRepository(
-      productRepository: _productRepository,
-      templateRepository: _templateRepository,
-    );
-    const layoutEngine = LabelPdfLayoutEngine();
-    _printService = Platform.isWindows
-        ? WindowsPrintService(
-            layoutEngine: layoutEngine,
-            paperValidator: WindowsPaperValidator(),
-            devModeManager: WindowsDevModeManager(),
-          )
-        : const PdfPrintService(layoutEngine: layoutEngine);
-    _filePickerService = ImagePickerServiceImpl(ImagePicker());
-    _printJobIdGenerator = const TimestampPrintJobIdGenerator();
-  }
-
   @override
   void dispose() {
-    _authSubscription?.cancel();
+    widget.locator.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final locator = widget.locator;
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<LocalDatabase>.value(value: _database),
-        RepositoryProvider<AuthService>.value(value: _authService),
-        RepositoryProvider<ProductRepository>.value(value: _productRepository),
-        RepositoryProvider<SyncableProductRepository>.value(value: _productRepository),
-        RepositoryProvider<TemplateRepository>.value(value: _templateRepository),
-        RepositoryProvider<SyncableTemplateRepository>.value(value: _templateRepository),
-        RepositoryProvider<PrintJobRepository>.value(value: _printJobRepository),
-        RepositoryProvider<SyncablePrintJobRepository>.value(value: _printJobRepository),
-        RepositoryProvider<SearchRepository>.value(value: _searchRepository),
-        RepositoryProvider<PrintService>.value(value: _printService),
-        RepositoryProvider<PrinterDiscoveryService>.value(value: _printService as PrinterDiscoveryService),
-        RepositoryProvider<PrintJobIdGenerator>.value(value: _printJobIdGenerator),
-        RepositoryProvider<FilePickerService>.value(value: _filePickerService),
-        RepositoryProvider<FeatureAccessService>(
-          create: (_) => const FeatureAccessService(),
-        ),
+        RepositoryProvider<LocalDatabase>.value(value: locator.database),
+        RepositoryProvider<AuthService>.value(value: locator.authService),
+        RepositoryProvider<ProductRepository>.value(value: locator.productRepository),
+        RepositoryProvider<SyncableProductRepository>.value(value: locator.productRepository),
+        RepositoryProvider<TemplateRepository>.value(value: locator.templateRepository),
+        RepositoryProvider<SyncableTemplateRepository>.value(value: locator.templateRepository),
+        RepositoryProvider<PrintJobRepository>.value(value: locator.printJobRepository),
+        RepositoryProvider<SyncablePrintJobRepository>.value(value: locator.printJobRepository),
+        RepositoryProvider<SearchRepository>.value(value: locator.searchRepository),
+        RepositoryProvider<PrintService>.value(value: locator.printService),
+        RepositoryProvider<PrinterDiscoveryService>.value(value: locator.printService as PrinterDiscoveryService),
+        RepositoryProvider<PrintJobIdGenerator>.value(value: locator.printJobIdGenerator),
+        RepositoryProvider<FilePickerService>.value(value: locator.filePickerService),
+        RepositoryProvider<FeatureAccessService>.value(value: locator.featureAccessService),
       ],
       child: BlocProvider(
         // Create the AuthCubit once for the entire app lifetime.
         create: (_) => AuthCubit(
-          auth: _authService,
-          localDatabase: _database,
+          auth: locator.authService,
+          localDatabase: locator.database,
         ),
         child: const _AppView(),
       ),

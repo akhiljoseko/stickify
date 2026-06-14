@@ -44,13 +44,21 @@ class PdfPrintService implements PrintService {
   const PdfPrintService();
 
   @override
+  Future<List<PrinterDevice>> getAvailablePrinters() async {
+    final list = await Printing.listPrinters();
+    return list
+        .map((p) => PrinterDevice(name: p.name, url: p.url, isDefault: p.isDefault))
+        .toList();
+  }
+
+  @override
   Future<Result<void, AppError>> printLabels({
     required Product product,
     required ProductVariant variant,
     required LabelTemplate template,
     required int quantity,
     required Set<int> disabledSlots,
-    required String printerName,
+    required PrinterDevice printer,
   }) async {
     try {
       // 1. Pre-print validation layer
@@ -155,7 +163,7 @@ class PdfPrintService implements PrintService {
         quantity: quantity,
         disabledSlots: disabledSlots,
         imageCache: imageCache,
-        printerName: printerName,
+        printerName: printer.name,
       );
 
       final Uint8List pdfBytes;

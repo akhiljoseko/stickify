@@ -56,7 +56,7 @@ void main() {
         template: template,
         quantity: 1,
         disabledSlots: {},
-        printerName: 'Zebra',
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
 
       expect(result, isA<Failure<void, AppError>>());
@@ -87,7 +87,7 @@ void main() {
         template: template,
         quantity: 1,
         disabledSlots: {},
-        printerName: 'Zebra',
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
 
       expect(result, isA<Failure<void, AppError>>());
@@ -127,7 +127,7 @@ void main() {
         template: template,
         quantity: 1,
         disabledSlots: {},
-        printerName: 'Zebra',
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
 
       expect(result, isA<Failure<void, AppError>>());
@@ -184,7 +184,7 @@ void main() {
         template: template,
         quantity: 1,
         disabledSlots: {},
-        printerName: 'Zebra',
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
 
       expect(result, isA<Failure<void, AppError>>());
@@ -240,7 +240,7 @@ void main() {
         template: template,
         quantity: 1,
         disabledSlots: {},
-        printerName: 'Zebra',
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
 
       expect(result, isA<Success<void, AppError>>());
@@ -278,7 +278,7 @@ void main() {
         template: template,
         quantity: 1,
         disabledSlots: {},
-        printerName: 'Zebra',
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
 
       expect(result, isA<Success<void, AppError>>());
@@ -333,7 +333,7 @@ void main() {
         template: template,
         quantity: 1,
         disabledSlots: {},
-        printerName: 'Zebra',
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
 
       expect(result, isA<Success<void, AppError>>());

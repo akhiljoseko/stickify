@@ -144,7 +144,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         template: template,
         quantity: s.quantity,
         disabledSlots: s.disabledSlots,
-        printerName: s.selectedPrinter,
+        printer: PrinterDevice(name: s.selectedPrinter, url: ''),
       );
 
       switch (printResult) {

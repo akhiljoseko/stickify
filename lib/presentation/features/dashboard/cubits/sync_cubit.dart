@@ -1,8 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:stickify/core/core.dart';
-import 'package:stickify/data/repositories/syncing_print_job_repository.dart';
-import 'package:stickify/data/repositories/syncing_product_repository.dart';
-import 'package:stickify/data/repositories/syncing_template_repository.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/sync_state.dart';
 
@@ -17,13 +14,13 @@ class SyncCubit extends Cubit<SyncState> {
   }) : super(const SyncInitial());
 
   /// Repository for managing products.
-  final ProductRepository productRepo;
+  final SyncableProductRepository productRepo;
 
   /// Repository for managing templates.
-  final TemplateRepository templateRepo;
+  final SyncableTemplateRepository templateRepo;
 
   /// Repository for managing print jobs.
-  final PrintJobRepository printJobRepo;
+  final SyncablePrintJobRepository printJobRepo;
 
   /// Interface for managing auth states.
   final AuthService auth;
@@ -40,28 +37,24 @@ class SyncCubit extends Cubit<SyncState> {
 
     try {
       // 1. Sync Products
-      final pRepo = productRepo;
-      if (pRepo is SyncingProductRepository) {
-        final result = await pRepo.sync(uid);
-        switch (result) {
-          case Failure(error: final err):
-            emit(SyncFailure(err.message));
-            return;
-          case Success():
-            break;
-        }
+      final pResult = await productRepo.sync(uid);
+      if (pResult is Failure<void, AppError>) {
+        emit(SyncFailure(pResult.error.message));
+        return;
       }
 
       // 2. Sync Templates
-      final tRepo = templateRepo;
-      if (tRepo is SyncingTemplateRepository) {
-        await tRepo.sync(uid);
+      final tResult = await templateRepo.sync(uid);
+      if (tResult is Failure<void, AppError>) {
+        emit(SyncFailure(tResult.error.message));
+        return;
       }
 
       // 3. Sync Print Jobs
-      final jRepo = printJobRepo;
-      if (jRepo is SyncingPrintJobRepository) {
-        await jRepo.sync(uid);
+      final jResult = await printJobRepo.sync(uid);
+      if (jResult is Failure<void, AppError>) {
+        emit(SyncFailure(jResult.error.message));
+        return;
       }
 
       emit(const SyncSuccess());

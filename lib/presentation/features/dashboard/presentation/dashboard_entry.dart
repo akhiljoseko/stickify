@@ -40,9 +40,9 @@ class DashboardPage extends StatelessWidget {
         ),
         BlocProvider(
           create: (blocContext) => SyncCubit(
-            productRepo: blocContext.read<ProductRepository>(),
-            templateRepo: blocContext.read<TemplateRepository>(),
-            printJobRepo: blocContext.read<PrintJobRepository>(),
+            productRepo: blocContext.read<SyncableProductRepository>(),
+            templateRepo: blocContext.read<SyncableTemplateRepository>(),
+            printJobRepo: blocContext.read<SyncablePrintJobRepository>(),
             auth: blocContext.read<AuthService>(),
           ),
         ),

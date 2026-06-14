@@ -5,7 +5,7 @@ import 'package:stickify/data/repositories/firestore_product_repository.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Syncing wrapper for [ProductRepository] implementing local caching and manual synchronization.
-class SyncingProductRepository implements ProductRepository {
+class SyncingProductRepository implements SyncableProductRepository {
   /// Creates a [SyncingProductRepository] instance.
   SyncingProductRepository({
     required this.local,
@@ -141,6 +141,7 @@ class SyncingProductRepository implements ProductRepository {
   }
 
   /// Pulls all products from Firestore and overwrites the local cache.
+  @override
   Future<Result<void, AppError>> sync(String uid) async {
     developer.log('sync: Starting synchronization for user: $uid', name: 'SYNC_DEBUG');
     final remoteRepo = FirestoreProductRepository(remoteDb: remoteDb, userId: uid);

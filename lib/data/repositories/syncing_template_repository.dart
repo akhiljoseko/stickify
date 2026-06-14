@@ -5,7 +5,7 @@ import 'package:stickify/data/repositories/firestore_template_repository.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Syncing wrapper for [TemplateRepository] implementing local caching and manual synchronization.
-class SyncingTemplateRepository implements TemplateRepository {
+class SyncingTemplateRepository implements SyncableTemplateRepository {
   /// Creates a [SyncingTemplateRepository] instance.
   SyncingTemplateRepository({
     required this.local,
@@ -245,6 +245,7 @@ class SyncingTemplateRepository implements TemplateRepository {
   }
 
   /// Pulls all templates from Firestore and overwrites the local cache.
+  @override
   Future<Result<void, AppError>> sync(String uid) async {
     try {
       final remoteRepo = FirestoreTemplateRepository(remoteDb: remoteDb, userId: uid);

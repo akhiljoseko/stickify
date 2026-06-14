@@ -6,13 +6,21 @@ import 'package:stickify/domain/domain.dart';
 class PdfElementRendererRegistry {
   PdfElementRendererRegistry._();
 
-  static final Map<Type, PdfElementRenderer> _renderers = {
-    TextElementBlueprint: const PdfTextElementRenderer(),
-    ShapeElementBlueprint: const PdfShapeElementRenderer(),
-    BarcodeElementBlueprint: const PdfBarcodeElementRenderer(),
-    QrElementBlueprint: const PdfQrElementRenderer(),
-    ImageElementBlueprint: const PdfImageElementRenderer(),
-  };
+  static final Map<Type, PdfElementRenderer> _renderers = {};
+
+  /// Registers a custom [PdfElementRenderer] for [ElementBlueprint] subclass [T].
+  static void register<T extends ElementBlueprint>(PdfElementRenderer<T> renderer) {
+    _renderers[T] = renderer;
+  }
+
+  /// Registers the default system renderers.
+  static void registerDefaults() {
+    register<TextElementBlueprint>(const PdfTextElementRenderer());
+    register<ShapeElementBlueprint>(const PdfShapeElementRenderer());
+    register<BarcodeElementBlueprint>(const PdfBarcodeElementRenderer());
+    register<QrElementBlueprint>(const PdfQrElementRenderer());
+    register<ImageElementBlueprint>(const PdfImageElementRenderer());
+  }
 
   /// Returns the concrete [PdfElementRenderer] strategy corresponding to the type of [blueprint].
   static PdfElementRenderer<T> getRenderer<T extends ElementBlueprint>(T blueprint) {

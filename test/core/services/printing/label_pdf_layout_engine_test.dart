@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stickify/core/services/pdf/pdf_element_renderer_registry.dart';
 import 'package:stickify/core/services/printing/label_pdf_layout_engine.dart';
 import 'package:stickify/domain/domain.dart';
 
@@ -27,6 +28,7 @@ void main() {
   );
 
   setUp(() {
+    PdfElementRendererRegistry.registerDefaults();
     engine = const LabelPdfLayoutEngine(useIsolate: false);
   });
 

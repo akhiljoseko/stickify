@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:printing/src/interface.dart';
 import 'package:stickify/core/core.dart';
+import 'package:stickify/core/services/pdf/pdf_element_renderer_registry.dart';
 import 'package:stickify/core/services/pdf_print_service.dart';
 import 'package:stickify/core/services/printing/label_pdf_layout_engine.dart';
 import 'package:stickify/domain/domain.dart';
@@ -31,6 +32,7 @@ void main() {
   );
 
   setUp(() {
+    PdfElementRendererRegistry.registerDefaults();
     service = PdfPrintService(layoutEngine: const LabelPdfLayoutEngine(useIsolate: false));
     mockPrintingPlatform = FakePrintingPlatform();
     PrintingPlatform.instance = mockPrintingPlatform;

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:stickify/core/presentation/notifications/notification_service.dart';
 import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/core/services/pdf_print_service.dart';
 import 'package:stickify/core/services/print_job/timestamp_print_job_id_generator.dart';
@@ -40,6 +41,7 @@ class AppServiceLocator {
     required this.filePickerService,
     required this.printJobIdGenerator,
     required this.featureAccessService,
+    required this.notificationService,
     required this._authSubscription,
   });
 
@@ -91,6 +93,7 @@ class AppServiceLocator {
     final filePickerService = ImagePickerServiceImpl(ImagePicker());
     const printJobIdGenerator = TimestampPrintJobIdGenerator();
     const featureAccessService = FeatureAccessService();
+    final notificationService = NotificationService();
 
     // The subscription is saved in a private field and cancelled inside locator dispose method.
     // ignore: cancel_subscriptions
@@ -126,6 +129,7 @@ class AppServiceLocator {
       filePickerService: filePickerService,
       printJobIdGenerator: printJobIdGenerator,
       featureAccessService: featureAccessService,
+      notificationService: notificationService,
       authSubscription: authSubscription,
     );
   }
@@ -160,10 +164,14 @@ class AppServiceLocator {
   /// The feature access service.
   final FeatureAccessService featureAccessService;
 
+  /// The notification service for transient messages.
+  final NotificationService notificationService;
+
   final StreamSubscription<AppUser?> _authSubscription;
 
   /// Clean up subscriptions and release resources.
   void dispose() {
     _authSubscription.cancel();
+    notificationService.dispose();
   }
 }

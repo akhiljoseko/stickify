@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:stickify/presentation/navigation/shared_sidebar.dart';
-import 'package:stickify/presentation/widgets/global_header_bar.dart';
 
 /// Navigation app shell for tablet-sized viewports, featuring a compact sidebar layout.
 class TabletAppShell extends StatelessWidget {
@@ -39,17 +38,7 @@ class TabletAppShell extends StatelessWidget {
             thickness: 1,
             color: theme.colorScheme.outlineVariant,
           ),
-          Expanded(
-            child: Column(
-              children: [
-                const SafeArea(
-                  bottom: false,
-                  child: GlobalHeaderBar(),
-                ),
-                Expanded(child: body),
-              ],
-            ),
-          ),
+          Expanded(child: body),
         ],
       ),
     );

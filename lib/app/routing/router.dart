@@ -7,7 +7,6 @@ import 'package:stickify/presentation/features/print/presentation/print_setup_en
 import 'package:stickify/presentation/features/print/presentation/template_selection_page.dart';
 import 'package:stickify/presentation/features/product/presentation/product_details_screen.dart';
 import 'package:stickify/presentation/features/product/presentation/product_management_entry.dart';
-import 'package:stickify/presentation/features/search/presentation/search_entry.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/label_editor_screen.dart';
 import 'package:stickify/presentation/features/template_editor/preview/preview_screen.dart';
 import 'package:stickify/presentation/features/template_editor/sheet_config/sheet_config_screen.dart';
@@ -107,9 +106,6 @@ class ForgotPasswordRoute extends GoRouteData with $ForgotPasswordRoute {
       routes: [
         TypedGoRoute<DashboardRoute>(
           path: '/dashboard',
-          routes: [
-            TypedGoRoute<SearchRoute>(path: 'search'),
-          ],
         ),
       ],
     ),
@@ -213,19 +209,6 @@ class DashboardRoute extends GoRouteData with $DashboardRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return const DashboardPage();
-  }
-}
-
-/// Route data for the Search results screen (Branch 0, nested absolute path).
-@immutable
-class SearchRoute extends GoRouteData with $SearchRoute {
-  const SearchRoute({this.q});
-
-  final String? q;
-
-  @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return SearchPage(initialQuery: q);
   }
 }
 

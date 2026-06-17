@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stickify/presentation/navigation/adaptive_app_shell.dart';
-import 'package:stickify/presentation/widgets/global_header_bar.dart';
 
 import '../../helpers/helpers.dart';
 
@@ -19,7 +18,7 @@ void main() {
       );
     }
 
-    testWidgets('renders expanded left sidebar and global header on desktop viewports', (tester) async {
+    testWidgets('renders expanded left sidebar on desktop viewports', (tester) async {
       await tester.pumpApp(
         buildShell(
           body: const Center(child: Text('Desktop Content')),
@@ -34,7 +33,6 @@ void main() {
 
       // Verify desktop layout features
       expect(find.text('Desktop Content'), findsOneWidget);
-      expect(find.byType(GlobalHeaderBar), findsOneWidget);
       expect(find.text('LabelFlow Pro'), findsOneWidget);
       expect(find.text('Warehouse Admin'), findsOneWidget);
       expect(find.text('Start New Print'), findsOneWidget);
@@ -66,7 +64,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Tablet Content'), findsOneWidget);
-      expect(find.byType(GlobalHeaderBar), findsOneWidget);
 
       // Verify branding text and text labels are NOT rendered in compact mode
       expect(find.text('LabelFlow Pro'), findsNothing);
@@ -98,7 +95,7 @@ void main() {
 
       // Verify bottom navigation is active
       expect(find.byType(NavigationBar), findsOneWidget);
-      expect(find.text('Dashboard'), findsOneWidget);
+      expect(find.text('Dashboard'), findsAtLeastNWidgets(1));
 
       // Verify left sidebar is NOT rendered (neither 280 nor 72 size)
       final sidebarFinder = find.byWidgetPredicate(

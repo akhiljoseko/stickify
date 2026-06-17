@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/routing.dart';
 import 'package:stickify/auth/auth.dart';
+import 'package:stickify/core/core.dart';
 
 /// Screen where users can request a password reset email.
 class ForgotPasswordScreen extends StatefulWidget {
@@ -38,36 +39,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthUnauthenticated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.check_circle_outline, color: Colors.green),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text('Reset link sent! Please check your email inbox.'),
-                    ),
-                  ],
-                ),
-                behavior: SnackBarBehavior.floating,
-              ),
+            context.read<NotificationService>().showSuccess(
+              'Reset link sent! Please check your email inbox.',
             );
             // Go back to login screen
             const LoginRoute().go(context);
           } else if (state is AuthFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.error_outline, color: colorScheme.onErrorContainer),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(state.message)),
-                  ],
-                ),
-                backgroundColor: colorScheme.errorContainer,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            context.read<NotificationService>().showError(state.message);
           }
         },
         builder: (context, state) {

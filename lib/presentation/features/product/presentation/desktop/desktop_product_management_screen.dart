@@ -301,7 +301,7 @@ class _ProductCatalogDesktopTable extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 120, child: Text('ACTIONS', textAlign: TextAlign.right)),
+                const SizedBox(width: 48, child: Text('', textAlign: TextAlign.right)),
               ],
             ),
           ),
@@ -441,19 +441,13 @@ class _HighDensityProductRowState extends State<_HighDensityProductRow> {
               ),
             ),
             SizedBox(
-              width: 120,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: widget.onViewDetails,
-                  child: Text(
-                    'View Details',
-                    style: TextStyle(
-                      color: colorScheme.primary,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
+              width: 48,
+              child: IconButton(
+                onPressed: widget.onViewDetails,
+                icon: const Icon(Icons.visibility_outlined, size: 20),
+                tooltip: 'View Details',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
               ),
             ),
           ],
@@ -634,13 +628,37 @@ class _ProductDetailView extends StatelessWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  imgWidget,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: imgWidget),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert),
+                        onSelected: (value) {
+                          if (value == 'edit') onEdit(product);
+                          if (value == 'delete') onDelete(product.id);
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(value: 'edit', child: ListTile(
+                            leading: Icon(Icons.edit, size: 20),
+                            title: Text('Edit'),
+                            dense: true,
+                            visualDensity: VisualDensity.compact,
+                            contentPadding: EdgeInsets.zero,
+                          )),
+                          const PopupMenuItem(value: 'delete', child: ListTile(
+                            leading: Icon(Icons.delete_outline, size: 20),
+                            title: Text('Delete'),
+                            dense: true,
+                            visualDensity: VisualDensity.compact,
+                            contentPadding: EdgeInsets.zero,
+                          )),
+                        ],
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 20),
                   infoWidget,
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  actionButtons,
                 ],
               );
             }

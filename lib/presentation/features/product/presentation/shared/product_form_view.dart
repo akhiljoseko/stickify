@@ -489,10 +489,11 @@ class ProductFormViewState extends State<ProductFormView> {
                       decoration: const InputDecoration(labelText: 'Percent (%)', hintText: '12.5'),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
+                  IconButton(
                     onPressed: addIngredientAction,
-                    child: const Text('Add'),
+                    icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Add Ingredient',
+                    visualDensity: VisualDensity.compact,
                   ),
                 ],
               ),
@@ -771,10 +772,11 @@ class ProductFormViewState extends State<ProductFormView> {
                       decoration: const InputDecoration(labelText: 'MRP (₹)', hintText: '12.50'),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
+                  IconButton(
                     onPressed: addVariantAction,
-                    child: const Text('Add'),
+                    icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Add Variant',
+                    visualDensity: VisualDensity.compact,
                   ),
                 ],
               ),

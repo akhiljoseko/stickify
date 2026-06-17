@@ -328,23 +328,31 @@ class _PreviewViewState extends State<_PreviewView> {
                         ),
                       ),
                     ),
-                    desktop: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          flex: 7,
-                          child: ColoredBox(
-                            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
-                            child: Center(
-                              child: FittedBox(
-                                child: previewBoard,
+                    desktop: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final showSidebar = constraints.maxWidth >= 700;
+
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              flex: 7,
+                              child: ColoredBox(
+                                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+                                child: Center(
+                                  child: FittedBox(
+                                    child: previewBoard,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        const VerticalDivider(width: 1, thickness: 1),
-                        desktopSidebar,
-                      ],
+                            if (showSidebar) ...[
+                              const VerticalDivider(width: 1, thickness: 1),
+                              desktopSidebar,
+                            ],
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),

@@ -104,6 +104,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
   static Future<Uint8List> _buildPdfDocumentInBackground(
     _PdfJobInput input,
   ) async {
+    PdfElementRendererRegistry.registerDefaults();
+
     final doc = pw.Document(
       compress: input.compress,
     );

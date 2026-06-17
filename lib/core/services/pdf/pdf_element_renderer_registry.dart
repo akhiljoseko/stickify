@@ -3,6 +3,33 @@ import 'package:stickify/core/services/pdf/pdf_element_renderers.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Registry mapping [ElementBlueprint] types to their corresponding [PdfElementRenderer] Strategy.
+///
+/// ## ⚠️ Isolate Caveat (Static State)
+///
+/// Dart static state is **per-isolate**, not shared across isolates.
+/// This registry uses a `static final` map, so a background isolate
+/// spawned via `Isolate.run(...)` starts with an **empty** map.
+///
+/// ## Current Usage
+///
+/// The registry is used exclusively in
+/// [LabelPdfLayoutEngine._buildPdfDocumentInBackground] (see
+/// `lib/core/services/printing/label_pdf_layout_engine.dart`).
+/// That method calls [registerDefaults] at its top **on every invocation**
+/// — whether running on the main thread or inside a background isolate —
+/// so renderers are always available at the point of use.
+///
+/// ## If You Add a New Caller
+///
+/// If you call [getRenderer] from somewhere **other than**
+/// `_buildPdfDocumentInBackground`, you **must** ensure
+/// [registerDefaults] (or individual [register] calls) has been
+/// invoked **in the same isolate** before the first [getRenderer]
+/// call. Failing to do so will throw an `Exception`.
+///
+/// Adding a `registerDefaults()` call at the top of the new entry
+/// point (just like `_buildPdfDocumentInBackground` does) is the
+/// simplest and safest approach.
 class PdfElementRendererRegistry {
   PdfElementRendererRegistry._();
 

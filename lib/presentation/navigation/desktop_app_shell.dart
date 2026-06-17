@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:stickify/presentation/navigation/shared_sidebar.dart';
-import 'package:stickify/presentation/widgets/global_header_bar.dart';
 
 /// Navigation app shell for desktop/ultra-wide viewports, featuring an expanded sidebar layout.
 class DesktopAppShell extends StatelessWidget {
@@ -39,14 +38,7 @@ class DesktopAppShell extends StatelessWidget {
             thickness: 1,
             color: theme.colorScheme.outlineVariant,
           ),
-          Expanded(
-            child: Column(
-              children: [
-                const GlobalHeaderBar(),
-                Expanded(child: body),
-              ],
-            ),
-          ),
+          Expanded(child: body),
         ],
       ),
     );

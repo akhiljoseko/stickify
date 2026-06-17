@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/routing.dart';
 import 'package:stickify/auth/auth.dart';
+import 'package:stickify/core/core.dart';
 
 /// The login screen — entry point for unauthenticated users.
 class LoginScreen extends StatefulWidget {
@@ -44,19 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.error_outline, color: colorScheme.onErrorContainer),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(state.message)),
-                  ],
-                ),
-                backgroundColor: colorScheme.errorContainer,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            context.read<NotificationService>().showError(state.message);
           }
         },
         builder: (context, state) {

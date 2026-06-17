@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/bloc/sticker_setup_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/bloc/sticker_setup_state.dart';
@@ -77,12 +78,7 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
           LabelEditorRoute(templateId: state.templateId).go(context);
         }
         if (state is StickerSetupError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: colorScheme.error,
-            ),
-          );
+          context.read<NotificationService>().showError(state.message);
         }
       },
       builder: (context, state) {

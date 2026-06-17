@@ -89,29 +89,16 @@ class _PrintSetupView extends StatelessWidget {
     return BlocConsumer<PrintWorkflowCubit, PrintWorkflowState>(
       listener: (context, state) {
         if (state is PrintWorkflowSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text('Print job ${state.printJob.id} successfully dispatched to printer!'),
-                  ),
-                ],
-              ),
-              backgroundColor: Colors.green,
-            ),
+          context.read<NotificationService>().showSuccess(
+            'Print job ${state.printJob.id} successfully dispatched to printer!',
           );
-          // Return to dashboard
           const DashboardRoute().go(context);
         }
         if (state is PrintWorkflowError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: colorScheme.error,
-            ),
+          BlockingErrorDialog.show(
+            context,
+            message: state.message,
+            onClose: () => Navigator.of(context).pop(),
           );
         }
       },
@@ -125,20 +112,9 @@ class _PrintSetupView extends StatelessWidget {
         if (state is PrintWorkflowError && state is! PrintWorkflowLoaded) {
           return Scaffold(
             appBar: AppBar(title: const Text('Error')),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: colorScheme.error),
-                  const SizedBox(height: 16),
-                  Text(state.message, style: textTheme.titleMedium),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Go Back'),
-                  ),
-                ],
-              ),
+            body: ErrorView(
+              message: state.message,
+              onBack: () => Navigator.of(context).pop(),
             ),
           );
         }

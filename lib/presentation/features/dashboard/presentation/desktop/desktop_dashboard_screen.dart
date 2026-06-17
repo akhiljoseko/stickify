@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/recent_print_jobs_cubit.dart';
@@ -133,12 +134,14 @@ class _QuickActionsGrid extends StatelessWidget {
 
   static const List<_QuickActionData> _actions = [
     _QuickActionData(
+      id: FeatureId.productCatalogAdmin,
       icon: Icons.add_circle_outline,
       title: 'Add New Product',
       subtitle: 'Register SKU & Metadata',
       isPrimary: true,
     ),
     _QuickActionData(
+      id: FeatureId.templateCreation,
       icon: Icons.dashboard_customize_outlined,
       title: 'Create Template',
       subtitle: 'Visual designer tool',
@@ -173,7 +176,13 @@ class _QuickActionsGrid extends StatelessWidget {
               title: action.title,
               subtitle: action.subtitle,
               isPrimary: action.isPrimary,
-              onTap: () {},
+              onTap: () {
+                if (action.id == FeatureId.productCatalogAdmin) {
+                  context.go('/products?subView=create');
+                } else if (action.id == FeatureId.templateCreation) {
+                  context.go('/templates?action=create');
+                }
+              },
             );
           },
         );
@@ -184,12 +193,14 @@ class _QuickActionsGrid extends StatelessWidget {
 
 class _QuickActionData {
   const _QuickActionData({
+    required this.id,
     required this.icon,
     required this.title,
     required this.subtitle,
     this.isPrimary = false,
   });
 
+  final FeatureId id;
   final IconData icon;
   final String title;
   final String subtitle;

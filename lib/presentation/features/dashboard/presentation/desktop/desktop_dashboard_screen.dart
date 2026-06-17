@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/recent_print_jobs_cubit.dart';
@@ -23,22 +24,15 @@ class DesktopDashboardScreen extends StatelessWidget {
       body: BlocListener<SyncCubit, SyncState>(
         listener: (context, state) {
           if (state is SyncSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Synchronization complete! All templates and products updated.'),
-                behavior: SnackBarBehavior.floating,
-              ),
+            context.read<NotificationService>().showSuccess(
+              'Synchronization complete! All templates and products updated.',
             );
             // Refresh data
             context.read<RecentPrintJobsCubit>().loadRecentJobs();
             context.read<FrequentProductsCubit>().loadFrequentProducts();
           } else if (state is SyncFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Sync failed: ${state.error}'),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
+            context.read<NotificationService>().showError(
+              'Sync failed: ${state.error}',
             );
           }
         },
@@ -413,21 +407,8 @@ class _DesktopProductTable extends StatelessWidget {
         product: products[i],
         isEvenRow: i.isEven,
         onQuickPrint: () {
-          final colorScheme = Theme.of(context).colorScheme;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: colorScheme.inverseSurface,
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: colorScheme.tertiaryContainer),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text('Print job sent: 15 labels queued for ${products[i].name}'),
-                  ),
-                ],
-              ),
-            ),
+          context.read<NotificationService>().showInfo(
+            'Print job sent: 15 labels queued for ${products[i].name}',
           );
         },
       ),

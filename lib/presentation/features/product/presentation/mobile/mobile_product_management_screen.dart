@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/app/theme.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
@@ -36,12 +37,7 @@ class MobileProductManagementScreen extends StatelessWidget {
       body: BlocConsumer<ProductCubit, ProductState>(
         listener: (context, state) {
           if (state is ProductCatalogError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: colorScheme.error,
-              ),
-            );
+            context.read<NotificationService>().showError(state.message);
           }
         },
         builder: (context, state) {
@@ -49,23 +45,11 @@ class MobileProductManagementScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state is ProductCatalogError && state.message.isNotEmpty && state is! ProductCatalogSuccess) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: colorScheme.error),
-                  const SizedBox(height: 16),
-                  Text('Failed to load products', style: theme.textTheme.titleSmall),
-                  const SizedBox(height: 8),
-                  Text(state.message),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => context.read<ProductCubit>().loadProducts(),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
+          if (state is ProductCatalogError && state.message.isNotEmpty) {
+            return ErrorView(
+              message: state.message,
+              onRetry: () => context.read<ProductCubit>().loadProducts(),
+              onBack: () => Navigator.of(context).pop(),
             );
           }
 

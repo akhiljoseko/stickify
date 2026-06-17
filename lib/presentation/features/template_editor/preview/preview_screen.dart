@@ -100,23 +100,11 @@ class _PreviewViewState extends State<_PreviewView> {
     return BlocConsumer<PreviewCubit, PreviewState>(
       listener: (context, state) {
         if (state is PreviewFinalized) {
-          // Success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Template saved and finalized!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Return to home management list
+          context.read<NotificationService>().showSuccess('Template saved and finalized!');
           const TemplateManagementRoute().go(context);
         }
         if (state is PreviewError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: colorScheme.error,
-            ),
-          );
+          context.read<NotificationService>().showError(state.message);
         }
       },
       builder: (context, state) {

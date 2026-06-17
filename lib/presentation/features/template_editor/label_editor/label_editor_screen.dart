@@ -119,12 +119,7 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
           PreviewRoute(templateId: state.templateId).go(context);
         }
         if (state is EditorError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: colorScheme.error,
-            ),
-          );
+          context.read<NotificationService>().showError(state.message);
         }
       },
       builder: (context, state) {

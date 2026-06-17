@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/core/environment/app_environment.dart';
 import 'package:stickify/core/environment/app_experience.dart';
 import 'package:stickify/domain/domain.dart';
@@ -165,20 +166,10 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                   }
 
                   if (state is TemplateListError) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.error_outline, size: 48, color: colorScheme.error),
-                          const SizedBox(height: 16),
-                          Text(state.message, style: textTheme.titleMedium),
-                          const SizedBox(height: 8),
-                          ElevatedButton(
-                            onPressed: () => context.read<TemplateListCubit>().loadTemplates(),
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
+                    return ErrorView(
+                      message: state.message,
+                      onRetry: () => context.read<TemplateListCubit>().loadTemplates(),
+                      onBack: () => Navigator.of(context).pop(),
                     );
                   }
 

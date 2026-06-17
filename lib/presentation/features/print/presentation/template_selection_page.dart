@@ -111,20 +111,9 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
     if (_errorMessage != null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Error')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: colorScheme.error),
-              const SizedBox(height: 16),
-              Text(_errorMessage!, style: textTheme.titleMedium),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Go Back'),
-              ),
-            ],
-          ),
+        body: ErrorView(
+          message: _errorMessage!,
+          onBack: () => Navigator.of(context).pop(),
         ),
       );
     }

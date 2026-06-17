@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/sheet_config/bloc/sheet_config_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/sheet_config/bloc/sheet_config_state.dart';
@@ -77,12 +78,7 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
           StickerSetupRoute(templateId: state.templateId).go(context);
         }
         if (state is SheetConfigError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: colorScheme.error,
-            ),
-          );
+          context.read<NotificationService>().showError(state.message);
         }
       },
       builder: (context, state) {

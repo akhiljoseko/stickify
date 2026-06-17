@@ -54,7 +54,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   ///
   /// Fetches [productId], locates the variant by [variantSku], and optionally
   /// sets the initial active layout template by [templateId].
-  Future<void> loadWorkflow(String productId, String variantSku, [String? templateId]) async {
+  Future<void> loadWorkflow(String productId, String variantSku, [String? templateId, int? initialQuantity]) async {
     emit(const PrintWorkflowLoading());
     try {
       final productResult = await _productRepository.getProductById(productId);
@@ -95,14 +95,18 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 orElse: () => printers.isNotEmpty ? printers.first : const PrinterDevice(name: 'No Printer Found', url: ''),
               );
 
-              emit(PrintWorkflowLoaded(
+              var loaded = PrintWorkflowLoaded(
                 product: product,
                 variant: variant,
                 templates: templates,
                 selectedTemplate: selected,
                 availablePrinters: printers,
                 selectedPrinter: defaultPrinter,
-              ));
+              );
+              if (initialQuantity != null && initialQuantity > 0) {
+                loaded = loaded.copyWith(quantity: initialQuantity);
+              }
+              emit(loaded);
           }
       }
     } on Object catch (e) {
@@ -188,13 +192,13 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
           final jobId = _printJobIdGenerator.generateId();
           final job = PrintJob(
             id: jobId,
+            productId: s.product.id,
             productName: s.product.name,
             variantId: s.variant.sku,
             variantName: s.variant.name,
             variantSku: s.variant.sku,
             templateId: template.id,
             templateName: template.name,
-            status: PrintJobStatus.completed,
             printerStation: printer.name,
             printedAt: DateTime.now(),
             labelCount: s.quantity,

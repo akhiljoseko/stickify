@@ -11,6 +11,7 @@ import 'package:stickify/presentation/features/template_editor/label_editor/labe
 import 'package:stickify/presentation/features/template_editor/preview/preview_screen.dart';
 import 'package:stickify/presentation/features/template_editor/sheet_config/sheet_config_screen.dart';
 import 'package:stickify/presentation/features/template_editor/sticker_setup/sticker_setup_screen.dart';
+import 'package:stickify/presentation/features/print_history/presentation/print_history_screen.dart';
 import 'package:stickify/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:stickify/presentation/login/login_screen.dart';
 import 'package:stickify/presentation/registration/register_screen.dart';
@@ -75,6 +76,20 @@ class ForgotPasswordRoute extends GoRouteData with $ForgotPasswordRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return const ForgotPasswordScreen();
+  }
+}
+
+/// The print history screen route — full-screen overlay outside the shell.
+@TypedGoRoute<PrintHistoryRoute>(path: '/print-history')
+@immutable
+class PrintHistoryRoute extends GoRouteData with $PrintHistoryRoute {
+  const PrintHistoryRoute();
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const PrintHistoryScreen();
   }
 }
 
@@ -282,6 +297,7 @@ class PrintSetupRoute extends GoRouteData with $PrintSetupRoute {
     required this.productId,
     required this.variantSku,
     required this.templateId,
+    this.quantity,
   });
 
   static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
@@ -290,12 +306,16 @@ class PrintSetupRoute extends GoRouteData with $PrintSetupRoute {
   final String variantSku;
   final String templateId;
 
+  /// Optional initial quantity to pre-fill in the print setup.
+  final int? quantity;
+
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return PrintSetupPage(
       productId: productId,
       variantSku: variantSku,
       templateId: templateId,
+      quantity: quantity,
     );
   }
 }

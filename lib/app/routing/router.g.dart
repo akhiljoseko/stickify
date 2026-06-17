@@ -10,6 +10,7 @@ List<RouteBase> get $appRoutes => [
   $loginRoute,
   $registerRoute,
   $forgotPasswordRoute,
+  $printHistoryRoute,
   $appShellRouteData,
 ];
 
@@ -70,6 +71,33 @@ mixin $ForgotPasswordRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/forgot-password');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $printHistoryRoute => GoRouteData.$route(
+  path: '/print-history',
+  parentNavigatorKey: PrintHistoryRoute.$parentNavigatorKey,
+  factory: $PrintHistoryRoute._fromState,
+);
+
+mixin $PrintHistoryRoute on GoRouteData {
+  static PrintHistoryRoute _fromState(GoRouterState state) =>
+      const PrintHistoryRoute();
+
+  @override
+  String get location => GoRouteData.$location('/print-history');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -266,6 +294,11 @@ mixin $PrintSetupRoute on GoRouteData {
     productId: state.pathParameters['productId']!,
     variantSku: state.pathParameters['variantSku']!,
     templateId: state.pathParameters['templateId']!,
+    quantity: _$convertMapValue(
+      'quantity',
+      state.uri.queryParameters,
+      int.tryParse,
+    ),
   );
 
   PrintSetupRoute get _self => this as PrintSetupRoute;
@@ -273,6 +306,9 @@ mixin $PrintSetupRoute on GoRouteData {
   @override
   String get location => GoRouteData.$location(
     '/products/${Uri.encodeComponent(_self.productId)}/variants/${Uri.encodeComponent(_self.variantSku)}/print/setup/${Uri.encodeComponent(_self.templateId)}',
+    queryParams: {
+      if (_self.quantity != null) 'quantity': _self.quantity!.toString(),
+    },
   );
 
   @override
@@ -430,4 +466,13 @@ mixin $SettingsRoute on GoRouteData {
 
   @override
   void replace(BuildContext context) => context.replace(location);
+}
+
+T? _$convertMapValue<T>(
+  String key,
+  Map<String, String> map,
+  T? Function(String) converter,
+) {
+  final value = map[key];
+  return value == null ? null : converter(value);
 }

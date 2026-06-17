@@ -29,7 +29,6 @@ export 'entities/sync_operation.dart';
 export 'repositories/print_job_repository.dart';
 export 'repositories/product_repository.dart';
 export 'repositories/search_repository.dart';
-export 'repositories/syncable_print_job_repository.dart';
 export 'repositories/syncable_product_repository.dart';
 export 'repositories/syncable_template_repository.dart';
 export 'repositories/template_repository.dart';

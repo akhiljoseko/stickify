@@ -20,6 +20,7 @@ class PrintSetupPage extends StatelessWidget {
     required this.productId,
     required this.variantSku,
     required this.templateId,
+    this.quantity,
     super.key,
   });
 
@@ -32,6 +33,9 @@ class PrintSetupPage extends StatelessWidget {
   /// The active label template ID.
   final String templateId;
 
+  /// Optional initial quantity to pre-fill.
+  final int? quantity;
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -42,7 +46,7 @@ class PrintSetupPage extends StatelessWidget {
         printService: context.read<PrintService>(),
         printerDiscoveryService: context.read<PrinterDiscoveryService>(),
         printJobIdGenerator: context.read<PrintJobIdGenerator>(),
-      )..loadWorkflow(productId, variantSku, templateId),
+      )..loadWorkflow(productId, variantSku, templateId, quantity),
       child: const _PrintSetupView(),
     );
   }

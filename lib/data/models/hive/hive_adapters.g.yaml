@@ -103,7 +103,7 @@ types:
         index: 5
   PrintJobHiveModel:
     typeId: 4
-    nextIndex: 12
+    nextIndex: 13
     fields:
       id:
         index: 0
@@ -119,16 +119,14 @@ types:
         index: 5
       templateName:
         index: 6
-      status:
-        index: 7
       printerStation:
         index: 8
       printedAt:
         index: 9
       labelCount:
         index: 10
-      isVerified:
-        index: 11
+      productId:
+        index: 12
   ProductHiveModel:
     typeId: 5
     nextIndex: 12

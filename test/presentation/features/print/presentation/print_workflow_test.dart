@@ -22,13 +22,13 @@ void main() {
     registerFallbackValue(
       PrintJob(
         id: 'fallback-job',
+        productId: 'fallback-prod',
         productName: 'Fallback',
         variantId: 'SKU',
         variantName: 'Standard',
         variantSku: 'SKU',
         templateId: 'temp',
         templateName: 'Standard Template',
-        status: PrintJobStatus.completed,
         printerStation: 'Zebra',
         printedAt: DateTime.now(),
         labelCount: 1,

@@ -122,26 +122,6 @@ class _RecentPrintCardState extends State<RecentPrintCard> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      side: BorderSide(color: colorScheme.outlineVariant),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.more_vert,
-                      size: 20,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
               ],
             ),
           ],

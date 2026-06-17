@@ -7,7 +7,6 @@ class TemplateCard extends StatefulWidget {
   /// Creates a [TemplateCard] instance.
   const TemplateCard({
     required this.template,
-    required this.onSelect,
     required this.onEdit,
     required this.onDelete,
     super.key,
@@ -15,9 +14,6 @@ class TemplateCard extends StatefulWidget {
 
   /// The label template details.
   final LabelTemplate template;
-
-  /// Callback when user selects the template for printing.
-  final VoidCallback onSelect;
 
   /// Callback to edit the template.
   final VoidCallback onEdit;
@@ -152,22 +148,6 @@ class _TemplateCardState extends State<TemplateCard> {
                     // Action Buttons row
                     Row(
                       children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: colorScheme.primaryContainer,
-                              foregroundColor: colorScheme.onPrimaryContainer,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                            ),
-                            onPressed: widget.onSelect,
-                            child: const Text('Select for Print'),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
                         PopupMenuButton<String>(
                           icon: const Icon(Icons.more_vert),
                           onSelected: (val) {

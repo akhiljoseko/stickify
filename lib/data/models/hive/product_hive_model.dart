@@ -1,9 +1,6 @@
 import 'package:hive_ce/hive.dart';
 import 'package:stickify/domain/domain.dart';
 
-part 'product_hive_model.g.dart';
-
-@HiveType(typeId: 0)
 class ProductHiveModel extends HiveObject {
   ProductHiveModel({
     required this.id,
@@ -20,7 +17,6 @@ class ProductHiveModel extends HiveObject {
     this.variants = const [],
   });
 
-  /// Factory to convert a domain [Product] to a [ProductHiveModel].
   factory ProductHiveModel.fromDomain(Product p) {
     return ProductHiveModel(
       id: p.id,
@@ -40,43 +36,19 @@ class ProductHiveModel extends HiveObject {
     );
   }
 
-  @HiveField(0)
   final String id;
-
-  @HiveField(1)
   final String name;
-
-  @HiveField(2)
   final String sku;
-
-  @HiveField(3)
   final int totalPrints;
-
-  @HiveField(4)
   final DateTime lastPrintedAt;
-
-  @HiveField(7)
   final String? category;
-
-  @HiveField(8)
   final int? shelfLifeDays;
-
-  @HiveField(9)
   final String? storageConditions;
-
-  @HiveField(10)
   final String? imageUrl;
-
-  @HiveField(11)
   final List<IngredientHiveModel> ingredients;
-
-  @HiveField(12)
   final NutritionFactsHiveModel? nutritionFacts;
-
-  @HiveField(13)
   final List<ProductVariantHiveModel> variants;
 
-  /// Converts this [ProductHiveModel] to a domain [Product].
   Product toDomain() {
     return Product(
       id: id,
@@ -95,7 +67,6 @@ class ProductHiveModel extends HiveObject {
   }
 }
 
-@HiveType(typeId: 1)
 class IngredientHiveModel extends HiveObject {
   IngredientHiveModel({
     required this.name,
@@ -109,10 +80,7 @@ class IngredientHiveModel extends HiveObject {
     );
   }
 
-  @HiveField(0)
   final String name;
-
-  @HiveField(1)
   final double percentage;
 
   Ingredient toDomain() {
@@ -123,7 +91,6 @@ class IngredientHiveModel extends HiveObject {
   }
 }
 
-@HiveType(typeId: 2)
 class NutritionFactsHiveModel extends HiveObject {
   NutritionFactsHiveModel({
     required this.calories,
@@ -145,22 +112,11 @@ class NutritionFactsHiveModel extends HiveObject {
     );
   }
 
-  @HiveField(0)
   final double calories;
-
-  @HiveField(1)
   final double protein;
-
-  @HiveField(2)
   final double totalFat;
-
-  @HiveField(3)
   final double saturatedFat;
-
-  @HiveField(4)
   final double totalCarbs;
-
-  @HiveField(5)
   final double fiber;
 
   NutritionFacts toDomain() {
@@ -175,7 +131,6 @@ class NutritionFactsHiveModel extends HiveObject {
   }
 }
 
-@HiveType(typeId: 3)
 class ProductVariantHiveModel extends HiveObject {
   ProductVariantHiveModel({
     required this.name,
@@ -197,22 +152,11 @@ class ProductVariantHiveModel extends HiveObject {
     );
   }
 
-  @HiveField(0)
   final String name;
-
-  @HiveField(1)
   final double quantity;
-
-  @HiveField(2)
   final String unit;
-
-  @HiveField(3)
   final double wholesale;
-
-  @HiveField(4)
   final double mrp;
-
-  @HiveField(5)
   final String sku;
 
   ProductVariant toDomain() {

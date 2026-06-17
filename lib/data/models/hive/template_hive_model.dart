@@ -1,9 +1,6 @@
 import 'package:hive_ce/hive.dart';
 import 'package:stickify/domain/domain.dart';
 
-part 'template_hive_model.g.dart';
-
-@HiveType(typeId: 4)
 class LabelTemplateHiveModel extends HiveObject {
   LabelTemplateHiveModel({
     required this.id,
@@ -31,25 +28,12 @@ class LabelTemplateHiveModel extends HiveObject {
     );
   }
 
-  @HiveField(0)
   final String id;
-
-  @HiveField(1)
   final String name;
-
-  @HiveField(2)
   final bool isFinalized;
-
-  @HiveField(3)
   final DateTime? updatedAt;
-
-  @HiveField(4)
   final SheetConfigHiveModel? sheetConfig;
-
-  @HiveField(5)
   final StickerConfigHiveModel? stickerConfig;
-
-  @HiveField(6)
   final List<ElementBlueprintHiveModel> elements;
 
   LabelTemplate toDomain() {
@@ -65,7 +49,6 @@ class LabelTemplateHiveModel extends HiveObject {
   }
 }
 
-@HiveType(typeId: 5)
 class SheetConfigHiveModel extends HiveObject {
   SheetConfigHiveModel({
     required this.pageWidth,
@@ -95,34 +78,15 @@ class SheetConfigHiveModel extends HiveObject {
     );
   }
 
-  @HiveField(0)
   final double pageWidth;
-
-  @HiveField(1)
   final double pageHeight;
-
-  @HiveField(2)
   final double marginTop;
-
-  @HiveField(3)
   final double marginBottom;
-
-  @HiveField(4)
   final double marginLeft;
-
-  @HiveField(5)
   final double marginRight;
-
-  @HiveField(6)
   final int columns;
-
-  @HiveField(7)
   final int rows;
-
-  @HiveField(8)
   final double columnGap;
-
-  @HiveField(9)
   final double rowGap;
 
   SheetConfig toDomain() {
@@ -141,7 +105,6 @@ class SheetConfigHiveModel extends HiveObject {
   }
 }
 
-@HiveType(typeId: 6)
 class StickerConfigHiveModel extends HiveObject {
   StickerConfigHiveModel({
     required this.widthMm,
@@ -159,16 +122,9 @@ class StickerConfigHiveModel extends HiveObject {
     );
   }
 
-  @HiveField(0)
   final double widthMm;
-
-  @HiveField(1)
   final double heightMm;
-
-  @HiveField(2)
   final double cornerRadiusMm;
-
-  @HiveField(3)
   final List<StickerPointHiveModel> printableArea;
 
   StickerConfig toDomain() {
@@ -181,7 +137,6 @@ class StickerConfigHiveModel extends HiveObject {
   }
 }
 
-@HiveType(typeId: 7)
 class StickerPointHiveModel extends HiveObject {
   StickerPointHiveModel({
     required this.x,
@@ -195,10 +150,7 @@ class StickerPointHiveModel extends HiveObject {
     );
   }
 
-  @HiveField(0)
   final double x;
-
-  @HiveField(1)
   final double y;
 
   StickerPoint toDomain() {
@@ -206,7 +158,6 @@ class StickerPointHiveModel extends HiveObject {
   }
 }
 
-@HiveType(typeId: 8)
 class ElementBlueprintHiveModel extends HiveObject {
   ElementBlueprintHiveModel({
     required this.id,
@@ -323,86 +274,39 @@ class ElementBlueprintHiveModel extends HiveObject {
     );
   }
 
-  @HiveField(0)
   final String id;
-
-  @HiveField(1)
   final String type;
-
-  @HiveField(2)
   final double x;
-
-  @HiveField(3)
   final double y;
-
-  @HiveField(4)
   final double width;
-
-  @HiveField(5)
   final double height;
-
-  @HiveField(6)
   final double rotation;
 
   // text
-  @HiveField(7)
   final String? content;
-
-  @HiveField(8)
   final bool? isDynamic;
-
-  @HiveField(9)
   final double? fontSize;
-
-  @HiveField(10)
   final int? fontWeightValue;
-
-  @HiveField(11)
   final String? textAlign;
-
-  @HiveField(12)
   final int? colorHex;
 
   // shape
-  @HiveField(13)
   final int? fillColorHex;
-
-  @HiveField(14)
   final int? strokeColorHex;
-
-  @HiveField(15)
   final double? strokeWidth;
-
-  @HiveField(16)
   final double? cornerRadius;
-
-  @HiveField(17)
   final bool? isFilled;
 
   // barcode / qr
-  @HiveField(18)
   final String? data;
-
-  @HiveField(19)
   final String? barcodeType;
-
-  @HiveField(20)
   final bool? showLabel;
 
   // image
-  @HiveField(21)
   final String? assetPath;
-
-  @HiveField(22)
   final String? networkUrl;
-
-  @HiveField(23)
   final String? localFilePath;
-
-  @HiveField(24)
   final String? fit;
-
-  @HiveField(25)
   final int? maxLines;
 
   ElementBlueprint toDomain() {

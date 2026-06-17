@@ -8,8 +8,8 @@ import 'package:flutter/widgets.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:stickify/app/app.dart';
 import 'package:stickify/core/services/pdf/pdf_element_renderer_registry.dart';
+import 'package:stickify/data/models/hive/hive_registrar.g.dart';
 import 'package:stickify/firebase_options.dart';
-import 'package:stickify/hive_registrar.g.dart';
 
 /// Custom [BlocObserver] that logs Bloc state changes and errors.
 class AppBlocObserver extends BlocObserver {

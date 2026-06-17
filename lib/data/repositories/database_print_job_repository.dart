@@ -49,6 +49,30 @@ class DatabasePrintJobRepository implements PrintJobRepository {
   }
 
   @override
+  Future<Result<List<PrintJob>, AppError>> getJobsPaginated({
+    int limit = 20,
+    DateTime? before,
+  }) async {
+    try {
+      final allModels = await _db.getAll<PrintJobHiveModel>(_collection);
+      var list = allModels.map((m) => m.toDomain()).toList()
+        ..sort((a, b) => b.printedAt.compareTo(a.printedAt));
+      if (before != null) {
+        list = list.where((j) => j.printedAt.isBefore(before)).toList();
+      }
+      return Result.success(list.take(limit).toList());
+    } catch (e, s) {
+      return Result.failure(
+        DatabaseError(
+          message: 'Failed to fetch paginated print jobs.',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
+  }
+
+  @override
   Future<Result<List<PrintJob>, AppError>> getJobsByVariantSku(String variantSku) async {
     try {
       final allModels = await _db.getAll<PrintJobHiveModel>(_collection);

@@ -16,10 +16,8 @@ import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
 import 'package:stickify/data/repositories/database_template_repository.dart';
-import 'package:stickify/data/repositories/firestore_print_job_repository.dart';
 import 'package:stickify/data/repositories/firestore_product_repository.dart';
 import 'package:stickify/data/repositories/firestore_template_repository.dart';
-import 'package:stickify/data/repositories/syncing_print_job_repository.dart';
 import 'package:stickify/data/repositories/syncing_product_repository.dart';
 import 'package:stickify/data/repositories/syncing_template_repository.dart';
 import 'package:stickify/data/services/firebase_auth_service.dart';
@@ -59,7 +57,6 @@ class AppServiceLocator {
 
     final localProductRepo = DatabaseProductRepository(database: database);
     final localTemplateRepo = DatabaseTemplateRepository(database: database);
-    final localPrintJobRepo = DatabasePrintJobRepository(database: database);
     final syncQueue = HiveSyncQueue(database: database);
 
     final productRepository = SyncingProductRepository(
@@ -70,10 +67,8 @@ class AppServiceLocator {
       local: localTemplateRepo,
       syncQueue: syncQueue,
     );
-    final printJobRepository = SyncingPrintJobRepository(
-      local: localPrintJobRepo,
-      syncQueue: syncQueue,
-      localDatabase: database,
+    final printJobRepository = DatabasePrintJobRepository(
+      database: database,
     );
 
     final searchRepository = DatabaseSearchRepository(
@@ -102,11 +97,9 @@ class AppServiceLocator {
         final uid = user.uid;
         productRepository.remote = FirestoreProductRepository(remoteDb: remoteDb, userId: uid);
         templateRepository.remote = FirestoreTemplateRepository(remoteDb: remoteDb, userId: uid);
-        printJobRepository.remote = FirestorePrintJobRepository(remoteDb: remoteDb, userId: uid);
       } else {
         productRepository.remote = null;
         templateRepository.remote = null;
-        printJobRepository.remote = null;
       }
     });
 
@@ -115,7 +108,6 @@ class AppServiceLocator {
     if (currentUser != null) {
       productRepository.remote = FirestoreProductRepository(remoteDb: remoteDb, userId: currentUser.uid);
       templateRepository.remote = FirestoreTemplateRepository(remoteDb: remoteDb, userId: currentUser.uid);
-      printJobRepository.remote = FirestorePrintJobRepository(remoteDb: remoteDb, userId: currentUser.uid);
     }
 
     return AppServiceLocator._(
@@ -146,8 +138,8 @@ class AppServiceLocator {
   /// The syncing template repository.
   final SyncableTemplateRepository templateRepository;
 
-  /// The syncing print job repository.
-  final SyncablePrintJobRepository printJobRepository;
+  /// The local-only print job repository.
+  final PrintJobRepository printJobRepository;
 
   /// The database search repository.
   final SearchRepository searchRepository;

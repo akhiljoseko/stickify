@@ -184,13 +184,13 @@ void main() {
           const targetSku = 'TEST-SKU-PRINT';
           final newJob = PrintJob(
             id: 'job-test-12',
+            productId: 'prod-test',
             productName: 'Dynamic Test Sticker',
             variantId: 'TEST-SKU-PRINT',
             variantName: 'Standard',
             variantSku: targetSku,
             templateId: 'template-test',
             templateName: 'Test Template',
-            status: PrintJobStatus.completed,
             printerStation: 'Station #01',
             printedAt: DateTime.now(),
             labelCount: 15,

@@ -43,7 +43,6 @@ class _AppState extends State<App> {
         RepositoryProvider<TemplateRepository>.value(value: locator.templateRepository),
         RepositoryProvider<SyncableTemplateRepository>.value(value: locator.templateRepository),
         RepositoryProvider<PrintJobRepository>.value(value: locator.printJobRepository),
-        RepositoryProvider<SyncablePrintJobRepository>.value(value: locator.printJobRepository),
         RepositoryProvider<SearchRepository>.value(value: locator.searchRepository),
         RepositoryProvider<PrintService>.value(value: locator.printService),
         RepositoryProvider<PrinterDiscoveryService>.value(value: locator.printService as PrinterDiscoveryService),

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/recent_print_jobs_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/sync_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/sync_state.dart';
-import 'package:stickify/presentation/features/dashboard/widgets/recent_print_card.dart';
+import 'package:stickify/presentation/features/dashboard/widgets/recent_print_row.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
 /// Mobile-specific dashboard viewport layout.
@@ -375,7 +376,7 @@ class _RecentPrintsSection extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             TextButton(
-              onPressed: () {},
+              onPressed: () => const PrintHistoryRoute().push<void>(context),
               child: Text(
                 'View All',
                 style: textTheme.labelMedium?.copyWith(
@@ -390,7 +391,7 @@ class _RecentPrintsSection extends StatelessWidget {
           builder: (context, state) => switch (state) {
             RecentPrintJobsInitial() || RecentPrintJobsLoading() =>
               const _SectionLoadingIndicator(),
-            RecentPrintJobsLoaded(:final jobs) => _RecentPrintsCarousel(jobs: jobs),
+            RecentPrintJobsLoaded(:final jobs) => _RecentPrintsList(jobs: jobs),
             RecentPrintJobsError(:final message) => _SectionErrorView(
                 message: message,
                 onRetry: context.read<RecentPrintJobsCubit>().loadRecentJobs,
@@ -402,27 +403,33 @@ class _RecentPrintsSection extends StatelessWidget {
   }
 }
 
-class _RecentPrintsCarousel extends StatelessWidget {
-  const _RecentPrintsCarousel({required this.jobs});
+class _RecentPrintsList extends StatelessWidget {
+  const _RecentPrintsList({required this.jobs});
   final List<PrintJob> jobs;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 310,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: jobs.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 12),
-        itemBuilder: (context, i) => SizedBox(
-          width: 260,
-          child: RecentPrintCard(
-            job: jobs[i],
-            width: 260,
-            onRepeatPrint: () {},
-          ),
-        ),
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: jobs.length,
+      separatorBuilder: (_, _) => Divider(
+        height: 1,
+        color: Theme.of(context).colorScheme.outlineVariant,
       ),
+      itemBuilder: (context, i) {
+        final job = jobs[i];
+        return RecentPrintRow(
+          job: job,
+          isEvenRow: i.isEven,
+          onRepeatPrint: () => PrintSetupRoute(
+            productId: job.productId,
+            variantSku: job.variantSku,
+            templateId: job.templateId,
+            quantity: job.labelCount,
+          ).go(context),
+        );
+      },
     );
   }
 }

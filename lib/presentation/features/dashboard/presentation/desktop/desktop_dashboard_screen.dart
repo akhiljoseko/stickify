@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
@@ -9,7 +10,7 @@ import 'package:stickify/presentation/features/dashboard/cubits/sync_cubit.dart'
 import 'package:stickify/presentation/features/dashboard/cubits/sync_state.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/frequent_product_row.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/quick_action_card.dart';
-import 'package:stickify/presentation/features/dashboard/widgets/recent_print_card.dart';
+import 'package:stickify/presentation/features/dashboard/widgets/recent_print_row.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
 /// Desktop-specific dashboard viewport layout.
@@ -209,67 +210,118 @@ class _RecentPrintsSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.update, color: colorScheme.primary, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Recently Printed Labels',
-                style: textTheme.titleSmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 8),
-            TextButton(
-              onPressed: () {},
-              child: Text(
-                'View History',
-                style: textTheme.labelMedium?.copyWith(
-                  color: colorScheme.primary,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Row(
+              children: [
+                Icon(Icons.update, color: colorScheme.primary, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Recently Printed Labels',
+                    style: textTheme.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () => const PrintHistoryRoute().push<void>(context),
+                  child: Text(
+                    'View History',
+                    style: textTheme.labelMedium?.copyWith(
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        BlocBuilder<RecentPrintJobsCubit, RecentPrintJobsState>(
-          builder: (context, state) => switch (state) {
-            RecentPrintJobsInitial() || RecentPrintJobsLoading() =>
-              const _SectionLoadingIndicator(),
-            RecentPrintJobsLoaded(:final jobs) => _RecentPrintsCarousel(jobs: jobs),
-            RecentPrintJobsError(:final message) => _SectionErrorView(
-                message: message,
-                onRetry: context.read<RecentPrintJobsCubit>().loadRecentJobs,
-              ),
-          },
-        ),
-      ],
+          ),
+          Divider(height: 1, color: colorScheme.outlineVariant),
+          _PrintTableColumnHeaders(colorScheme: colorScheme, textTheme: textTheme),
+          BlocBuilder<RecentPrintJobsCubit, RecentPrintJobsState>(
+            builder: (context, state) => switch (state) {
+              RecentPrintJobsInitial() || RecentPrintJobsLoading() =>
+                const _SectionLoadingIndicator(),
+              RecentPrintJobsLoaded(:final jobs) =>
+                _RecentPrintsTable(jobs: jobs),
+              RecentPrintJobsError(:final message) => _SectionErrorView(
+                  message: message,
+                  onRetry: context.read<RecentPrintJobsCubit>().loadRecentJobs,
+                ),
+            },
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _RecentPrintsCarousel extends StatelessWidget {
-  const _RecentPrintsCarousel({required this.jobs});
+class _PrintTableColumnHeaders extends StatelessWidget {
+  const _PrintTableColumnHeaders({
+    required this.colorScheme,
+    required this.textTheme,
+  });
+
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: colorScheme.surfaceContainerLow,
+      child: Row(
+        children: [
+          _HeaderCell(label: 'Variant & SKU', flex: 3, textTheme: textTheme, colorScheme: colorScheme),
+          _HeaderCell(label: 'Template', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
+          _HeaderCell(label: 'Count', flex: 1, textTheme: textTheme, colorScheme: colorScheme),
+          _HeaderCell(label: 'Printed', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: SizedBox(width: 36),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecentPrintsTable extends StatelessWidget {
+  const _RecentPrintsTable({required this.jobs});
   final List<PrintJob> jobs;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 340,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: jobs.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 16),
-        itemBuilder: (context, i) => RecentPrintCard(
-          job: jobs[i],
-          onRepeatPrint: () {},
-        ),
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: jobs.length,
+      separatorBuilder: (_, _) => Divider(
+        height: 1,
+        color: Theme.of(context).colorScheme.outlineVariant,
       ),
+      itemBuilder: (context, i) {
+        final job = jobs[i];
+        return RecentPrintRow(
+          job: job,
+          isEvenRow: i.isEven,
+          onRepeatPrint: () => PrintSetupRoute(
+            productId: job.productId,
+            variantSku: job.variantSku,
+            templateId: job.templateId,
+            quantity: job.labelCount,
+          ).go(context),
+        );
+      },
     );
   }
 }

@@ -207,14 +207,6 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                                     final template = paginatedTemplates[index];
                                     return _CompactTemplateListTile(
                                       template: template,
-                                      onSelect: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Selected "${template.name}" for printing'),
-                                            behavior: SnackBarBehavior.floating,
-                                          ),
-                                        );
-                                      },
                                       onEdit: () {
                                         LabelEditorRoute(templateId: template.id).go(context);
                                       },
@@ -243,15 +235,6 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                                   final template = paginatedTemplates[index];
                                   return TemplateCard(
                                     template: template,
-                                    onSelect: () {
-                                      // Action to select for printing (e.g. show toast or navigate)
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Selected "${template.name}" for printing'),
-                                          behavior: SnackBarBehavior.floating,
-                                        ),
-                                      );
-                                    },
                                     onEdit: () {
                                       // Flow D: Label Designer
                                       LabelEditorRoute(templateId: template.id).go(context);
@@ -371,13 +354,11 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
 class _CompactTemplateListTile extends StatelessWidget {
   const _CompactTemplateListTile({
     required this.template,
-    required this.onSelect,
     required this.onEdit,
     required this.onDelete,
   });
 
   final LabelTemplate template;
-  final VoidCallback onSelect;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -456,12 +437,6 @@ class _CompactTemplateListTile extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           // Right: Actions
-          IconButton(
-            icon: const Icon(Icons.print_outlined),
-            color: colorScheme.primary,
-            tooltip: 'Select for Print',
-            onPressed: onSelect,
-          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (val) {

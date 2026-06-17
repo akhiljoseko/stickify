@@ -42,7 +42,10 @@ extension PumpApp on WidgetTester {
               final environment = AppEnvironmentResolver.resolve(context);
               return RepositoryProvider<AppEnvironment>.value(
                 value: environment,
-                child: child,
+                child: RepositoryProvider<NotificationService>.value(
+                  value: NotificationService(),
+                  child: child,
+                ),
               );
             },
           ),

@@ -22,6 +22,7 @@ class _NotificationListenerWidgetState extends State<NotificationListenerWidget>
     with SingleTickerProviderStateMixin {
   StreamSubscription<NotificationEvent>? _subscription;
   NotificationEvent? _currentEvent;
+  bool _didInit = false;
 
   late final AnimationController _animController;
   late final Animation<Offset> _slideAnimation;
@@ -43,8 +44,19 @@ class _NotificationListenerWidgetState extends State<NotificationListenerWidget>
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
     );
+  }
 
-    _subscription = context.read<NotificationService>().events.listen(_onEvent);
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_didInit) {
+      _didInit = true;
+      try {
+        _subscription = context.read<NotificationService>().events.listen(_onEvent);
+      } catch (_) {
+        // NotificationService not available; skip notifications silently.
+      }
+    }
   }
 
   void _onEvent(NotificationEvent event) {

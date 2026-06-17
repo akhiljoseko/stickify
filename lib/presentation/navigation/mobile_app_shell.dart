@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stickify/core/presentation/notifications/notification_widget.dart';
 import 'package:stickify/presentation/navigation/adaptive_app_shell.dart';
 
 /// Navigation app shell tailored specifically for mobile phone viewports.
@@ -29,7 +30,12 @@ class MobileAppShell extends StatelessWidget {
       appBar: AppBar(
         title: Text(kAppNavDestinations[selectedIndex].label),
       ),
-      body: SafeArea(child: body),
+      body: Stack(
+        children: [
+          SafeArea(child: body),
+          const NotificationListenerWidget(),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: onDestinationSelected,

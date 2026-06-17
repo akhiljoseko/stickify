@@ -50,6 +50,7 @@ class _AppState extends State<App> {
         RepositoryProvider<PrintJobIdGenerator>.value(value: locator.printJobIdGenerator),
         RepositoryProvider<FilePickerService>.value(value: locator.filePickerService),
         RepositoryProvider<FeatureAccessService>.value(value: locator.featureAccessService),
+        RepositoryProvider<NotificationService>.value(value: locator.notificationService),
       ],
       child: BlocProvider(
         // Create the AuthCubit once for the entire app lifetime.

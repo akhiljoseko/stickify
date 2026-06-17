@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stickify/core/presentation/notifications/notification_widget.dart';
 import 'package:stickify/presentation/navigation/shared_sidebar.dart';
 
 /// Navigation app shell for tablet-sized viewports, featuring a compact sidebar layout.
@@ -26,19 +27,24 @@ class TabletAppShell extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      body: Row(
+      body: Stack(
         children: [
-          CustomSidebar(
-            isExtended: false,
-            selectedIndex: selectedIndex,
-            onDestinationSelected: onDestinationSelected,
+          Row(
+            children: [
+              CustomSidebar(
+                isExtended: false,
+                selectedIndex: selectedIndex,
+                onDestinationSelected: onDestinationSelected,
+              ),
+              VerticalDivider(
+                width: 1,
+                thickness: 1,
+                color: theme.colorScheme.outlineVariant,
+              ),
+              Expanded(child: body),
+            ],
           ),
-          VerticalDivider(
-            width: 1,
-            thickness: 1,
-            color: theme.colorScheme.outlineVariant,
-          ),
-          Expanded(child: body),
+          const NotificationListenerWidget(),
         ],
       ),
     );

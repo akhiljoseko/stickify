@@ -1,6 +1,8 @@
+import 'dart:math' show min;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/constants/dimensions.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
@@ -45,6 +47,24 @@ class _LabelEditorView extends StatefulWidget {
 class _LabelEditorViewState extends State<_LabelEditorView> {
   Product? _sampleProduct;
   bool _showHorizontalPalette = false;
+  bool _hasUnsavedChanges = false;
+  bool _initialLoadDone = false;
+
+  Future<bool> _confirmBack() async {
+    if (!_hasUnsavedChanges) return true;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Discard changes?'),
+        content: const Text('You have unsaved changes in the label design. Do you want to discard them?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Discard')),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
 
   @override
   void initState() {
@@ -95,6 +115,7 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
     return BlocConsumer<EditorCubit, EditorState>(
       listener: (context, state) {
         if (state is EditorSaved) {
+          _hasUnsavedChanges = false;
           PreviewRoute(templateId: state.templateId).go(context);
         }
         if (state is EditorError) {
@@ -114,6 +135,11 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
         }
 
         if (state is EditorLoaded) {
+          if (_initialLoadDone) {
+            _hasUnsavedChanges = true;
+          } else {
+            _initialLoadDone = true;
+          }
           final canvasWidget = EditorCanvas(
             stickerConfig: state.stickerConfig,
             elements: state.elements,
@@ -124,8 +150,11 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
 
           final propertiesPanelWidget = PropertiesPanel(
             selectedElement: state.selectedElement,
-            onBack: () =>
-                StickerSetupRoute(templateId: cubit.templateId).go(context),
+            onBack: () async {
+              if (await _confirmBack()) {
+                StickerSetupRoute(templateId: cubit.templateId).go(context);
+              }
+            },
             onNext: cubit.saveAndContinue,
           );
 
@@ -136,9 +165,21 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
             showNavigation: false,
           );
 
+          double computeZoomToFit(BuildContext context) {
+            final viewport = MediaQuery.sizeOf(context);
+            final availW = viewport.width - 256 - 320 - 48;
+            final availH = viewport.height - kToolbarHeight - 60 - 48;
+            final stickerW = state.stickerConfig.widthMm * AppDimensions.mmToPx;
+            final stickerH = state.stickerConfig.heightMm * AppDimensions.mmToPx;
+            final fitW = availW / stickerW;
+            final fitH = availH / stickerH;
+            return min(fitW, fitH).clamp(0.5, 2.0).floorToDouble();
+          }
+
           final zoomControlsWidget = ZoomControls(
             zoomLevel: state.zoomLevel,
             onZoomChanged: cubit.setZoom,
+            onZoomToFit: () => cubit.setZoom(computeZoomToFit(context)),
           );
 
           // Auto-hide horizontal palette if an element is selected
@@ -258,7 +299,9 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
           );
         }
 
-        return const SizedBox.shrink();
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
       },
     );
   }

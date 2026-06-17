@@ -1,6 +1,7 @@
 import 'dart:math' show pi;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/core/constants/dimensions.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/element_renderer_registry.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
@@ -40,10 +41,10 @@ class CanvasElementWidget extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     // Apply zoom scaling to dimensions (1mm = 4 logical pixels)
-    final width = blueprint.width * 4.0 * zoomLevel;
-    final height = blueprint.height * 4.0 * zoomLevel;
-    final left = blueprint.x * 4.0 * zoomLevel;
-    final top = blueprint.y * 4.0 * zoomLevel;
+    final width = blueprint.width * AppDimensions.mmToPx * zoomLevel;
+    final height = blueprint.height * AppDimensions.mmToPx * zoomLevel;
+    final left = blueprint.x * AppDimensions.mmToPx * zoomLevel;
+    final top = blueprint.y * AppDimensions.mmToPx * zoomLevel;
 
     final renderedChild = ElementRendererRegistry.forBlueprint(blueprint)
         .render(context, blueprint, product: product);
@@ -55,14 +56,16 @@ class CanvasElementWidget extends StatelessWidget {
       height: height,
       child: Transform.rotate(
         angle: blueprint.rotation * (pi / 180),
-        child: GestureDetector(
-          onTapDown: (_) => onTap(),
-          onPanUpdate: (details) {
-            // Factor in zoom level and mm-to-pixel ratio when calculating position update
-            final dx = details.delta.dx / zoomLevel / 4.0;
-            final dy = details.delta.dy / zoomLevel / 4.0;
-            context.read<EditorCubit>().dragElement(blueprint.id, dx, dy);
-          },
+        child: MouseRegion(
+          cursor: SystemMouseCursors.move,
+          child: GestureDetector(
+            onTapDown: (_) => onTap(),
+            onPanUpdate: (details) {
+              // Factor in zoom level and mm-to-pixel ratio when calculating position update
+              final dx = details.delta.dx / zoomLevel / AppDimensions.mmToPx;
+              final dy = details.delta.dy / zoomLevel / AppDimensions.mmToPx;
+              context.read<EditorCubit>().dragElement(blueprint.id, dx, dy);
+            },
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -73,8 +76,8 @@ class CanvasElementWidget extends StatelessWidget {
                 child: FittedBox(
                   fit: BoxFit.fill,
                   child: SizedBox(
-                    width: blueprint.width * 4.0,
-                    height: blueprint.height * 4.0,
+                    width: blueprint.width * AppDimensions.mmToPx,
+                    height: blueprint.height * AppDimensions.mmToPx,
                     child: renderedChild,
                   ),
                 ),
@@ -99,9 +102,10 @@ class CanvasElementWidget extends StatelessWidget {
                   left: -4,
                   top: -4,
                   color: colorScheme.primary,
+                  cursor: SystemMouseCursors.resizeUpLeftDownRight,
                   onDrag: (details) {
-                    final dx = details.delta.dx / zoomLevel / 4.0;
-                    final dy = details.delta.dy / zoomLevel / 4.0;
+                    final dx = details.delta.dx / zoomLevel / AppDimensions.mmToPx;
+                    final dy = details.delta.dy / zoomLevel / AppDimensions.mmToPx;
                     final newX = (blueprint.x + dx).clamp(0.0, blueprint.x + blueprint.width - 2.0);
                     final newY = (blueprint.y + dy).clamp(0.0, blueprint.y + blueprint.height - 2.0);
                     final newWidth = (blueprint.width - dx).clamp(2.0, 500.0);
@@ -117,9 +121,10 @@ class CanvasElementWidget extends StatelessWidget {
                   right: -4,
                   top: -4,
                   color: colorScheme.primary,
+                  cursor: SystemMouseCursors.resizeUpRightDownLeft,
                   onDrag: (details) {
-                    final dx = details.delta.dx / zoomLevel / 4.0;
-                    final dy = details.delta.dy / zoomLevel / 4.0;
+                    final dx = details.delta.dx / zoomLevel / AppDimensions.mmToPx;
+                    final dy = details.delta.dy / zoomLevel / AppDimensions.mmToPx;
                     final newY = (blueprint.y + dy).clamp(0.0, blueprint.y + blueprint.height - 2.0);
                     final newWidth = (blueprint.width + dx).clamp(2.0, 500.0);
                     final newHeight = (blueprint.height - dy).clamp(2.0, 500.0);
@@ -134,9 +139,10 @@ class CanvasElementWidget extends StatelessWidget {
                   left: -4,
                   bottom: -4,
                   color: colorScheme.primary,
+                  cursor: SystemMouseCursors.resizeUpRightDownLeft,
                   onDrag: (details) {
-                    final dx = details.delta.dx / zoomLevel / 4.0;
-                    final dy = details.delta.dy / zoomLevel / 4.0;
+                    final dx = details.delta.dx / zoomLevel / AppDimensions.mmToPx;
+                    final dy = details.delta.dy / zoomLevel / AppDimensions.mmToPx;
                     final newX = (blueprint.x + dx).clamp(0.0, blueprint.x + blueprint.width - 2.0);
                     final newWidth = (blueprint.width - dx).clamp(2.0, 500.0);
                     final newHeight = (blueprint.height + dy).clamp(2.0, 500.0);
@@ -151,9 +157,10 @@ class CanvasElementWidget extends StatelessWidget {
                   right: -4,
                   bottom: -4,
                   color: colorScheme.primary,
+                  cursor: SystemMouseCursors.resizeUpLeftDownRight,
                   onDrag: (details) {
-                    final dx = details.delta.dx / zoomLevel / 4.0;
-                    final dy = details.delta.dy / zoomLevel / 4.0;
+                    final dx = details.delta.dx / zoomLevel / AppDimensions.mmToPx;
+                    final dy = details.delta.dy / zoomLevel / AppDimensions.mmToPx;
                     final newWidth = (blueprint.width + dx).clamp(2.0, 500.0);
                     final newHeight = (blueprint.height + dy).clamp(2.0, 500.0);
                     context.read<EditorCubit>().updateElementProperty(
@@ -167,11 +174,13 @@ class CanvasElementWidget extends StatelessWidget {
           ),
         ),
       ),
+      ),
     );
   }
 
   Widget _buildGrabHandle({
     required Color color,
+    required MouseCursor cursor,
     required void Function(DragUpdateDetails details) onDrag,
     double? left,
     double? top,
@@ -183,19 +192,22 @@ class CanvasElementWidget extends StatelessWidget {
       top: top != null ? top - 8 : null,
       right: right != null ? right - 8 : null,
       bottom: bottom != null ? bottom - 8 : null,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onPanUpdate: onDrag,
-        child: Container(
-          width: 24,
-          height: 24,
-          alignment: Alignment.center,
+      child: MouseRegion(
+        cursor: cursor,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onPanUpdate: onDrag,
           child: Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: color, width: 2),
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: color, width: 2),
+              ),
             ),
           ),
         ),

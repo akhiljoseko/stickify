@@ -46,6 +46,24 @@ class _StickerSetupView extends StatefulWidget {
 
 class _StickerSetupViewState extends State<_StickerSetupView> {
   final _formKey = GlobalKey<FormState>();
+  bool _hasUnsavedChanges = false;
+  bool _initialLoadDone = false;
+
+  Future<bool> _confirmBack() async {
+    if (!_hasUnsavedChanges) return true;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Discard changes?'),
+        content: const Text('You have unsaved changes in the sticker configuration. Do you want to discard them?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Discard')),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +73,7 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
     return BlocConsumer<StickerSetupCubit, StickerSetupState>(
       listener: (context, state) {
         if (state is StickerSetupSaved) {
+          _hasUnsavedChanges = false;
           LabelEditorRoute(templateId: state.templateId).go(context);
         }
         if (state is StickerSetupError) {
@@ -74,6 +93,11 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
         }
 
         if (state is StickerSetupEditing) {
+          if (_initialLoadDone) {
+            _hasUnsavedChanges = true;
+          } else {
+            _initialLoadDone = true;
+          }
           final formPane = Form(
             key: _formKey,
             child: Column(
@@ -420,9 +444,13 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       OutlinedButton(
-                        onPressed: () => SheetConfigRoute(
-                          templateId: context.read<StickerSetupCubit>().templateId,
-                        ).go(context),
+                        onPressed: () async {
+                          if (await _confirmBack()) {
+                            SheetConfigRoute(
+                              templateId: context.read<StickerSetupCubit>().templateId,
+                            ).go(context);
+                          }
+                        },
                         child: const Text('Back'),
                       ),
                       ElevatedButton(
@@ -437,7 +465,9 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
           );
         }
 
-        return const SizedBox.shrink();
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
       },
     );
   }

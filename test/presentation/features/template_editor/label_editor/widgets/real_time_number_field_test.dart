@@ -20,24 +20,34 @@ void main() {
       expect(find.text('45.0'), findsOneWidget);
     });
 
-    testWidgets('typing a valid number calls onChanged callback', (tester) async {
+    testWidgets('calls onChanged when focus is lost after typing valid number', (tester) async {
       double? changedVal;
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: RealTimeNumberField(
-              label: 'X Position',
-              value: 45,
-              onChanged: (val) {
-                changedVal = val;
-              },
+            body: Column(
+              children: [
+                RealTimeNumberField(
+                  label: 'X Position',
+                  value: 45,
+                  onChanged: (val) {
+                    changedVal = val;
+                  },
+                ),
+                const SizedBox(height: 100),
+                TextFormField(),
+              ],
             ),
           ),
         ),
       );
 
-      final finder = find.byType(TextFormField);
+      final finder = find.byType(TextFormField).first;
       await tester.enterText(finder, '52.3');
+      // Tap another focusable field to remove focus
+      final otherFinder = find.byType(TextFormField).last;
+      await tester.tap(otherFinder);
+      await tester.pumpAndSettle();
       expect(changedVal, 52.3);
     });
 
@@ -46,19 +56,28 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: RealTimeNumberField(
-              label: 'X Position',
-              value: 45,
-              onChanged: (val) {
-                changedVal = val;
-              },
+            body: Column(
+              children: [
+                RealTimeNumberField(
+                  label: 'X Position',
+                  value: 45,
+                  onChanged: (val) {
+                    changedVal = val;
+                  },
+                ),
+                const SizedBox(height: 100),
+                TextFormField(),
+              ],
             ),
           ),
         ),
       );
 
-      final finder = find.byType(TextFormField);
+      final finder = find.byType(TextFormField).first;
       await tester.enterText(finder, 'abc');
+      final otherFinder = find.byType(TextFormField).last;
+      await tester.tap(otherFinder);
+      await tester.pumpAndSettle();
       expect(changedVal, isNull);
     });
 

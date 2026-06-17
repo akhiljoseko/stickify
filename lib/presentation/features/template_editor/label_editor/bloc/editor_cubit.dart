@@ -101,10 +101,9 @@ class EditorCubit extends Cubit<EditorState> {
     var newX = element.x + dx;
     var newY = element.y + dy;
 
-    // Sticker boundaries
-    const mmToPx = 4;
-    final stickerWidth = currentState.stickerConfig.widthMm * mmToPx;
-    final stickerHeight = currentState.stickerConfig.heightMm * mmToPx;
+    // Sticker boundaries (all values in mm)
+    final stickerWidth = currentState.stickerConfig.widthMm;
+    final stickerHeight = currentState.stickerConfig.heightMm;
 
     // Clamp inside the sticker bounds
     newX = newX.clamp(0.0, stickerWidth - element.width);

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_state.dart';
+import 'package:uuid/uuid.dart';
 
 /// Sidebar or bottom toolbar palette displaying available label element types that can be added onto the canvas.
 ///
@@ -25,7 +26,7 @@ class ElementPalette extends StatelessWidget {
         shortLabel: 'Name',
         icon: Icons.title,
         blueprint: () => TextElementBlueprint(
-          id: 'text-name-${DateTime.now().millisecondsSinceEpoch}',
+          id: 'text-name-${Uuid().v4()}',
           x: 5,
           y: 5,
           width: 37.5,
@@ -44,7 +45,7 @@ class ElementPalette extends StatelessWidget {
         shortLabel: 'SKU',
         icon: Icons.qr_code_2,
         blueprint: () => TextElementBlueprint(
-          id: 'text-sku-${DateTime.now().millisecondsSinceEpoch}',
+          id: 'text-sku-${Uuid().v4()}',
           x: 5,
           y: 12.5,
           width: 30,
@@ -63,7 +64,7 @@ class ElementPalette extends StatelessWidget {
         shortLabel: 'Shelf Life',
         icon: Icons.calendar_today,
         blueprint: () => TextElementBlueprint(
-          id: 'text-shelflife-${DateTime.now().millisecondsSinceEpoch}',
+          id: 'text-shelflife-${Uuid().v4()}',
           x: 5,
           y: 20,
           width: 37.5,
@@ -82,7 +83,7 @@ class ElementPalette extends StatelessWidget {
         shortLabel: 'MFG Date',
         icon: Icons.date_range,
         blueprint: () => TextElementBlueprint(
-          id: 'text-mfg-${DateTime.now().millisecondsSinceEpoch}',
+          id: 'text-mfg-${Uuid().v4()}',
           x: 5,
           y: 27.5,
           width: 30,
@@ -101,7 +102,7 @@ class ElementPalette extends StatelessWidget {
         shortLabel: 'Text',
         icon: Icons.text_fields,
         blueprint: () => TextElementBlueprint(
-          id: 'text-custom-${DateTime.now().millisecondsSinceEpoch}',
+          id: 'text-custom-${Uuid().v4()}',
           x: 7.5,
           y: 7.5,
           width: 25,
@@ -120,7 +121,7 @@ class ElementPalette extends StatelessWidget {
         shortLabel: 'Shape',
         icon: Icons.check_box_outline_blank,
         blueprint: () => ShapeElementBlueprint(
-          id: 'shape-rect-${DateTime.now().millisecondsSinceEpoch}',
+          id: 'shape-rect-${Uuid().v4()}',
           x: 10,
           y: 10,
           width: 25,
@@ -138,7 +139,7 @@ class ElementPalette extends StatelessWidget {
         shortLabel: 'Image',
         icon: Icons.image_outlined,
         blueprint: () => ImageElementBlueprint(
-          id: 'image-${DateTime.now().millisecondsSinceEpoch}',
+          id: 'image-${Uuid().v4()}',
           x: 12.5,
           y: 12.5,
           width: 20,
@@ -152,7 +153,7 @@ class ElementPalette extends StatelessWidget {
         shortLabel: 'Barcode',
         icon: Icons.line_weight,
         blueprint: () => BarcodeElementBlueprint(
-          id: 'barcode-${DateTime.now().millisecondsSinceEpoch}',
+          id: 'barcode-${Uuid().v4()}',
           x: 2.5,
           y: 25,
           width: 50,
@@ -169,7 +170,7 @@ class ElementPalette extends StatelessWidget {
         shortLabel: 'QR Code',
         icon: Icons.qr_code,
         blueprint: () => QrElementBlueprint(
-          id: 'qr-${DateTime.now().millisecondsSinceEpoch}',
+          id: 'qr-${Uuid().v4()}',
           x: 10,
           y: 10,
           width: 25,

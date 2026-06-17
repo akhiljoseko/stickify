@@ -11,7 +11,7 @@ dependencies:
   bloc: ^9.2.0
   cloud_firestore: ^6.5.0
   equatable: ^2.0.8
-  firebase_auth: ^6.5.2
+  firebase_auth: ^6.5.3
   firebase_core: ^4.10.0
   flutter:
     sdk: flutter

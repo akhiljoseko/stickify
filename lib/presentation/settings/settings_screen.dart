@@ -37,48 +37,43 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // Settings sections
-            Card(
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.person_outline),
-                    title: const Text('Account'),
-                    subtitle: const Text('Manage your profile and credentials'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      // TODO(you): Navigate to account details.
-                    },
-                  ),
-                  Divider(
-                    height: 1,
-                    color: colorScheme.outlineVariant,
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.palette_outlined),
-                    title: const Text('Appearance'),
-                    subtitle: const Text('Theme and display preferences'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      // TODO(you): Navigate to appearance settings.
-                    },
-                  ),
-                  Divider(
-                    height: 1,
-                    color: colorScheme.outlineVariant,
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.notifications_outlined),
-                    title: const Text('Notifications'),
-                    subtitle: const Text('Configure alerts and reminders'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      // TODO(you): Navigate to notification settings.
-                    },
-                  ),
-                ],
-              ),
-            ),
+            // TODO(you): Re-enable Account, Appearance, and Notifications
+            //            settings sections once their screens are implemented.
+            // Card(
+            //   child: Column(
+            //     children: [
+            //       ListTile(
+            //         leading: Icon(Icons.person_outline),
+            //         title: Text('Account'),
+            //         subtitle: Text('Manage your profile and credentials'),
+            //         trailing: Icon(Icons.chevron_right),
+            //         onTap: () {
+            //           // TODO(you): Navigate to account details.
+            //         },
+            //       ),
+            //       Divider(height: 1, color: colorScheme.outlineVariant),
+            //       ListTile(
+            //         leading: Icon(Icons.palette_outlined),
+            //         title: Text('Appearance'),
+            //         subtitle: Text('Theme and display preferences'),
+            //         trailing: Icon(Icons.chevron_right),
+            //         onTap: () {
+            //           // TODO(you): Navigate to appearance settings.
+            //         },
+            //       ),
+            //       Divider(height: 1, color: colorScheme.outlineVariant),
+            //       ListTile(
+            //         leading: Icon(Icons.notifications_outlined),
+            //         title: Text('Notifications'),
+            //         subtitle: Text('Configure alerts and reminders'),
+            //         trailing: Icon(Icons.chevron_right),
+            //         onTap: () {
+            //           // TODO(you): Navigate to notification settings.
+            //         },
+            //       ),
+            //     ],
+            //   ),
+            // ),
 
             const SizedBox(height: 32),
 

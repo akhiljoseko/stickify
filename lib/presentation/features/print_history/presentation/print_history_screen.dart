@@ -15,25 +15,31 @@ class PrintHistoryScreen extends StatefulWidget {
 
 class _PrintHistoryScreenState extends State<PrintHistoryScreen> {
   final _scrollController = ScrollController();
+  late final PrintHistoryCubit _historyCubit;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    context.read<PrintHistoryCubit>().loadFirstPage();
+    _historyCubit = PrintHistoryCubit(
+      printJobRepository: context.read<PrintJobRepository>(),
+    );
+    _historyCubit.loadFirstPage();
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    _historyCubit.close();
     super.dispose();
   }
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      context.read<PrintHistoryCubit>().loadNextPage();
+      _historyCubit.loadNextPage();
     }
   }
 
@@ -52,43 +58,52 @@ class _PrintHistoryScreenState extends State<PrintHistoryScreen> {
       ),
       body: BlocBuilder<PrintHistoryCubit, PrintHistoryState>(
         builder: (context, state) => switch (state) {
-          PrintHistoryInitial() || PrintHistoryLoading() =>
-            const Center(child: CircularProgressIndicator()),
+          PrintHistoryInitial() || PrintHistoryLoading() => const Center(
+            child: CircularProgressIndicator(),
+          ),
           PrintHistoryError(:final message) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.error_outline, color: colorScheme.error, size: 48),
-                  const SizedBox(height: 16),
-                  Text(message, style: textTheme.bodyMedium),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: () => context.read<PrintHistoryCubit>().loadFirstPage(),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline, color: colorScheme.error, size: 48),
+                const SizedBox(height: 16),
+                Text(message, style: textTheme.bodyMedium),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () =>
+                      context.read<PrintHistoryCubit>().loadFirstPage(),
+                  child: const Text('Retry'),
+                ),
+              ],
             ),
-          PrintHistoryLoaded(:final jobs) => jobs.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.print_outlined,
-                          color: colorScheme.onSurfaceVariant, size: 48),
-                      const SizedBox(height: 16),
-                      Text('No print jobs yet',
+          ),
+          PrintHistoryLoaded(:final jobs) =>
+            jobs.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.print_outlined,
+                          color: colorScheme.onSurfaceVariant,
+                          size: 48,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No print jobs yet',
                           style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant)),
-                    ],
-                  ),
-                )
-              : _PrintHistoryTable(jobs: jobs, state: state),
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : _PrintHistoryTable(jobs: jobs, state: state),
           PrintHistoryLoadingMore(:final jobs) => _PrintHistoryTable(
-              jobs: jobs,
-              state: state,
-              isLoadingMore: true,
-            ),
+            jobs: jobs,
+            state: state,
+            isLoadingMore: true,
+          ),
         },
       ),
     );
@@ -118,10 +133,30 @@ class _PrintHistoryTable extends StatelessWidget {
           color: colorScheme.surfaceContainerLow,
           child: Row(
             children: [
-              _HeaderCell(label: 'Variant & SKU', flex: 3, textTheme: textTheme, colorScheme: colorScheme),
-              _HeaderCell(label: 'Template', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
-              _HeaderCell(label: 'Count', flex: 1, textTheme: textTheme, colorScheme: colorScheme),
-              _HeaderCell(label: 'Printed', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
+              _HeaderCell(
+                label: 'Variant & SKU',
+                flex: 3,
+                textTheme: textTheme,
+                colorScheme: colorScheme,
+              ),
+              _HeaderCell(
+                label: 'Template',
+                flex: 2,
+                textTheme: textTheme,
+                colorScheme: colorScheme,
+              ),
+              _HeaderCell(
+                label: 'Count',
+                flex: 1,
+                textTheme: textTheme,
+                colorScheme: colorScheme,
+              ),
+              _HeaderCell(
+                label: 'Printed',
+                flex: 2,
+                textTheme: textTheme,
+                colorScheme: colorScheme,
+              ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 child: SizedBox(width: 36),
@@ -142,7 +177,9 @@ class _PrintHistoryTable extends StatelessWidget {
               if (i == jobs.length) {
                 return const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  child: Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
                 );
               }
               final job = jobs[i];

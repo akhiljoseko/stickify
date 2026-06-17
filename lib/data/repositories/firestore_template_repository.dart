@@ -21,7 +21,7 @@ class FirestoreTemplateRepository implements TemplateRepository {
   Future<LabelTemplate> _getTemplate(String id) async {
     final data = await remoteDb.getData('$_collectionPath/$id');
     if (data == null) {
-      throw Exception('Template not found in remote storage: $id');
+      throw TemplateNotFoundError(templateId: id);
     }
     return TemplateFirestoreModel.fromMap(id, data).toDomain();
   }
@@ -54,6 +54,8 @@ class FirestoreTemplateRepository implements TemplateRepository {
     try {
       final template = await _getTemplate(id);
       return Result.success(template);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         NetworkError(
@@ -103,6 +105,8 @@ class FirestoreTemplateRepository implements TemplateRepository {
         TemplateFirestoreModel.fromDomain(updated).toMap(),
       );
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         NetworkError(
@@ -127,6 +131,8 @@ class FirestoreTemplateRepository implements TemplateRepository {
         TemplateFirestoreModel.fromDomain(updated).toMap(),
       );
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         NetworkError(
@@ -151,6 +157,8 @@ class FirestoreTemplateRepository implements TemplateRepository {
         TemplateFirestoreModel.fromDomain(updated).toMap(),
       );
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         NetworkError(
@@ -175,6 +183,8 @@ class FirestoreTemplateRepository implements TemplateRepository {
         TemplateFirestoreModel.fromDomain(updated).toMap(),
       );
       return const Result.success(null);
+    } on AppError catch (e) {
+      return Result.failure(e);
     } catch (e, s) {
       return Result.failure(
         NetworkError(

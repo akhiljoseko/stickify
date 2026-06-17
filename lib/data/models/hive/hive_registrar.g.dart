@@ -3,9 +3,7 @@
 // Check in to version control
 
 import 'package:hive_ce/hive_ce.dart';
-import 'package:stickify/data/models/hive/print_job_hive_model.dart';
-import 'package:stickify/data/models/hive/product_hive_model.dart';
-import 'package:stickify/data/models/hive/template_hive_model.dart';
+import 'package:stickify/data/models/hive/hive_adapters.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {

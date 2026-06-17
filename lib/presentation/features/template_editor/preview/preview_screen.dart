@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' show pi;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -184,7 +185,7 @@ class _PreviewViewState extends State<_PreviewView> {
                       width: width,
                       height: height,
                       child: Transform.rotate(
-                        angle: bp.rotation * (3.141592653589793 / 180),
+                        angle: bp.rotation * (pi / 180),
                         child: SizedBox(
                           width: width,
                           height: height,

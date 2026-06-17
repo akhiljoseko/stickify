@@ -18,7 +18,10 @@ class FirebaseAuthService implements AuthService {
   AppUser? get currentUser => _mapFirebaseUser(auth.currentUser);
 
   @override
-  Future<Result<AppUser, AppError>> signIn(String email, String password) async {
+  Future<Result<AppUser, AppError>> signIn(
+    String email,
+    String password,
+  ) async {
     try {
       final credential = await auth.signInWithEmailAndPassword(
         email: email,
@@ -28,9 +31,11 @@ class FirebaseAuthService implements AuthService {
       if (mapped != null) {
         return Result.success(mapped);
       } else {
-        return const Result.failure(AuthUnexpectedError(
-          message: 'User session could not be established after login.',
-        ));
+        return const Result.failure(
+          AuthUnexpectedError(
+            message: 'User session could not be established after login.',
+          ),
+        );
       }
     } on FirebaseAuthException catch (e, stackTrace) {
       return Result.failure(_mapFirebaseAuthException(e, stackTrace));
@@ -40,7 +45,10 @@ class FirebaseAuthService implements AuthService {
   }
 
   @override
-  Future<Result<AppUser, AppError>> signUp(String email, String password) async {
+  Future<Result<AppUser, AppError>> signUp(
+    String email,
+    String password,
+  ) async {
     try {
       final credential = await auth.createUserWithEmailAndPassword(
         email: email,
@@ -50,9 +58,11 @@ class FirebaseAuthService implements AuthService {
       if (mapped != null) {
         return Result.success(mapped);
       } else {
-        return const Result.failure(AuthUnexpectedError(
-          message: 'User session could not be established after sign up.',
-        ));
+        return const Result.failure(
+          AuthUnexpectedError(
+            message: 'User session could not be established after sign up.',
+          ),
+        );
       }
     } on FirebaseAuthException catch (e, stackTrace) {
       return Result.failure(_mapFirebaseAuthException(e, stackTrace));
@@ -93,7 +103,10 @@ class FirebaseAuthService implements AuthService {
     );
   }
 
-  AppError _mapFirebaseAuthException(FirebaseAuthException e, StackTrace stackTrace) {
+  AppError _mapFirebaseAuthException(
+    FirebaseAuthException e,
+    StackTrace stackTrace,
+  ) {
     final message = e.message ?? 'Authentication failed';
     switch (e.code) {
       case 'invalid-email':

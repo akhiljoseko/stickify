@@ -1,3 +1,4 @@
+import 'dart:math' show pi;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/domain/domain.dart';
@@ -53,7 +54,7 @@ class CanvasElementWidget extends StatelessWidget {
       width: width,
       height: height,
       child: Transform.rotate(
-        angle: blueprint.rotation * (3.141592653589793 / 180),
+        angle: blueprint.rotation * (pi / 180),
         child: GestureDetector(
           onTapDown: (_) => onTap(),
           onPanUpdate: (details) {

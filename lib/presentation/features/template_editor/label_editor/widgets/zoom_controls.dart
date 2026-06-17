@@ -6,6 +6,7 @@ class ZoomControls extends StatelessWidget {
   const ZoomControls({
     required this.zoomLevel,
     required this.onZoomChanged,
+    this.onZoomToFit,
     super.key,
   });
 
@@ -15,12 +16,16 @@ class ZoomControls extends StatelessWidget {
   /// Callback when the user changes the zoom level.
   final ValueChanged<double> onZoomChanged;
 
+  /// Callback to fit the sticker board into the available viewport.
+  final VoidCallback? onZoomToFit;
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
@@ -36,38 +41,41 @@ class ZoomControls extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Icons.zoom_out, size: 18),
-            onPressed: () => onZoomChanged(zoomLevel - 0.1),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          if (onZoomToFit != null)
+            IconButton(
+              icon: const Icon(Icons.fit_screen_outlined, size: 18),
+              tooltip: 'Zoom to fit',
+              onPressed: onZoomToFit,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 36),
+            ),
+          if (onZoomToFit != null)
+            Container(
+              width: 1,
+              height: 20,
+              color: colorScheme.outlineVariant,
+            ),
+          SizedBox(
+            width: 80,
+            child: Slider(
+              value: zoomLevel,
+              min: 0.5,
+              max: 2.0,
+              divisions: 30,
+              onChanged: onZoomChanged,
+            ),
           ),
-          Container(
-            width: 1,
-            height: 20,
-            color: colorScheme.outlineVariant,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+          SizedBox(
+            width: 40,
             child: Text(
               '${(zoomLevel * 100).toInt()}%',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
               ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          Container(
-            width: 1,
-            height: 20,
-            color: colorScheme.outlineVariant,
-          ),
-          IconButton(
-            icon: const Icon(Icons.zoom_in, size: 18),
-            onPressed: () => onZoomChanged(zoomLevel + 0.1),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           ),
         ],
       ),

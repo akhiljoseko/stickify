@@ -97,11 +97,40 @@ class PdfBarcodeElementRenderer implements PdfElementRenderer<BarcodeElementBlue
       BlueprintBarcodeType.ean13 => pw.Barcode.ean13(),
     };
 
-    return pw.BarcodeWidget(
+    final widthMm = blueprint.width;
+    final heightMm = blueprint.height;
+
+    final barcodeWidget = pw.BarcodeWidget(
       barcode: symbology,
       data: data,
-      width: blueprint.width * PdfPageFormat.mm,
-      height: blueprint.height * PdfPageFormat.mm,
+      width: widthMm * PdfPageFormat.mm,
+      height: heightMm * PdfPageFormat.mm,
+    );
+
+    if (!blueprint.showLabel) {
+      return barcodeWidget;
+    }
+
+    return pw.Column(
+      children: [
+        pw.SizedBox(
+          width: widthMm * PdfPageFormat.mm,
+          height: heightMm * PdfPageFormat.mm * 0.8,
+          child: barcodeWidget,
+        ),
+        pw.SizedBox(
+          width: widthMm * PdfPageFormat.mm,
+          height: heightMm * PdfPageFormat.mm * 0.2,
+          child: pw.Text(
+            data,
+            style: pw.TextStyle(
+              fontSize: heightMm * 0.12 * PdfPageFormat.mm,
+            ),
+            maxLines: 1,
+            overflow: pw.TextOverflow.clip,
+          ),
+        ),
+      ],
     );
   }
 }

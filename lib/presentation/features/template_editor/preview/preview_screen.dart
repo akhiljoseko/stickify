@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/constants/dimensions.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/element_renderer_registry.dart';
@@ -133,9 +134,8 @@ class _PreviewViewState extends State<_PreviewView> {
               const SheetConfig(pageWidth: 210, pageHeight: 297, marginTop: 10, marginBottom: 10, marginLeft: 10, marginRight: 10, columns: 2, rows: 4, columnGap: 5, rowGap: 5);
 
           // Convert sticker dimensions to pixels (1mm = 4px)
-          const mmToPx = 4;
-          final boardWidth = sticker.widthMm * mmToPx;
-          final boardHeight = sticker.heightMm * mmToPx;
+          final boardWidth = sticker.widthMm * AppDimensions.mmToPx;
+          final boardHeight = sticker.heightMm * AppDimensions.mmToPx;
 
 
 
@@ -145,7 +145,7 @@ class _PreviewViewState extends State<_PreviewView> {
               height: boardHeight,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(sticker.cornerRadiusMm * mmToPx),
+                borderRadius: BorderRadius.circular(sticker.cornerRadiusMm * AppDimensions.mmToPx),
                 border: Border.all(color: colorScheme.outlineVariant, width: 1.5),
                 boxShadow: const [
                   BoxShadow(
@@ -163,7 +163,7 @@ class _PreviewViewState extends State<_PreviewView> {
                     child: CustomPaint(
                       painter: PolygonPainter(
                         points: sticker.printableArea,
-                        scale: mmToPx.toDouble(),
+                        scale: AppDimensions.mmToPx,
                         color: Colors.red.shade300.withValues(alpha: 0.35),
                       ),
                     ),
@@ -171,10 +171,10 @@ class _PreviewViewState extends State<_PreviewView> {
                   
                   // Rendered elements
                   ...template.elements.map((bp) {
-                    final width = bp.width * mmToPx;
-                    final height = bp.height * mmToPx;
-                    final left = bp.x * mmToPx;
-                    final top = bp.y * mmToPx;
+                    final width = bp.width * AppDimensions.mmToPx;
+                    final height = bp.height * AppDimensions.mmToPx;
+                    final left = bp.x * AppDimensions.mmToPx;
+                    final top = bp.y * AppDimensions.mmToPx;
 
                     final renderedChild = ElementRendererRegistry.forBlueprint(bp)
                         .render(context, bp, product: _sampleProduct);

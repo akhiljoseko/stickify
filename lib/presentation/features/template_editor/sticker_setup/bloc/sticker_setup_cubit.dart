@@ -21,8 +21,8 @@ class StickerSetupCubit extends Cubit<StickerSetupState> {
         if (config != null) {
           // Deconstruct printable area polygon to find padding
           // TL is (L, T)
-          final tl = config.printableArea.isNotEmpty ? config.printableArea[0] : const StickerPoint(4, 4);
-          final br = config.printableArea.length > 2 ? config.printableArea[2] : const StickerPoint(96, 56);
+          final tl = config.printableArea.isNotEmpty ? config.printableArea[0] : const StickerPoint(0, 0);
+          final br = config.printableArea.length > 2 ? config.printableArea[2] : StickerPoint(config.widthMm, config.heightMm);
           
           final paddingLeft = tl.x;
           final paddingTop = tl.y;
@@ -79,15 +79,15 @@ class StickerSetupCubit extends Cubit<StickerSetupState> {
             widthMm: 100,
             heightMm: 60,
             cornerRadiusMm: 4,
-            paddingTop: 4,
-            paddingBottom: 4,
-            paddingLeft: 4,
-            paddingRight: 4,
+            paddingTop: 0,
+            paddingBottom: 0,
+            paddingLeft: 0,
+            paddingRight: 0,
             polygonPoints: const [
-              StickerPoint(4, 4),
-              StickerPoint(96, 4),
-              StickerPoint(96, 56),
-              StickerPoint(4, 56),
+              StickerPoint(0, 0),
+              StickerPoint(100, 0),
+              StickerPoint(100, 60),
+              StickerPoint(0, 60),
             ],
             polygonPointIds: pointIds,
           ));

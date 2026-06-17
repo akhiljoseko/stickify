@@ -34,9 +34,9 @@ void main() {
     defaultElement = const TextElementBlueprint(
       id: 'elem-1',
       x: 50,
-      y: 50,
-      width: 100,
-      height: 40,
+      y: 30,
+      width: 30,
+      height: 15,
       rotation: 0,
       content: 'Hello',
       isDynamic: false,
@@ -79,13 +79,13 @@ void main() {
         elements: [defaultElement],
       ),
       act: (cubit) {
-        // Drag it down and right by 10 pixels
+        // Drag it down and right by 10 mm
         cubit.dragElement('elem-1', 10, 15);
       },
       expect: () => [
         isA<EditorLoaded>()
             .having((s) => s.elements[0].x, 'x moves freely to 60', 60.0)
-            .having((s) => s.elements[0].y, 'y moves freely to 65', 65.0),
+            .having((s) => s.elements[0].y, 'y moves freely to 45', 45.0),
       ],
     );
 
@@ -115,15 +115,15 @@ void main() {
         elements: [defaultElement],
       ),
       act: (cubit) {
-        // sticker width in px = 400. Element width = 100. Max x = 300.
-        // sticker height in px = 240. Element height = 40. Max y = 200.
-        // Drag it far bottom right
+        // Sticker is 100x60 mm. Element at (50,50) with size 30x15.
+        // Max x = 100 - 30 = 70. Max y = 60 - 15 = 45.
+        // Drag far bottom-right: newX = 550 → clamped to 70; newY = 550 → clamped to 45.
         cubit.dragElement('elem-1', 500, 500);
       },
       expect: () => [
         isA<EditorLoaded>()
-            .having((s) => s.elements[0].x, 'x clamped to max width (300)', 300.0)
-            .having((s) => s.elements[0].y, 'y clamped to max height (200)', 200.0),
+            .having((s) => s.elements[0].x, 'x clamped to 70', 70.0)
+            .having((s) => s.elements[0].y, 'y clamped to 45', 45.0),
       ],
     );
 
@@ -138,7 +138,7 @@ void main() {
       expect: () => [
         isA<EditorLoaded>()
             .having((s) => s.elements[0].x, 'x nudged by 1.0 to 51', 51.0)
-            .having((s) => s.elements[0].y, 'y nudged by -1.0 to 49', 49.0),
+            .having((s) => s.elements[0].y, 'y nudged by -1.0 to 29', 29.0),
       ],
     );
 

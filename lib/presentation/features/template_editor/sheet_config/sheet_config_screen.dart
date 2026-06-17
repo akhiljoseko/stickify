@@ -46,6 +46,24 @@ class _SheetConfigView extends StatefulWidget {
 
 class _SheetConfigViewState extends State<_SheetConfigView> {
   final _formKey = GlobalKey<FormState>();
+  bool _hasUnsavedChanges = false;
+  bool _initialLoadDone = false;
+
+  Future<bool> _confirmBack() async {
+    if (!_hasUnsavedChanges) return true;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Discard changes?'),
+        content: const Text('You have unsaved changes in the sheet configuration. Do you want to discard them?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Discard')),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +73,7 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
     return BlocConsumer<SheetConfigCubit, SheetConfigState>(
       listener: (context, state) {
         if (state is SheetConfigSaved) {
+          _hasUnsavedChanges = false;
           StickerSetupRoute(templateId: state.templateId).go(context);
         }
         if (state is SheetConfigError) {
@@ -74,6 +93,11 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
         }
 
         if (state is SheetConfigEditing) {
+          if (_initialLoadDone) {
+            _hasUnsavedChanges = true;
+          } else {
+            _initialLoadDone = true;
+          }
           final config = state.config;
 
           final formPane = Form(
@@ -312,7 +336,11 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       OutlinedButton(
-                        onPressed: () => const TemplateManagementRoute().go(context),
+                        onPressed: () async {
+                          if (await _confirmBack()) {
+                            const TemplateManagementRoute().go(context);
+                          }
+                        },
                         child: const Text('Back to List'),
                       ),
                       ElevatedButton(
@@ -327,7 +355,9 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
           );
         }
 
-        return const SizedBox.shrink();
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
       },
     );
   }

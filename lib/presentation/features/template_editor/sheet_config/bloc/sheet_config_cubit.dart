@@ -31,14 +31,14 @@ class SheetConfigCubit extends Cubit<SheetConfigState> {
             const SheetConfig(
               pageWidth: 210,
               pageHeight: 297,
-              marginTop: 10,
-              marginBottom: 10,
-              marginLeft: 10,
-              marginRight: 10,
+              marginTop: 0,
+              marginBottom: 0,
+              marginLeft: 0,
+              marginRight: 0,
               columns: 3,
               rows: 6,
-              columnGap: 5,
-              rowGap: 5,
+              columnGap: 0,
+              rowGap: 0,
             );
         emit(SheetConfigEditing(config));
       case Failure(error: final err):

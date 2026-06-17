@@ -401,17 +401,19 @@ class RealTimeNumberField extends StatefulWidget {
 
 class _RealTimeNumberFieldState extends State<RealTimeNumberField> {
   late TextEditingController _controller;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.value.toStringAsFixed(1));
+    _focusNode.addListener(_onFocusChange);
   }
 
   @override
   void didUpdateWidget(RealTimeNumberField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.value != oldWidget.value) {
+    if (widget.value != oldWidget.value && !_focusNode.hasFocus) {
       final currentVal = double.tryParse(_controller.text);
       if (currentVal != widget.value) {
         _controller.text = widget.value.toStringAsFixed(1);
@@ -421,26 +423,37 @@ class _RealTimeNumberFieldState extends State<RealTimeNumberField> {
 
   @override
   void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (!_focusNode.hasFocus) {
+      _commitValue();
+    }
+  }
+
+  void _commitValue() {
+    final num = double.tryParse(_controller.text);
+    if (num != null) {
+      widget.onChanged(num);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: _controller,
+      focusNode: _focusNode,
       decoration: InputDecoration(
         labelText: widget.label,
         border: const OutlineInputBorder(),
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       ),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      onChanged: (val) {
-        final num = double.tryParse(val);
-        if (num != null) {
-          widget.onChanged(num);
-        }
-      },
+      onFieldSubmitted: (_) => _commitValue(),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/core/constants/dimensions.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/widgets/canvas_element_widget.dart';
@@ -53,10 +54,8 @@ class _EditorCanvasState extends State<EditorCanvas> {
     final colorScheme = Theme.of(context).colorScheme;
 
     // Convert sticker dimensions in mm to canvas logical pixels
-    // Let's use 1mm = 4 logical pixels as a conversion factor
-    const mmToPx = 4;
-    final stickerWidth = widget.stickerConfig.widthMm * mmToPx;
-    final stickerHeight = widget.stickerConfig.heightMm * mmToPx;
+    final stickerWidth = widget.stickerConfig.widthMm * AppDimensions.mmToPx;
+    final stickerHeight = widget.stickerConfig.heightMm * AppDimensions.mmToPx;
 
     final scaledWidth = stickerWidth * widget.zoomLevel;
     final scaledHeight = stickerHeight * widget.zoomLevel;
@@ -64,12 +63,12 @@ class _EditorCanvasState extends State<EditorCanvas> {
     // Deconstruct printable area to draw safe limits
     final tl = widget.stickerConfig.printableArea.isNotEmpty
         ? widget.stickerConfig.printableArea[0]
-        : const StickerPoint(4, 4);
+        : const StickerPoint(0, 0);
     final br = widget.stickerConfig.printableArea.length > 2
         ? widget.stickerConfig.printableArea[2]
         : StickerPoint(
-            widget.stickerConfig.widthMm - 4.0,
-            widget.stickerConfig.heightMm - 4.0,
+            widget.stickerConfig.widthMm,
+            widget.stickerConfig.heightMm,
           );
 
     final safeLeft = tl.x;
@@ -260,8 +259,8 @@ class _EditorCanvasState extends State<EditorCanvas> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(
-                                widget.stickerConfig.cornerRadiusMm *
-                                    mmToPx *
+                                  widget.stickerConfig.cornerRadiusMm *
+                                    AppDimensions.mmToPx *
                                     widget.zoomLevel,
                               ),
                               boxShadow: const [
@@ -280,7 +279,7 @@ class _EditorCanvasState extends State<EditorCanvas> {
                                   child: CustomPaint(
                                     painter: PolygonPainter(
                                       points: widget.stickerConfig.printableArea,
-                                      scale: mmToPx * widget.zoomLevel,
+                                      scale: AppDimensions.mmToPx * widget.zoomLevel,
                                       color: Colors.red.shade300.withValues(
                                         alpha: 0.45,
                                       ),
@@ -360,8 +359,8 @@ class AlignmentGuidesPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     for (final guide in guidelines) {
-      final p1 = Offset(guide.start.dx * 4.0 * zoomLevel, guide.start.dy * 4.0 * zoomLevel);
-      final p2 = Offset(guide.end.dx * 4.0 * zoomLevel, guide.end.dy * 4.0 * zoomLevel);
+      final p1 = Offset(guide.start.dx * AppDimensions.mmToPx * zoomLevel, guide.start.dy * AppDimensions.mmToPx * zoomLevel);
+      final p2 = Offset(guide.end.dx * AppDimensions.mmToPx * zoomLevel, guide.end.dy * AppDimensions.mmToPx * zoomLevel);
       _drawDashedLine(canvas, p1, p2, paint);
     }
   }

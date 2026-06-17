@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/core/environment/app_environment.dart';
 import 'package:stickify/core/environment/app_experience.dart';
-import 'package:stickify/core/utils/adaptive_value.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/template_management/bloc/template_list_cubit.dart';
 import 'package:stickify/presentation/template_management/bloc/template_list_state.dart';
@@ -227,23 +226,20 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                                 );
                               }
 
-                              final crossAxisCount = AdaptiveValue<int>(
-                                context,
-                                defaultValue: 1, // mobile
-                                tablet: 2,       // tablet
-                                desktop: 4,      // desktop/4k
-                              ).value;
+                              return LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final crossAxisCount = (constraints.maxWidth / 280).floor().clamp(1, 6);
 
-                              return GridView.builder(
-                                controller: scrollController,
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossAxisCount,
-                                  crossAxisSpacing: 16,
-                                  mainAxisSpacing: 16,
-                                  childAspectRatio: 0.85,
-                                ),
-                                itemCount: paginatedTemplates.length,
-                                itemBuilder: (context, index) {
+                                  return GridView.builder(
+                                    controller: scrollController,
+                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: crossAxisCount,
+                                      crossAxisSpacing: 16,
+                                      mainAxisSpacing: 16,
+                                      childAspectRatio: 0.85,
+                                    ),
+                                    itemCount: paginatedTemplates.length,
+                                    itemBuilder: (context, index) {
                                   final template = paginatedTemplates[index];
                                   return TemplateCard(
                                     template: template,
@@ -268,7 +264,9 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                                 },
                               );
                             },
-                          ),
+                          );
+                        },
+                      ),
                         ),
                         
                         // Pagination Row
@@ -313,22 +311,21 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
   }
 
   Widget _buildLoadingGrid(BuildContext context) {
-    final crossAxisCount = AdaptiveValue<int>(
-      context,
-      defaultValue: 1,
-      tablet: 2,
-      desktop: 4,
-    ).value;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = (constraints.maxWidth / 280).floor().clamp(1, 6);
 
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.85,
-      ),
-      itemCount: 8,
-      itemBuilder: (context, index) => const TemplateCardSkeleton(),
+        return GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.85,
+          ),
+          itemCount: 8,
+          itemBuilder: (context, index) => const TemplateCardSkeleton(),
+        );
+      },
     );
   }
 

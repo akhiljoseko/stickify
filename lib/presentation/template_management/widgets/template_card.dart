@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:stickify/core/environment/app_environment.dart';
-import 'package:stickify/core/environment/app_experience.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Grid card item displaying metadata and CRUD action buttons for a single template.
@@ -90,33 +87,29 @@ class _TemplateCardState extends State<TemplateCard> {
                   ),
                 ),
                 padding: const EdgeInsets.all(12),
-                child: Center(
-                  child: Stack(
-                    children: [
-                      // Mini preview layout representation
-                      Container(
-                        width: 120,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface,
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: colorScheme.outlineVariant),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Container(
+                    width: 120,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: colorScheme.outlineVariant),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
                         ),
-                        alignment: Alignment.center,
-                        child: Icon(
-                          Icons.picture_in_picture_alt_outlined,
-                          color: colorScheme.primary.withValues(alpha: 0.5),
-                          size: 32,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.picture_in_picture_alt_outlined,
+                      color: colorScheme.primary.withValues(alpha: 0.5),
+                      size: 32,
+                    ),
                   ),
                 ),
               ),
@@ -174,70 +167,39 @@ class _TemplateCardState extends State<TemplateCard> {
                             child: const Text('Select for Print'),
                           ),
                         ),
-                        if (context.watch<AppEnvironment>().experience == AppExperience.mobile) ...[
-                          const SizedBox(width: 8),
-                          PopupMenuButton<String>(
-                            icon: const Icon(Icons.more_vert),
-                            onSelected: (val) {
-                              if (val == 'edit') {
-                                widget.onEdit();
-                              } else if (val == 'delete') {
-                                widget.onDelete();
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                value: 'edit',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.edit_outlined, size: 20),
-                                    SizedBox(width: 8),
-                                    Text('Edit Template'),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
-                                    const SizedBox(width: 8),
-                                    Text('Delete Template', style: TextStyle(color: colorScheme.error)),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ] else ...[
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined),
-                            tooltip: 'Edit Template',
-                            style: IconButton.styleFrom(
-                              backgroundColor: colorScheme.surfaceContainerHigh,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                        const SizedBox(width: 8),
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert),
+                          onSelected: (val) {
+                            if (val == 'edit') {
+                              widget.onEdit();
+                            } else if (val == 'delete') {
+                              widget.onDelete();
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit_outlined, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Edit Template'),
+                                ],
                               ),
                             ),
-                            onPressed: widget.onEdit,
-                          ),
-                          const SizedBox(width: 4),
-                          IconButton(
-                            icon: Icon(
-                              Icons.delete_outline,
-                              color: colorScheme.error,
-                            ),
-                            tooltip: 'Delete Template',
-                            style: IconButton.styleFrom(
-                              backgroundColor: colorScheme.errorContainer
-                                  .withValues(alpha: 0.2),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text('Delete Template', style: TextStyle(color: colorScheme.error)),
+                                ],
                               ),
                             ),
-                            onPressed: widget.onDelete,
-                          ),
-                        ],
+                          ],
+                        ),
                       ],
                     ),
                   ],

@@ -22,7 +22,7 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +80,7 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
 
-            const Spacer(),
+            const SizedBox(height: 32),
 
             // ── Logout Section ─────────────────────────────────────────────
             // Separated at the bottom for clear visual hierarchy.
@@ -107,6 +107,7 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => context.read<AuthCubit>().logout(),
               ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

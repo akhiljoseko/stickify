@@ -155,51 +155,19 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
   }
 }
 
-/// Isolated "Quick Print" button extracted to keep [FrequentProductRow] clean.
-class _QuickPrintButton extends StatefulWidget {
+class _QuickPrintButton extends StatelessWidget {
   const _QuickPrintButton({this.onPressed});
 
   final VoidCallback? onPressed;
 
   @override
-  State<_QuickPrintButton> createState() => _QuickPrintButtonState();
-}
-
-class _QuickPrintButtonState extends State<_QuickPrintButton> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        decoration: BoxDecoration(
-          color: _isHovered ? colorScheme.primaryContainer : colorScheme.primaryFixed,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: TextButton(
-          onPressed: widget.onPressed,
-          style: TextButton.styleFrom(
-            foregroundColor: _isHovered
-                ? colorScheme.onPrimaryContainer
-                : colorScheme.onPrimaryFixedVariant,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
-            textStyle: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          child: const Text('Quick Print'),
-        ),
-      ),
+    return IconButton(
+      onPressed: onPressed,
+      icon: const Icon(Icons.print_outlined, size: 20),
+      tooltip: 'Quick Print',
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
     );
   }
 }

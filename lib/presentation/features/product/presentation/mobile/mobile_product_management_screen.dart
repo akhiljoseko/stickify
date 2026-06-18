@@ -8,8 +8,6 @@ import 'package:stickify/presentation/features/product/presentation/mobile/mobil
 import 'package:stickify/presentation/features/product/presentation/mobile/mobile_product_detail_panel.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_form_view.dart';
 
-/// Mobile-specific Product catalogue Screen.
-/// Provides browsing product catalogue list/details, variant price editing, and full product creation/editing.
 class MobileProductManagementScreen extends StatelessWidget {
   const MobileProductManagementScreen({super.key});
 
@@ -31,23 +29,11 @@ class MobileProductManagementScreen extends StatelessWidget {
           : null,
       body: BlocConsumer<ProductCubit, ProductState>(
         listener: (context, state) {
-          if (state is ProductPageError) {
+          if (state is ProductFormError) {
             context.read<NotificationService>().showError(state.message);
           }
         },
         builder: (context, state) {
-          if (state is ProductPageLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state is ProductPageError && state.message.isNotEmpty) {
-            return ErrorView(
-              message: state.message,
-              onRetry: () => context.read<ProductCubit>().fetchPage(pageKey: 0, pageSize: 20),
-              onBack: () => Navigator.of(context).pop(),
-            );
-          }
-
           if (state is ProductFormSubmitting) {
             return const Center(
               child: Column(

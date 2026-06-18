@@ -8,9 +8,6 @@ import 'package:stickify/presentation/features/product/presentation/desktop/cata
 import 'package:stickify/presentation/features/product/presentation/desktop/product_detail_panel.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_form_view.dart';
 
-/// Desktop-optimized Product Management Screen.
-/// Provides full catalogue administration, including product creation, details,
-/// and advanced properties editing (ingredients, nutrition facts).
 class DesktopProductManagementScreen extends StatelessWidget {
   const DesktopProductManagementScreen({super.key});
 
@@ -23,23 +20,11 @@ class DesktopProductManagementScreen extends StatelessWidget {
       backgroundColor: colorScheme.surface,
       body: BlocConsumer<ProductCubit, ProductState>(
         listener: (context, state) {
-          if (state is ProductPageError) {
+          if (state is ProductFormError) {
             context.read<NotificationService>().showError(state.message);
           }
         },
         builder: (context, state) {
-          if (state is ProductPageLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state is ProductPageError && state.message.isNotEmpty) {
-            return ErrorView(
-              message: state.message,
-              onRetry: () => context.read<ProductCubit>().fetchPage(pageKey: 0, pageSize: 20),
-              onBack: () => Navigator.of(context).pop(),
-            );
-          }
-
           if (state is ProductFormSubmitting) {
             return const Center(
               child: Column(

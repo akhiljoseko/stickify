@@ -300,7 +300,7 @@ class _PrintTableColumnHeaders extends StatelessWidget {
         children: [
           _HeaderCell(
             label: 'Variant & SKU',
-            flex: 3,
+            flex: 2,
             textTheme: textTheme,
             colorScheme: colorScheme,
           ),
@@ -324,7 +324,7 @@ class _PrintTableColumnHeaders extends StatelessWidget {
           ),
           _HeaderCell(
             label: '',
-            flex: 1,
+            flex: 2,
             textTheme: textTheme,
             colorScheme: colorScheme,
           ),
@@ -446,7 +446,7 @@ class _TableColumnHeaders extends StatelessWidget {
         children: [
           _HeaderCell(
             label: 'Variant & Product',
-            flex: 3,
+            flex: 2,
             textTheme: textTheme,
             colorScheme: colorScheme,
           ),
@@ -464,7 +464,7 @@ class _TableColumnHeaders extends StatelessWidget {
           ),
           _HeaderCell(
             label: '',
-            flex: 1,
+            flex: 2,
             textTheme: textTheme,
             colorScheme: colorScheme,
           ),

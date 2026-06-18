@@ -9,48 +9,53 @@ sealed class ProductState extends Equatable {
   List<Object?> get props => [];
 }
 
-class ProductCatalogInitial extends ProductState {
-  const ProductCatalogInitial();
+class ProductInitial extends ProductState {
+  const ProductInitial();
 }
 
-class ProductCatalogLoading extends ProductState {
-  const ProductCatalogLoading();
+class ProductPageLoading extends ProductState {
+  const ProductPageLoading();
 }
 
-class ProductCatalogSuccess extends ProductState {
-  const ProductCatalogSuccess({
-    required this.products,
-    required this.filteredProducts,
-    this.searchQuery = '',
-    this.categoryFilter = '',
+class ProductPageLoaded extends ProductState {
+  const ProductPageLoaded({
+    required this.items,
+    required this.currentPage,
+    required this.hasMore,
+    this.searchQuery,
+    this.categoryFilter,
     this.subView = const ProductCatalogView(),
   });
 
-  final List<Product> products;
-  final List<Product> filteredProducts;
-  final String searchQuery;
-  final String categoryFilter;
+  final List<Product> items;
+  final int currentPage;
+  final bool hasMore;
+  final String? searchQuery;
+  final String? categoryFilter;
   final ProductSubView subView;
 
   @override
   List<Object?> get props => [
-        products,
-        filteredProducts,
+        items,
+        currentPage,
+        hasMore,
         searchQuery,
         categoryFilter,
         subView,
       ];
 
-  ProductCatalogSuccess copyWith({
-    List<Product>? products,
-    List<Product>? filteredProducts,
+  ProductPageLoaded copyWith({
+    List<Product>? items,
+    int? currentPage,
+    bool? hasMore,
     String? searchQuery,
     String? categoryFilter,
     ProductSubView? subView,
   }) {
-    return ProductCatalogSuccess(
-      products: products ?? this.products,
-      filteredProducts: filteredProducts ?? this.filteredProducts,
+    return ProductPageLoaded(
+      items: items ?? this.items,
+      currentPage: currentPage ?? this.currentPage,
+      hasMore: hasMore ?? this.hasMore,
       searchQuery: searchQuery ?? this.searchQuery,
       categoryFilter: categoryFilter ?? this.categoryFilter,
       subView: subView ?? this.subView,
@@ -58,8 +63,9 @@ class ProductCatalogSuccess extends ProductState {
   }
 }
 
-class ProductCatalogError extends ProductState {
-  const ProductCatalogError(this.message);
+class ProductPageError extends ProductState {
+  const ProductPageError(this.message);
+
   final String message;
 
   @override
@@ -72,4 +78,13 @@ class ProductFormSubmitting extends ProductState {
 
 class ProductFormSuccess extends ProductState {
   const ProductFormSuccess();
+}
+
+class ProductFormError extends ProductState {
+  const ProductFormError(this.message);
+
+  final String message;
+
+  @override
+  List<Object?> get props => [message];
 }

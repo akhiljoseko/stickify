@@ -6,88 +6,47 @@ import 'package:stickify/presentation/features/product/bloc/product_state.dart';
 import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 
 class ProductCubit extends Cubit<ProductState> {
-  ProductCubit(this._productRepository) : super(const ProductCatalogInitial());
+  ProductCubit(this._productRepository) : super(const ProductInitial());
 
   final ProductRepository _productRepository;
 
-  Future<void> loadProducts({String? initialSubView}) async {
-    final currentState = state;
-    var query = '';
-    var category = '';
-    ProductSubView subView = const ProductCatalogView();
-    
-    if (currentState is ProductCatalogSuccess) {
-      query = currentState.searchQuery;
-      category = currentState.categoryFilter;
-      if (initialSubView == null) {
-        subView = currentState.subView;
-      } else {
-        if (initialSubView == 'create') {
-          subView = const ProductCreateView();
-        } else {
-          subView = const ProductCatalogView();
-        }
-      }
-    } else {
-      emit(const ProductCatalogLoading());
-      if (initialSubView == 'create') {
-        subView = const ProductCreateView();
-      }
+  Future<void> fetchPage({
+    required int pageKey,
+    required int pageSize,
+    String? query,
+    String? category,
+  }) async {
+    if (pageKey == 0) {
+      emit(const ProductPageLoading());
     }
 
-    final productsResult = await _productRepository.getAllProducts();
-    final filteredResult = await _productRepository.getFilteredProducts(
+    final result = await _productRepository.getProducts(
+      page: pageKey,
+      pageSize: pageSize,
       query: query,
       category: category,
     );
 
-    if (productsResult is Success<List<Product>, AppError> &&
-        filteredResult is Success<List<Product>, AppError>) {
-      emit(ProductCatalogSuccess(
-        products: productsResult.value,
-        filteredProducts: filteredResult.value,
-        searchQuery: query,
-        categoryFilter: category,
-        subView: subView,
-      ));
-    } else {
-      final err = (productsResult is Failure)
-          ? (productsResult as Failure).error
-          : (filteredResult as Failure).error;
-      emit(ProductCatalogError(err.message));
-    }
-  }
-
-  Future<void> applyFilter({String? query, String? category}) async {
-    final currentState = state;
-    if (currentState is! ProductCatalogSuccess) return;
-
-    final newQuery = query ?? currentState.searchQuery;
-    final newCategory = category ?? currentState.categoryFilter;
-
-    final result = await _productRepository.getFilteredProducts(
-      query: newQuery,
-      category: newCategory,
-    );
-
     switch (result) {
-      case Success(value: final filtered):
-        emit(currentState.copyWith(
-          searchQuery: newQuery,
-          categoryFilter: newCategory,
-          filteredProducts: filtered,
+      case Success(value: final paginated):
+        emit(ProductPageLoaded(
+          items: paginated.items,
+          currentPage: pageKey,
+          hasMore: paginated.hasMore,
+          searchQuery: query,
+          categoryFilter: category,
+          subView: _currentSubView(),
         ));
       case Failure(error: final err):
-        emit(ProductCatalogError(err.message));
+        emit(ProductPageError(err.message));
     }
   }
 
   void setSubView(ProductSubView subView) {
     final currentState = state;
-    if (currentState is! ProductCatalogSuccess) return;
-    emit(currentState.copyWith(
-      subView: subView,
-    ));
+    if (currentState is ProductPageLoaded) {
+      emit(currentState.copyWith(subView: subView));
+    }
   }
 
   Future<void> saveProduct(Product product) async {
@@ -96,29 +55,33 @@ class ProductCubit extends Cubit<ProductState> {
     switch (result) {
       case Success():
         emit(const ProductFormSuccess());
-        await loadProducts();
+        await fetchPage(pageKey: 0, pageSize: 20);
       case Failure(error: final err):
-        emit(ProductCatalogError(err.message));
+        emit(ProductFormError(err.message));
     }
   }
 
   Future<void> deleteProduct(String id) async {
-    final currentState = state;
     final result = await _productRepository.deleteProduct(id);
     switch (result) {
       case Success():
-        if (currentState is ProductCatalogSuccess) {
-          final updatedProducts = currentState.products.where((p) => p.id != id).toList();
-          final updatedFiltered = currentState.filteredProducts.where((p) => p.id != id).toList();
-          emit(currentState.copyWith(
-            products: updatedProducts,
-            filteredProducts: updatedFiltered,
-          ));
+        final currentState = state;
+        if (currentState is ProductPageLoaded) {
+          final updatedItems = currentState.items.where((p) => p.id != id).toList();
+          emit(currentState.copyWith(items: updatedItems));
         } else {
-          await loadProducts();
+          await fetchPage(pageKey: 0, pageSize: 20);
         }
       case Failure(error: final err):
-        emit(ProductCatalogError(err.message));
+        emit(ProductFormError(err.message));
     }
+  }
+
+  ProductSubView _currentSubView() {
+    final currentState = state;
+    if (currentState is ProductPageLoaded) {
+      return currentState.subView;
+    }
+    return const ProductCatalogView();
   }
 }

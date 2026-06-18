@@ -32,6 +32,27 @@ class ProductVariant extends Equatable {
   /// Unique Stock Keeping Unit (SKU) identifying this variant.
   final String sku;
 
+  /// Price per single unit, auto-calculated as [mrp] / [quantity].
+  double get unitPrice => quantity > 0 ? mrp / quantity : 0;
+
+  ProductVariant copyWith({
+    String? name,
+    double? quantity,
+    String? unit,
+    double? wholesale,
+    double? mrp,
+    String? sku,
+  }) {
+    return ProductVariant(
+      name: name ?? this.name,
+      quantity: quantity ?? this.quantity,
+      unit: unit ?? this.unit,
+      wholesale: wholesale ?? this.wholesale,
+      mrp: mrp ?? this.mrp,
+      sku: sku ?? this.sku,
+    );
+  }
+
   @override
   List<Object?> get props => [
         name,

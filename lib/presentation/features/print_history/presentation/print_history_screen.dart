@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/app/theme.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/recent_print_row.dart';
 import 'package:stickify/presentation/features/print_history/cubits/print_history_cubit.dart';
@@ -127,76 +128,78 @@ class _PrintHistoryTable extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Column(
-      children: [
-        // Column headers for desktop
-        ColoredBox(
-          color: colorScheme.surfaceContainerLow,
-          child: Row(
-            children: [
-              _HeaderCell(
-                label: 'Variant & SKU',
-                flex: 3,
-                textTheme: textTheme,
-                colorScheme: colorScheme,
-              ),
-              _HeaderCell(
-                label: 'Template',
-                flex: 2,
-                textTheme: textTheme,
-                colorScheme: colorScheme,
-              ),
-              _HeaderCell(
-                label: 'Count',
-                flex: 1,
-                textTheme: textTheme,
-                colorScheme: colorScheme,
-              ),
-              _HeaderCell(
-                label: 'Printed',
-                flex: 2,
-                textTheme: textTheme,
-                colorScheme: colorScheme,
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                child: SizedBox(width: 36),
-              ),
-            ],
-          ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: colorScheme.outlineVariant),
         ),
-        Divider(height: 1, color: colorScheme.outlineVariant),
-        Expanded(
-          child: ListView.separated(
-            controller: ScrollController(),
-            itemCount: jobs.length + (isLoadingMore ? 1 : 0),
-            separatorBuilder: (_, _) => Divider(
-              height: 1,
-              color: colorScheme.outlineVariant,
-            ),
-            itemBuilder: (context, i) {
-              if (i == jobs.length) {
-                return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.containerLow,
+                border: Border(
+                  bottom: BorderSide(color: colorScheme.outlineVariant),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 44),
+                  _HeaderCell(
+                    label: 'Variant & SKU',
+                    flex: 3,
+                    textTheme: textTheme,
                   ),
-                );
-              }
-              final job = jobs[i];
-              return RecentPrintRow(
-                job: job,
-              onRepeatPrint: () => PrintSetupRoute(
-                  productId: job.productId,
-                  variantSku: job.variantSku,
-                  templateId: job.templateId,
-                  quantity: job.labelCount,
-                ).go(context),
-              );
-            },
-          ),
+                  _HeaderCell(
+                    label: 'Template',
+                    flex: 2,
+                    textTheme: textTheme,
+                  ),
+                  _HeaderCell(
+                    label: 'Count',
+                    flex: 1,
+                    textTheme: textTheme,
+                  ),
+                  _HeaderCell(
+                    label: 'Printed',
+                    flex: 2,
+                    textTheme: textTheme,
+                  ),
+                  const SizedBox(width: 140),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                controller: ScrollController(),
+                children: [
+                  ...jobs.map((job) => RecentPrintRow(
+                    job: job,
+                    onRepeatPrint: () => PrintSetupRoute(
+                      productId: job.productId,
+                      variantSku: job.variantSku,
+                      templateId: job.templateId,
+                      quantity: job.labelCount,
+                    ).go(context),
+                  )),
+                  if (isLoadingMore)
+                    const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -206,13 +209,11 @@ class _HeaderCell extends StatelessWidget {
     required this.label,
     required this.flex,
     required this.textTheme,
-    required this.colorScheme,
   });
 
   final String label;
   final int flex;
   final TextTheme textTheme;
-  final ColorScheme colorScheme;
 
   @override
   Widget build(BuildContext context) {
@@ -222,9 +223,9 @@ class _HeaderCell extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Text(
           label,
-          style: textTheme.labelMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
+          style: textTheme.labelSmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            letterSpacing: 1.1,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

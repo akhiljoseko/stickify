@@ -216,63 +216,68 @@ class _RecentPrintsSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Row(
-              children: [
-                Icon(Icons.update, color: colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Recently Printed Labels',
-                    style: textTheme.titleSmall,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          child: Row(
+            children: [
+              Icon(Icons.update, color: colorScheme.primary, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Recently Printed Labels',
+                  style: textTheme.titleSmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () =>
+                    const PrintHistoryRoute().push<void>(context),
+                child: Text(
+                  'View History',
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colorScheme.primary,
                   ),
                 ),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: () =>
-                      const PrintHistoryRoute().push<void>(context),
-                  child: Text(
-                    'View History',
-                    style: textTheme.labelMedium?.copyWith(
-                      color: colorScheme.primary,
-                    ),
+              ),
+            ],
+          ),
+        ),
+        Card(
+          clipBehavior: Clip.antiAlias,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: colorScheme.outlineVariant),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _PrintTableColumnHeaders(
+                colorScheme: colorScheme,
+                textTheme: textTheme,
+              ),
+              BlocBuilder<RecentPrintJobsCubit, RecentPrintJobsState>(
+                builder: (context, state) => switch (state) {
+                  RecentPrintJobsInitial() ||
+                  RecentPrintJobsLoading() => const _SectionLoadingIndicator(),
+                  RecentPrintJobsLoaded(:final jobs) => _RecentPrintsTable(
+                    jobs: jobs,
                   ),
-                ),
-              ],
-            ),
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          _PrintTableColumnHeaders(
-            colorScheme: colorScheme,
-            textTheme: textTheme,
-          ),
-          BlocBuilder<RecentPrintJobsCubit, RecentPrintJobsState>(
-            builder: (context, state) => switch (state) {
-              RecentPrintJobsInitial() ||
-              RecentPrintJobsLoading() => const _SectionLoadingIndicator(),
-              RecentPrintJobsLoaded(:final jobs) => _RecentPrintsTable(
-                jobs: jobs,
+                  RecentPrintJobsError(:final message) => _SectionErrorView(
+                    message: message,
+                    onRetry: context.read<RecentPrintJobsCubit>().loadRecentJobs,
+                  ),
+                },
               ),
-              RecentPrintJobsError(:final message) => _SectionErrorView(
-                message: message,
-                onRetry: context.read<RecentPrintJobsCubit>().loadRecentJobs,
-              ),
-            },
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -322,10 +327,7 @@ class _PrintTableColumnHeaders extends StatelessWidget {
             textTheme: textTheme,
             colorScheme: colorScheme,
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: SizedBox(width: 140),
-          ),
+          const SizedBox(width: 140),
         ],
       ),
     );
@@ -360,51 +362,56 @@ class _FrequentProductsSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Row(
-              children: [
-                Icon(Icons.star_outline, color: colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Frequent Used Products',
-                    style: textTheme.titleSmall,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          child: Row(
+            children: [
+              Icon(Icons.star_outline, color: colorScheme.primary, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Frequent Used Products',
+                  style: textTheme.titleSmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          _TableColumnHeaders(colorScheme: colorScheme, textTheme: textTheme),
-          BlocBuilder<FrequentVariantsCubit, FrequentVariantsState>(
-            builder: (context, state) => switch (state) {
-              FrequentVariantsInitial() ||
-              FrequentVariantsLoading() => const _SectionLoadingIndicator(),
-              FrequentVariantsLoaded(:final variants) => _DesktopVariantsTable(
-                variants: variants,
               ),
-              FrequentVariantsError(:final message) => _SectionErrorView(
-                message: message,
-                onRetry: context
-                    .read<FrequentVariantsCubit>()
-                    .loadFrequentVariants,
-              ),
-            },
+            ],
           ),
-        ],
-      ),
+        ),
+        Card(
+          clipBehavior: Clip.antiAlias,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: colorScheme.outlineVariant),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _TableColumnHeaders(colorScheme: colorScheme, textTheme: textTheme),
+              BlocBuilder<FrequentVariantsCubit, FrequentVariantsState>(
+                builder: (context, state) => switch (state) {
+                  FrequentVariantsInitial() ||
+                  FrequentVariantsLoading() => const _SectionLoadingIndicator(),
+                  FrequentVariantsLoaded(:final variants) => _DesktopVariantsTable(
+                    variants: variants,
+                  ),
+                  FrequentVariantsError(:final message) => _SectionErrorView(
+                    message: message,
+                    onRetry: context
+                        .read<FrequentVariantsCubit>()
+                        .loadFrequentVariants,
+                  ),
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -448,10 +455,7 @@ class _TableColumnHeaders extends StatelessWidget {
             textTheme: textTheme,
             colorScheme: colorScheme,
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            child: SizedBox(width: 160),
-          ),
+          const SizedBox(width: 160),
         ],
       ),
     );

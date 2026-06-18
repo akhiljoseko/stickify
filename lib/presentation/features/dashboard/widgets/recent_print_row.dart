@@ -132,7 +132,10 @@ class _RecentPrintRowState extends State<RecentPrintRow> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            _RepeatPrintButton(onPressed: widget.onRepeatPrint),
+            SizedBox(
+              width: 140,
+              child: Center(child: _RepeatPrintButton(onPressed: widget.onRepeatPrint)),
+            ),
           ],
         ),
       ),

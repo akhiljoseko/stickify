@@ -41,6 +41,7 @@ class ProductDetailPanel extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
+          constraints: const BoxConstraints(maxWidth: 480),
           title: Text('Edit Variant - ${variant.name}'),
           content: SingleChildScrollView(
             child: Form(
@@ -180,6 +181,7 @@ class ProductDetailPanel extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
+          constraints: const BoxConstraints(maxWidth: 480),
           title: const Text('Add Variant'),
           content: SingleChildScrollView(
             child: Form(

@@ -351,12 +351,11 @@ class ProductDetailPanel extends StatelessWidget {
     final heroHeader = Card(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isCompact = constraints.maxWidth < 700;
-
-            final imgWidget = Container(
-              width: isCompact ? double.infinity : 200,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 200,
               height: 200,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
@@ -371,179 +370,133 @@ class ProductDetailPanel extends StatelessWidget {
               child: product.imageUrl == null || product.imageUrl!.isEmpty
                   ? Icon(Icons.image_outlined, size: 64, color: colorScheme.outline)
                   : null,
-            );
-
-            final infoWidget = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: colorScheme.container,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        (product.category ?? 'N/A').toUpperCase(),
-                        style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.primary,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: colorScheme.container,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          (product.category ?? 'N/A').toUpperCase(),
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        border: Border.all(color: Colors.green.shade200),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check_circle, size: 12, color: Colors.green.shade700),
-                          const SizedBox(width: 4),
-                          Text(
-                            'ACTIVE',
-                            style: textTheme.labelSmall?.copyWith(
-                              color: Colors.green.shade700,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          border: Border.all(color: Colors.green.shade200),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.check_circle, size: 12, color: Colors.green.shade700),
+                            const SizedBox(width: 4),
+                            Text(
+                              'ACTIVE',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: Colors.green.shade700,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(product.name, style: textTheme.displayLarge),
-                const SizedBox(height: 20),
-                Wrap(
-                  spacing: 32,
-                  runSpacing: 12,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('GLOBAL SKU PREFIX', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            product.sku,
-                            style: textTheme.labelMedium?.copyWith(
-                              fontFamily: 'JetBrains Mono',
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('CATEGORY', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
-                        const SizedBox(height: 6),
-                        Text(product.category ?? 'N/A', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('LAST MODIFIED', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
-                        const SizedBox(height: 6),
-                        Text(
-                          product.lastModified != null ? DateFormat.yMMMd().format(product.lastModified!) : 'N/A',
-                          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    if (product.shelfLifeDays != null)
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(product.name, style: textTheme.displayLarge),
+                  const SizedBox(height: 20),
+                  Wrap(
+                    spacing: 32,
+                    runSpacing: 12,
+                    children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('SHELF LIFE', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
-                          const SizedBox(height: 6),
+                          Text('GLOBAL SKU PREFIX', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
+                          const SizedBox(height: 4),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              '${product.shelfLifeDays} Days',
+                              product.sku,
                               style: textTheme.labelMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.secondary,
+                                fontFamily: 'JetBrains Mono',
+                                color: colorScheme.primary,
                               ),
                             ),
                           ),
                         ],
                       ),
-                  ],
-                ),
-              ],
-            );
-
-            Widget adaptiveActions;
-
-            if (constraints.maxWidth < 300) {
-              adaptiveActions = PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert),
-                onSelected: (value) async {
-                  if (value == 'edit') {
-                    onEdit(product);
-                  } else if (value == 'delete' && await _confirmDeleteProduct(context)) {
-                    onDelete(product.id);
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'edit', child: ListTile(
-                    leading: Icon(Icons.edit, size: 20),
-                    title: Text('Edit'),
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    contentPadding: EdgeInsets.zero,
-                  )),
-                  const PopupMenuItem(value: 'delete', child: ListTile(
-                    leading: Icon(Icons.delete_outline, size: 20),
-                    title: Text('Delete'),
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    contentPadding: EdgeInsets.zero,
-                  )),
-                ],
-              );
-            } else if (constraints.maxWidth < 500) {
-              adaptiveActions = Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    onPressed: () => onEdit(product),
-                    icon: const Icon(Icons.edit_outlined),
-                    tooltip: 'Edit Product',
-                  ),
-                  IconButton(
-                    onPressed: () async {
-                      if (await _confirmDeleteProduct(context)) {
-                        onDelete(product.id);
-                      }
-                    },
-                    icon: const Icon(Icons.delete_outline),
-                    tooltip: 'Delete Product',
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('CATEGORY', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
+                          const SizedBox(height: 6),
+                          Text(product.category ?? 'N/A', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('LAST MODIFIED', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
+                          const SizedBox(height: 6),
+                          Text(
+                            product.lastModified != null ? DateFormat.yMMMd().format(product.lastModified!) : 'N/A',
+                            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      if (product.shelfLifeDays != null)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('SHELF LIFE', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '${product.shelfLifeDays} Days',
+                                style: textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.secondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
                 ],
-              );
-            } else {
-              adaptiveActions = Column(
+              ),
+            ),
+            const SizedBox(width: 24),
+            SizedBox(
+              width: 180,
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ElevatedButton.icon(
@@ -566,37 +519,9 @@ class ProductDetailPanel extends StatelessWidget {
                     ),
                   ),
                 ],
-              );
-            }
-
-            if (isCompact) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: imgWidget),
-                      adaptiveActions,
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  infoWidget,
-                ],
-              );
-            }
-
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                imgWidget,
-                const SizedBox(width: 24),
-                Expanded(child: infoWidget),
-                const SizedBox(width: 24),
-                SizedBox(width: 180, child: adaptiveActions),
-              ],
-            );
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -660,91 +585,27 @@ class ProductDetailPanel extends StatelessWidget {
                           _cell(textTheme, v.sku, mono: true),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final available = constraints.maxWidth;
-
-                                if (available >= 80) {
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          PrintTemplateSelectRoute(
-                                            productId: product.id,
-                                            variantSku: v.sku,
-                                          ).go(context);
-                                        },
-                                        icon: const Icon(Icons.print_outlined, size: 18),
-                                        style: IconButton.styleFrom(
-                                          backgroundColor: colorScheme.primary,
-                                        ),
-                                        color: colorScheme.onPrimary,
-                                        tooltip: 'Print Label',
-                                      ),
-                                      PopupMenuButton<String>(
-                                        icon: const Icon(Icons.more_vert, size: 18),
-                                        onSelected: (value) async {
-                                          if (value == 'edit') {
-                                            _showEditVariantDialog(context, v);
-                                          } else if (value == 'delete') {
-                                            if (await _confirmDeleteVariant(context, v)) {
-                                              if (!context.mounted) return;
-                                              final updatedVariants = product.variants.where((v2) => v2.sku != v.sku).toList();
-                                              final updatedProduct = Product(
-                                                id: product.id,
-                                                name: product.name,
-                                                sku: product.sku,
-                                                category: product.category,
-                                                shelfLifeDays: product.shelfLifeDays,
-                                                storageConditions: product.storageConditions,
-                                                imageUrl: product.imageUrl,
-                                                ingredients: product.ingredients,
-                                                nutritionFacts: product.nutritionFacts,
-                                                variants: List.unmodifiable(updatedVariants),
-                                                lastModified: DateTime.now(),
-                                              );
-                                              await context.read<ProductCubit>().saveProduct(
-                                                updatedProduct,
-                                                nextView: ProductDetailView(updatedProduct),
-                                              );
-                                            }
-                                          }
-                                        },
-                                        itemBuilder: (context) => [
-                                          const PopupMenuItem(
-                                            value: 'edit',
-                                            child: ListTile(
-                                              leading: Icon(Icons.edit_outlined, size: 20),
-                                              title: Text('Edit'),
-                                              dense: true,
-                                              contentPadding: EdgeInsets.zero,
-                                            ),
-                                          ),
-                                          const PopupMenuItem(
-                                            value: 'delete',
-                                            child: ListTile(
-                                              leading: Icon(Icons.delete_outline, size: 20),
-                                              title: Text('Delete'),
-                                              dense: true,
-                                              contentPadding: EdgeInsets.zero,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  );
-                                }
-
-                                return PopupMenuButton<String>(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    PrintTemplateSelectRoute(
+                                      productId: product.id,
+                                      variantSku: v.sku,
+                                    ).go(context);
+                                  },
+                                  icon: const Icon(Icons.print_outlined, size: 18),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: colorScheme.primary,
+                                  ),
+                                  color: colorScheme.onPrimary,
+                                  tooltip: 'Print Label',
+                                ),
+                                PopupMenuButton<String>(
                                   icon: const Icon(Icons.more_vert, size: 18),
                                   onSelected: (value) async {
-                                    if (value == 'print') {
-                                      PrintTemplateSelectRoute(
-                                        productId: product.id,
-                                        variantSku: v.sku,
-                                      ).go(context);
-                                    } else if (value == 'edit') {
+                                    if (value == 'edit') {
                                       _showEditVariantDialog(context, v);
                                     } else if (value == 'delete') {
                                       if (await _confirmDeleteVariant(context, v)) {
@@ -772,15 +633,6 @@ class ProductDetailPanel extends StatelessWidget {
                                   },
                                   itemBuilder: (context) => [
                                     const PopupMenuItem(
-                                      value: 'print',
-                                      child: ListTile(
-                                        leading: Icon(Icons.print_outlined, size: 20),
-                                        title: Text('Print'),
-                                        dense: true,
-                                        contentPadding: EdgeInsets.zero,
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
                                       value: 'edit',
                                       child: ListTile(
                                         leading: Icon(Icons.edit_outlined, size: 20),
@@ -799,8 +651,8 @@ class ProductDetailPanel extends StatelessWidget {
                                       ),
                                     ),
                                   ],
-                                );
-                              },
+                                ),
+                              ],
                             ),
                           ),
                         ],

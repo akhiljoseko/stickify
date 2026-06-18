@@ -359,7 +359,7 @@ class _HighDensityProductRowState extends State<_HighDensityProductRow> {
                 color: colorScheme.container,
                 image: widget.product.imageUrl != null && widget.product.imageUrl!.isNotEmpty
                     ? DecorationImage(
-                        image: getImageProvider(widget.product.imageUrl!),
+                        image: resolveImageProvider(widget.product.imageUrl!),
                         fit: BoxFit.cover,
                       )
                     : null,
@@ -477,7 +477,7 @@ class _ProductDetailView extends StatelessWidget {
                 color: colorScheme.containerLow,
                 image: product.imageUrl != null && product.imageUrl!.isNotEmpty
                     ? DecorationImage(
-                        image: getImageProvider(product.imageUrl!),
+                        image: resolveImageProvider(product.imageUrl!),
                         fit: BoxFit.cover,
                       )
                     : null,

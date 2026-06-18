@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/app/theme.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
@@ -289,15 +290,14 @@ class _PrintTableColumnHeaders extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
+        color: colorScheme.containerLow,
         border: Border(
-          left: BorderSide(color: colorScheme.outline),
-          right: BorderSide(color: colorScheme.outline),
-          bottom: BorderSide(color: colorScheme.outline),
+          bottom: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
       child: Row(
         children: [
+          const SizedBox(width: 44),
           _HeaderCell(
             label: 'Variant & SKU',
             flex: 2,
@@ -338,27 +338,16 @@ class _RecentPrintsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: jobs.length,
-      separatorBuilder: (_, _) => Divider(
-        height: 1,
-        color: Theme.of(context).colorScheme.outlineVariant,
-      ),
-      itemBuilder: (context, i) {
-        final job = jobs[i];
-        return RecentPrintRow(
-          job: job,
-          isEvenRow: i.isEven,
-          onRepeatPrint: () => PrintSetupRoute(
-            productId: job.productId,
-            variantSku: job.variantSku,
-            templateId: job.templateId,
-            quantity: job.labelCount,
-          ).go(context),
-        );
-      },
+    return Column(
+      children: jobs.map((job) => RecentPrintRow(
+        job: job,
+        onRepeatPrint: () => PrintSetupRoute(
+          productId: job.productId,
+          variantSku: job.variantSku,
+          templateId: job.templateId,
+          quantity: job.labelCount,
+        ).go(context),
+      )).toList(),
     );
   }
 }
@@ -433,15 +422,14 @@ class _TableColumnHeaders extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
+        color: colorScheme.containerLow,
         border: Border(
-          left: BorderSide(color: colorScheme.outline),
-          right: BorderSide(color: colorScheme.outline),
-          bottom: BorderSide(color: colorScheme.outline),
+          bottom: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
       child: Row(
         children: [
+          const SizedBox(width: 44),
           _HeaderCell(
             label: 'Variant & Product',
             flex: 2,
@@ -488,12 +476,12 @@ class _HeaderCell extends StatelessWidget {
     return Expanded(
       flex: flex,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Text(
           label,
-          style: textTheme.labelMedium?.copyWith(
-            color: colorScheme.onPrimaryContainer,
-            fontWeight: FontWeight.w500,
+          style: textTheme.labelSmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            letterSpacing: 1.1,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -509,25 +497,16 @@ class _DesktopVariantsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: variants.length,
-      separatorBuilder: (_, _) => Divider(
-        height: 1,
-        color: Theme.of(context).colorScheme.outlineVariant,
-      ),
-      itemBuilder: (context, i) => FrequentVariantRow(
-        stats: variants[i],
-        isEvenRow: i.isEven,
+    return Column(
+      children: variants.map((v) => FrequentVariantRow(
+        stats: v,
         onQuickPrint: () {
-          final v = variants[i];
           PrintTemplateSelectRoute(
             productId: v.productId,
             variantSku: v.variantSku,
           ).go(context);
         },
-      ),
+      )).toList(),
     );
   }
 }

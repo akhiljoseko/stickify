@@ -352,7 +352,6 @@ class _RecentPrintsList extends StatelessWidget {
         final job = jobs[i];
         return RecentPrintRow(
           job: job,
-          isEvenRow: i.isEven,
           onRepeatPrint: () => PrintSetupRoute(
             productId: job.productId,
             variantSku: job.variantSku,

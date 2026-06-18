@@ -1,14 +1,4 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-
-/// Resolves a dynamic [ImageProvider] from the given [path].
-ImageProvider getImageProvider(String path) {
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return NetworkImage(path);
-  } else {
-    return FileImage(File(path));
-  }
-}
 
 /// A fallback view shown when no products match filters or search queries.
 class EmptyCatalogState extends StatelessWidget {

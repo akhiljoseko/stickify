@@ -186,8 +186,7 @@ class _PrintHistoryTable extends StatelessWidget {
               final job = jobs[i];
               return RecentPrintRow(
                 job: job,
-                isEvenRow: i.isEven,
-                onRepeatPrint: () => PrintSetupRoute(
+              onRepeatPrint: () => PrintSetupRoute(
                   productId: job.productId,
                   variantSku: job.variantSku,
                   templateId: job.templateId,

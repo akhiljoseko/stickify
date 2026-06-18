@@ -252,7 +252,7 @@ class _MobileProductGrid extends StatelessWidget {
                           color: colorScheme.container,
                           image: product.imageUrl != null && product.imageUrl!.isNotEmpty
                               ? DecorationImage(
-                                  image: getImageProvider(product.imageUrl!),
+                                  image: resolveImageProvider(product.imageUrl!),
                                   fit: BoxFit.cover,
                                 )
                               : null,
@@ -493,7 +493,7 @@ class _MobileProductDetailView extends StatelessWidget {
                 color: colorScheme.containerLow,
                 image: product.imageUrl != null && product.imageUrl!.isNotEmpty
                     ? DecorationImage(
-                        image: getImageProvider(product.imageUrl!),
+                        image: resolveImageProvider(product.imageUrl!),
                         fit: BoxFit.cover,
                       )
                     : null,

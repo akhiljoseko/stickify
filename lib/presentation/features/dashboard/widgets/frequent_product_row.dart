@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:stickify/core/utils/adaptive_value.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+import 'package:stickify/app/theme.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/variant_print_stats.dart';
 
 class FrequentVariantRow extends StatefulWidget {
   const FrequentVariantRow({
     required this.stats,
-    required this.isEvenRow,
     this.onQuickPrint,
     super.key,
   });
 
   final VariantPrintStats stats;
-  final bool isEvenRow;
   final VoidCallback? onQuickPrint;
 
   @override
@@ -26,18 +26,12 @@ class _FrequentVariantRowState extends State<FrequentVariantRow> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final isDesktopOrLarger = AdaptiveValue<bool>(
-      context,
-      defaultValue: false,
-      desktop: true,
-      fourK: true,
-    ).value;
+    final bp = ResponsiveBreakpoints.of(context);
+    final enableHoverEffects = !bp.isMobile && !bp.isTablet;
 
-    final rowBg = _isHovered && isDesktopOrLarger
-        ? colorScheme.surfaceContainerHigh
-        : widget.isEvenRow
-            ? colorScheme.surfaceContainerLow.withValues(alpha: 0.3)
-            : Colors.transparent;
+    final rowBgColor = _isHovered && enableHoverEffects
+        ? colorScheme.containerLow
+        : colorScheme.containerLowest;
 
     final totalPrintsFormatted = widget.stats.totalPrints >= 1000
         ? '${(widget.stats.totalPrints / 1000).toStringAsFixed(1)}k'
@@ -45,95 +39,114 @@ class _FrequentVariantRowState extends State<FrequentVariantRow> {
 
     final lastPrinted = _formatDateTime(widget.stats.lastPrintedAt);
 
-    return InkWell(
-      onHover: isDesktopOrLarger ? (value) => setState(() => _isHovered = value) : null,
-      splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
+    return MouseRegion(
+      onEnter: (_) {
+        if (enableHoverEffects) setState(() => _isHovered = true);
+      },
+      onExit: (_) {
+        if (enableHoverEffects) setState(() => _isHovered = false);
+      },
+      cursor: SystemMouseCursors.click,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        color: rowBg,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeInOut,
+        transform: Matrix4.translationValues(
+          _isHovered && enableHoverEffects ? 4 : 0, 0, 0,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: rowBgColor,
+          border: Border(
+            bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
+          ),
+        ),
         child: Row(
           children: [
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.stats.variantName,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      widget.stats.productName,
-                      style: textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 11,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      widget.stats.variantSku,
-                      style: textTheme.labelSmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontSize: 10,
-                        fontFamily: 'JetBrains Mono',
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: colorScheme.container,
+                image: widget.stats.imageUrl != null && widget.stats.imageUrl!.isNotEmpty
+                    ? DecorationImage(
+                        image: resolveImageProvider(widget.stats.imageUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
+              child: widget.stats.imageUrl == null || widget.stats.imageUrl!.isEmpty
+                  ? Icon(Icons.inventory_2_outlined, size: 16, color: colorScheme.primary)
+                  : null,
             ),
+            const SizedBox(width: 12),
             Expanded(
               flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  lastPrinted,
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.stats.variantName,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(999),
+                  const SizedBox(height: 2),
+                  Text(
+                    widget.stats.productName,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  child: Text(
-                    totalPrintsFormatted,
+                  const SizedBox(height: 1),
+                  Text(
+                    widget.stats.variantSku,
                     style: textTheme.labelSmall?.copyWith(
                       color: colorScheme.primary,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 10,
+                      fontFamily: 'JetBrains Mono',
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                lastPrinted,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  totalPrintsFormatted,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: _QuickPrintButton(onPressed: widget.onQuickPrint),
-            ),
+            _QuickPrintButton(onPressed: widget.onQuickPrint),
           ],
         ),
       ),

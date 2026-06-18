@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:stickify/app/theme.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
 
 class ProductDetailNutritionFactsCard extends StatelessWidget {

@@ -121,6 +121,11 @@ void main() {
 
       expect(find.text('GLOBAL SKU PREFIX'), findsOneWidget);
       expect(find.text('Packaging Variants'), findsOneWidget);
+      expect(find.text('No packaging variants configured.'), findsOneWidget);
+
+      // Verify removed elements
+      expect(find.text('VALUE'), findsNothing);
+      expect(find.text('Sensitive to high humidity'), findsNothing);
     });
   });
 }

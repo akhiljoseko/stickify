@@ -45,28 +45,28 @@ class DesktopDashboardScreen extends StatelessWidget {
               builder: (context, controller) => CustomScrollView(
                 controller: controller,
                 slivers: const [
-                SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate.fixed([
-                      _HeroHeader(),
-                      SizedBox(height: 32),
-                      _QuickActionsGrid(),
-                      SizedBox(height: 32),
-                      _RecentPrintsSection(),
-                      SizedBox(height: 32),
-                      _FrequentProductsSection(),
-                      SizedBox(height: 32),
-                    ]),
+                  SliverPadding(
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate.fixed([
+                        _HeroHeader(),
+                        SizedBox(height: 32),
+                        _QuickActionsGrid(),
+                        SizedBox(height: 32),
+                        _RecentPrintsSection(),
+                        SizedBox(height: 32),
+                        _FrequentProductsSection(),
+                        SizedBox(height: 32),
+                      ]),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-   );
+    );
   }
 }
 
@@ -116,7 +116,9 @@ class _HeroHeader extends StatelessWidget {
                     )
                   : const Icon(Icons.sync, size: 16),
               label: Text(isLoading ? 'Syncing...' : 'Sync Data'),
-              onPressed: isLoading ? null : () => context.read<SyncCubit>().syncData(),
+              onPressed: isLoading
+                  ? null
+                  : () => context.read<SyncCubit>().syncData(),
             );
           },
         ),
@@ -238,7 +240,8 @@ class _RecentPrintsSection extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 TextButton(
-                  onPressed: () => const PrintHistoryRoute().push<void>(context),
+                  onPressed: () =>
+                      const PrintHistoryRoute().push<void>(context),
                   child: Text(
                     'View History',
                     style: textTheme.labelMedium?.copyWith(
@@ -250,17 +253,21 @@ class _RecentPrintsSection extends StatelessWidget {
             ),
           ),
           Divider(height: 1, color: colorScheme.outlineVariant),
-          _PrintTableColumnHeaders(colorScheme: colorScheme, textTheme: textTheme),
+          _PrintTableColumnHeaders(
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+          ),
           BlocBuilder<RecentPrintJobsCubit, RecentPrintJobsState>(
             builder: (context, state) => switch (state) {
-              RecentPrintJobsInitial() || RecentPrintJobsLoading() =>
-                const _SectionLoadingIndicator(),
-              RecentPrintJobsLoaded(:final jobs) =>
-                _RecentPrintsTable(jobs: jobs),
+              RecentPrintJobsInitial() ||
+              RecentPrintJobsLoading() => const _SectionLoadingIndicator(),
+              RecentPrintJobsLoaded(:final jobs) => _RecentPrintsTable(
+                jobs: jobs,
+              ),
               RecentPrintJobsError(:final message) => _SectionErrorView(
-                  message: message,
-                  onRetry: context.read<RecentPrintJobsCubit>().loadRecentJobs,
-                ),
+                message: message,
+                onRetry: context.read<RecentPrintJobsCubit>().loadRecentJobs,
+              ),
             },
           ),
         ],
@@ -282,15 +289,39 @@ class _PrintTableColumnHeaders extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        border: Border(bottom: BorderSide(color: colorScheme.outline)),
+        color: colorScheme.primaryContainer,
+        border: Border(
+          left: BorderSide(color: colorScheme.outline),
+          right: BorderSide(color: colorScheme.outline),
+          bottom: BorderSide(color: colorScheme.outline),
+        ),
       ),
       child: Row(
         children: [
-          _HeaderCell(label: 'Variant & SKU', flex: 3, textTheme: textTheme, colorScheme: colorScheme),
-          _HeaderCell(label: 'Template', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
-          _HeaderCell(label: 'Count', flex: 1, textTheme: textTheme, colorScheme: colorScheme),
-          _HeaderCell(label: 'Printed', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
+          _HeaderCell(
+            label: 'Variant & SKU',
+            flex: 3,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
+          _HeaderCell(
+            label: 'Template',
+            flex: 2,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
+          _HeaderCell(
+            label: 'Count',
+            flex: 1,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
+          _HeaderCell(
+            label: 'Printed',
+            flex: 2,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 8),
             child: SizedBox(width: 36),
@@ -370,14 +401,17 @@ class _FrequentProductsSection extends StatelessWidget {
           _TableColumnHeaders(colorScheme: colorScheme, textTheme: textTheme),
           BlocBuilder<FrequentVariantsCubit, FrequentVariantsState>(
             builder: (context, state) => switch (state) {
-              FrequentVariantsInitial() || FrequentVariantsLoading() =>
-                const _SectionLoadingIndicator(),
-              FrequentVariantsLoaded(:final variants) =>
-                _DesktopVariantsTable(variants: variants),
+              FrequentVariantsInitial() ||
+              FrequentVariantsLoading() => const _SectionLoadingIndicator(),
+              FrequentVariantsLoaded(:final variants) => _DesktopVariantsTable(
+                variants: variants,
+              ),
               FrequentVariantsError(:final message) => _SectionErrorView(
-                  message: message,
-                  onRetry: context.read<FrequentVariantsCubit>().loadFrequentVariants,
-                ),
+                message: message,
+                onRetry: context
+                    .read<FrequentVariantsCubit>()
+                    .loadFrequentVariants,
+              ),
             },
           ),
         ],
@@ -399,14 +433,33 @@ class _TableColumnHeaders extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        border: Border(bottom: BorderSide(color: colorScheme.outline)),
+        color: colorScheme.primaryContainer,
+        border: Border(
+          left: BorderSide(color: colorScheme.outline),
+          right: BorderSide(color: colorScheme.outline),
+          bottom: BorderSide(color: colorScheme.outline),
+        ),
       ),
       child: Row(
         children: [
-          _HeaderCell(label: 'Variant & Product', flex: 3, textTheme: textTheme, colorScheme: colorScheme),
-          _HeaderCell(label: 'Last Printed', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
-          _HeaderCell(label: 'Total Prints', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
+          _HeaderCell(
+            label: 'Variant & Product',
+            flex: 3,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
+          _HeaderCell(
+            label: 'Last Printed',
+            flex: 2,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
+          _HeaderCell(
+            label: 'Total Prints',
+            flex: 2,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             child: SizedBox(width: 48),
@@ -439,7 +492,7 @@ class _HeaderCell extends StatelessWidget {
         child: Text(
           label,
           style: textTheme.labelMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
+            color: colorScheme.onPrimaryContainer,
             fontWeight: FontWeight.w500,
           ),
           maxLines: 1,
@@ -515,7 +568,9 @@ class _SectionErrorView extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Could not load data',
-            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 8),
           TextButton(

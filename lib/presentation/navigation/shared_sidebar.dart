@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:stickify/presentation/features/print/widgets/product_variant_selection_dialog.dart';
 import 'package:stickify/presentation/navigation/adaptive_app_shell.dart';
 
 /// Custom sidebar navigation pane used on tablet and desktop viewports.
@@ -104,41 +103,7 @@ class CustomSidebar extends StatelessWidget {
                 ),
               ),
 
-              // Bottom Trigger Action
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: showText
-                    ? FilledButton.icon(
-                        onPressed: () => ProductVariantSelectionDialog.show(context),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: colorScheme.onPrimary,
-                          minimumSize: const Size(double.infinity, 48),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        icon: const Icon(Icons.print_outlined, size: 18),
-                        label: Text(
-                          'Start New Print',
-                          style: textTheme.titleSmall?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      )
-                    : FloatingActionButton(
-                        onPressed: () => ProductVariantSelectionDialog.show(context),
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.print_outlined),
-                      ),
-              ),
+
             ],
           );
         },

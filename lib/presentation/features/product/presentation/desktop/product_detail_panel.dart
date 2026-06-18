@@ -7,6 +7,7 @@ import 'package:stickify/core/utils/image_utils.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
+import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_ingredients_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_nutrition_facts_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_storage_card.dart';
@@ -151,11 +152,147 @@ class ProductDetailPanel extends StatelessWidget {
                     lastModified: DateTime.now(),
                   );
 
-                  context.read<ProductCubit>().saveProduct(updatedProduct);
+                  context.read<ProductCubit>().saveProduct(
+                    updatedProduct,
+                    nextView: ProductDetailView(updatedProduct),
+                  );
                   Navigator.pop(dialogContext);
                 }
               },
               child: const Text('Save Variant'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAddVariantDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    final skuController = TextEditingController(text: product.sku);
+    final quantityController = TextEditingController(text: '1');
+    final unitController = TextEditingController(text: 'pcs');
+    final wholesaleController = TextEditingController();
+    final mrpController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Add Variant'),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Variant Name'),
+                    validator: (val) => (val == null || val.trim().isEmpty) ? 'Name is required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: skuController,
+                    decoration: const InputDecoration(labelText: 'SKU'),
+                    validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: quantityController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'Quantity'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          initialValue: unitController.text,
+                          decoration: const InputDecoration(labelText: 'Unit'),
+                          items: const [
+                            DropdownMenuItem(value: 'pcs', child: Text('pcs')),
+                            DropdownMenuItem(value: 'ml', child: Text('ml')),
+                            DropdownMenuItem(value: 'gm', child: Text('gm')),
+                            DropdownMenuItem(value: 'kg', child: Text('kg')),
+                            DropdownMenuItem(value: 'L', child: Text('L')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) unitController.text = val;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: wholesaleController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'Wholesale Price (₹)'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: mrpController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'MRP (₹)'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  final newVariant = ProductVariant(
+                    name: nameController.text.trim(),
+                    sku: skuController.text.trim(),
+                    quantity: double.parse(quantityController.text),
+                    unit: unitController.text.trim(),
+                    wholesale: double.parse(wholesaleController.text),
+                    mrp: double.parse(mrpController.text),
+                  );
+                  final updatedVariants = [...product.variants, newVariant];
+                  final updatedProduct = Product(
+                    id: product.id,
+                    name: product.name,
+                    sku: product.sku,
+                    category: product.category,
+                    shelfLifeDays: product.shelfLifeDays,
+                    storageConditions: product.storageConditions,
+                    imageUrl: product.imageUrl,
+                    ingredients: product.ingredients,
+                    nutritionFacts: product.nutritionFacts,
+                    variants: List.unmodifiable(updatedVariants),
+                    lastModified: DateTime.now(),
+                  );
+                  context.read<ProductCubit>().saveProduct(
+                    updatedProduct,
+                    nextView: ProductDetailView(updatedProduct),
+                  );
+                  Navigator.pop(dialogContext);
+                }
+              },
+              child: const Text('Add Variant'),
             ),
           ],
         );
@@ -475,7 +612,7 @@ class ProductDetailPanel extends StatelessWidget {
               children: [
                 Text('Packaging Variants', style: textTheme.titleSmall),
                 TextButton.icon(
-                  onPressed: () => onEdit(product),
+                  onPressed: () => _showAddVariantDialog(context),
                   icon: const Icon(Icons.add_circle_outline, size: 16),
                   label: const Text('Add Variant'),
                 ),
@@ -523,59 +660,147 @@ class ProductDetailPanel extends StatelessWidget {
                           _cell(textTheme, v.sku, mono: true),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  height: 32,
-                                  child: ElevatedButton.icon(
-                                    onPressed: () {
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final available = constraints.maxWidth;
+
+                                if (available >= 80) {
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        onPressed: () {
+                                          PrintTemplateSelectRoute(
+                                            productId: product.id,
+                                            variantSku: v.sku,
+                                          ).go(context);
+                                        },
+                                        icon: const Icon(Icons.print_outlined, size: 18),
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: colorScheme.primary,
+                                        ),
+                                        color: colorScheme.onPrimary,
+                                        tooltip: 'Print Label',
+                                      ),
+                                      PopupMenuButton<String>(
+                                        icon: const Icon(Icons.more_vert, size: 18),
+                                        onSelected: (value) async {
+                                          if (value == 'edit') {
+                                            _showEditVariantDialog(context, v);
+                                          } else if (value == 'delete') {
+                                            if (await _confirmDeleteVariant(context, v)) {
+                                              if (!context.mounted) return;
+                                              final updatedVariants = product.variants.where((v2) => v2.sku != v.sku).toList();
+                                              final updatedProduct = Product(
+                                                id: product.id,
+                                                name: product.name,
+                                                sku: product.sku,
+                                                category: product.category,
+                                                shelfLifeDays: product.shelfLifeDays,
+                                                storageConditions: product.storageConditions,
+                                                imageUrl: product.imageUrl,
+                                                ingredients: product.ingredients,
+                                                nutritionFacts: product.nutritionFacts,
+                                                variants: List.unmodifiable(updatedVariants),
+                                                lastModified: DateTime.now(),
+                                              );
+                                              await context.read<ProductCubit>().saveProduct(
+                                                updatedProduct,
+                                                nextView: ProductDetailView(updatedProduct),
+                                              );
+                                            }
+                                          }
+                                        },
+                                        itemBuilder: (context) => [
+                                          const PopupMenuItem(
+                                            value: 'edit',
+                                            child: ListTile(
+                                              leading: Icon(Icons.edit_outlined, size: 20),
+                                              title: Text('Edit'),
+                                              dense: true,
+                                              contentPadding: EdgeInsets.zero,
+                                            ),
+                                          ),
+                                          const PopupMenuItem(
+                                            value: 'delete',
+                                            child: ListTile(
+                                              leading: Icon(Icons.delete_outline, size: 20),
+                                              title: Text('Delete'),
+                                              dense: true,
+                                              contentPadding: EdgeInsets.zero,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                return PopupMenuButton<String>(
+                                  icon: const Icon(Icons.more_vert, size: 18),
+                                  onSelected: (value) async {
+                                    if (value == 'print') {
                                       PrintTemplateSelectRoute(
                                         productId: product.id,
                                         variantSku: v.sku,
                                       ).go(context);
-                                    },
-                                    icon: const Icon(Icons.print_outlined, size: 16),
-                                    label: const Text('Print', style: TextStyle(fontSize: 12)),
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                IconButton(
-                                  onPressed: () => _showEditVariantDialog(context, v),
-                                  icon: const Icon(Icons.edit_outlined, size: 18),
-                                  tooltip: 'Edit Variant',
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                                IconButton(
-                                  onPressed: () async {
-                                    if (await _confirmDeleteVariant(context, v)) {
-                                      if (!context.mounted) return;
-                                      final updatedVariants = product.variants.where((v2) => v2.sku != v.sku).toList();
-                                      final updatedProduct = Product(
-                                        id: product.id,
-                                        name: product.name,
-                                        sku: product.sku,
-                                        category: product.category,
-                                        shelfLifeDays: product.shelfLifeDays,
-                                        storageConditions: product.storageConditions,
-                                        imageUrl: product.imageUrl,
-                                        ingredients: product.ingredients,
-                                        nutritionFacts: product.nutritionFacts,
-                                        variants: List.unmodifiable(updatedVariants),
-                                        lastModified: DateTime.now(),
-                                      );
-                                      await context.read<ProductCubit>().saveProduct(updatedProduct);
+                                    } else if (value == 'edit') {
+                                      _showEditVariantDialog(context, v);
+                                    } else if (value == 'delete') {
+                                      if (await _confirmDeleteVariant(context, v)) {
+                                        if (!context.mounted) return;
+                                        final updatedVariants = product.variants.where((v2) => v2.sku != v.sku).toList();
+                                        final updatedProduct = Product(
+                                          id: product.id,
+                                          name: product.name,
+                                          sku: product.sku,
+                                          category: product.category,
+                                          shelfLifeDays: product.shelfLifeDays,
+                                          storageConditions: product.storageConditions,
+                                          imageUrl: product.imageUrl,
+                                          ingredients: product.ingredients,
+                                          nutritionFacts: product.nutritionFacts,
+                                          variants: List.unmodifiable(updatedVariants),
+                                          lastModified: DateTime.now(),
+                                        );
+                                        await context.read<ProductCubit>().saveProduct(
+                                          updatedProduct,
+                                          nextView: ProductDetailView(updatedProduct),
+                                        );
+                                      }
                                     }
                                   },
-                                  icon: const Icon(Icons.delete_outline, size: 18),
-                                  tooltip: 'Delete Variant',
-                                  visualDensity: VisualDensity.compact,
-                                  color: colorScheme.error,
-                                ),
-                              ],
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'print',
+                                      child: ListTile(
+                                        leading: Icon(Icons.print_outlined, size: 20),
+                                        title: Text('Print'),
+                                        dense: true,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'edit',
+                                      child: ListTile(
+                                        leading: Icon(Icons.edit_outlined, size: 20),
+                                        title: Text('Edit'),
+                                        dense: true,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'delete',
+                                      child: ListTile(
+                                        leading: Icon(Icons.delete_outline, size: 20),
+                                        title: Text('Delete'),
+                                        dense: true,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
                         ],

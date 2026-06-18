@@ -103,7 +103,7 @@ types:
         index: 5
   PrintJobHiveModel:
     typeId: 4
-    nextIndex: 13
+    nextIndex: 14
     fields:
       id:
         index: 0
@@ -127,6 +127,8 @@ types:
         index: 10
       productId:
         index: 12
+      imageUrl:
+        index: 13
   ProductHiveModel:
     typeId: 5
     nextIndex: 12
@@ -213,7 +215,7 @@ types:
         index: 1
   VariantPrintStatsHiveModel:
     typeId: 10
-    nextIndex: 6
+    nextIndex: 7
     fields:
       variantSku:
         index: 0
@@ -227,3 +229,5 @@ types:
         index: 4
       lastPrintedAt:
         index: 5
+      imageUrl:
+        index: 6

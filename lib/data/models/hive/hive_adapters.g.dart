@@ -280,13 +280,14 @@ class PrintJobHiveModelAdapter extends TypeAdapter<PrintJobHiveModel> {
       printerStation: fields[8] as String,
       printedAt: fields[9] as DateTime,
       labelCount: (fields[10] as num).toInt(),
+      imageUrl: fields[13] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, PrintJobHiveModel obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -308,7 +309,9 @@ class PrintJobHiveModelAdapter extends TypeAdapter<PrintJobHiveModel> {
       ..writeByte(10)
       ..write(obj.labelCount)
       ..writeByte(12)
-      ..write(obj.productId);
+      ..write(obj.productId)
+      ..writeByte(13)
+      ..write(obj.imageUrl);
   }
 
   @override
@@ -599,13 +602,14 @@ class VariantPrintStatsHiveModelAdapter
       variantName: fields[3] as String,
       totalPrints: (fields[4] as num).toInt(),
       lastPrintedAt: fields[5] as DateTime,
+      imageUrl: fields[6] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, VariantPrintStatsHiveModel obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.variantSku)
       ..writeByte(1)
@@ -617,7 +621,9 @@ class VariantPrintStatsHiveModelAdapter
       ..writeByte(4)
       ..write(obj.totalPrints)
       ..writeByte(5)
-      ..write(obj.lastPrintedAt);
+      ..write(obj.lastPrintedAt)
+      ..writeByte(6)
+      ..write(obj.imageUrl);
   }
 
   @override

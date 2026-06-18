@@ -16,6 +16,7 @@ class DatabaseVariantPrintStatsRepository implements VariantPrintStatsRepository
     required String variantName,
     required int labelCount,
     required DateTime printedAt,
+    String? imageUrl,
   }) async {
     try {
       final existing = await _db.get<VariantPrintStatsHiveModel>(_collection, variantSku);
@@ -27,6 +28,7 @@ class DatabaseVariantPrintStatsRepository implements VariantPrintStatsRepository
           variantName: existing.variantName,
           totalPrints: existing.totalPrints + labelCount,
           lastPrintedAt: printedAt,
+          imageUrl: imageUrl,
         );
         await _db.save(_collection, variantSku, updated);
       } else {
@@ -37,6 +39,7 @@ class DatabaseVariantPrintStatsRepository implements VariantPrintStatsRepository
           variantName: variantName,
           totalPrints: labelCount,
           lastPrintedAt: printedAt,
+          imageUrl: imageUrl,
         );
         await _db.save(_collection, variantSku, created);
       }

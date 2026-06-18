@@ -17,6 +17,7 @@ class PrintJob extends Equatable {
     required this.printerStation,
     required this.printedAt,
     required this.labelCount,
+    this.imageUrl,
   });
 
   /// Unique identifier for this print job.
@@ -52,6 +53,9 @@ class PrintJob extends Equatable {
   /// Total number of labels in this batch.
   final int labelCount;
 
+  /// Optional URL/path to the product image for display purposes.
+  final String? imageUrl;
+
   @override
   List<Object?> get props => [
         id,
@@ -65,6 +69,7 @@ class PrintJob extends Equatable {
         printerStation,
         printedAt,
         labelCount,
+        imageUrl,
       ];
 
   /// Creates a copy of this [PrintJob] with the given fields replaced.
@@ -80,6 +85,7 @@ class PrintJob extends Equatable {
     String? printerStation,
     DateTime? printedAt,
     int? labelCount,
+    String? imageUrl,
   }) {
     return PrintJob(
       id: id ?? this.id,
@@ -93,6 +99,7 @@ class PrintJob extends Equatable {
       printerStation: printerStation ?? this.printerStation,
       printedAt: printedAt ?? this.printedAt,
       labelCount: labelCount ?? this.labelCount,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 }

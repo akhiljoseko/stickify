@@ -18,6 +18,7 @@ export 'entities/feature_id.dart';
 export 'entities/ingredient.dart';
 export 'entities/label_template.dart';
 export 'entities/nutrition_facts.dart';
+export 'entities/paginated_result.dart';
 export 'entities/print_job.dart';
 export 'entities/printer_device.dart';
 export 'entities/product.dart';

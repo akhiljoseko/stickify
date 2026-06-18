@@ -376,48 +376,20 @@ class ProductDetailPanel extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: colorScheme.container,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          (product.category ?? 'N/A').toUpperCase(),
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.primary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: colorScheme.container,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      (product.category ?? 'N/A').toUpperCase(),
+                      style: textTheme.labelSmall?.copyWith(
+                        color: colorScheme.primary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade50,
-                          border: Border.all(color: Colors.green.shade200),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.check_circle, size: 12, color: Colors.green.shade700),
-                            const SizedBox(width: 4),
-                            Text(
-                              'ACTIVE',
-                              style: textTheme.labelSmall?.copyWith(
-                                color: Colors.green.shade700,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(product.name, style: textTheme.displayLarge),
@@ -666,7 +638,6 @@ class ProductDetailPanel extends StatelessWidget {
 
     final ingredientsCard = ProductDetailIngredientsCard(
       ingredients: product.ingredients,
-      onEdit: () => onEdit(product),
     );
 
     final nutritionFactsCard = ProductDetailNutritionFactsCard(

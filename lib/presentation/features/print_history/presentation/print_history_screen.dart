@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
-import 'package:stickify/app/theme.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/recent_print_row.dart';
 import 'package:stickify/presentation/features/print_history/cubits/print_history_cubit.dart';
@@ -125,111 +124,28 @@ class _PrintHistoryTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: colorScheme.outlineVariant),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: colorScheme.containerLow,
-                border: Border(
-                  bottom: BorderSide(color: colorScheme.outlineVariant),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 44),
-                  _HeaderCell(
-                    label: 'Variant & SKU',
-                    flex: 3,
-                    textTheme: textTheme,
-                  ),
-                  _HeaderCell(
-                    label: 'Template',
-                    flex: 2,
-                    textTheme: textTheme,
-                  ),
-                  _HeaderCell(
-                    label: 'Count',
-                    flex: 1,
-                    textTheme: textTheme,
-                  ),
-                  _HeaderCell(
-                    label: 'Printed',
-                    flex: 2,
-                    textTheme: textTheme,
-                  ),
-                  const SizedBox(width: 140),
-                ],
+      child: ListView(
+        controller: ScrollController(),
+        children: [
+          ...jobs.map((job) => RecentPrintRow(
+            job: job,
+            onRepeatPrint: () => PrintSetupRoute(
+              productId: job.productId,
+              variantSku: job.variantSku,
+              templateId: job.templateId,
+              quantity: job.labelCount,
+            ).go(context),
+          )),
+          if (isLoadingMore)
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
             ),
-            Expanded(
-              child: ListView(
-                controller: ScrollController(),
-                children: [
-                  ...jobs.map((job) => RecentPrintRow(
-                    job: job,
-                    onRepeatPrint: () => PrintSetupRoute(
-                      productId: job.productId,
-                      variantSku: job.variantSku,
-                      templateId: job.templateId,
-                      quantity: job.labelCount,
-                    ).go(context),
-                  )),
-                  if (isLoadingMore)
-                    const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Center(
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HeaderCell extends StatelessWidget {
-  const _HeaderCell({
-    required this.label,
-    required this.flex,
-    required this.textTheme,
-  });
-
-  final String label;
-  final int flex;
-  final TextTheme textTheme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      flex: flex,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Text(
-          label,
-          style: textTheme.labelSmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            letterSpacing: 1.1,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        ],
       ),
     );
   }

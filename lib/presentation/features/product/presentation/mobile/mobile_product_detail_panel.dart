@@ -7,6 +7,9 @@ import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/product_detail_ingredients_card.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/product_detail_nutrition_facts_card.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/product_detail_storage_card.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
 class MobileProductDetailPanel extends StatelessWidget {
@@ -19,7 +22,7 @@ class MobileProductDetailPanel extends StatelessWidget {
   final Product product;
   final VoidCallback onBack;
 
-  void _showEditVariantBottomSheet(BuildContext context, Product product, ProductVariant variant) {
+  void _showEditVariantBottomSheet(BuildContext context, ProductVariant variant) {
     final nameController = TextEditingController(text: variant.name);
     final skuController = TextEditingController(text: variant.sku);
     final quantityController = TextEditingController(text: variant.quantity.toString());
@@ -86,9 +89,7 @@ class MobileProductDetailPanel extends StatelessWidget {
                             DropdownMenuItem(value: 'L', child: Text('L')),
                           ],
                           onChanged: (val) {
-                            if (val != null) {
-                              unitController.text = val;
-                            }
+                            if (val != null) unitController.text = val;
                           },
                         ),
                       ),
@@ -120,22 +121,15 @@ class MobileProductDetailPanel extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () {
                       if (formKey.currentState!.validate()) {
-                        final newName = nameController.text.trim();
-                        final newSku = skuController.text.trim();
-                        final newQuantity = double.parse(quantityController.text);
-                        final newUnit = unitController.text.trim();
-                        final newWholesale = double.parse(wholesaleController.text);
-                        final newMrp = double.parse(mrpController.text);
-
                         final updatedVariants = product.variants.map((v) {
                           if (v.sku == variant.sku) {
                             return ProductVariant(
-                              name: newName,
-                              quantity: newQuantity,
-                              unit: newUnit,
-                              sku: newSku,
-                              wholesale: newWholesale,
-                              mrp: newMrp,
+                              name: nameController.text.trim(),
+                              sku: skuController.text.trim(),
+                              quantity: double.parse(quantityController.text),
+                              unit: unitController.text.trim(),
+                              wholesale: double.parse(wholesaleController.text),
+                              mrp: double.parse(mrpController.text),
                             );
                           }
                           return v;
@@ -245,13 +239,21 @@ class MobileProductDetailPanel extends StatelessWidget {
             const SizedBox(height: 12),
             Text(product.name, style: textTheme.displayMedium),
             const SizedBox(height: 8),
-            Text(
-              product.storageConditions ?? 'No specific storage requirements.',
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
+            if (product.shelfLifeDays != null) ...[
+              Row(
+                children: [
+                  Icon(Icons.calendar_today_outlined, size: 14, color: colorScheme.secondary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Shelf Life: ${product.shelfLifeDays} Days',
+                    style: textTheme.bodySmall?.copyWith(color: colorScheme.secondary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
             Text('GLOBAL SKU PREFIX', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
             const SizedBox(height: 4),
             Text(
@@ -302,6 +304,8 @@ class MobileProductDetailPanel extends StatelessWidget {
                                   Text('MRP: ₹${v.mrp.toStringAsFixed(2)}', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
                                   const SizedBox(width: 12),
                                   Text('WS: ₹${v.wholesale.toStringAsFixed(2)}', style: textTheme.bodySmall),
+                                  const SizedBox(width: 12),
+                                  Text('₹${v.unitPrice.toStringAsFixed(2)}/${v.unit}', style: textTheme.bodySmall?.copyWith(color: colorScheme.secondary)),
                                 ],
                               ),
                             ],
@@ -312,7 +316,7 @@ class MobileProductDetailPanel extends StatelessWidget {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit_outlined, size: 20),
-                              onPressed: () => _showEditVariantBottomSheet(context, product, v),
+                              onPressed: () => _showEditVariantBottomSheet(context, v),
                               tooltip: 'Edit Variant',
                             ),
                             IconButton(
@@ -325,6 +329,47 @@ class MobileProductDetailPanel extends StatelessWidget {
                               },
                               tooltip: 'Print Label',
                             ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, size: 20),
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (dialogCtx) => AlertDialog(
+                                    title: const Text('Delete Variant'),
+                                    content: Text('Are you sure you want to delete ${v.name}?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(dialogCtx, false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(dialogCtx, true),
+                                        child: const Text('Delete'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirm == true) {
+                                  if (!context.mounted) return;
+                                  final updatedVariants = product.variants.where((v2) => v2.sku != v.sku).toList();
+                                  final updatedProduct = Product(
+                                    id: product.id,
+                                    name: product.name,
+                                    sku: product.sku,
+                                    category: product.category,
+                                    shelfLifeDays: product.shelfLifeDays,
+                                    storageConditions: product.storageConditions,
+                                    imageUrl: product.imageUrl,
+                                    ingredients: product.ingredients,
+                                    nutritionFacts: product.nutritionFacts,
+                                    variants: List.unmodifiable(updatedVariants),
+                                    lastModified: DateTime.now(),
+                                  );
+                                  await context.read<ProductCubit>().saveProduct(updatedProduct);
+                                }
+                              },
+                              tooltip: 'Delete Variant',
+                            ),
                           ],
                         ),
                       ],
@@ -335,89 +380,16 @@ class MobileProductDetailPanel extends StatelessWidget {
       ),
     );
 
-    final shelfLifeCard = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.calendar_today_outlined, color: colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text('Shelf Life & Storage', style: textTheme.titleSmall),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text('Recommended Life: ${product.shelfLifeDays ?? 365} Days', style: textTheme.bodyMedium),
-            const SizedBox(height: 8),
-            Text(
-              product.storageConditions ?? 'Store in a cool, dry place.',
-              style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-            ),
-          ],
-        ),
-      ),
+    final ingredientsCard = ProductDetailIngredientsCard(
+      ingredients: product.ingredients,
     );
 
-    final ingredientsCard = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Ingredients', style: textTheme.titleSmall),
-            const Divider(),
-            if (product.ingredients.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text('No ingredients listed.', style: textTheme.bodyMedium?.copyWith(color: colorScheme.outline)),
-              )
-            else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: product.ingredients
-                    .map((ing) => Chip(
-                          label: Text('${ing.name} (${ing.percentage}%)'),
-                          backgroundColor: colorScheme.containerLow,
-                          side: BorderSide(color: colorScheme.outlineVariant),
-                        ))
-                    .toList(),
-              ),
-          ],
-        ),
-      ),
+    final nutritionFactsCard = ProductDetailNutritionFactsCard(
+      nutritionFacts: product.nutritionFacts,
     );
 
-    final nutritionFactsCard = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Nutrition Facts', style: textTheme.titleSmall),
-            const Divider(),
-            if (product.nutritionFacts == null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text('No nutrition facts defined.', style: textTheme.bodyMedium?.copyWith(color: colorScheme.outline)),
-              )
-            else
-              Table(
-                border: TableBorder.all(color: colorScheme.outlineVariant, width: 0.5, borderRadius: BorderRadius.circular(4)),
-                children: [
-                  _buildNutritionRow('Calories', '${product.nutritionFacts!.calories.toStringAsFixed(0)} kcal'),
-                  _buildNutritionRow('Protein', '${product.nutritionFacts!.protein.toStringAsFixed(1)} g'),
-                  _buildNutritionRow('Total Fat', '${product.nutritionFacts!.totalFat.toStringAsFixed(1)} g'),
-                  _buildNutritionRow('Saturated Fat', '${product.nutritionFacts!.saturatedFat.toStringAsFixed(1)} g'),
-                  _buildNutritionRow('Carbohydrates', '${product.nutritionFacts!.totalCarbs.toStringAsFixed(1)} g'),
-                  _buildNutritionRow('Dietary Fiber', '${product.nutritionFacts!.fiber.toStringAsFixed(1)} g'),
-                ],
-              ),
-          ],
-        ),
-      ),
+    final storageCard = ProductDetailStorageCard(
+      storageConditions: product.storageConditions,
     );
 
     return Scaffold(
@@ -473,30 +445,15 @@ class MobileProductDetailPanel extends StatelessWidget {
               const SizedBox(height: 16),
               variantsCard,
               const SizedBox(height: 16),
-              shelfLifeCard,
-              const SizedBox(height: 16),
               ingredientsCard,
               const SizedBox(height: 16),
               nutritionFactsCard,
+              const SizedBox(height: 16),
+              storageCard,
             ],
           );
         },
       ),
-    );
-  }
-
-  TableRow _buildNutritionRow(String label, String value) {
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: Text(value),
-        ),
-      ],
     );
   }
 }

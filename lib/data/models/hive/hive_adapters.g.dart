@@ -336,8 +336,6 @@ class ProductHiveModelAdapter extends TypeAdapter<ProductHiveModel> {
       id: fields[0] as String,
       name: fields[1] as String,
       sku: fields[2] as String,
-      totalPrints: (fields[3] as num).toInt(),
-      lastPrintedAt: fields[4] as DateTime,
       category: fields[5] as String?,
       shelfLifeDays: (fields[6] as num?)?.toInt(),
       storageConditions: fields[7] as String?,
@@ -355,17 +353,13 @@ class ProductHiveModelAdapter extends TypeAdapter<ProductHiveModel> {
   @override
   void write(BinaryWriter writer, ProductHiveModel obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
       ..write(obj.sku)
-      ..writeByte(3)
-      ..write(obj.totalPrints)
-      ..writeByte(4)
-      ..write(obj.lastPrintedAt)
       ..writeByte(5)
       ..write(obj.category)
       ..writeByte(6)
@@ -583,6 +577,56 @@ class StickerPointHiveModelAdapter extends TypeAdapter<StickerPointHiveModel> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is StickerPointHiveModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class VariantPrintStatsHiveModelAdapter
+    extends TypeAdapter<VariantPrintStatsHiveModel> {
+  @override
+  final typeId = 10;
+
+  @override
+  VariantPrintStatsHiveModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return VariantPrintStatsHiveModel(
+      variantSku: fields[0] as String,
+      productId: fields[1] as String,
+      productName: fields[2] as String,
+      variantName: fields[3] as String,
+      totalPrints: (fields[4] as num).toInt(),
+      lastPrintedAt: fields[5] as DateTime,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, VariantPrintStatsHiveModel obj) {
+    writer
+      ..writeByte(6)
+      ..writeByte(0)
+      ..write(obj.variantSku)
+      ..writeByte(1)
+      ..write(obj.productId)
+      ..writeByte(2)
+      ..write(obj.productName)
+      ..writeByte(3)
+      ..write(obj.variantName)
+      ..writeByte(4)
+      ..write(obj.totalPrints)
+      ..writeByte(5)
+      ..write(obj.lastPrintedAt);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VariantPrintStatsHiveModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

@@ -30,7 +30,7 @@ class DesktopDashboardScreen extends StatelessWidget {
             );
             // Refresh data
             context.read<RecentPrintJobsCubit>().loadRecentJobs();
-            context.read<FrequentProductsCubit>().loadFrequentProducts();
+            context.read<FrequentVariantsCubit>().loadFrequentVariants();
           } else if (state is SyncFailure) {
             context.read<NotificationService>().showError(
               'Sync failed: ${state.error}',
@@ -351,7 +351,7 @@ class _FrequentProductsSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Frequent Products',
+                    'Frequent Used Products',
                     style: textTheme.titleSmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -362,15 +362,15 @@ class _FrequentProductsSection extends StatelessWidget {
           ),
           Divider(height: 1, color: colorScheme.outlineVariant),
           _TableColumnHeaders(colorScheme: colorScheme, textTheme: textTheme),
-          BlocBuilder<FrequentProductsCubit, FrequentProductsState>(
+          BlocBuilder<FrequentVariantsCubit, FrequentVariantsState>(
             builder: (context, state) => switch (state) {
-              FrequentProductsInitial() || FrequentProductsLoading() =>
+              FrequentVariantsInitial() || FrequentVariantsLoading() =>
                 const _SectionLoadingIndicator(),
-              FrequentProductsLoaded(:final products) =>
-                _DesktopProductTable(products: products),
-              FrequentProductsError(:final message) => _SectionErrorView(
+              FrequentVariantsLoaded(:final variants) =>
+                _DesktopVariantsTable(variants: variants),
+              FrequentVariantsError(:final message) => _SectionErrorView(
                   message: message,
-                  onRetry: context.read<FrequentProductsCubit>().loadFrequentProducts,
+                  onRetry: context.read<FrequentVariantsCubit>().loadFrequentVariants,
                 ),
             },
           ),
@@ -395,7 +395,7 @@ class _TableColumnHeaders extends StatelessWidget {
       color: colorScheme.surfaceContainerLow,
       child: Row(
         children: [
-          _HeaderCell(label: 'Product Name & SKU', flex: 3, textTheme: textTheme, colorScheme: colorScheme),
+          _HeaderCell(label: 'Variant & Product', flex: 3, textTheme: textTheme, colorScheme: colorScheme),
           _HeaderCell(label: 'Last Printed', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
           _HeaderCell(label: 'Total Prints', flex: 2, textTheme: textTheme, colorScheme: colorScheme),
           const Padding(
@@ -441,27 +441,29 @@ class _HeaderCell extends StatelessWidget {
   }
 }
 
-class _DesktopProductTable extends StatelessWidget {
-  const _DesktopProductTable({required this.products});
-  final List<Product> products;
+class _DesktopVariantsTable extends StatelessWidget {
+  const _DesktopVariantsTable({required this.variants});
+  final List<VariantPrintStats> variants;
 
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: products.length,
+      itemCount: variants.length,
       separatorBuilder: (_, _) => Divider(
         height: 1,
         color: Theme.of(context).colorScheme.outlineVariant,
       ),
-      itemBuilder: (context, i) => FrequentProductRow(
-        product: products[i],
+      itemBuilder: (context, i) => FrequentVariantRow(
+        stats: variants[i],
         isEvenRow: i.isEven,
         onQuickPrint: () {
-          context.read<NotificationService>().showInfo(
-            'Print job sent: 15 labels queued for ${products[i].name}',
-          );
+          final v = variants[i];
+          PrintTemplateSelectRoute(
+            productId: v.productId,
+            variantSku: v.variantSku,
+          ).go(context);
         },
       ),
     );

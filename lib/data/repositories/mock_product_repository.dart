@@ -19,8 +19,6 @@ class MockProductRepository implements ProductRepository {
       id: 'prod-001',
       name: 'ChronoMaster Elite',
       sku: 'WTCH-293-882-EL',
-      totalPrints: 1240,
-      lastPrintedAt: DateTime(2023, 10, 24, 14, 30),
       category: 'Electronics',
       shelfLifeDays: 365,
       storageConditions: 'Store in a dry cool place',
@@ -39,8 +37,6 @@ class MockProductRepository implements ProductRepository {
       id: 'prod-002',
       name: 'OmniAudio Pro-X',
       sku: 'AUD-HX0-912-PR',
-      totalPrints: 892,
-      lastPrintedAt: DateTime(2023, 10, 24, 11, 15),
       category: 'Peripherals',
       shelfLifeDays: 730,
       storageConditions: 'Keep away from moisture',
@@ -58,8 +54,6 @@ class MockProductRepository implements ProductRepository {
       id: 'prod-003',
       name: 'SwiftRunner Apex',
       sku: 'FWR-SH-442-AP',
-      totalPrints: 550,
-      lastPrintedAt: DateTime(2023, 10, 23, 9, 45),
       category: 'Apparel',
       shelfLifeDays: 1095,
       storageConditions: 'Store in dry ventilation',
@@ -77,8 +71,6 @@ class MockProductRepository implements ProductRepository {
       id: 'prod-004',
       name: 'Lumina Lens 35mm',
       sku: 'OPT-CAM-001-LM',
-      totalPrints: 310,
-      lastPrintedAt: DateTime(2023, 10, 22, 16),
       category: 'Optics',
       shelfLifeDays: 1825,
       storageConditions: 'Store in a cool dust-free cabinet',
@@ -95,8 +87,6 @@ class MockProductRepository implements ProductRepository {
       id: 'prod-005',
       name: 'Artisanal Toasted Almonds',
       sku: 'ALM-ORG-2024',
-      totalPrints: 428,
-      lastPrintedAt: DateTime(2023, 10, 24, 15, 45),
       category: 'Dry Goods',
       shelfLifeDays: 365,
       storageConditions: 'Store in a cool, dry place away from direct sunlight. Once opened, keep in an airtight container to maintain crunchiness.',
@@ -123,12 +113,6 @@ class MockProductRepository implements ProductRepository {
       ],
     ),
   ];
-
-  @override
-  Future<Result<List<Product>, AppError>> getFrequentProducts({int limit = 20}) async {
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-    return Result.success(_mockProducts.take(limit).toList());
-  }
 
   @override
   Future<Result<Product?, AppError>> getProductById(String id) async {

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Firestore persistence model for Products.
@@ -7,8 +6,6 @@ class ProductFirestoreModel {
     required this.id,
     required this.name,
     required this.sku,
-    required this.totalPrints,
-    required this.lastPrintedAt,
     this.category,
     this.shelfLifeDays,
     this.storageConditions,
@@ -23,48 +20,48 @@ class ProductFirestoreModel {
       id: p.id,
       name: p.name,
       sku: p.sku,
-      totalPrints: p.totalPrints,
-      lastPrintedAt: p.lastPrintedAt,
       category: p.category,
       shelfLifeDays: p.shelfLifeDays,
       storageConditions: p.storageConditions,
       imageUrl: p.imageUrl,
-      ingredients: p.ingredients.map(IngredientFirestoreModel.fromDomain).toList(),
+      ingredients: p.ingredients
+          .map(IngredientFirestoreModel.fromDomain)
+          .toList(),
       nutritionFacts: p.nutritionFacts == null
           ? null
           : NutritionFactsFirestoreModel.fromDomain(p.nutritionFacts!),
-      variants: p.variants.map(ProductVariantFirestoreModel.fromDomain).toList(),
+      variants: p.variants
+          .map(ProductVariantFirestoreModel.fromDomain)
+          .toList(),
     );
   }
 
   factory ProductFirestoreModel.fromMap(String id, Map<String, dynamic> json) {
-    DateTime parseDateTime(dynamic value) {
-      if (value is Timestamp) {
-        return value.toDate();
-      } else if (value is String) {
-        return DateTime.parse(value);
-      }
-      return DateTime.now();
-    }
-
     return ProductFirestoreModel(
       id: id,
       name: json['name'] as String? ?? '',
       sku: json['sku'] as String? ?? '',
-      totalPrints: json['totalPrints'] as int? ?? 0,
-      lastPrintedAt: parseDateTime(json['lastPrintedAt']),
       category: json['category'] as String?,
       shelfLifeDays: json['shelfLifeDays'] as int?,
       storageConditions: json['storageConditions'] as String?,
       imageUrl: json['imageUrl'] as String?,
       ingredients: (json['ingredients'] as List? ?? [])
-          .map((item) => IngredientFirestoreModel.fromMap(item as Map<String, dynamic>))
+          .map(
+            (item) =>
+                IngredientFirestoreModel.fromMap(item as Map<String, dynamic>),
+          )
           .toList(),
       nutritionFacts: json['nutritionFacts'] == null
           ? null
-          : NutritionFactsFirestoreModel.fromMap(json['nutritionFacts'] as Map<String, dynamic>),
+          : NutritionFactsFirestoreModel.fromMap(
+              json['nutritionFacts'] as Map<String, dynamic>,
+            ),
       variants: (json['variants'] as List? ?? [])
-          .map((item) => ProductVariantFirestoreModel.fromMap(item as Map<String, dynamic>))
+          .map(
+            (item) => ProductVariantFirestoreModel.fromMap(
+              item as Map<String, dynamic>,
+            ),
+          )
           .toList(),
     );
   }
@@ -72,8 +69,6 @@ class ProductFirestoreModel {
   final String id;
   final String name;
   final String sku;
-  final int totalPrints;
-  final DateTime lastPrintedAt;
   final String? category;
   final int? shelfLifeDays;
   final String? storageConditions;
@@ -87,8 +82,6 @@ class ProductFirestoreModel {
       'id': id,
       'name': name,
       'sku': sku,
-      'totalPrints': totalPrints,
-      'lastPrintedAt': Timestamp.fromDate(lastPrintedAt),
       'category': category,
       'shelfLifeDays': shelfLifeDays,
       'storageConditions': storageConditions,
@@ -104,8 +97,6 @@ class ProductFirestoreModel {
       id: id,
       name: name,
       sku: sku,
-      totalPrints: totalPrints,
-      lastPrintedAt: lastPrintedAt,
       category: category,
       shelfLifeDays: shelfLifeDays,
       storageConditions: storageConditions,

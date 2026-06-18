@@ -31,10 +31,10 @@ class DashboardPage extends StatelessWidget {
         ),
         BlocProvider(
           create: (blocContext) {
-            final cubit = FrequentProductsCubit(
-              productRepository: blocContext.read<ProductRepository>(),
+            final cubit = FrequentVariantsCubit(
+              variantPrintStatsRepository: blocContext.read<VariantPrintStatsRepository>(),
             );
-            unawaited(cubit.loadFrequentProducts());
+            unawaited(cubit.loadFrequentVariants());
             return cubit;
           },
         ),

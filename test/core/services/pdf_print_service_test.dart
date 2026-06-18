@@ -18,8 +18,6 @@ void main() {
     id: 'prod-1',
     name: 'Cold Brew Coffee',
     sku: 'CB-100',
-    totalPrints: 5,
-    lastPrintedAt: DateTime(2026),
   );
 
   const testVariant = ProductVariant(

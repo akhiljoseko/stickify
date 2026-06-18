@@ -57,6 +57,7 @@ class _PrintHistoryScreenState extends State<PrintHistoryScreen> {
         ),
       ),
       body: BlocBuilder<PrintHistoryCubit, PrintHistoryState>(
+        bloc: _historyCubit,
         builder: (context, state) => switch (state) {
           PrintHistoryInitial() || PrintHistoryLoading() => const Center(
             child: CircularProgressIndicator(),

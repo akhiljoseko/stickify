@@ -6,8 +6,6 @@ class ProductHiveModel extends HiveObject {
     required this.id,
     required this.name,
     required this.sku,
-    required this.totalPrints,
-    required this.lastPrintedAt,
     this.category,
     this.shelfLifeDays,
     this.storageConditions,
@@ -22,8 +20,6 @@ class ProductHiveModel extends HiveObject {
       id: p.id,
       name: p.name,
       sku: p.sku,
-      totalPrints: p.totalPrints,
-      lastPrintedAt: p.lastPrintedAt,
       category: p.category,
       shelfLifeDays: p.shelfLifeDays,
       storageConditions: p.storageConditions,
@@ -39,8 +35,6 @@ class ProductHiveModel extends HiveObject {
   final String id;
   final String name;
   final String sku;
-  final int totalPrints;
-  final DateTime lastPrintedAt;
   final String? category;
   final int? shelfLifeDays;
   final String? storageConditions;
@@ -54,8 +48,6 @@ class ProductHiveModel extends HiveObject {
       id: id,
       name: name,
       sku: sku,
-      totalPrints: totalPrints,
-      lastPrintedAt: lastPrintedAt,
       category: category,
       shelfLifeDays: shelfLifeDays,
       storageConditions: storageConditions,

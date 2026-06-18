@@ -2,6 +2,7 @@ import 'package:hive_ce/hive_ce.dart';
 import 'package:stickify/data/models/hive/print_job_hive_model.dart';
 import 'package:stickify/data/models/hive/product_hive_model.dart';
 import 'package:stickify/data/models/hive/template_hive_model.dart';
+import 'package:stickify/data/models/hive/variant_print_stats_hive_model.dart';
 
 @GenerateAdapters([
   AdapterSpec<ElementBlueprintHiveModel>(),
@@ -14,5 +15,6 @@ import 'package:stickify/data/models/hive/template_hive_model.dart';
   AdapterSpec<SheetConfigHiveModel>(),
   AdapterSpec<StickerConfigHiveModel>(),
   AdapterSpec<StickerPointHiveModel>(),
+  AdapterSpec<VariantPrintStatsHiveModel>(),
 ])
 part 'hive_adapters.g.dart';

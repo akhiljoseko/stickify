@@ -19,28 +19,6 @@ class FirestoreProductRepository implements ProductRepository {
   String get _collectionPath => 'users/$userId/products';
 
   @override
-  Future<Result<List<Product>, AppError>> getFrequentProducts({int limit = 20}) async {
-    try {
-      final list = await remoteDb.getCollection(
-        _collectionPath,
-        orderBy: 'totalPrints',
-        descending: true,
-        limit: limit,
-      );
-      final mapped = list.map((json) {
-        return ProductFirestoreModel.fromMap(json['id'] as String, json).toDomain();
-      }).toList();
-      return Result.success(mapped);
-    } catch (e, stackTrace) {
-      return Result.failure(NetworkError(
-        message: 'Failed to retrieve frequent products from remote server.',
-        originalError: e,
-        stackTrace: stackTrace,
-      ));
-    }
-  }
-
-  @override
   Future<Result<Product?, AppError>> getProductById(String id) async {
     try {
       final data = await remoteDb.getData('$_collectionPath/$id');

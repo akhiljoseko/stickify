@@ -22,7 +22,7 @@ class ProductManagementScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => ProductCubit(
         context.read<ProductRepository>(),
-      )..loadProducts(initialSubView: initialSubView),
+      )..fetchPage(pageKey: 0, pageSize: 20),
       child: const _ProductManagementView(),
     );
   }

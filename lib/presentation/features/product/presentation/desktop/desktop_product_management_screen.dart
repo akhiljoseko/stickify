@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/app/theme.dart';
@@ -30,19 +31,19 @@ class DesktopProductManagementScreen extends StatelessWidget {
       backgroundColor: colorScheme.surface,
       body: BlocConsumer<ProductCubit, ProductState>(
         listener: (context, state) {
-          if (state is ProductCatalogError) {
+          if (state is ProductPageError) {
             context.read<NotificationService>().showError(state.message);
           }
         },
         builder: (context, state) {
-          if (state is ProductCatalogInitial || state is ProductCatalogLoading) {
+          if (state is ProductPageLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state is ProductCatalogError && state.message.isNotEmpty) {
+          if (state is ProductPageError && state.message.isNotEmpty) {
             return ErrorView(
               message: state.message,
-              onRetry: () => context.read<ProductCubit>().loadProducts(),
+              onRetry: () => context.read<ProductCubit>().fetchPage(pageKey: 0, pageSize: 20),
               onBack: () => Navigator.of(context).pop(),
             );
           }
@@ -60,7 +61,7 @@ class DesktopProductManagementScreen extends StatelessWidget {
             );
           }
 
-          if (state is ProductCatalogSuccess) {
+          if (state is ProductPageLoaded) {
             switch (state.subView) {
               case ProductCreateView():
                 return ProductFormView(
@@ -100,7 +101,7 @@ class DesktopProductManagementScreen extends StatelessWidget {
 class _CatalogListView extends StatelessWidget {
   const _CatalogListView({required this.state});
 
-  final ProductCatalogSuccess state;
+  final ProductPageLoaded state;
 
   @override
   Widget build(BuildContext context) {
@@ -171,17 +172,17 @@ class _CatalogListView extends StatelessWidget {
 
                             final categoryDropdown = DropdownButtonFormField<String>(
                               isExpanded: true,
-                              initialValue: state.categoryFilter.isEmpty ? 'All' : state.categoryFilter,
+                              initialValue: (state.categoryFilter == null || state.categoryFilter!.isEmpty) ? 'All' : state.categoryFilter!,
                               decoration: InputDecoration(
                                 labelText: 'Category',
                                 fillColor: colorScheme.containerLow,
                               ),
-                              items: const [
-                                DropdownMenuItem(value: 'All', child: Text('All Categories')),
-                                DropdownMenuItem(value: 'Beverages', child: Text('Beverages')),
-                                DropdownMenuItem(value: 'Dry Goods', child: Text('Dry Goods')),
-                                DropdownMenuItem(value: 'Frozen Food', child: Text('Frozen Food')),
-                                DropdownMenuItem(value: 'Produce', child: Text('Produce')),
+                              items: [
+                                const DropdownMenuItem(value: 'All', child: Text('All Categories')),
+                                ...ProductCategories.all.map((cat) => DropdownMenuItem(
+                                  value: cat,
+                                  child: Text(cat),
+                                )),
                               ],
                               onChanged: (val) {
                                 final categoryVal = (val == null || val == 'All') ? '' : val;
@@ -212,7 +213,7 @@ class _CatalogListView extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    _ProductCatalogDesktopTable(products: state.filteredProducts),
+                    _ProductCatalogDesktopTable(products: state.items),
                   ]),
                 ),
               ),
@@ -579,7 +580,10 @@ class _ProductDetailView extends StatelessWidget {
                       children: [
                         Text('LAST MODIFIED', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
                         const SizedBox(height: 6),
-                        Text('Oct 24, 2023', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                          product.lastModified != null ? DateFormat.yMMMd().format(product.lastModified!) : 'N/A',
+                          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                        ),
                       ],
                     ),
                   ],
@@ -587,26 +591,102 @@ class _ProductDetailView extends StatelessWidget {
               ],
             );
 
-            final actionButtons = Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => onEdit(product),
-                  icon: const Icon(Icons.edit, size: 16),
-                  label: const Text('Edit Product'),
+            Future<bool> _confirmDelete() async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Delete Product'),
+                  content: Text('Are you sure you want to delete ${product.name}?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Delete'),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => onDelete(product.id),
-                  icon: const Icon(Icons.delete_outline, size: 16),
-                  label: const Text('Delete Product'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: colorScheme.error,
-                    side: BorderSide(color: colorScheme.error),
+              );
+              return confirm == true;
+            }
+
+            Widget adaptiveActions;
+
+            if (constraints.maxWidth < 300) {
+              adaptiveActions = PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) async {
+                  if (value == 'edit') {
+                    onEdit(product);
+                  } else if (value == 'delete' && await _confirmDelete()) {
+                    onDelete(product.id);
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: 'edit', child: ListTile(
+                    leading: Icon(Icons.edit, size: 20),
+                    title: Text('Edit'),
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    contentPadding: EdgeInsets.zero,
+                  )),
+                  const PopupMenuItem(value: 'delete', child: ListTile(
+                    leading: Icon(Icons.delete_outline, size: 20),
+                    title: Text('Delete'),
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    contentPadding: EdgeInsets.zero,
+                  )),
+                ],
+              );
+            } else if (constraints.maxWidth < 500) {
+              adaptiveActions = Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () => onEdit(product),
+                    icon: const Icon(Icons.edit_outlined),
+                    tooltip: 'Edit Product',
                   ),
-                ),
-              ],
-            );
+                  IconButton(
+                    onPressed: () async {
+                      if (await _confirmDelete()) {
+                        onDelete(product.id);
+                      }
+                    },
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Delete Product',
+                  ),
+                ],
+              );
+            } else {
+              adaptiveActions = Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => onEdit(product),
+                    icon: const Icon(Icons.edit, size: 16),
+                    label: const Text('Edit Product'),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      if (await _confirmDelete()) {
+                        onDelete(product.id);
+                      }
+                    },
+                    icon: const Icon(Icons.delete_outline, size: 16),
+                    label: const Text('Delete Product'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colorScheme.error,
+                      side: BorderSide(color: colorScheme.error),
+                    ),
+                  ),
+                ],
+              );
+            }
 
             if (isCompact) {
               return Column(
@@ -616,29 +696,7 @@ class _ProductDetailView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(child: imgWidget),
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert),
-                        onSelected: (value) {
-                          if (value == 'edit') onEdit(product);
-                          if (value == 'delete') onDelete(product.id);
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(value: 'edit', child: ListTile(
-                            leading: Icon(Icons.edit, size: 20),
-                            title: Text('Edit'),
-                            dense: true,
-                            visualDensity: VisualDensity.compact,
-                            contentPadding: EdgeInsets.zero,
-                          )),
-                          const PopupMenuItem(value: 'delete', child: ListTile(
-                            leading: Icon(Icons.delete_outline, size: 20),
-                            title: Text('Delete'),
-                            dense: true,
-                            visualDensity: VisualDensity.compact,
-                            contentPadding: EdgeInsets.zero,
-                          )),
-                        ],
-                      ),
+                      adaptiveActions,
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -654,7 +712,7 @@ class _ProductDetailView extends StatelessWidget {
                 const SizedBox(width: 24),
                 Expanded(child: infoWidget),
                 const SizedBox(width: 24),
-                SizedBox(width: 180, child: actionButtons),
+                SizedBox(width: 180, child: adaptiveActions),
               ],
             );
           },
@@ -816,15 +874,17 @@ class _ProductDetailView extends StatelessWidget {
               product.storageConditions ?? 'Store in a cool, dry place away from direct sunlight.',
               style: textTheme.bodyMedium,
             ),
-            if (product.category == 'Dry Goods' || product.category == 'Produce') ...[
+            if (product.category == 'Snacks') ...[
               const SizedBox(height: 16),
               Row(
                 children: [
                   const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 18),
                   const SizedBox(width: 6),
-                  Text(
-                    'Sensitive to high humidity',
-                    style: textTheme.bodySmall?.copyWith(color: Colors.orange.shade800),
+                  Flexible(
+                    child: Text(
+                      'Sensitive to high humidity',
+                      style: textTheme.bodySmall?.copyWith(color: Colors.orange.shade800),
+                    ),
                   ),
                 ],
               ),

@@ -79,12 +79,12 @@ class ProductFormViewState extends State<ProductFormView> {
     super.initState();
     final p = widget.product;
 
-    _nameController = TextEditingController(text: p?.name)..addListener(_rebuild);
-    _skuController = TextEditingController(text: p?.sku)..addListener(_rebuild);
-    _categoryController = TextEditingController(text: p?.category ?? 'Beverages')..addListener(_rebuild);
-    _shelfLifeController = TextEditingController(text: p?.shelfLifeDays?.toString() ?? '365')..addListener(_rebuild);
-    _storageController = TextEditingController(text: p?.storageConditions ?? '')..addListener(_rebuild);
-    _imageUrlController = TextEditingController(text: p?.imageUrl ?? '')..addListener(_rebuild);
+    _nameController = TextEditingController(text: p?.name);
+    _skuController = TextEditingController(text: p?.sku);
+    _categoryController = TextEditingController(text: p?.category ?? ProductCategories.defaultCategory);
+    _shelfLifeController = TextEditingController(text: p?.shelfLifeDays?.toString() ?? '365');
+    _storageController = TextEditingController(text: p?.storageConditions ?? '');
+    _imageUrlController = TextEditingController(text: p?.imageUrl ?? '');
 
     var previousSku = _skuController.text;
     _skuController.addListener(() {
@@ -113,12 +113,6 @@ class ProductFormViewState extends State<ProductFormView> {
       _initEmptyNutritionControllers();
     }
 
-    _caloriesController.addListener(_rebuild);
-    _proteinController.addListener(_rebuild);
-    _fatController.addListener(_rebuild);
-    _saturatedFatController.addListener(_rebuild);
-    _carbsController.addListener(_rebuild);
-    _fiberController.addListener(_rebuild);
   }
 
   void _initEmptyNutritionControllers() {
@@ -128,12 +122,6 @@ class ProductFormViewState extends State<ProductFormView> {
     _saturatedFatController = TextEditingController(text: '0');
     _carbsController = TextEditingController(text: '0');
     _fiberController = TextEditingController(text: '0');
-  }
-
-  void _rebuild() {
-    if (mounted) {
-      setState(() {});
-    }
   }
 
   @override
@@ -280,14 +268,12 @@ class ProductFormViewState extends State<ProductFormView> {
             if (isMobile) ...[
               DropdownButtonFormField<String>(
                 isExpanded: true,
-                initialValue: _categoryController.text.isEmpty ? 'Beverages' : _categoryController.text,
+                initialValue: _categoryController.text.isEmpty ? ProductCategories.defaultCategory : _categoryController.text,
                 decoration: const InputDecoration(labelText: 'Category'),
-                items: const [
-                  DropdownMenuItem(value: 'Beverages', child: Text('Beverages')),
-                  DropdownMenuItem(value: 'Dry Goods', child: Text('Dry Goods')),
-                  DropdownMenuItem(value: 'Frozen Food', child: Text('Frozen Food')),
-                  DropdownMenuItem(value: 'Produce', child: Text('Produce')),
-                ],
+                items: ProductCategories.all.map((cat) => DropdownMenuItem(
+                  value: cat,
+                  child: Text(cat),
+                )).toList(),
                 onChanged: (val) {
                   if (val != null) _categoryController.text = val;
                 },
@@ -310,14 +296,12 @@ class ProductFormViewState extends State<ProductFormView> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       isExpanded: true,
-                      initialValue: _categoryController.text.isEmpty ? 'Beverages' : _categoryController.text,
+                      initialValue: _categoryController.text.isEmpty ? ProductCategories.defaultCategory : _categoryController.text,
                       decoration: const InputDecoration(labelText: 'Category'),
-                      items: const [
-                        DropdownMenuItem(value: 'Beverages', child: Text('Beverages')),
-                        DropdownMenuItem(value: 'Dry Goods', child: Text('Dry Goods')),
-                        DropdownMenuItem(value: 'Frozen Food', child: Text('Frozen Food')),
-                        DropdownMenuItem(value: 'Produce', child: Text('Produce')),
-                      ],
+                      items: ProductCategories.all.map((cat) => DropdownMenuItem(
+                        value: cat,
+                        child: Text(cat),
+                      )).toList(),
                       onChanged: (val) {
                         if (val != null) _categoryController.text = val;
                       },

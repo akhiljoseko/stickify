@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stickify/core/core.dart';
+import 'package:stickify/domain/entities/paginated_result.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
@@ -31,134 +32,176 @@ void main() {
         id: 'prod-1',
         name: 'ChronoMaster Elite',
         sku: 'WTCH-293-882-EL',
-        category: 'Electronics',
+        category: 'Snacks',
       ),
       Product(
         id: 'prod-2',
         name: 'OmniAudio Pro-X',
         sku: 'AUD-HX0-912-PR',
-        category: 'Peripherals',
+        category: 'Pickles',
       ),
     ];
-
-    when(() => productRepository.getFilteredProducts(
-          query: any(named: 'query'),
-          category: any(named: 'category'),
-        )).thenAnswer((invocation) async {
-      final query = invocation.namedArguments[const Symbol('query')] as String? ?? '';
-      final category = invocation.namedArguments[const Symbol('category')] as String? ?? '';
-      final filtered = mockProducts.where((p) {
-        final matchesQuery = query.isEmpty ||
-            p.name.toLowerCase().contains(query.toLowerCase()) ||
-            p.sku.toLowerCase().contains(query.toLowerCase());
-        final matchesCategory = category.isEmpty ||
-            (p.category ?? '').toLowerCase() == category.toLowerCase();
-        return matchesQuery && matchesCategory;
-      }).toList();
-      return Result.success(filtered);
-    });
   });
 
   group('ProductCubit Tests', () {
     blocTest<ProductCubit, ProductState>(
-      'loadProducts emits Loading then Success with all products',
+      'fetchPage emits ProductPageLoading then ProductPageLoaded',
       build: () {
-        when(() => productRepository.getAllProducts()).thenAnswer(
-          (_) async => Result.success(mockProducts),
-        );
+        when(() => productRepository.getProducts(
+              page: any(named: 'page'),
+              pageSize: any(named: 'pageSize'),
+              query: any(named: 'query'),
+              category: any(named: 'category'),
+            )).thenAnswer((_) async => Result.success(PaginatedResult(
+              items: mockProducts,
+              totalCount: 2,
+              hasMore: false,
+              currentPage: 0,
+            )));
         return ProductCubit(productRepository);
       },
-      act: (cubit) => cubit.loadProducts(),
+      act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20),
       expect: () => [
-        const ProductCatalogLoading(),
-        isA<ProductCatalogSuccess>()
-            .having((s) => s.products.length, 'products length', 2)
-            .having((s) => s.filteredProducts.length, 'filteredProducts length', 2),
+        const ProductPageLoading(),
+        isA<ProductPageLoaded>()
+            .having((s) => s.items.length, 'items length', 2)
+            .having((s) => s.hasMore, 'hasMore', false),
       ],
     );
 
     blocTest<ProductCubit, ProductState>(
-      'loadProducts emits Error when repository fails',
+      'fetchPage emits ProductPageError when repository fails',
       build: () {
-        when(() => productRepository.getAllProducts()).thenAnswer(
-          (_) async => const Result.failure(DatabaseError(
-            message: 'Local database is corrupted.',
-          )),
-        );
+        when(() => productRepository.getProducts(
+              page: any(named: 'page'),
+              pageSize: any(named: 'pageSize'),
+              query: any(named: 'query'),
+              category: any(named: 'category'),
+            )).thenAnswer((_) async => const Result.failure(DatabaseError(
+              message: 'Local database is corrupted.',
+            )));
         return ProductCubit(productRepository);
       },
-      act: (cubit) => cubit.loadProducts(),
+      act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20),
       expect: () => [
-        const ProductCatalogLoading(),
-        const ProductCatalogError('Local database is corrupted.'),
+        const ProductPageLoading(),
+        const ProductPageError('Local database is corrupted.'),
       ],
     );
 
     blocTest<ProductCubit, ProductState>(
-      'applyFilter filters by query matching name or SKU',
+      'fetchPage with query filters results',
       build: () {
+        when(() => productRepository.getProducts(
+              page: any(named: 'page'),
+              pageSize: any(named: 'pageSize'),
+              query: any(named: 'query'),
+              category: any(named: 'category'),
+            )).thenAnswer((invocation) async {
+          final query = invocation.namedArguments[const Symbol('query')] as String?;
+          final filtered = query == null || query.isEmpty
+              ? mockProducts
+              : mockProducts.where((p) => p.name.contains(query)).toList();
+          return Result.success(PaginatedResult(
+            items: filtered,
+            totalCount: filtered.length,
+            hasMore: false,
+            currentPage: 0,
+          ));
+        });
         return ProductCubit(productRepository);
       },
-      seed: () => ProductCatalogSuccess(
-        products: mockProducts,
-        filteredProducts: mockProducts,
-      ),
-      act: (cubit) => cubit.applyFilter(query: 'Chrono'),
+      act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20, query: 'Chrono'),
       expect: () => [
-        isA<ProductCatalogSuccess>()
-            .having((s) => s.searchQuery, 'searchQuery', 'Chrono')
-            .having((s) => s.filteredProducts.length, 'filteredProducts length', 1)
-            .having((s) => s.filteredProducts[0].id, 'filtered product id', 'prod-1'),
+        const ProductPageLoading(),
+        isA<ProductPageLoaded>()
+            .having((s) => s.items.length, 'items length', 1)
+            .having((s) => s.searchQuery, 'searchQuery', 'Chrono'),
       ],
     );
 
     blocTest<ProductCubit, ProductState>(
-      'applyFilter filters by category',
+      'fetchPage with category filters results',
       build: () {
+        when(() => productRepository.getProducts(
+              page: any(named: 'page'),
+              pageSize: any(named: 'pageSize'),
+              query: any(named: 'query'),
+              category: any(named: 'category'),
+            )).thenAnswer((invocation) async {
+          final category = invocation.namedArguments[const Symbol('category')] as String?;
+          final filtered = category == null || category.isEmpty
+              ? mockProducts
+              : mockProducts.where((p) => p.category == category).toList();
+          return Result.success(PaginatedResult(
+            items: filtered,
+            totalCount: filtered.length,
+            hasMore: false,
+            currentPage: 0,
+          ));
+        });
         return ProductCubit(productRepository);
       },
-      seed: () => ProductCatalogSuccess(
-        products: mockProducts,
-        filteredProducts: mockProducts,
-      ),
-      act: (cubit) => cubit.applyFilter(category: 'Peripherals'),
+      act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20, category: 'Pickles'),
       expect: () => [
-        isA<ProductCatalogSuccess>()
-            .having((s) => s.categoryFilter, 'categoryFilter', 'Peripherals')
-            .having((s) => s.filteredProducts.length, 'filteredProducts length', 1)
-            .having((s) => s.filteredProducts[0].id, 'filtered product id', 'prod-2'),
+        const ProductPageLoading(),
+        isA<ProductPageLoaded>()
+            .having((s) => s.items.length, 'items length', 1)
+            .having((s) => s.categoryFilter, 'categoryFilter', 'Pickles'),
       ],
     );
 
     blocTest<ProductCubit, ProductState>(
       'setSubView switches subView state correctly',
       build: () {
+        when(() => productRepository.getProducts(
+              page: any(named: 'page'),
+              pageSize: any(named: 'pageSize'),
+              query: any(named: 'query'),
+              category: any(named: 'category'),
+            )).thenAnswer((_) async => Result.success(PaginatedResult(
+              items: mockProducts,
+              totalCount: 2,
+              hasMore: false,
+              currentPage: 0,
+            )));
         return ProductCubit(productRepository);
       },
-      seed: () => ProductCatalogSuccess(
-        products: mockProducts,
-        filteredProducts: mockProducts,
+      seed: () => ProductPageLoaded(
+        items: mockProducts,
+        currentPage: 0,
+        hasMore: false,
       ),
       act: (cubit) => cubit.setSubView(const ProductCreateView()),
       expect: () => [
-        isA<ProductCatalogSuccess>()
+        isA<ProductPageLoaded>()
             .having((s) => s.subView, 'subView', const ProductCreateView()),
       ],
     );
 
     blocTest<ProductCubit, ProductState>(
-      'saveProduct calls repository and loads products again',
+      'saveProduct emits FormSubmitting, FormSuccess, then reloads',
       build: () {
         when(() => productRepository.saveProduct(any())).thenAnswer((_) async => const Result.success(null));
-        when(() => productRepository.getAllProducts()).thenAnswer((_) async => Result.success(mockProducts));
+        when(() => productRepository.getProducts(
+              page: any(named: 'page'),
+              pageSize: any(named: 'pageSize'),
+              query: any(named: 'query'),
+              category: any(named: 'category'),
+            )).thenAnswer((_) async => Result.success(PaginatedResult(
+              items: mockProducts,
+              totalCount: 2,
+              hasMore: false,
+              currentPage: 0,
+            )));
         return ProductCubit(productRepository);
       },
       act: (cubit) => cubit.saveProduct(mockProducts[0]),
       expect: () => [
         const ProductFormSubmitting(),
         const ProductFormSuccess(),
-        const ProductCatalogLoading(),
-        isA<ProductCatalogSuccess>(),
+        const ProductPageLoading(),
+        isA<ProductPageLoaded>(),
       ],
       verify: (_) {
         verify(() => productRepository.saveProduct(any())).called(1);
@@ -166,7 +209,7 @@ void main() {
     );
 
     blocTest<ProductCubit, ProductState>(
-      'saveProduct emits error state when repository fails',
+      'saveProduct emits FormError when repository fails',
       build: () {
         when(() => productRepository.saveProduct(any())).thenAnswer(
           (_) async => const Result.failure(NetworkError(
@@ -178,26 +221,26 @@ void main() {
       act: (cubit) => cubit.saveProduct(mockProducts[0]),
       expect: () => [
         const ProductFormSubmitting(),
-        const ProductCatalogError('Network connection lost.'),
+        const ProductFormError('Network connection lost.'),
       ],
     );
 
     blocTest<ProductCubit, ProductState>(
-      'deleteProduct calls repository and filters item out',
+      'deleteProduct calls repository and removes item from state',
       build: () {
         when(() => productRepository.deleteProduct(any())).thenAnswer((_) async => const Result.success(null));
         return ProductCubit(productRepository);
       },
-      seed: () => ProductCatalogSuccess(
-        products: mockProducts,
-        filteredProducts: mockProducts,
+      seed: () => ProductPageLoaded(
+        items: mockProducts,
+        currentPage: 0,
+        hasMore: false,
       ),
       act: (cubit) => cubit.deleteProduct('prod-1'),
       expect: () => [
-        isA<ProductCatalogSuccess>()
-            .having((s) => s.products.length, 'products length', 1)
-            .having((s) => s.filteredProducts.length, 'filteredProducts length', 1)
-            .having((s) => s.products[0].id, 'remaining product id', 'prod-2'),
+        isA<ProductPageLoaded>()
+            .having((s) => s.items.length, 'items length', 1)
+            .having((s) => s.items[0].id, 'remaining product id', 'prod-2'),
       ],
       verify: (_) {
         verify(() => productRepository.deleteProduct('prod-1')).called(1);

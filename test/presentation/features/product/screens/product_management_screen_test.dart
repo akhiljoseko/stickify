@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stickify/core/core.dart';
+import 'package:stickify/domain/entities/paginated_result.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/presentation/features/product/presentation/product_management_entry.dart';
@@ -31,35 +32,27 @@ void main() {
         id: 'prod-1',
         name: 'ChronoMaster Elite',
         sku: 'WTCH-293-882-EL',
-        category: 'Electronics',
+        category: 'Snacks',
       ),
       Product(
         id: 'prod-2',
         name: 'OmniAudio Pro-X',
         sku: 'AUD-HX0-912-PR',
-        category: 'Peripherals',
+        category: 'Pickles',
       ),
     ];
 
-    when(() => productRepository.getAllProducts()).thenAnswer(
-      (_) async => Result.success(mockProducts),
-    );
-    when(() => productRepository.getFilteredProducts(
+    when(() => productRepository.getProducts(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
           query: any(named: 'query'),
           category: any(named: 'category'),
-        )).thenAnswer((invocation) async {
-      final query = invocation.namedArguments[const Symbol('query')] as String? ?? '';
-      final category = invocation.namedArguments[const Symbol('category')] as String? ?? '';
-      final filtered = mockProducts.where((p) {
-        final matchesQuery = query.isEmpty ||
-            p.name.toLowerCase().contains(query.toLowerCase()) ||
-            p.sku.toLowerCase().contains(query.toLowerCase());
-        final matchesCategory = category.isEmpty ||
-            (p.category ?? '').toLowerCase() == category.toLowerCase();
-        return matchesQuery && matchesCategory;
-      }).toList();
-      return Result.success(filtered);
-    });
+        )).thenAnswer((_) async => Result.success(PaginatedResult(
+              items: mockProducts,
+              totalCount: 2,
+              hasMore: false,
+              currentPage: 0,
+            )));
     when(() => productRepository.saveProduct(any())).thenAnswer(
       (_) async => const Result.success(null),
     );
@@ -117,11 +110,11 @@ void main() {
       expect(find.text('LIVE PRINT PREVIEW'), findsNothing);
     });
 
-    testWidgets('clicking View Details navigates to the detailed view page', (tester) async {
+    testWidgets('clicking visibility icon opens detail view', (tester) async {
       await tester.pumpApp(buildTestableWidget(), size: const Size(1200, 800));
       await tester.pumpAndSettle();
 
-      final viewDetailsButton = find.text('View Details').first;
+      final viewDetailsButton = find.byTooltip('View Details').first;
       expect(viewDetailsButton, findsOneWidget);
       await tester.tap(viewDetailsButton);
       await tester.pumpAndSettle();

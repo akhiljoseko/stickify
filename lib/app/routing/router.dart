@@ -5,7 +5,6 @@ import 'package:stickify/auth/auth.dart';
 import 'package:stickify/presentation/features/dashboard/presentation/dashboard_entry.dart';
 import 'package:stickify/presentation/features/print/presentation/print_setup_entry.dart';
 import 'package:stickify/presentation/features/print/presentation/template_selection_page.dart';
-import 'package:stickify/presentation/features/product/presentation/product_details_screen.dart';
 import 'package:stickify/presentation/features/product/presentation/product_management_entry.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/label_editor_screen.dart';
 import 'package:stickify/presentation/features/template_editor/preview/preview_screen.dart';
@@ -130,9 +129,6 @@ class PrintHistoryRoute extends GoRouteData with $PrintHistoryRoute {
         TypedGoRoute<ProductManagementRoute>(
           path: '/products',
           routes: [
-            // Sub-route demonstrating type-safe path parameters.
-            // The `:id` segment is mapped to the `id` field of
-            TypedGoRoute<ProductDetailsRoute>(path: ':id'),
             TypedGoRoute<PrintTemplateSelectRoute>(
               path: ':productId/variants/:variantSku/print/templates',
             ),
@@ -236,37 +232,6 @@ class ProductManagementRoute extends GoRouteData with $ProductManagementRoute {
   Widget build(BuildContext context, GoRouterState state) {
     final subView = state.uri.queryParameters['subView'];
     return ProductManagementScreen(initialSubView: subView);
-  }
-}
-
-/// Route data for the Product Details screen — a nested sub-route of
-/// [ProductManagementRoute].
-///
-/// ## Type-Safe Navigation
-///
-/// Because this class is generated with `go_router_builder`, you navigate
-/// to it like this (no string paths!):
-///
-/// ```dart
-/// ProductDetailsRoute(id: '123').go(context);
-/// ```
-///
-/// The code generator maps the [id] field to the `:id` path parameter
-/// declared in the `@TypedGoRoute` annotation on the shell.
-@immutable
-class ProductDetailsRoute extends GoRouteData with $ProductDetailsRoute {
-  const ProductDetailsRoute({required this.id});
-
-  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
-
-  /// The product identifier extracted from the URL path segment `:id`.
-  ///
-  /// Example URL: `/products/abc-123` → `id == 'abc-123'`
-  final String id;
-
-  @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return ProductDetailsScreen(id: id);
   }
 }
 

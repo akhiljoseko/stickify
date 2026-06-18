@@ -130,12 +130,9 @@ class _FrequentVariantRowState extends State<FrequentVariantRow> {
                 ),
               ),
             ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: _QuickPrintButton(onPressed: widget.onQuickPrint),
-              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: _QuickPrintButton(onPressed: widget.onQuickPrint),
             ),
           ],
         ),

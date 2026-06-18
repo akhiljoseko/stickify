@@ -1,4 +1,5 @@
 import 'package:stickify/core/core.dart';
+import 'package:stickify/domain/entities/paginated_result.dart';
 import 'package:stickify/domain/entities/product.dart';
 
 /// Abstract repository interface for product catalogue operations.
@@ -10,7 +11,16 @@ abstract interface class ProductRepository {
   Future<Result<List<Product>, AppError>> getAllProducts();
 
   /// Returns products matching [query] and/or [category] filters.
+  @Deprecated('Use getProducts with pagination instead.')
   Future<Result<List<Product>, AppError>> getFilteredProducts({String query = '', String category = ''});
+
+  /// Returns a paginated, filtered list of products.
+  Future<Result<PaginatedResult<Product>, AppError>> getProducts({
+    required int page,
+    required int pageSize,
+    String? query,
+    String? category,
+  });
 
   /// Saves (creates or updates) a product in the catalogue.
   Future<Result<void, AppError>> saveProduct(Product product);

@@ -1,3 +1,5 @@
+import 'dart:math' show min;
+
 import 'package:stickify/core/core.dart';
 import 'package:stickify/data/models/hive/product_hive_model.dart';
 import 'package:stickify/domain/domain.dart';
@@ -65,6 +67,64 @@ class DatabaseProductRepository implements ProductRepository {
     } catch (e, stackTrace) {
       return Result.failure(DatabaseError(
         message: 'Failed to retrieve filtered products from database.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
+  }
+
+  @override
+  Future<Result<PaginatedResult<Product>, AppError>> getProducts({
+    required int page,
+    required int pageSize,
+    String? query,
+    String? category,
+  }) async {
+    try {
+      final allModels = await _db.getAll<ProductHiveModel>(_collection);
+      var products = allModels.map((m) => m.toDomain()).toList();
+
+      if (query != null && query.isNotEmpty) {
+        final q = query.toLowerCase();
+        products = products.where((p) =>
+          p.name.toLowerCase().contains(q) ||
+          p.sku.toLowerCase().contains(q)
+        ).toList();
+      }
+
+      if (category != null && category.isNotEmpty) {
+        products = products.where((p) =>
+          (p.category ?? '').toLowerCase() == category.toLowerCase()
+        ).toList();
+      }
+
+      products.sort((a, b) => a.name.compareTo(b.name));
+
+      final totalCount = products.length;
+      final start = page * pageSize;
+      if (start >= totalCount) {
+        return Result.success(PaginatedResult(
+          items: [],
+          totalCount: totalCount,
+          hasMore: false,
+          currentPage: page,
+        ));
+      }
+      final end = min(start + pageSize, totalCount);
+      final items = products.sublist(start, end);
+      final hasMore = end < totalCount;
+
+      return Result.success(PaginatedResult(
+        items: items,
+        totalCount: totalCount,
+        hasMore: hasMore,
+        currentPage: page,
+      ));
+    } on AppError catch (e) {
+      return Result.failure(e);
+    } catch (e, stackTrace) {
+      return Result.failure(DatabaseError(
+        message: 'Failed to retrieve paginated products.',
         originalError: e,
         stackTrace: stackTrace,
       ));

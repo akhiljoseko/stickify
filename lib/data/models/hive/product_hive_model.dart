@@ -13,6 +13,7 @@ class ProductHiveModel extends HiveObject {
     this.ingredients = const [],
     this.nutritionFacts,
     this.variants = const [],
+    this.lastModified,
   });
 
   factory ProductHiveModel.fromDomain(Product p) {
@@ -29,6 +30,7 @@ class ProductHiveModel extends HiveObject {
           ? null
           : NutritionFactsHiveModel.fromDomain(p.nutritionFacts!),
       variants: p.variants.map(ProductVariantHiveModel.fromDomain).toList(),
+      lastModified: p.lastModified,
     );
   }
 
@@ -42,6 +44,7 @@ class ProductHiveModel extends HiveObject {
   final List<IngredientHiveModel> ingredients;
   final NutritionFactsHiveModel? nutritionFacts;
   final List<ProductVariantHiveModel> variants;
+  final DateTime? lastModified;
 
   Product toDomain() {
     return Product(
@@ -55,6 +58,7 @@ class ProductHiveModel extends HiveObject {
       ingredients: ingredients.map((i) => i.toDomain()).toList(),
       nutritionFacts: nutritionFacts?.toDomain(),
       variants: variants.map((v) => v.toDomain()).toList(),
+      lastModified: lastModified,
     );
   }
 }

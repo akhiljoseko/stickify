@@ -92,7 +92,7 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
       // Fallback sample product if repository loading fails
       if (mounted) {
         setState(() {
-          _sampleProduct = Product(
+          _sampleProduct = const Product(
             id: 'prod-001',
             name: 'Organic Cold Brew 12oz',
             sku: 'BEV-CB-ORG-12',

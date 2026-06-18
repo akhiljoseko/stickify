@@ -16,6 +16,7 @@ class Product extends Equatable {
     this.ingredients = const [],
     this.nutritionFacts,
     this.variants = const [],
+    this.lastModified,
   });
 
   final String id;
@@ -28,6 +29,7 @@ class Product extends Equatable {
   final List<Ingredient> ingredients;
   final NutritionFacts? nutritionFacts;
   final List<ProductVariant> variants;
+  final DateTime? lastModified;
 
   String get ingredientsString {
     final sorted = List<Ingredient>.from(ingredients)
@@ -47,6 +49,7 @@ class Product extends Equatable {
         ingredients,
         nutritionFacts,
         variants,
+        lastModified,
       ];
 
   Product copyWith({
@@ -60,6 +63,7 @@ class Product extends Equatable {
     List<Ingredient>? ingredients,
     NutritionFacts? nutritionFacts,
     List<ProductVariant>? variants,
+    DateTime? lastModified,
   }) {
     return Product(
       id: id ?? this.id,
@@ -72,6 +76,7 @@ class Product extends Equatable {
       ingredients: ingredients ?? this.ingredients,
       nutritionFacts: nutritionFacts ?? this.nutritionFacts,
       variants: variants ?? this.variants,
+      lastModified: lastModified ?? this.lastModified,
     );
   }
 }

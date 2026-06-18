@@ -350,13 +350,14 @@ class ProductHiveModelAdapter extends TypeAdapter<ProductHiveModel> {
       variants: fields[11] == null
           ? const []
           : (fields[11] as List).cast<ProductVariantHiveModel>(),
+      lastModified: fields[12] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ProductHiveModel obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -376,7 +377,9 @@ class ProductHiveModelAdapter extends TypeAdapter<ProductHiveModel> {
       ..writeByte(10)
       ..write(obj.nutritionFacts)
       ..writeByte(11)
-      ..write(obj.variants);
+      ..write(obj.variants)
+      ..writeByte(12)
+      ..write(obj.lastModified);
   }
 
   @override

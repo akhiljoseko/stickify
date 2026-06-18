@@ -457,6 +457,7 @@ class _MobileProductDetailView extends StatelessWidget {
                           ingredients: product.ingredients,
                           nutritionFacts: product.nutritionFacts,
                           variants: List.unmodifiable(updatedVariants),
+                          lastModified: DateTime.now(),
                         );
 
                         context.read<ProductCubit>().saveProduct(updatedProduct);

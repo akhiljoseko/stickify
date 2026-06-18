@@ -131,7 +131,7 @@ types:
         index: 13
   ProductHiveModel:
     typeId: 5
-    nextIndex: 12
+    nextIndex: 13
     fields:
       id:
         index: 0
@@ -153,6 +153,8 @@ types:
         index: 10
       variants:
         index: 11
+      lastModified:
+        index: 12
   ProductVariantHiveModel:
     typeId: 6
     nextIndex: 6

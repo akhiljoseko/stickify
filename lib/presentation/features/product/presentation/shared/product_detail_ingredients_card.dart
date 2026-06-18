@@ -5,12 +5,10 @@ import 'package:stickify/domain/entities/ingredient.dart';
 class ProductDetailIngredientsCard extends StatelessWidget {
   const ProductDetailIngredientsCard({
     required this.ingredients,
-    this.onEdit,
     super.key,
   });
 
   final List<Ingredient> ingredients;
-  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -24,18 +22,7 @@ class ProductDetailIngredientsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Ingredients', style: textTheme.titleSmall),
-                if (onEdit != null)
-                  TextButton.icon(
-                    onPressed: onEdit,
-                    icon: const Icon(Icons.edit_outlined, size: 16),
-                    label: const Text('Edit List'),
-                  ),
-              ],
-            ),
+            Text('Ingredients', style: textTheme.titleSmall),
             const Divider(),
             if (ingredients.isEmpty)
               Padding(

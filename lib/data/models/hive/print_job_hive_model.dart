@@ -14,6 +14,7 @@ class PrintJobHiveModel extends HiveObject {
     required this.printerStation,
     required this.printedAt,
     required this.labelCount,
+    this.imageUrl,
   });
 
   factory PrintJobHiveModel.fromDomain(PrintJob j) {
@@ -29,6 +30,7 @@ class PrintJobHiveModel extends HiveObject {
       printerStation: j.printerStation,
       printedAt: j.printedAt,
       labelCount: j.labelCount,
+      imageUrl: j.imageUrl,
     );
   }
 
@@ -43,6 +45,7 @@ class PrintJobHiveModel extends HiveObject {
   final String printerStation;
   final DateTime printedAt;
   final int labelCount;
+  final String? imageUrl;
 
   PrintJob toDomain() {
     return PrintJob(
@@ -57,6 +60,7 @@ class PrintJobHiveModel extends HiveObject {
       printerStation: printerStation,
       printedAt: printedAt,
       labelCount: labelCount,
+      imageUrl: imageUrl,
     );
   }
 }

@@ -9,6 +9,7 @@ abstract interface class VariantPrintStatsRepository {
     required String variantName,
     required int labelCount,
     required DateTime printedAt,
+    String? imageUrl,
   });
 
   Future<Result<List<VariantPrintStats>, AppError>> getTopFrequent({int limit = 15});

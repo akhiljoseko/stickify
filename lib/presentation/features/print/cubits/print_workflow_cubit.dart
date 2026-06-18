@@ -207,6 +207,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
             printerStation: printer.name,
             printedAt: DateTime.now(),
             labelCount: s.quantity,
+            imageUrl: s.product.imageUrl,
           );
 
           final saveResult = await _printJobRepository.savePrintJob(job);
@@ -221,6 +222,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 variantName: s.variant.name,
                 labelCount: s.quantity,
                 printedAt: DateTime.now(),
+                imageUrl: s.product.imageUrl,
               );
               emit(PrintWorkflowSuccess(printJob: job));
           }

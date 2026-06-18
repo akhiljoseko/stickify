@@ -8,6 +8,7 @@ class VariantPrintStats extends Equatable {
     required this.variantName,
     required this.totalPrints,
     required this.lastPrintedAt,
+    this.imageUrl,
   });
 
   final String variantSku;
@@ -16,6 +17,7 @@ class VariantPrintStats extends Equatable {
   final String variantName;
   final int totalPrints;
   final DateTime lastPrintedAt;
+  final String? imageUrl;
 
   @override
   List<Object?> get props => [
@@ -25,6 +27,7 @@ class VariantPrintStats extends Equatable {
         variantName,
         totalPrints,
         lastPrintedAt,
+        imageUrl,
       ];
 
   VariantPrintStats copyWith({
@@ -34,6 +37,7 @@ class VariantPrintStats extends Equatable {
     String? variantName,
     int? totalPrints,
     DateTime? lastPrintedAt,
+    String? imageUrl,
   }) {
     return VariantPrintStats(
       variantSku: variantSku ?? this.variantSku,
@@ -42,6 +46,7 @@ class VariantPrintStats extends Equatable {
       variantName: variantName ?? this.variantName,
       totalPrints: totalPrints ?? this.totalPrints,
       lastPrintedAt: lastPrintedAt ?? this.lastPrintedAt,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 }

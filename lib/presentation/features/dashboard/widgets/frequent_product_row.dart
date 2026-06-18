@@ -34,9 +34,9 @@ class _FrequentVariantRowState extends State<FrequentVariantRow> {
     ).value;
 
     final rowBg = _isHovered && isDesktopOrLarger
-        ? colorScheme.surfaceContainerLow
+        ? colorScheme.surfaceContainerHigh
         : widget.isEvenRow
-            ? colorScheme.surfaceContainerLow.withValues(alpha: 0.4)
+            ? colorScheme.surfaceContainerLow.withValues(alpha: 0.3)
             : Colors.transparent;
 
     final totalPrintsFormatted = widget.stats.totalPrints >= 1000

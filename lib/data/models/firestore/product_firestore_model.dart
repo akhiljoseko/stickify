@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Firestore persistence model for Products.
@@ -13,6 +14,7 @@ class ProductFirestoreModel {
     this.ingredients = const [],
     this.nutritionFacts,
     this.variants = const [],
+    this.lastModified,
   });
 
   factory ProductFirestoreModel.fromDomain(Product p) {
@@ -33,6 +35,7 @@ class ProductFirestoreModel {
       variants: p.variants
           .map(ProductVariantFirestoreModel.fromDomain)
           .toList(),
+      lastModified: p.lastModified,
     );
   }
 
@@ -63,6 +66,7 @@ class ProductFirestoreModel {
             ),
           )
           .toList(),
+      lastModified: (json['lastModified'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -76,6 +80,7 @@ class ProductFirestoreModel {
   final List<IngredientFirestoreModel> ingredients;
   final NutritionFactsFirestoreModel? nutritionFacts;
   final List<ProductVariantFirestoreModel> variants;
+  final DateTime? lastModified;
 
   Map<String, dynamic> toMap() {
     return {
@@ -89,6 +94,7 @@ class ProductFirestoreModel {
       'ingredients': ingredients.map((i) => i.toMap()).toList(),
       'nutritionFacts': nutritionFacts?.toMap(),
       'variants': variants.map((v) => v.toMap()).toList(),
+      'lastModified': lastModified != null ? Timestamp.fromDate(lastModified!) : null,
     };
   }
 
@@ -104,6 +110,7 @@ class ProductFirestoreModel {
       ingredients: ingredients.map((i) => i.toDomain()).toList(),
       nutritionFacts: nutritionFacts?.toDomain(),
       variants: variants.map((v) => v.toDomain()).toList(),
+      lastModified: lastModified,
     );
   }
 }

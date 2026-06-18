@@ -21,6 +21,7 @@ class MockProductRepository implements ProductRepository {
       sku: 'WTCH-293-882-EL',
       category: 'Electronics',
       shelfLifeDays: 365,
+      lastModified: DateTime(2024, 1, 15),
       storageConditions: 'Store in a dry cool place',
       imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC3T1bImjiXAIJUPhusdi1ReuRvEkp2m0VtnQ9W8EU1SIxc0TFF6JmX6Mx3D76bhAhutQeqZ9F4192PsY7lWN-_J3B7X3CINrq3fsvsigKjs6FCdhg45Bw2lVTQb24dwaz3UMY9Md4MoI7x_dNUuszxXLk580Sc8PnR0bLkDR0pYUJyuvKvylWKpE4gutI5Q963558NowrpmVuB7FsywjgpwdQ1btKX8kLcEPBnF2OenY5lq5Whdq8RH7J26yV6L1avt5NFVg-L3GA',
       ingredients: const [
@@ -39,6 +40,7 @@ class MockProductRepository implements ProductRepository {
       sku: 'AUD-HX0-912-PR',
       category: 'Peripherals',
       shelfLifeDays: 730,
+      lastModified: DateTime(2024, 3, 20),
       storageConditions: 'Keep away from moisture',
       imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBdwpY5R7-R9EuiJZ7Teo4xBDrd-K5bSvJpiwyy-c7GPzatq5SQ_5YKvctKbUgJa4H9yOJXLYw2sGG3qe6b5HX_mS3t3u4SDJPGu-mLQJYfcd0T6WXF7zPBgr9rZM53-SSEVv-7faev4ndpUPlDbHBXRI8lj1yBHRE2IFW2ILxFYkkj54ewh8XNxvqXhf2HcVrU9iyINRs3SZOXK6eXso5P3MD-r9XyabfJHnh9crZSCPz77upXyX5hViYF63e405PZmP_cF7PBg0Y',
       ingredients: const [
@@ -56,6 +58,7 @@ class MockProductRepository implements ProductRepository {
       sku: 'FWR-SH-442-AP',
       category: 'Apparel',
       shelfLifeDays: 1095,
+      lastModified: DateTime(2024, 6, 10),
       storageConditions: 'Store in dry ventilation',
       imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCix4ihNcXAP17_XOvGMW8un6M-kmr_PtCu2KjCRKiX9z7AnkE2qTYRFhQoQ7bVWkavZvrgdkL6SWin-U3fO8TOwdknwaDuy9OuXJI36AQp5wfxPz193qK4QU_YUBJcJaeRA-1-f1n07XxpvzG-0oMDnqTpzl9CP2zFm24Us72RQeTiJVf_KghQiVZEk3IR1wH3gTFYpcv5YR8vDe82AABcxofFdPhT6PuiXAvlXHB_1RXoXF9aYk5uGW6JEeXTNuDGDbD_jq8r1eU',
       ingredients: const [
@@ -73,6 +76,7 @@ class MockProductRepository implements ProductRepository {
       sku: 'OPT-CAM-001-LM',
       category: 'Optics',
       shelfLifeDays: 1825,
+      lastModified: DateTime(2024, 9, 5),
       storageConditions: 'Store in a cool dust-free cabinet',
       imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBawxukA-5o9MvMWYQIAZQXEQxlPhQOcwc_HoWiUbh26HqvzOKW6oE8QoAyGNIrCy4vaJ6XRtgUi2h0svmeKDlBR_RvZixFXzL7F9qr6u7ItAiGjOuHGLEmcXhsux21ICM3jCZdTefJgEzFrzQPC9UgjzbvtuwIGvlU0Yw97d7NzowUfJKj9B4KB0gdPSfLZHzs8ApSDZbkSnUWWpDh_277_i9vqCA1C3njy69GqzXcxQ3px0zIeQRccNWtMNKhRaeSfJ2x9Q8lb50',
       ingredients: const [
@@ -89,6 +93,7 @@ class MockProductRepository implements ProductRepository {
       sku: 'ALM-ORG-2024',
       category: 'Dry Goods',
       shelfLifeDays: 365,
+      lastModified: DateTime(2024, 10, 24),
       storageConditions: 'Store in a cool, dry place away from direct sunlight. Once opened, keep in an airtight container to maintain crunchiness.',
       imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDBCwu6kjXkC74hhN53Gq0e9paePBFwYT2XP9uIquLWdD_HG_ZIeD3z6C_ya1GcstHenEypaatw6DQilZOumQmJqO8XXIceIp_jRh4h5diPJmc-kh0GSADG6uaVZEYxJd1qrdW73KGaDTQBILADwYMk9zn5SFw6_b3fPaD3AVEvabkHFGIlNAj2VpTlrpEtfIvoTrlhCyVjCmUde5B0UZnQuZZiZAxtripCqiG0c0VK-QHnjkL2BxzAWN3M7tHSpY7KobyKclQ1vow',
       ingredients: const [

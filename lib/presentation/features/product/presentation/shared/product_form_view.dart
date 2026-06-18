@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/core/platform/file_picker_service.dart';
+import 'package:uuid/uuid.dart';
 import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
 import 'package:stickify/domain/entities/product.dart';
@@ -187,7 +188,7 @@ class ProductFormViewState extends State<ProductFormView> {
     }
 
     final product = Product(
-      id: widget.product?.id ?? 'prod-${DateTime.now().millisecondsSinceEpoch}',
+      id: widget.product?.id ?? 'prod-${const Uuid().v4()}',
       name: name,
       sku: sku,
       category: category,
@@ -197,6 +198,7 @@ class ProductFormViewState extends State<ProductFormView> {
       ingredients: List.unmodifiable(_ingredients),
       nutritionFacts: nutrition,
       variants: List.unmodifiable(_variants),
+      lastModified: DateTime.now(),
     );
 
     widget.onSave(product);

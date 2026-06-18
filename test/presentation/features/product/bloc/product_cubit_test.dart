@@ -6,6 +6,7 @@ import 'package:stickify/domain/entities/paginated_result.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
+import 'package:stickify/presentation/features/product/bloc/product_paging_state.dart';
 import 'package:stickify/presentation/features/product/bloc/product_state.dart';
 import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 
@@ -45,7 +46,7 @@ void main() {
 
   group('ProductCubit Tests', () {
     blocTest<ProductCubit, ProductState>(
-      'fetchPage emits ProductPageLoading then ProductPageLoaded',
+      'fetchPage emits ProductPageLoaded with loading then items',
       build: () {
         when(() => productRepository.getProducts(
               page: any(named: 'page'),
@@ -62,15 +63,17 @@ void main() {
       },
       act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20),
       expect: () => [
-        const ProductPageLoading(),
         isA<ProductPageLoaded>()
-            .having((s) => s.items.length, 'items length', 2)
-            .having((s) => s.hasMore, 'hasMore', false),
+            .having((s) => s.pagingState.isLoading, 'loading first', true),
+        isA<ProductPageLoaded>()
+            .having((s) => s.pagingState.isLoading, 'loading done', false)
+            .having((s) => s.pagingState.items?.length, 'items length', 2)
+            .having((s) => s.pagingState.hasNextPage, 'hasMore', false),
       ],
     );
 
     blocTest<ProductCubit, ProductState>(
-      'fetchPage emits ProductPageError when repository fails',
+      'fetchPage emits error in pagingState when repository fails',
       build: () {
         when(() => productRepository.getProducts(
               page: any(named: 'page'),
@@ -84,8 +87,11 @@ void main() {
       },
       act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20),
       expect: () => [
-        const ProductPageLoading(),
-        const ProductPageError('Local database is corrupted.'),
+        isA<ProductPageLoaded>()
+            .having((s) => s.pagingState.isLoading, 'loading first', true),
+        isA<ProductPageLoaded>()
+            .having((s) => s.pagingState.isLoading, 'loading done', false)
+            .having((s) => s.pagingState.error, 'error', isNotNull),
       ],
     );
 
@@ -113,10 +119,13 @@ void main() {
       },
       act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20, query: 'Chrono'),
       expect: () => [
-        const ProductPageLoading(),
         isA<ProductPageLoaded>()
-            .having((s) => s.items.length, 'items length', 1)
-            .having((s) => s.searchQuery, 'searchQuery', 'Chrono'),
+            .having((s) => s.pagingState.isLoading, 'loading first', true)
+            .having((s) => s.pagingState.searchQuery, 'query', 'Chrono'),
+        isA<ProductPageLoaded>()
+            .having((s) => s.pagingState.isLoading, 'loading done', false)
+            .having((s) => s.pagingState.items?.length, 'items length', 1)
+            .having((s) => s.pagingState.searchQuery, 'searchQuery', 'Chrono'),
       ],
     );
 
@@ -144,10 +153,13 @@ void main() {
       },
       act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20, category: 'Pickles'),
       expect: () => [
-        const ProductPageLoading(),
         isA<ProductPageLoaded>()
-            .having((s) => s.items.length, 'items length', 1)
-            .having((s) => s.categoryFilter, 'categoryFilter', 'Pickles'),
+            .having((s) => s.pagingState.isLoading, 'loading first', true)
+            .having((s) => s.pagingState.categoryFilter, 'cat', 'Pickles'),
+        isA<ProductPageLoaded>()
+            .having((s) => s.pagingState.isLoading, 'loading done', false)
+            .having((s) => s.pagingState.items?.length, 'items length', 1)
+            .having((s) => s.pagingState.categoryFilter, 'categoryFilter', 'Pickles'),
       ],
     );
 
@@ -168,9 +180,11 @@ void main() {
         return ProductCubit(productRepository);
       },
       seed: () => ProductPageLoaded(
-        items: mockProducts,
-        currentPage: 0,
-        hasMore: false,
+        pagingState: ProductPagingState(
+          pages: [mockProducts],
+          keys: [0],
+          hasNextPage: false,
+        ),
       ),
       act: (cubit) => cubit.setSubView(const ProductCreateView()),
       expect: () => [
@@ -200,8 +214,10 @@ void main() {
       expect: () => [
         const ProductFormSubmitting(),
         const ProductFormSuccess(),
-        const ProductPageLoading(),
-        isA<ProductPageLoaded>(),
+        isA<ProductPageLoaded>()
+            .having((s) => s.pagingState.isLoading, 'loading first', true),
+        isA<ProductPageLoaded>()
+            .having((s) => s.pagingState.isLoading, 'loading done', false),
       ],
       verify: (_) {
         verify(() => productRepository.saveProduct(any())).called(1);
@@ -232,15 +248,17 @@ void main() {
         return ProductCubit(productRepository);
       },
       seed: () => ProductPageLoaded(
-        items: mockProducts,
-        currentPage: 0,
-        hasMore: false,
+        pagingState: ProductPagingState(
+          pages: [mockProducts],
+          keys: [0],
+          hasNextPage: false,
+        ),
       ),
       act: (cubit) => cubit.deleteProduct('prod-1'),
       expect: () => [
         isA<ProductPageLoaded>()
-            .having((s) => s.items.length, 'items length', 1)
-            .having((s) => s.items[0].id, 'remaining product id', 'prod-2'),
+            .having((s) => s.pagingState.items?.length, 'items length', 1)
+            .having((s) => s.pagingState.items?.first.id, 'remaining product id', 'prod-2'),
       ],
       verify: (_) {
         verify(() => productRepository.deleteProduct('prod-1')).called(1);

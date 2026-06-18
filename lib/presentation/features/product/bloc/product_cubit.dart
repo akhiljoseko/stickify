@@ -77,6 +77,11 @@ class ProductCubit extends Cubit<ProductState> {
     }
   }
 
+  @Deprecated('Use fetchPage instead. Will be removed once screens are migrated to PagingController.')
+  void applyFilter({String? query, String? category}) {
+    fetchPage(pageKey: 0, pageSize: 20, query: query, category: category);
+  }
+
   ProductSubView _currentSubView() {
     final currentState = state;
     if (currentState is ProductPageLoaded) {

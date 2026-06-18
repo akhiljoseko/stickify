@@ -23,7 +23,7 @@ class MobileProductManagementScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final cubitState = context.watch<ProductCubit>().state;
-    final showFab = cubitState is ProductCatalogSuccess && cubitState.subView is ProductCatalogView;
+    final showFab = cubitState is ProductPageLoaded && cubitState.subView is ProductCatalogView;
     final formKey = GlobalKey<ProductFormViewState>();
 
     return Scaffold(
@@ -36,19 +36,19 @@ class MobileProductManagementScreen extends StatelessWidget {
           : null,
       body: BlocConsumer<ProductCubit, ProductState>(
         listener: (context, state) {
-          if (state is ProductCatalogError) {
+          if (state is ProductPageError) {
             context.read<NotificationService>().showError(state.message);
           }
         },
         builder: (context, state) {
-          if (state is ProductCatalogInitial || state is ProductCatalogLoading) {
+          if (state is ProductPageLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state is ProductCatalogError && state.message.isNotEmpty) {
+          if (state is ProductPageError && state.message.isNotEmpty) {
             return ErrorView(
               message: state.message,
-              onRetry: () => context.read<ProductCubit>().loadProducts(),
+              onRetry: () => context.read<ProductCubit>().fetchPage(pageKey: 0, pageSize: 20),
               onBack: () => Navigator.of(context).pop(),
             );
           }
@@ -60,13 +60,13 @@ class MobileProductManagementScreen extends StatelessWidget {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text('Saving changes...'),
+                  Text('Saving product...'),
                 ],
               ),
             );
           }
 
-          if (state is ProductCatalogSuccess) {
+          if (state is ProductPageLoaded) {
             switch (state.subView) {
               case ProductDetailView(:final product):
                 return _MobileProductDetailView(
@@ -133,7 +133,7 @@ class MobileProductManagementScreen extends StatelessWidget {
 class _MobileCatalogListView extends StatelessWidget {
   const _MobileCatalogListView({required this.state});
 
-  final ProductCatalogSuccess state;
+  final ProductPageLoaded state;
 
   @override
   Widget build(BuildContext context) {
@@ -183,17 +183,17 @@ class _MobileCatalogListView extends StatelessWidget {
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
                           isExpanded: true,
-                          initialValue: state.categoryFilter.isEmpty ? 'All' : state.categoryFilter,
+                          initialValue: (state.categoryFilter == null || state.categoryFilter!.isEmpty) ? 'All' : state.categoryFilter!,
                           decoration: InputDecoration(
                             labelText: 'Category',
                             fillColor: colorScheme.containerLow,
                           ),
-                          items: const [
-                            DropdownMenuItem(value: 'All', child: Text('All Categories')),
-                            DropdownMenuItem(value: 'Beverages', child: Text('Beverages')),
-                            DropdownMenuItem(value: 'Dry Goods', child: Text('Dry Goods')),
-                            DropdownMenuItem(value: 'Frozen Food', child: Text('Frozen Food')),
-                            DropdownMenuItem(value: 'Produce', child: Text('Produce')),
+                          items: [
+                            const DropdownMenuItem(value: 'All', child: Text('All Categories')),
+                            ...ProductCategories.all.map((cat) => DropdownMenuItem(
+                              value: cat,
+                              child: Text(cat),
+                            )),
                           ],
                           onChanged: (val) {
                             final categoryVal = (val == null || val == 'All') ? '' : val;
@@ -206,7 +206,7 @@ class _MobileCatalogListView extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                _MobileProductGrid(products: state.filteredProducts),
+                _MobileProductGrid(products: state.items),
               ]),
             ),
           ),

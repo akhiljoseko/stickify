@@ -8,6 +8,7 @@ library;
 
 export 'commands/app_command.dart';
 export 'commands/command_registry.dart';
+export 'constants/product_categories.dart';
 export 'environment/app_environment.dart';
 export 'environment/app_environment_resolver.dart';
 export 'environment/app_experience.dart';
@@ -20,5 +21,6 @@ export 'presentation/shared/loading_view.dart';
 export 'presentation/notifications/notifications.dart';
 export 'utils/adaptive_value.dart';
 export 'utils/app_breakpoints.dart';
+export 'utils/currency_formatter.dart';
 export 'utils/image_utils.dart';
 export 'utils/polygon_utils.dart';

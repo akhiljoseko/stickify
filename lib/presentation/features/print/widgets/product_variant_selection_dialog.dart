@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
@@ -191,10 +192,9 @@ class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionD
                                     ElevatedButton(
                                       onPressed: () {
                                         Navigator.pop(context);
-                                        // Take user to product details to add variants
-                                        ProductDetailsRoute(id: _selectedProduct!.id).go(context);
+                                        context.go('/products');
                                       },
-                                      child: const Text('Go to Product Details'),
+                                      child: const Text('Go to Products'),
                                     ),
                                   ],
                                 ),

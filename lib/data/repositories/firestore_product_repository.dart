@@ -51,6 +51,56 @@ class FirestoreProductRepository implements ProductRepository {
   }
 
   @override
+  Future<Result<PaginatedResult<Product>, AppError>> getProducts({
+    required int page,
+    required int pageSize,
+    String? query,
+    String? category,
+  }) async {
+    try {
+      final allResult = await getAllProducts();
+      switch (allResult) {
+        case Success(value: final all):
+          var filtered = all.toList();
+          if (query != null && query.isNotEmpty) {
+            filtered = filtered.where((p) =>
+              p.name.toLowerCase().contains(query.toLowerCase()) ||
+              p.sku.toLowerCase().contains(query.toLowerCase())
+            ).toList();
+          }
+          if (category != null && category.isNotEmpty) {
+            filtered = filtered.where((p) =>
+              (p.category ?? '').toLowerCase() == category.toLowerCase()
+            ).toList();
+          }
+          filtered.sort((a, b) {
+            final aDate = a.lastModified ?? DateTime(2000);
+            final bDate = b.lastModified ?? DateTime(2000);
+            return bDate.compareTo(aDate);
+          });
+          final start = page * pageSize;
+          final end = (start + pageSize).clamp(0, filtered.length);
+          final items = filtered.sublist(start, end);
+          return Result.success(PaginatedResult(
+            items: items,
+            totalCount: filtered.length,
+            hasMore: end < filtered.length,
+            currentPage: page,
+          ));
+        case Failure(error: final err):
+          return Result.failure(err);
+      }
+    } catch (e, stackTrace) {
+      return Result.failure(NetworkError(
+        message: 'Failed to retrieve filtered products from remote server.',
+        originalError: e,
+        stackTrace: stackTrace,
+      ));
+    }
+  }
+
+  @override
+  @Deprecated('Use getProducts instead')
   Future<Result<List<Product>, AppError>> getFilteredProducts({String query = '', String category = ''}) async {
     try {
       final allResult = await getAllProducts();

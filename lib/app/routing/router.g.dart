@@ -131,11 +131,6 @@ RouteBase get $appShellRouteData => StatefulShellRouteData.$route(
           factory: $ProductManagementRoute._fromState,
           routes: [
             GoRouteData.$route(
-              path: ':id',
-              parentNavigatorKey: ProductDetailsRoute.$parentNavigatorKey,
-              factory: $ProductDetailsRoute._fromState,
-            ),
-            GoRouteData.$route(
               path: ':productId/variants/:variantSku/print/templates',
               parentNavigatorKey: PrintTemplateSelectRoute.$parentNavigatorKey,
               factory: $PrintTemplateSelectRoute._fromState,
@@ -222,30 +217,6 @@ mixin $ProductManagementRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/products');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $ProductDetailsRoute on GoRouteData {
-  static ProductDetailsRoute _fromState(GoRouterState state) =>
-      ProductDetailsRoute(id: state.pathParameters['id']!);
-
-  ProductDetailsRoute get _self => this as ProductDetailsRoute;
-
-  @override
-  String get location =>
-      GoRouteData.$location('/products/${Uri.encodeComponent(_self.id)}');
 
   @override
   void go(BuildContext context) => context.go(location);

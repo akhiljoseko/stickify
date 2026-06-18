@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/core/utils/image_utils.dart';
 import 'package:stickify/domain/entities/product.dart';
+import 'package:stickify/domain/entities/product_variant.dart';
+import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/product_detail_ingredients_card.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/product_detail_nutrition_facts_card.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/product_detail_storage_card.dart';
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
@@ -20,6 +26,184 @@ class ProductDetailPanel extends StatelessWidget {
   final VoidCallback onBack;
   final ValueChanged<Product> onEdit;
   final ValueChanged<String> onDelete;
+
+  void _showEditVariantDialog(BuildContext context, ProductVariant variant) {
+    final nameController = TextEditingController(text: variant.name);
+    final skuController = TextEditingController(text: variant.sku);
+    final quantityController = TextEditingController(text: variant.quantity.toString());
+    final unitController = TextEditingController(text: variant.unit);
+    final wholesaleController = TextEditingController(text: variant.wholesale.toString());
+    final mrpController = TextEditingController(text: variant.mrp.toString());
+    final formKey = GlobalKey<FormState>();
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Edit Variant - ${variant.name}'),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Variant Name'),
+                    validator: (val) => (val == null || val.trim().isEmpty) ? 'Name is required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: skuController,
+                    decoration: const InputDecoration(labelText: 'SKU'),
+                    validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: quantityController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'Quantity'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          initialValue: const ['pcs', 'ml', 'gm', 'kg', 'L'].contains(unitController.text) ? unitController.text : 'gm',
+                          decoration: const InputDecoration(labelText: 'Unit'),
+                          items: const [
+                            DropdownMenuItem(value: 'pcs', child: Text('pcs')),
+                            DropdownMenuItem(value: 'ml', child: Text('ml')),
+                            DropdownMenuItem(value: 'gm', child: Text('gm')),
+                            DropdownMenuItem(value: 'kg', child: Text('kg')),
+                            DropdownMenuItem(value: 'L', child: Text('L')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) unitController.text = val;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: wholesaleController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'Wholesale Price (₹)'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: mrpController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'MRP (₹)'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  final updatedVariants = product.variants.map((v) {
+                    if (v.sku == variant.sku) {
+                      return ProductVariant(
+                        name: nameController.text.trim(),
+                        sku: skuController.text.trim(),
+                        quantity: double.parse(quantityController.text),
+                        unit: unitController.text.trim(),
+                        wholesale: double.parse(wholesaleController.text),
+                        mrp: double.parse(mrpController.text),
+                      );
+                    }
+                    return v;
+                  }).toList();
+
+                  final updatedProduct = Product(
+                    id: product.id,
+                    name: product.name,
+                    sku: product.sku,
+                    category: product.category,
+                    shelfLifeDays: product.shelfLifeDays,
+                    storageConditions: product.storageConditions,
+                    imageUrl: product.imageUrl,
+                    ingredients: product.ingredients,
+                    nutritionFacts: product.nutritionFacts,
+                    variants: List.unmodifiable(updatedVariants),
+                    lastModified: DateTime.now(),
+                  );
+
+                  context.read<ProductCubit>().saveProduct(updatedProduct);
+                  Navigator.pop(dialogContext);
+                }
+              },
+              child: const Text('Save Variant'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool> _confirmDeleteVariant(BuildContext ctx, ProductVariant variant) async {
+    final confirm = await showDialog<bool>(
+      context: ctx,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Variant'),
+        content: Text('Are you sure you want to delete ${variant.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    return confirm == true;
+  }
+
+  Future<bool> _confirmDeleteProduct(BuildContext ctx) async {
+    final confirm = await showDialog<bool>(
+      context: ctx,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Product'),
+        content: Text('Are you sure you want to delete ${product.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    return confirm == true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,11 +284,6 @@ class ProductDetailPanel extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(product.name, style: textTheme.displayLarge),
-                const SizedBox(height: 12),
-                Text(
-                  product.storageConditions ?? 'No specific storage requirements outlined for this asset.',
-                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                ),
                 const SizedBox(height: 20),
                 Wrap(
                   spacing: 32,
@@ -150,31 +329,32 @@ class ProductDetailPanel extends StatelessWidget {
                         ),
                       ],
                     ),
+                    if (product.shelfLifeDays != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('SHELF LIFE', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '${product.shelfLifeDays} Days',
+                              style: textTheme.labelMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.secondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ],
             );
-
-            Future<bool> confirmDelete() async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Delete Product'),
-                  content: Text('Are you sure you want to delete ${product.name}?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Delete'),
-                    ),
-                  ],
-                ),
-              );
-              return confirm == true;
-            }
 
             Widget adaptiveActions;
 
@@ -184,7 +364,7 @@ class ProductDetailPanel extends StatelessWidget {
                 onSelected: (value) async {
                   if (value == 'edit') {
                     onEdit(product);
-                  } else if (value == 'delete' && await confirmDelete()) {
+                  } else if (value == 'delete' && await _confirmDeleteProduct(context)) {
                     onDelete(product.id);
                   }
                 },
@@ -216,7 +396,7 @@ class ProductDetailPanel extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () async {
-                      if (await confirmDelete()) {
+                      if (await _confirmDeleteProduct(context)) {
                         onDelete(product.id);
                       }
                     },
@@ -237,7 +417,7 @@ class ProductDetailPanel extends StatelessWidget {
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
                     onPressed: () async {
-                      if (await confirmDelete()) {
+                      if (await _confirmDeleteProduct(context)) {
                         onDelete(product.id);
                       }
                     },
@@ -315,29 +495,19 @@ class ProductDetailPanel extends StatelessWidget {
                   0: FlexColumnWidth(3),
                   1: FlexColumnWidth(2),
                   2: FlexColumnWidth(2),
-                  3: FlexColumnWidth(3),
-                  4: FixedColumnWidth(100),
+                  3: FlexColumnWidth(2),
+                  4: FlexColumnWidth(2),
+                  5: FixedColumnWidth(120),
                 },
                 children: [
                   TableRow(
                     decoration: BoxDecoration(color: colorScheme.containerLow),
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: Text('VARIANT NAME', style: textTheme.labelSmall?.copyWith(fontFamily: 'JetBrains Mono')),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: Text('QUANTITY', style: textTheme.labelSmall?.copyWith(fontFamily: 'JetBrains Mono')),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: Text('MRP (INR)', style: textTheme.labelSmall?.copyWith(fontFamily: 'JetBrains Mono')),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: Text('SKU CODE', style: textTheme.labelSmall?.copyWith(fontFamily: 'JetBrains Mono')),
-                      ),
+                      _headerCell(textTheme, 'VARIANT NAME'),
+                      _headerCell(textTheme, 'QUANTITY'),
+                      _headerCell(textTheme, 'MRP (INR)'),
+                      _headerCell(textTheme, '₹/UNIT'),
+                      _headerCell(textTheme, 'SKU CODE'),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         child: SizedBox(),
@@ -346,44 +516,66 @@ class ProductDetailPanel extends StatelessWidget {
                   ),
                   ...product.variants.map((v) => TableRow(
                         children: [
+                          _cell(textTheme, v.name),
+                          _cell(textTheme, '${v.quantity} ${v.unit}'),
+                          _cell(textTheme, '₹${v.mrp.toStringAsFixed(2)}'),
+                          _cell(textTheme, '₹${v.unitPrice.toStringAsFixed(2)}/${v.unit}'),
+                          _cell(textTheme, v.sku, mono: true),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            child: Text(v.name, style: textTheme.bodyMedium),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            child: Text('${v.quantity} ${v.unit}', style: textTheme.bodyMedium),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            child: Text('₹${v.mrp.toStringAsFixed(2)}', style: textTheme.bodyMedium),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            child: Text(
-                              v.sku,
-                              style: textTheme.bodyMedium?.copyWith(fontFamily: 'JetBrains Mono'),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.print_outlined, size: 18),
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  height: 32,
+                                  child: ElevatedButton.icon(
                                     onPressed: () {
                                       PrintTemplateSelectRoute(
                                         productId: product.id,
                                         variantSku: v.sku,
                                       ).go(context);
                                     },
-                                    tooltip: 'Print Label',
+                                    icon: const Icon(Icons.print_outlined, size: 16),
+                                    label: const Text('Print', style: TextStyle(fontSize: 12)),
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(width: 4),
+                                IconButton(
+                                  onPressed: () => _showEditVariantDialog(context, v),
+                                  icon: const Icon(Icons.edit_outlined, size: 18),
+                                  tooltip: 'Edit Variant',
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                IconButton(
+                                  onPressed: () async {
+                                    if (await _confirmDeleteVariant(context, v)) {
+                                      if (!context.mounted) return;
+                                      final updatedVariants = product.variants.where((v2) => v2.sku != v.sku).toList();
+                                      final updatedProduct = Product(
+                                        id: product.id,
+                                        name: product.name,
+                                        sku: product.sku,
+                                        category: product.category,
+                                        shelfLifeDays: product.shelfLifeDays,
+                                        storageConditions: product.storageConditions,
+                                        imageUrl: product.imageUrl,
+                                        ingredients: product.ingredients,
+                                        nutritionFacts: product.nutritionFacts,
+                                        variants: List.unmodifiable(updatedVariants),
+                                        lastModified: DateTime.now(),
+                                      );
+                                      await context.read<ProductCubit>().saveProduct(updatedProduct);
+                                    }
+                                  },
+                                  icon: const Icon(Icons.delete_outline, size: 18),
+                                  tooltip: 'Delete Variant',
+                                  visualDensity: VisualDensity.compact,
+                                  color: colorScheme.error,
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -395,184 +587,18 @@ class ProductDetailPanel extends StatelessWidget {
       ),
     );
 
-    final shelfLifeCard = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.calendar_today_outlined, color: colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text('Shelf Life & Storage', style: textTheme.titleSmall),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.containerLow,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colorScheme.outlineVariant),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text('Recommended Life', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${product.shelfLifeDays ?? 365} Days',
-                    style: textTheme.headlineMedium?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('STORAGE CONDITIONS', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
-            const SizedBox(height: 6),
-            Text(
-              product.storageConditions ?? 'Store in a cool, dry place away from direct sunlight.',
-              style: textTheme.bodyMedium,
-            ),
-            if (product.category == 'Snacks') ...[
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 18),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      'Sensitive to high humidity',
-                      style: textTheme.bodySmall?.copyWith(color: Colors.orange.shade800),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
+    final ingredientsCard = ProductDetailIngredientsCard(
+      ingredients: product.ingredients,
+      onEdit: () => onEdit(product),
     );
 
-    final ingredientsCard = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Ingredients', style: textTheme.titleSmall),
-                TextButton.icon(
-                  onPressed: () => onEdit(product),
-                  icon: const Icon(Icons.edit_outlined, size: 16),
-                  label: const Text('Edit List'),
-                ),
-              ],
-            ),
-            const Divider(),
-            if (product.ingredients.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Text('No ingredients listed.', style: textTheme.bodyMedium?.copyWith(color: colorScheme.outline)),
-              )
-            else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: product.ingredients
-                    .map((ing) => Chip(
-                          label: Text('${ing.name} (${ing.percentage}%)'),
-                          backgroundColor: colorScheme.containerLow,
-                          side: BorderSide(color: colorScheme.outlineVariant),
-                        ))
-                    .toList(),
-              ),
-            if (product.ingredients.any((i) => i.name.toLowerCase().contains('almond') || i.name.toLowerCase().contains('nut'))) ...[
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.errorContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: colorScheme.error.withValues(alpha: 0.2)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'ALLERGEN WARNING',
-                      style: textTheme.labelSmall?.copyWith(color: colorScheme.error, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Contains Nuts (Almonds). Processed in a facility that also handles soy, dairy, and wheat.',
-                      style: textTheme.bodySmall?.copyWith(color: colorScheme.onErrorContainer),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
+    final nutritionFactsCard = ProductDetailNutritionFactsCard(
+      nutritionFacts: product.nutritionFacts,
+      subtitle: 'Per 100g serving',
     );
 
-    final nutritionFactsCard = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Nutrition Facts', style: textTheme.titleSmall),
-                Text('Per 100g serving', style: textTheme.bodySmall?.copyWith(color: colorScheme.outline, fontStyle: FontStyle.italic)),
-              ],
-            ),
-            const Divider(),
-            if (product.nutritionFacts == null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Text('No nutrition facts defined.', style: textTheme.bodyMedium?.copyWith(color: colorScheme.outline)),
-              )
-            else
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: colorScheme.outlineVariant),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      color: colorScheme.containerLow,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('COMPONENT', style: textTheme.labelSmall?.copyWith(fontFamily: 'JetBrains Mono')),
-                          Text('VALUE', style: textTheme.labelSmall?.copyWith(fontFamily: 'JetBrains Mono')),
-                        ],
-                      ),
-                    ),
-                    _buildNutritionRow(textTheme, 'Calories', '${product.nutritionFacts!.calories.toStringAsFixed(0)} kcal'),
-                    _buildNutritionRow(textTheme, 'Protein', '${product.nutritionFacts!.protein.toStringAsFixed(1)} g'),
-                    _buildNutritionRow(textTheme, 'Total Fat', '${product.nutritionFacts!.totalFat.toStringAsFixed(1)} g'),
-                    _buildNutritionRow(textTheme, 'Saturated Fat', '${product.nutritionFacts!.saturatedFat.toStringAsFixed(1)} g'),
-                    _buildNutritionRow(textTheme, 'Total Carbohydrates', '${product.nutritionFacts!.totalCarbs.toStringAsFixed(1)} g'),
-                    _buildNutritionRow(textTheme, 'Dietary Fiber', '${product.nutritionFacts!.fiber.toStringAsFixed(1)} g'),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
+    final storageCard = ProductDetailStorageCard(
+      storageConditions: product.storageConditions,
     );
 
     return Scaffold(
@@ -605,23 +631,7 @@ class ProductDetailPanel extends StatelessWidget {
                       delegate: SliverChildListDelegate([
                         heroHeader,
                         const SizedBox(height: 16),
-                        AdaptiveLayoutSwitcher(
-                          mobile: Column(
-                            children: [
-                              variantsCard,
-                              const SizedBox(height: 16),
-                              shelfLifeCard,
-                            ],
-                          ),
-                          desktop: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(flex: 8, child: variantsCard),
-                              const SizedBox(width: 16),
-                              Expanded(flex: 4, child: shelfLifeCard),
-                            ],
-                          ),
-                        ),
+                        variantsCard,
                         const SizedBox(height: 16),
                         AdaptiveLayoutSwitcher(
                           mobile: Column(
@@ -629,14 +639,30 @@ class ProductDetailPanel extends StatelessWidget {
                               ingredientsCard,
                               const SizedBox(height: 16),
                               nutritionFactsCard,
+                              const SizedBox(height: 16),
+                              storageCard,
                             ],
                           ),
                           desktop: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(child: ingredientsCard),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ingredientsCard,
+                                    const SizedBox(height: 16),
+                                    ConstrainedBox(
+                                      constraints: const BoxConstraints(maxWidth: 600),
+                                      child: storageCard,
+                                    ),
+                                  ],
+                                ),
+                              ),
                               const SizedBox(width: 16),
-                              Expanded(child: nutritionFactsCard),
+                              Expanded(
+                                child: nutritionFactsCard,
+                              ),
                             ],
                           ),
                         ),
@@ -652,15 +678,21 @@ class ProductDetailPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildNutritionRow(TextTheme textTheme, String label, String value) {
+  Widget _headerCell(TextTheme textTheme, String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-          Text(value, style: textTheme.bodyMedium),
-        ],
+      child: Text(text, style: textTheme.labelSmall?.copyWith(fontFamily: 'JetBrains Mono')),
+    );
+  }
+
+  Widget _cell(TextTheme textTheme, String text, {bool mono = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Text(
+        text,
+        style: mono
+            ? textTheme.bodyMedium?.copyWith(fontFamily: 'JetBrains Mono')
+            : textTheme.bodyMedium,
       ),
     );
   }

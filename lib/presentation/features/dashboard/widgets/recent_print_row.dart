@@ -107,8 +107,8 @@ class _RecentPrintRowState extends State<RecentPrintRow> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+            _Cell(
+              flex: 1,
               child: _RepeatPrintButton(onPressed: widget.onRepeatPrint),
             ),
           ],
@@ -149,7 +149,7 @@ class _Cell extends StatelessWidget {
     return Expanded(
       flex: flex,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         child: child,
       ),
     );

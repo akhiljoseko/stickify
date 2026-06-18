@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/core/platform/file_picker_service.dart';
-import 'package:uuid/uuid.dart';
 import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/form_basic_info_section.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/form_ingredients_section.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/form_nutrition_section.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/form_storage_section.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/form_variants_section.dart';
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
+import 'package:uuid/uuid.dart';
 
 /// Reusable and adaptive Product Form View supporting both mobile and desktop layouts.
 /// Provides fields for basic details, storage, ingredients, nutrition facts, and variants.
@@ -192,6 +197,53 @@ class ProductFormViewState extends State<ProductFormView> {
     widget.onSave(product);
   }
 
+  void _addIngredient() {
+    final name = _ingNameController.text;
+    final pct = double.tryParse(_ingPercentController.text) ?? 0;
+    if (name.isNotEmpty && pct > 0) {
+      setState(() {
+        _ingredients.add(Ingredient(name: name, percentage: pct));
+        _ingNameController.clear();
+        _ingPercentController.clear();
+      });
+    }
+  }
+
+  void _addVariant() {
+    final name = _varNameController.text;
+    final sku = _varSkuController.text;
+    final qty = double.tryParse(_varQtyController.text) ?? 1.0;
+    final unit = _varUnitController.text;
+    final wholesale = double.tryParse(_varWholesaleController.text) ?? 0.0;
+    final mrp = double.tryParse(_varMrpController.text) ?? 0.0;
+
+    if (name.isNotEmpty && sku.isNotEmpty) {
+      setState(() {
+        _variants.add(
+          ProductVariant(
+            name: name,
+            quantity: qty,
+            unit: unit,
+            wholesale: wholesale,
+            mrp: mrp,
+            sku: sku,
+          ),
+        );
+        _varNameController.clear();
+        _varSkuController.text = _skuController.text;
+        _varQtyController.clear();
+        _varWholesaleController.clear();
+        _varMrpController.clear();
+      });
+    }
+  }
+
+  void _clearImage() {
+    setState(() {
+      _imageUrlController.clear();
+    });
+  }
+
   /// Expose saveForm publicly for the parent Scaffold's AppBar.
   void saveForm() {
     _saveForm();
@@ -199,597 +251,55 @@ class ProductFormViewState extends State<ProductFormView> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final isMobile = context.watch<AppEnvironment>().experience == AppExperience.mobile;
 
-    void addIngredientAction() {
-      final name = _ingNameController.text;
-      final pct = double.tryParse(_ingPercentController.text) ?? 0;
-      if (name.isNotEmpty && pct > 0) {
-        setState(() {
-          _ingredients.add(Ingredient(name: name, percentage: pct));
-          _ingNameController.clear();
-          _ingPercentController.clear();
-        });
-      }
-    }
-
-    void addVariantAction() {
-      final name = _varNameController.text;
-      final sku = _varSkuController.text;
-      final qty = double.tryParse(_varQtyController.text) ?? 1.0;
-      final unit = _varUnitController.text;
-      final wholesale = double.tryParse(_varWholesaleController.text) ?? 0.0;
-      final mrp = double.tryParse(_varMrpController.text) ?? 0.0;
-
-      if (name.isNotEmpty && sku.isNotEmpty) {
-        setState(() {
-          _variants.add(
-            ProductVariant(
-              name: name,
-              quantity: qty,
-              unit: unit,
-              wholesale: wholesale,
-              mrp: mrp,
-              sku: sku,
-            ),
-          );
-          _varNameController.clear();
-          _varSkuController.text = _skuController.text; // reset to global sku
-          _varQtyController.clear();
-          _varWholesaleController.clear();
-          _varMrpController.clear();
-        });
-      }
-    }
-
-    final basicInfoCard = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.info_outline, color: colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text('Basic Information', style: textTheme.titleSmall),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Product Name', hintText: 'e.g. Organic Almond Milk'),
-              validator: (val) => (val == null || val.isEmpty) ? 'Name is required' : null,
-            ),
-            const SizedBox(height: 16),
-            if (isMobile) ...[
-              DropdownButtonFormField<String>(
-                isExpanded: true,
-                initialValue: _categoryController.text.isEmpty ? ProductCategories.defaultCategory : _categoryController.text,
-                decoration: const InputDecoration(labelText: 'Category'),
-                items: ProductCategories.all.map((cat) => DropdownMenuItem(
-                  value: cat,
-                  child: Text(cat),
-                )).toList(),
-                onChanged: (val) {
-                  if (val != null) _categoryController.text = val;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _shelfLifeController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Shelf Life (Days)', hintText: 'e.g. 45'),
-                validator: (val) {
-                  if (val != null && val.isNotEmpty && int.tryParse(val) == null) {
-                    return 'Must be an integer';
-                  }
-                  return null;
-                },
-              ),
-            ] else
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      isExpanded: true,
-                      initialValue: _categoryController.text.isEmpty ? ProductCategories.defaultCategory : _categoryController.text,
-                      decoration: const InputDecoration(labelText: 'Category'),
-                      items: ProductCategories.all.map((cat) => DropdownMenuItem(
-                        value: cat,
-                        child: Text(cat),
-                      )).toList(),
-                      onChanged: (val) {
-                        if (val != null) _categoryController.text = val;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _shelfLifeController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Shelf Life (Days)', hintText: 'e.g. 45'),
-                      validator: (val) {
-                        if (val != null && val.isNotEmpty && int.tryParse(val) == null) {
-                          return 'Must be an integer';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _skuController,
-              decoration: const InputDecoration(labelText: 'Global SKU Prefix', hintText: 'e.g. ALM-ORG-2024'),
-              validator: (val) => (val == null || val.isEmpty) ? 'SKU Prefix is required' : null,
-            ),
-          ],
-        ),
-      ),
+    final basicInfoCard = FormBasicInfoSection(
+      nameController: _nameController,
+      categoryController: _categoryController,
+      shelfLifeController: _shelfLifeController,
+      skuController: _skuController,
+      isMobile: isMobile,
     );
 
-    final storageCard = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.thermostat_outlined, color: colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text('Storage & Compliance', style: textTheme.titleSmall),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _storageController,
-              decoration: const InputDecoration(labelText: 'Storage Conditions', hintText: 'e.g. Keep refrigerated below 5°C'),
-            ),
-            const SizedBox(height: 16),
-            Text('Product Image', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                height: 120,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: colorScheme.outlineVariant),
-                  borderRadius: BorderRadius.circular(8),
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
-                ),
-                child: _imageUrlController.text.isNotEmpty
-                    ? Stack(
-                        children: [
-                          Positioned.fill(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image(
-                                image: resolveImageProvider(_imageUrlController.text),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            right: 8,
-                            top: 8,
-                            child: CircleAvatar(
-                              backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
-                              radius: 16,
-                              child: IconButton(
-                                icon: Icon(Icons.close, size: 16, color: colorScheme.error),
-                                onPressed: () {
-                                  setState(() {
-                                    _imageUrlController.clear();
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add_photo_alternate_outlined, size: 36, color: colorScheme.primary),
-                            const SizedBox(height: 8),
-                            Text('Tap to select image', style: textTheme.bodySmall?.copyWith(color: colorScheme.primary)),
-                          ],
-                        ),
-                      ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    final storageCard = FormStorageSection(
+      storageController: _storageController,
+      imageUrlController: _imageUrlController,
+      onPickImage: _pickImage,
+      onClearImage: _clearImage,
     );
 
-    final ingredientsCard = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.restaurant_menu_outlined, color: colorScheme.primary, size: 20),
-                    const SizedBox(width: 8),
-                    Text('Granular Ingredients', style: textTheme.titleSmall),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (isMobile) ...[
-              TextField(
-                controller: _ingNameController,
-                decoration: const InputDecoration(labelText: 'Ingredient Name', hintText: 'e.g. Organic Almonds'),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _ingPercentController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Percent (%)', hintText: '12.5'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: addIngredientAction,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add'),
-                  ),
-                ],
-              ),
-            ] else
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _ingNameController,
-                      decoration: const InputDecoration(labelText: 'Ingredient Name', hintText: 'e.g. Organic Almonds'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    width: 100,
-                    child: TextField(
-                      controller: _ingPercentController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Percent (%)', hintText: '12.5'),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: addIngredientAction,
-                    icon: const Icon(Icons.add_circle_outline),
-                    tooltip: 'Add Ingredient',
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ],
-              ),
-            if (_ingredients.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _ingredients.length,
-                itemBuilder: (context, i) {
-                  final ing = _ingredients[i];
-                  return ListTile(
-                    title: Text(ing.name),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('${ing.percentage}%', style: textTheme.bodyMedium),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, size: 20),
-                          onPressed: () {
-                            setState(() {
-                              _ingredients.removeAt(i);
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ],
-          ],
-        ),
-      ),
+    final ingredientsCard = FormIngredientsSection(
+      ingNameController: _ingNameController,
+      ingPercentController: _ingPercentController,
+      ingredients: _ingredients,
+      onAddIngredient: _addIngredient,
+      onRemoveIngredient: (i) => setState(() => _ingredients.removeAt(i)),
+      isMobile: isMobile,
     );
 
-    final nutritionCard = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.receipt_long_outlined, color: colorScheme.primary, size: 20),
-                    const SizedBox(width: 8),
-                    Text('Nutrition Facts', style: textTheme.titleSmall),
-                  ],
-                ),
-                Switch(
-                  value: _includeNutrition,
-                  onChanged: (val) => setState(() => _includeNutrition = val),
-                ),
-              ],
-            ),
-            if (_includeNutrition) ...[
-              const SizedBox(height: 16),
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _caloriesController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Calories (kcal)'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _proteinController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Protein (g)'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _fatController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Total Fat (g)'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _saturatedFatController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Saturated Fat (g)'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _carbsController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Total Carbs (g)'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _fiberController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Fiber (g)'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
+    final nutritionCard = FormNutritionSection(
+      includeNutrition: _includeNutrition,
+      onToggleNutrition: (val) => setState(() => _includeNutrition = val),
+      caloriesController: _caloriesController,
+      proteinController: _proteinController,
+      fatController: _fatController,
+      saturatedFatController: _saturatedFatController,
+      carbsController: _carbsController,
+      fiberController: _fiberController,
     );
 
-    final variantsCard = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.layers_outlined, color: colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text('Product Variants', style: textTheme.titleSmall),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (isMobile) ...[
-              TextField(
-                controller: _varNameController,
-                decoration: const InputDecoration(labelText: 'Variant Name', hintText: 'e.g. 150g Pouch'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _varSkuController,
-                decoration: const InputDecoration(labelText: 'Variant SKU', hintText: 'e.g. ALM-150P-001'),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _varQtyController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Qty', hintText: '150'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      isExpanded: true,
-                      initialValue: _varUnitController.text,
-                      decoration: const InputDecoration(labelText: 'Unit'),
-                      items: const [
-                        DropdownMenuItem(value: 'pcs', child: Text('pcs')),
-                        DropdownMenuItem(value: 'ml', child: Text('ml')),
-                        DropdownMenuItem(value: 'gm', child: Text('gm')),
-                        DropdownMenuItem(value: 'kg', child: Text('kg')),
-                        DropdownMenuItem(value: 'L', child: Text('L')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) _varUnitController.text = val;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _varWholesaleController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Wholesale (₹)', hintText: '8.50'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _varMrpController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'MRP (₹)', hintText: '12.50'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: addVariantAction,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Variant'),
-                ),
-              ),
-            ] else ...[
-              Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: TextField(
-                      controller: _varNameController,
-                      decoration: const InputDecoration(labelText: 'Variant Name', hintText: 'e.g. 150g Pouch'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 3,
-                    child: TextField(
-                      controller: _varSkuController,
-                      decoration: const InputDecoration(labelText: 'Variant SKU', hintText: 'e.g. ALM-150P-001'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 80,
-                    child: TextField(
-                      controller: _varQtyController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Qty', hintText: '150'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    width: 90,
-                    child: DropdownButtonFormField<String>(
-                      isExpanded: true,
-                      initialValue: _varUnitController.text,
-                      decoration: const InputDecoration(labelText: 'Unit'),
-                      items: const [
-                        DropdownMenuItem(value: 'pcs', child: Text('pcs')),
-                        DropdownMenuItem(value: 'ml', child: Text('ml')),
-                        DropdownMenuItem(value: 'gm', child: Text('gm')),
-                        DropdownMenuItem(value: 'kg', child: Text('kg')),
-                        DropdownMenuItem(value: 'L', child: Text('L')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) _varUnitController.text = val;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _varWholesaleController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Wholesale (₹)', hintText: '8.50'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _varMrpController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'MRP (₹)', hintText: '12.50'),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: addVariantAction,
-                    icon: const Icon(Icons.add_circle_outline),
-                    tooltip: 'Add Variant',
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ],
-              ),
-            ],
-            if (_variants.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _variants.length,
-                itemBuilder: (context, i) {
-                  final v = _variants[i];
-                  return ListTile(
-                    title: Text(v.name, style: textTheme.titleSmall),
-                    subtitle: Text('${v.sku} | ${v.quantity} ${v.unit} | Wholesale: ₹${v.wholesale} | MRP: ₹${v.mrp}'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: () {
-                        setState(() {
-                          _variants.removeAt(i);
-                        });
-                      },
-                    ),
-                  );
-                },
-              ),
-            ],
-          ],
-        ),
-      ),
+    final variantsCard = FormVariantsSection(
+      varNameController: _varNameController,
+      varSkuController: _varSkuController,
+      varQtyController: _varQtyController,
+      varUnitController: _varUnitController,
+      varWholesaleController: _varWholesaleController,
+      varMrpController: _varMrpController,
+      variants: _variants,
+      onAddVariant: _addVariant,
+      onRemoveVariant: (i) => setState(() => _variants.removeAt(i)),
+      isMobile: isMobile,
     );
 
     final formFields = Form(

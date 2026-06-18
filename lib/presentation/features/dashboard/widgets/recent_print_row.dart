@@ -49,7 +49,7 @@ class _RecentPrintRowState extends State<RecentPrintRow> {
         child: Row(
           children: [
             _Cell(
-              flex: 3,
+              flex: 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -108,7 +108,7 @@ class _RecentPrintRowState extends State<RecentPrintRow> {
               ),
             ),
             _Cell(
-              flex: 1,
+              flex: 2,
               child: _RepeatPrintButton(onPressed: widget.onRepeatPrint),
             ),
           ],

@@ -1,5 +1,5 @@
 // prefer_int_literals suppressed for Duration clarity.
-// ignore_for_file: comment_references
+import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
@@ -18,18 +18,20 @@ part 'recent_print_jobs_state.dart';
 ///          Error ──(loadRecentJobs retry)──▶ Loading
 /// ```
 ///
-/// ## Mock Phase
-/// The cubit delegates to [PrintJobRepository], which is currently backed
-/// by [MockPrintJobRepository]. No real network calls are made. To switch
-/// to a real backend, only the concrete repository implementation needs to
-/// change — this cubit is untouched.
+/// Automatically reloads when a new print job is saved (via
+/// [PrintJobRepository.onPrintJobCreated]).
 class RecentPrintJobsCubit extends Cubit<RecentPrintJobsState> {
   /// Creates a [RecentPrintJobsCubit] instance.
   RecentPrintJobsCubit({required PrintJobRepository printJobRepository})
       : _repository = printJobRepository,
-        super(const RecentPrintJobsInitial());
+        super(const RecentPrintJobsInitial()) {
+    _printSub = printJobRepository.onPrintJobCreated.listen((_) {
+      loadRecentJobs();
+    });
+  }
 
   final PrintJobRepository _repository;
+  StreamSubscription<PrintJob>? _printSub;
 
   /// Fetches the most recent print jobs and emits the appropriate state.
   ///
@@ -44,5 +46,11 @@ class RecentPrintJobsCubit extends Cubit<RecentPrintJobsState> {
       case Failure(error: final err):
         emit(RecentPrintJobsError(message: err.message));
     }
+  }
+
+  @override
+  Future<void> close() async {
+    await _printSub?.cancel();
+    await super.close();
   }
 }

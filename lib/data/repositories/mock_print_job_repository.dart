@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/print_job.dart';
 import 'package:stickify/domain/repositories/print_job_repository.dart';
@@ -10,7 +11,11 @@ import 'package:stickify/domain/repositories/print_job_repository.dart';
 /// so swapping implementations requires zero UI changes.
 class MockPrintJobRepository implements PrintJobRepository {
   /// Creates a [MockPrintJobRepository] instance.
-  const MockPrintJobRepository();
+  MockPrintJobRepository();
+  final StreamController<PrintJob> _createdController = StreamController<PrintJob>.broadcast();
+
+  @override
+  Stream<PrintJob> get onPrintJobCreated => _createdController.stream;
 
   /// Realistic mock data sourced directly from the Stitch dashboard design.
   static final List<PrintJob> _mockJobs = [
@@ -110,6 +115,7 @@ class MockPrintJobRepository implements PrintJobRepository {
   Future<Result<void, AppError>> savePrintJob(PrintJob job) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     _mockJobs.insert(0, job);
+    _createdController.add(job);
     return const Result.success(null);
   }
 }

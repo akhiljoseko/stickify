@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:stickify/core/core.dart';
 import 'package:stickify/data/models/hive/print_job_hive_model.dart';
 import 'package:stickify/domain/domain.dart';
@@ -9,6 +11,10 @@ class DatabasePrintJobRepository implements PrintJobRepository {
 
   final LocalDatabase _db;
   static const String _collection = 'print_jobs';
+  final StreamController<PrintJob> _createdController = StreamController<PrintJob>.broadcast();
+
+  @override
+  Stream<PrintJob> get onPrintJobCreated => _createdController.stream;
 
   @override
   Future<Result<void, AppError>> savePrintJob(PrintJob job) async {
@@ -18,6 +24,7 @@ class DatabasePrintJobRepository implements PrintJobRepository {
         job.id,
         PrintJobHiveModel.fromDomain(job),
       );
+      _createdController.add(job);
       return const Result.success(null);
     } catch (e, s) {
       return Result.failure(

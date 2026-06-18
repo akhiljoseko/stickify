@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/core/core.dart';
+import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_state.dart';
 import 'package:stickify/presentation/features/product/presentation/mobile/mobile_product_card.dart';
@@ -17,6 +19,7 @@ class MobileCatalogListView extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final pagingState = state.pagingState;
 
     return AdaptiveScrollWrapper(
       builder: (context, controller) => CustomScrollView(
@@ -43,14 +46,18 @@ class MobileCatalogListView extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
                         TextField(
-                          onChanged: (val) => context.read<ProductCubit>().applyFilter(query: val),
+                          onChanged: (val) => context.read<ProductCubit>().fetchPage(
+                                pageKey: 0,
+                                pageSize: 20,
+                                query: val.isEmpty ? null : val,
+                                category: pagingState.categoryFilter,
+                              ),
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.search, size: 20),
                             hintText: 'Search products...',
@@ -60,7 +67,7 @@ class MobileCatalogListView extends StatelessWidget {
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
                           isExpanded: true,
-                          initialValue: (state.categoryFilter == null || state.categoryFilter!.isEmpty) ? 'All' : state.categoryFilter!,
+                          initialValue: (pagingState.categoryFilter == null || pagingState.categoryFilter!.isEmpty) ? 'All' : pagingState.categoryFilter!,
                           decoration: InputDecoration(
                             labelText: 'Category',
                             fillColor: colorScheme.containerLow,
@@ -73,27 +80,65 @@ class MobileCatalogListView extends StatelessWidget {
                             )),
                           ],
                           onChanged: (val) {
-                            final categoryVal = (val == null || val == 'All') ? '' : val;
-                            context.read<ProductCubit>().applyFilter(category: categoryVal);
+                            final categoryVal = (val == null || val == 'All') ? null : val;
+                            context.read<ProductCubit>().fetchPage(
+                                  pageKey: 0,
+                                  pageSize: 20,
+                                  query: pagingState.searchQuery,
+                                  category: categoryVal,
+                                );
                           },
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
-
-                if (state.items.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 64),
-                    child: Center(
-                      child: Text('No products found.', style: textTheme.bodyMedium?.copyWith(color: colorScheme.outline)),
-                    ),
-                  )
-                else
-                  ...state.items.map((product) => MobileProductCard(product: product)),
               ]),
             ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: PagedSliverList<int, Product>(
+              state: state.pagingState,
+              fetchNextPage: () => context.read<ProductCubit>().fetchNextPage(),
+              builderDelegate: PagedChildBuilderDelegate<Product>(
+                itemBuilder: (context, product, index) => MobileProductCard(product: product),
+                firstPageProgressIndicatorBuilder: (_) => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+                newPageProgressIndicatorBuilder: (_) => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                ),
+                noItemsFoundIndicatorBuilder: (_) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 64),
+                  child: Center(
+                    child: Text('No products found.', style: textTheme.bodyMedium?.copyWith(color: colorScheme.outline)),
+                  ),
+                ),
+                firstPageErrorIndicatorBuilder: (_) => Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: Text(
+                      'Failed to load products.',
+                      style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SliverPadding(
+            padding: EdgeInsets.only(bottom: 16),
           ),
         ],
       ),

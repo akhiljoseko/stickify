@@ -12,7 +12,9 @@ class CatalogFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final state = context.watch<ProductCubit>().state;
-    final categoryFilter = state is ProductPageLoaded ? state.categoryFilter : null;
+    final pagingState = state is ProductPageLoaded ? state.pagingState : null;
+    final currentQuery = pagingState?.searchQuery;
+    final currentCategory = pagingState?.categoryFilter;
 
     return Card(
       child: Padding(
@@ -22,7 +24,12 @@ class CatalogFilterBar extends StatelessWidget {
             final isCompact = constraints.maxWidth < 600;
 
             final searchField = TextField(
-              onChanged: (val) => context.read<ProductCubit>().applyFilter(query: val),
+              onChanged: (val) => context.read<ProductCubit>().fetchPage(
+                    pageKey: 0,
+                    pageSize: 20,
+                    query: val.isEmpty ? null : val,
+                    category: currentCategory,
+                  ),
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search, size: 20),
                 hintText: 'Search products by name or SKU...',
@@ -32,7 +39,7 @@ class CatalogFilterBar extends StatelessWidget {
 
             final categoryDropdown = DropdownButtonFormField<String>(
               isExpanded: true,
-              initialValue: (categoryFilter == null || categoryFilter.isEmpty) ? 'All' : categoryFilter,
+              initialValue: (currentCategory == null || currentCategory.isEmpty) ? 'All' : currentCategory,
               decoration: InputDecoration(
                 labelText: 'Category',
                 fillColor: colorScheme.containerLow,
@@ -45,8 +52,13 @@ class CatalogFilterBar extends StatelessWidget {
                 )),
               ],
               onChanged: (val) {
-                final categoryVal = (val == null || val == 'All') ? '' : val;
-                context.read<ProductCubit>().applyFilter(category: categoryVal);
+                final categoryVal = (val == null || val == 'All') ? null : val;
+                context.read<ProductCubit>().fetchPage(
+                      pageKey: 0,
+                      pageSize: 20,
+                      query: currentQuery,
+                      category: categoryVal,
+                    );
               },
             );
 

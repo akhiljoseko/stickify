@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:stickify/app/theme.dart';
 
 class ProductDetailStorageCard extends StatelessWidget {
   const ProductDetailStorageCard({

@@ -104,13 +104,19 @@ class ProductCubit extends Cubit<ProductState> {
     }
   }
 
-  Future<void> saveProduct(Product product) async {
+  Future<void> saveProduct(Product product, {ProductSubView? nextView}) async {
     emit(const ProductFormSubmitting());
     final result = await _productRepository.saveProduct(product);
     switch (result) {
       case Success():
         emit(const ProductFormSuccess());
         await fetchPage(pageKey: 0, pageSize: 20);
+        if (nextView != null) {
+          final afterState = state;
+          if (afterState is ProductPageLoaded) {
+            emit(afterState.copyWith(subView: nextView));
+          }
+        }
       case Failure(error: final err):
         emit(ProductFormError(err.message));
     }

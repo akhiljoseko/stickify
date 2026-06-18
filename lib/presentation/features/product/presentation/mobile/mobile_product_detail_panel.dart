@@ -149,7 +149,10 @@ class MobileProductDetailPanel extends StatelessWidget {
                           lastModified: DateTime.now(),
                         );
 
-                        context.read<ProductCubit>().saveProduct(updatedProduct);
+                        context.read<ProductCubit>().saveProduct(
+                          updatedProduct,
+                          nextView: ProductDetailView(updatedProduct),
+                        );
                         Navigator.of(modalContext).pop();
                       }
                     },
@@ -274,7 +277,17 @@ class MobileProductDetailPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Packaging Variants & Prices', style: textTheme.titleSmall),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Packaging Variants & Prices', style: textTheme.titleSmall),
+                TextButton.icon(
+                  onPressed: () => _showAddVariantBottomSheet(context),
+                  icon: const Icon(Icons.add_circle_outline, size: 16),
+                  label: const Text('Add Variant'),
+                ),
+              ],
+            ),
             const Divider(),
             if (product.variants.isEmpty)
               Padding(
@@ -284,93 +297,103 @@ class MobileProductDetailPanel extends StatelessWidget {
                 ),
               )
             else
-              ...product.variants.map((v) => Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border(bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.5)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ...product.variants.map((v) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(v.name, style: textTheme.titleSmall),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(v.name, style: textTheme.titleSmall),
-                              Text('${v.quantity} ${v.unit} | SKU: ${v.sku}', style: textTheme.bodySmall),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Text('MRP: ₹${v.mrp.toStringAsFixed(2)}', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-                                  const SizedBox(width: 12),
-                                  Text('WS: ₹${v.wholesale.toStringAsFixed(2)}', style: textTheme.bodySmall),
-                                  const SizedBox(width: 12),
-                                  Text('₹${v.unitPrice.toStringAsFixed(2)}/${v.unit}', style: textTheme.bodySmall?.copyWith(color: colorScheme.secondary)),
-                                ],
-                              ),
-                            ],
+                        Text('${v.quantity} ${v.unit} | SKU: ${v.sku}', style: textTheme.bodySmall),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Text('MRP: ₹${v.mrp.toStringAsFixed(2)}', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                            const SizedBox(width: 12),
+                            Text('WS: ₹${v.wholesale.toStringAsFixed(2)}', style: textTheme.bodySmall),
+                            const SizedBox(width: 12),
+                            Text('₹${v.unitPrice.toStringAsFixed(2)}/${v.unit}', style: textTheme.bodySmall?.copyWith(color: colorScheme.secondary)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, size: 20),
+                      onSelected: (value) async {
+                        if (value == 'edit') {
+                          _showEditVariantBottomSheet(context, v);
+                        } else if (value == 'print') {
+                          PrintTemplateSelectRoute(
+                            productId: product.id,
+                            variantSku: v.sku,
+                          ).go(context);
+                        } else if (value == 'delete') {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (dialogCtx) => AlertDialog(
+                              title: const Text('Delete Variant'),
+                              content: Text('Are you sure you want to delete ${v.name}?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(dialogCtx, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(dialogCtx, true),
+                                  child: const Text('Delete'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            if (!context.mounted) return;
+                            final updatedVariants = product.variants.where((v2) => v2.sku != v.sku).toList();
+                            final updatedProduct = Product(
+                              id: product.id,
+                              name: product.name,
+                              sku: product.sku,
+                              category: product.category,
+                              shelfLifeDays: product.shelfLifeDays,
+                              storageConditions: product.storageConditions,
+                              imageUrl: product.imageUrl,
+                              ingredients: product.ingredients,
+                              nutritionFacts: product.nutritionFacts,
+                              variants: List.unmodifiable(updatedVariants),
+                              lastModified: DateTime.now(),
+                            );
+                            await context.read<ProductCubit>().saveProduct(
+                              updatedProduct,
+                              nextView: ProductDetailView(updatedProduct),
+                            );
+                          }
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'print',
+                          child: ListTile(
+                            leading: Icon(Icons.print_outlined, size: 20),
+                            title: Text('Print'),
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined, size: 20),
-                              onPressed: () => _showEditVariantBottomSheet(context, v),
-                              tooltip: 'Edit Variant',
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.print_outlined, size: 20),
-                              onPressed: () {
-                                PrintTemplateSelectRoute(
-                                  productId: product.id,
-                                  variantSku: v.sku,
-                                ).go(context);
-                              },
-                              tooltip: 'Print Label',
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline, size: 20),
-                              onPressed: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (dialogCtx) => AlertDialog(
-                                    title: const Text('Delete Variant'),
-                                    content: Text('Are you sure you want to delete ${v.name}?'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(dialogCtx, false),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(dialogCtx, true),
-                                        child: const Text('Delete'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                if (confirm == true) {
-                                  if (!context.mounted) return;
-                                  final updatedVariants = product.variants.where((v2) => v2.sku != v.sku).toList();
-                                  final updatedProduct = Product(
-                                    id: product.id,
-                                    name: product.name,
-                                    sku: product.sku,
-                                    category: product.category,
-                                    shelfLifeDays: product.shelfLifeDays,
-                                    storageConditions: product.storageConditions,
-                                    imageUrl: product.imageUrl,
-                                    ingredients: product.ingredients,
-                                    nutritionFacts: product.nutritionFacts,
-                                    variants: List.unmodifiable(updatedVariants),
-                                    lastModified: DateTime.now(),
-                                  );
-                                  await context.read<ProductCubit>().saveProduct(updatedProduct);
-                                }
-                              },
-                              tooltip: 'Delete Variant',
-                            ),
-                          ],
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: ListTile(
+                            leading: Icon(Icons.edit_outlined, size: 20),
+                            title: Text('Edit'),
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: ListTile(
+                            leading: Icon(Icons.delete_outline, size: 20),
+                            title: Text('Delete'),
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
                         ),
                       ],
                     ),
@@ -454,6 +477,144 @@ class MobileProductDetailPanel extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showAddVariantBottomSheet(BuildContext context) {
+    final nameController = TextEditingController();
+    final skuController = TextEditingController();
+    final quantityController = TextEditingController();
+    final unitController = TextEditingController(text: 'gm');
+    final wholesaleController = TextEditingController();
+    final mrpController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (modalContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Add Variant',
+                    style: Theme.of(modalContext).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Variant Name'),
+                    validator: (val) => (val == null || val.trim().isEmpty) ? 'Name is required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: skuController,
+                    decoration: const InputDecoration(labelText: 'SKU'),
+                    validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: quantityController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'Quantity'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          initialValue: 'gm',
+                          decoration: const InputDecoration(labelText: 'Unit'),
+                          items: const [
+                            DropdownMenuItem(value: 'pcs', child: Text('pcs')),
+                            DropdownMenuItem(value: 'ml', child: Text('ml')),
+                            DropdownMenuItem(value: 'gm', child: Text('gm')),
+                            DropdownMenuItem(value: 'kg', child: Text('kg')),
+                            DropdownMenuItem(value: 'L', child: Text('L')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) unitController.text = val;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: wholesaleController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'Wholesale Price (₹)'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: mrpController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(labelText: 'MRP (₹)'),
+                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        final newVariant = ProductVariant(
+                          name: nameController.text.trim(),
+                          sku: skuController.text.trim(),
+                          quantity: double.parse(quantityController.text),
+                          unit: unitController.text.trim(),
+                          wholesale: double.parse(wholesaleController.text),
+                          mrp: double.parse(mrpController.text),
+                        );
+                        final updatedProduct = Product(
+                          id: product.id,
+                          name: product.name,
+                          sku: product.sku,
+                          category: product.category,
+                          shelfLifeDays: product.shelfLifeDays,
+                          storageConditions: product.storageConditions,
+                          imageUrl: product.imageUrl,
+                          ingredients: product.ingredients,
+                          nutritionFacts: product.nutritionFacts,
+                          variants: List.unmodifiable([...product.variants, newVariant]),
+                          lastModified: DateTime.now(),
+                        );
+                        context.read<ProductCubit>().saveProduct(
+                          updatedProduct,
+                          nextView: ProductDetailView(updatedProduct),
+                        );
+                        Navigator.of(modalContext).pop();
+                      }
+                    },
+                    child: const Text('Add Variant'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

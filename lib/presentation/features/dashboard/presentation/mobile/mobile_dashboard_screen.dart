@@ -28,7 +28,7 @@ class MobileDashboardScreen extends StatelessWidget {
             );
             // Refresh data
             context.read<RecentPrintJobsCubit>().loadRecentJobs();
-            context.read<FrequentProductsCubit>().loadFrequentProducts();
+            context.read<FrequentVariantsCubit>().loadFrequentVariants();
           } else if (state is SyncFailure) {
             context.read<NotificationService>().showError(
               'Sync failed: ${state.error}',
@@ -451,7 +451,7 @@ class _FrequentProductsSection extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Frequent Products',
+                'Frequent Used Products',
                 style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -460,15 +460,15 @@ class _FrequentProductsSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        BlocBuilder<FrequentProductsCubit, FrequentProductsState>(
+        BlocBuilder<FrequentVariantsCubit, FrequentVariantsState>(
           builder: (context, state) => switch (state) {
-            FrequentProductsInitial() || FrequentProductsLoading() =>
+            FrequentVariantsInitial() || FrequentVariantsLoading() =>
               const _SectionLoadingIndicator(),
-            FrequentProductsLoaded(:final products) =>
-              _MobileProductList(products: products),
-            FrequentProductsError(:final message) => _SectionErrorView(
+            FrequentVariantsLoaded(:final variants) =>
+              _MobileVariantList(variants: variants),
+            FrequentVariantsError(:final message) => _SectionErrorView(
                 message: message,
-                onRetry: context.read<FrequentProductsCubit>().loadFrequentProducts,
+                onRetry: context.read<FrequentVariantsCubit>().loadFrequentVariants,
               ),
           },
         ),
@@ -477,25 +477,26 @@ class _FrequentProductsSection extends StatelessWidget {
   }
 }
 
-class _MobileProductList extends StatelessWidget {
-  const _MobileProductList({required this.products});
-  final List<Product> products;
+class _MobileVariantList extends StatelessWidget {
+  const _MobileVariantList({required this.variants});
+  final List<VariantPrintStats> variants;
 
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: products.length,
+      itemCount: variants.length,
       separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, i) {
-        final p = products[i];
-        return _FrequentProductCard(
-          product: p,
+        final v = variants[i];
+        return _FrequentVariantCard(
+          stats: v,
           onPrint: () {
-            context.read<NotificationService>().showInfo(
-              'Print job sent: 15 labels queued for ${p.name}',
-            );
+            PrintTemplateSelectRoute(
+              productId: v.productId,
+              variantSku: v.variantSku,
+            ).go(context);
           },
         );
       },
@@ -503,13 +504,13 @@ class _MobileProductList extends StatelessWidget {
   }
 }
 
-class _FrequentProductCard extends StatelessWidget {
-  const _FrequentProductCard({
-    required this.product,
+class _FrequentVariantCard extends StatelessWidget {
+  const _FrequentVariantCard({
+    required this.stats,
     required this.onPrint,
   });
 
-  final Product product;
+  final VariantPrintStats stats;
   final VoidCallback onPrint;
 
   @override
@@ -548,7 +549,7 @@ class _FrequentProductCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product.name,
+                  stats.variantName,
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -559,7 +560,7 @@ class _FrequentProductCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      product.sku,
+                      stats.variantSku,
                       style: textTheme.bodySmall?.copyWith(
                         fontFamily: 'JetBrains Mono',
                         color: colorScheme.primary,
@@ -568,13 +569,23 @@ class _FrequentProductCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '•  ${product.totalPrints} prints',
+                      '•  ${stats.totalPrints} prints',
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                         fontSize: 11,
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  stats.productName,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 10,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

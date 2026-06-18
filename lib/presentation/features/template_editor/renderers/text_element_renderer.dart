@@ -33,10 +33,6 @@ class TextElementRenderer implements LabelElementRenderer {
             return variant != null ? variant.sku : product.sku;
           case 'category':
             return product.category ?? '';
-          case 'totalPrints':
-            return product.totalPrints.toString();
-          case 'lastPrintedAt':
-            return product.lastPrintedAt.toIso8601String();
           case 'shelfLifeDays':
             return product.shelfLifeDays?.toString() ?? '';
           case 'storageConditions':

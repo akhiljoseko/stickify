@@ -16,6 +16,7 @@ import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
 import 'package:stickify/data/repositories/database_template_repository.dart';
+import 'package:stickify/data/repositories/database_variant_print_stats_repository.dart';
 import 'package:stickify/data/repositories/firestore_product_repository.dart';
 import 'package:stickify/data/repositories/firestore_template_repository.dart';
 import 'package:stickify/data/repositories/syncing_product_repository.dart';
@@ -34,6 +35,7 @@ class AppServiceLocator {
     required this.productRepository,
     required this.templateRepository,
     required this.printJobRepository,
+    required this.variantPrintStatsRepository,
     required this.searchRepository,
     required this.printService,
     required this.filePickerService,
@@ -68,6 +70,9 @@ class AppServiceLocator {
       syncQueue: syncQueue,
     );
     final printJobRepository = DatabasePrintJobRepository(
+      database: database,
+    );
+    final variantPrintStatsRepository = DatabaseVariantPrintStatsRepository(
       database: database,
     );
 
@@ -116,6 +121,7 @@ class AppServiceLocator {
       productRepository: productRepository,
       templateRepository: templateRepository,
       printJobRepository: printJobRepository,
+      variantPrintStatsRepository: variantPrintStatsRepository,
       searchRepository: searchRepository,
       printService: printService,
       filePickerService: filePickerService,
@@ -140,6 +146,9 @@ class AppServiceLocator {
 
   /// The local-only print job repository.
   final PrintJobRepository printJobRepository;
+
+  /// The variant-level print stats repository.
+  final VariantPrintStatsRepository variantPrintStatsRepository;
 
   /// The database search repository.
   final SearchRepository searchRepository;

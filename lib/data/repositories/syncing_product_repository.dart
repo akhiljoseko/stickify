@@ -22,11 +22,6 @@ class SyncingProductRepository with SyncableRepository<Product> implements Synca
   ProductRepository? remote;
 
   @override
-  Future<Result<List<Product>, AppError>> getFrequentProducts({int limit = 20}) async {
-    return local.getFrequentProducts(limit: limit);
-  }
-
-  @override
   Future<Result<Product?, AppError>> getProductById(String id) async {
     return local.getProductById(id);
   }

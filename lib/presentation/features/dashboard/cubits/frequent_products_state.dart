@@ -1,39 +1,32 @@
 part of 'frequent_products_cubit.dart';
 
-/// Sealed state hierarchy for [FrequentProductsCubit].
-sealed class FrequentProductsState extends Equatable {
-  const FrequentProductsState();
+sealed class FrequentVariantsState extends Equatable {
+  const FrequentVariantsState();
 
   @override
   List<Object?> get props => [];
 }
 
-/// Initial state — emitted before any load operation is triggered.
-final class FrequentProductsInitial extends FrequentProductsState {
-  const FrequentProductsInitial();
+final class FrequentVariantsInitial extends FrequentVariantsState {
+  const FrequentVariantsInitial();
 }
 
-/// Loading state — emitted while the repository call is in flight.
-final class FrequentProductsLoading extends FrequentProductsState {
-  const FrequentProductsLoading();
+final class FrequentVariantsLoading extends FrequentVariantsState {
+  const FrequentVariantsLoading();
 }
 
-/// Loaded state — emitted when products have been successfully fetched.
-final class FrequentProductsLoaded extends FrequentProductsState {
-  const FrequentProductsLoaded({required this.products});
+final class FrequentVariantsLoaded extends FrequentVariantsState {
+  const FrequentVariantsLoaded({required this.variants});
 
-  /// Products sorted by [Product.totalPrints] descending.
-  final List<Product> products;
+  final List<VariantPrintStats> variants;
 
   @override
-  List<Object?> get props => [products];
+  List<Object?> get props => [variants];
 }
 
-/// Error state — emitted when the repository call fails.
-final class FrequentProductsError extends FrequentProductsState {
-  const FrequentProductsError({required this.message});
+final class FrequentVariantsError extends FrequentVariantsState {
+  const FrequentVariantsError({required this.message});
 
-  /// Human-readable error description for display in the UI.
   final String message;
 
   @override

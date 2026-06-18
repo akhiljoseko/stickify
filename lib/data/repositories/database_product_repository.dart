@@ -11,29 +11,6 @@ class DatabaseProductRepository implements ProductRepository {
   static const String _collection = 'products';
 
   @override
-  Future<Result<List<Product>, AppError>> getFrequentProducts({int limit = 20}) async {
-    try {
-      final allResult = await getAllProducts();
-      switch (allResult) {
-        case Success(value: final all):
-          final list = List<Product>.from(all);
-          list.sort((a, b) => b.totalPrints.compareTo(a.totalPrints));
-          return Result.success(list.take(limit).toList());
-        case Failure(error: final err):
-          return Result.failure(err);
-      }
-    } on AppError catch (e) {
-      return Result.failure(e);
-    } catch (e, stackTrace) {
-      return Result.failure(DatabaseError(
-        message: 'Failed to retrieve frequent products from database.',
-        originalError: e,
-        stackTrace: stackTrace,
-      ));
-    }
-  }
-
-  @override
   Future<Result<Product?, AppError>> getProductById(String id) async {
     try {
       final model = await _db.get<ProductHiveModel>(_collection, id);

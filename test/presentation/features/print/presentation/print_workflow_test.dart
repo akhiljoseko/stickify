@@ -16,6 +16,7 @@ class MockPrintJobRepository extends Mock implements PrintJobRepository {}
 class MockPrintService extends Mock implements PrintService {}
 class MockPrinterDiscoveryService extends Mock implements PrinterDiscoveryService {}
 class MockPrintJobIdGenerator extends Mock implements PrintJobIdGenerator {}
+class MockVariantPrintStatsRepository extends Mock implements VariantPrintStatsRepository {}
 
 void main() {
   setUpAll(() {
@@ -39,8 +40,6 @@ void main() {
         id: 'fallback-prod',
         name: 'Fallback',
         sku: 'SKU',
-        totalPrints: 0,
-        lastPrintedAt: DateTime(2026),
       ),
     );
     registerFallbackValue(
@@ -73,13 +72,12 @@ void main() {
   late PrintService printService;
   late PrinterDiscoveryService printerDiscoveryService;
   late PrintJobIdGenerator printJobIdGenerator;
+  late VariantPrintStatsRepository variantPrintStatsRepository;
 
   final testProduct = Product(
     id: 'prod-test',
     name: 'Dynamic Product',
     sku: 'PROD-SKU',
-    totalPrints: 10,
-    lastPrintedAt: DateTime(2026),
     variants: const [
       ProductVariant(
         name: 'Pack of 10',
@@ -180,6 +178,7 @@ void main() {
       printService = MockPrintService();
       printerDiscoveryService = MockPrinterDiscoveryService();
       printJobIdGenerator = MockPrintJobIdGenerator();
+      variantPrintStatsRepository = MockVariantPrintStatsRepository();
 
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(() => productRepository.getProductById('prod-test'))
@@ -188,6 +187,14 @@ void main() {
           .thenAnswer((_) async => const Result.success([testTemplate]));
       when(() => printJobRepository.savePrintJob(any()))
           .thenAnswer((_) async => const Result.success(null));
+      when(() => variantPrintStatsRepository.incrementCount(
+            variantSku: any(named: 'variantSku'),
+            productId: any(named: 'productId'),
+            productName: any(named: 'productName'),
+            variantName: any(named: 'variantName'),
+            labelCount: any(named: 'labelCount'),
+            printedAt: any(named: 'printedAt'),
+          )).thenAnswer((_) async => const Result.success(null));
       when(() => printerDiscoveryService.getAvailablePrinters()).thenAnswer(
         (_) async => const [
           PrinterDevice(name: 'Zebra ZT411-A', url: 'zebra-url', isDefault: true),
@@ -208,6 +215,7 @@ void main() {
         productRepository: productRepository,
         templateRepository: templateRepository,
         printJobRepository: printJobRepository,
+        variantPrintStatsRepository: variantPrintStatsRepository,
         printService: printService,
         printerDiscoveryService: printerDiscoveryService,
         printJobIdGenerator: printJobIdGenerator,
@@ -231,6 +239,7 @@ void main() {
         productRepository: productRepository,
         templateRepository: templateRepository,
         printJobRepository: printJobRepository,
+        variantPrintStatsRepository: variantPrintStatsRepository,
         printService: printService,
         printerDiscoveryService: printerDiscoveryService,
         printJobIdGenerator: printJobIdGenerator,
@@ -256,6 +265,7 @@ void main() {
         productRepository: productRepository,
         templateRepository: templateRepository,
         printJobRepository: printJobRepository,
+        variantPrintStatsRepository: variantPrintStatsRepository,
         printService: printService,
         printerDiscoveryService: printerDiscoveryService,
         printJobIdGenerator: printJobIdGenerator,
@@ -266,6 +276,14 @@ void main() {
 
       expect(cubit.state, isA<PrintWorkflowSuccess>());
       verify(() => printJobRepository.savePrintJob(any())).called(1);
+      verify(() => variantPrintStatsRepository.incrementCount(
+            variantSku: any(named: 'variantSku'),
+            productId: any(named: 'productId'),
+            productName: any(named: 'productName'),
+            variantName: any(named: 'variantName'),
+            labelCount: any(named: 'labelCount'),
+            printedAt: any(named: 'printedAt'),
+          )).called(1);
       verify(() => printService.printLabels(
             product: any(named: 'product'),
             variant: any(named: 'variant'),
@@ -285,6 +303,7 @@ void main() {
       printService = MockPrintService();
       printerDiscoveryService = MockPrinterDiscoveryService();
       printJobIdGenerator = MockPrintJobIdGenerator();
+      variantPrintStatsRepository = MockVariantPrintStatsRepository();
 
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(() => productRepository.getProductById('prod-test'))
@@ -314,6 +333,7 @@ void main() {
           RepositoryProvider.value(value: productRepository),
           RepositoryProvider.value(value: templateRepository),
           RepositoryProvider.value(value: printJobRepository),
+          RepositoryProvider.value(value: variantPrintStatsRepository),
           RepositoryProvider.value(value: printService),
           RepositoryProvider.value(value: printerDiscoveryService),
           RepositoryProvider.value(value: printJobIdGenerator),

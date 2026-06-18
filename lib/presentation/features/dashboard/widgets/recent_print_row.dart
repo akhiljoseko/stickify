@@ -163,6 +163,26 @@ class _RepeatPrintButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDesktopOrLarger = AdaptiveValue<bool>(
+      context,
+      defaultValue: false,
+      desktop: true,
+      fourK: true,
+    ).value;
+
+    if (isDesktopOrLarger) {
+      return FilledButton.icon(
+        onPressed: onPressed,
+        icon: Icon(Icons.print_outlined, size: 16, color: colorScheme.onPrimary),
+        label: const Text('Repeat'),
+        style: FilledButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+      );
+    }
 
     return IconButton(
       onPressed: onPressed,

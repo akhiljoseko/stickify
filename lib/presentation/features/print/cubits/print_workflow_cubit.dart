@@ -21,12 +21,14 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     required ProductRepository productRepository,
     required TemplateRepository templateRepository,
     required PrintJobRepository printJobRepository,
+    required VariantPrintStatsRepository variantPrintStatsRepository,
     required PrintService printService,
     required PrinterDiscoveryService printerDiscoveryService,
     required PrintJobIdGenerator printJobIdGenerator,
   })  : _productRepository = productRepository,
         _templateRepository = templateRepository,
         _printJobRepository = printJobRepository,
+        _variantPrintStatsRepository = variantPrintStatsRepository,
         _printService = printService,
         _printerDiscoveryService = printerDiscoveryService,
         _printJobIdGenerator = printJobIdGenerator,
@@ -40,6 +42,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
 
   /// Repository tracking and saving print logs.
   final PrintJobRepository _printJobRepository;
+
+  /// Repository for variant-level print counters.
+  final VariantPrintStatsRepository _variantPrintStatsRepository;
 
   /// Service dispatching compiled labels to physical printer hardware.
   final PrintService _printService;
@@ -209,6 +214,14 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
             case Failure(error: final saveErr):
               emit(PrintWorkflowError(message: saveErr.message));
             case Success():
+              await _variantPrintStatsRepository.incrementCount(
+                variantSku: s.variant.sku,
+                productId: s.product.id,
+                productName: s.product.name,
+                variantName: s.variant.name,
+                labelCount: s.quantity,
+                printedAt: DateTime.now(),
+              );
               emit(PrintWorkflowSuccess(printJob: job));
           }
       }

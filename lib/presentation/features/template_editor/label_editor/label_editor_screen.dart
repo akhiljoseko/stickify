@@ -96,8 +96,6 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
             id: 'prod-001',
             name: 'Organic Cold Brew 12oz',
             sku: 'BEV-CB-ORG-12',
-            totalPrints: 1240,
-            lastPrintedAt: DateTime.now(),
             category: 'Beverages',
             shelfLifeDays: 90,
             storageConditions: 'Keep refrigerated below 5°C',

@@ -20,8 +20,6 @@ void main() {
         id: 'fallback',
         name: 'Fallback',
         sku: 'SKU-FALLBACK',
-        totalPrints: 0,
-        lastPrintedAt: DateTime(2023, 10, 24),
       ),
     );
   });
@@ -33,16 +31,12 @@ void main() {
         id: 'prod-1',
         name: 'ChronoMaster Elite',
         sku: 'WTCH-293-882-EL',
-        totalPrints: 1240,
-        lastPrintedAt: DateTime(2023, 10, 24),
         category: 'Electronics',
       ),
       Product(
         id: 'prod-2',
         name: 'OmniAudio Pro-X',
         sku: 'AUD-HX0-912-PR',
-        totalPrints: 892,
-        lastPrintedAt: DateTime(2023, 10, 24),
         category: 'Peripherals',
       ),
     ];

@@ -67,8 +67,6 @@ void main() {
             id: 'prod-new-99',
             name: 'Super Sticker Pack',
             sku: 'STK-99-SUPER',
-            totalPrints: 5,
-            lastPrintedAt: DateTime.now(),
             category: 'Dry Goods',
           );
 
@@ -82,36 +80,28 @@ void main() {
           expect(fetched, isNull);
         });
 
-        test('getFrequentProducts sorting limit works', () async {
+        test('save three products', () async {
           final p1 = Product(
             id: 'prod-1',
             name: 'Product A',
             sku: 'SKU-A',
-            totalPrints: 10,
-            lastPrintedAt: DateTime.now(),
           );
           final p2 = Product(
             id: 'prod-2',
             name: 'Product B',
             sku: 'SKU-B',
-            totalPrints: 20,
-            lastPrintedAt: DateTime.now(),
           );
           final p3 = Product(
             id: 'prod-3',
             name: 'Product C',
             sku: 'SKU-C',
-            totalPrints: 5,
-            lastPrintedAt: DateTime.now(),
           );
           (await productRepository.saveProduct(p1)).getOrThrow();
           (await productRepository.saveProduct(p2)).getOrThrow();
           (await productRepository.saveProduct(p3)).getOrThrow();
 
-          final frequent = (await productRepository.getFrequentProducts(limit: 2)).getOrThrow();
-          expect(frequent.length, 2);
-          expect(frequent[0].id, 'prod-2');
-          expect(frequent[1].id, 'prod-1');
+          final all = (await productRepository.getAllProducts()).getOrThrow();
+          expect(all.length, 3);
         });
       });
 
@@ -209,8 +199,6 @@ void main() {
             id: 'prod-chrono',
             name: 'ChronoMaster Elite',
             sku: 'CHRONO-01',
-            totalPrints: 0,
-            lastPrintedAt: DateTime.now(),
           );
           (await productRepository.saveProduct(p1)).getOrThrow();
 
@@ -224,8 +212,6 @@ void main() {
             id: 'prod-search-1',
             name: 'Search Product',
             sku: 'SP-01',
-            totalPrints: 0,
-            lastPrintedAt: DateTime.now(),
           );
           (await productRepository.saveProduct(p1)).getOrThrow();
 

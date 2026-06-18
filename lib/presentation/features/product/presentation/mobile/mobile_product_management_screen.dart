@@ -450,8 +450,6 @@ class _MobileProductDetailView extends StatelessWidget {
                           id: product.id,
                           name: product.name,
                           sku: product.sku,
-                          totalPrints: product.totalPrints,
-                          lastPrintedAt: product.lastPrintedAt,
                           category: product.category,
                           shelfLifeDays: product.shelfLifeDays,
                           storageConditions: product.storageConditions,

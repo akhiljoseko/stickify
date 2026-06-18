@@ -191,8 +191,6 @@ class ProductFormViewState extends State<ProductFormView> {
       id: widget.product?.id ?? 'prod-${DateTime.now().millisecondsSinceEpoch}',
       name: name,
       sku: sku,
-      totalPrints: widget.product?.totalPrints ?? 0,
-      lastPrintedAt: widget.product?.lastPrintedAt ?? DateTime.now(),
       category: category,
       shelfLifeDays: shelfLife,
       storageConditions: storage,

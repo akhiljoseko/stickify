@@ -1,36 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:stickify/core/utils/adaptive_value.dart';
-import 'package:stickify/domain/entities/product.dart';
+import 'package:stickify/domain/entities/variant_print_stats.dart';
 
-/// A single row in the "Frequent Products" data table.
-///
-/// **Stitch spec:** 40px row height, zebra-striped on even rows,
-/// `label-mono` for SKU text, colour-coded station dot (green/amber/red),
-/// and a "Quick Print" action button with hover state.
-///
-/// [isEvenRow] drives the zebra-stripe background (subtle tonal layer).
-class FrequentProductRow extends StatefulWidget {
-  const FrequentProductRow({
-    required this.product,
+class FrequentVariantRow extends StatefulWidget {
+  const FrequentVariantRow({
+    required this.stats,
     required this.isEvenRow,
     this.onQuickPrint,
     super.key,
   });
 
-  /// The product entity to render.
-  final Product product;
-
-  /// When `true`, applies a light tonal zebra-stripe background.
+  final VariantPrintStats stats;
   final bool isEvenRow;
-
-  /// Called when the "Quick Print" button is tapped.
   final VoidCallback? onQuickPrint;
 
   @override
-  State<FrequentProductRow> createState() => _FrequentProductRowState();
+  State<FrequentVariantRow> createState() => _FrequentVariantRowState();
 }
 
-class _FrequentProductRowState extends State<FrequentProductRow> {
+class _FrequentVariantRowState extends State<FrequentVariantRow> {
   bool _isHovered = false;
 
   @override
@@ -51,11 +39,11 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
             ? colorScheme.surfaceContainerLow.withValues(alpha: 0.4)
             : Colors.transparent;
 
-    final totalPrintsFormatted = widget.product.totalPrints >= 1000
-        ? '${(widget.product.totalPrints / 1000).toStringAsFixed(1)}k'
-        : widget.product.totalPrints.toString();
+    final totalPrintsFormatted = widget.stats.totalPrints >= 1000
+        ? '${(widget.stats.totalPrints / 1000).toStringAsFixed(1)}k'
+        : widget.stats.totalPrints.toString();
 
-    final lastPrinted = _formatDateTime(widget.product.lastPrintedAt);
+    final lastPrinted = _formatDateTime(widget.stats.lastPrintedAt);
 
     return MouseRegion(
       onEnter: isDesktopOrLarger ? (_) => setState(() => _isHovered = true) : null,
@@ -65,7 +53,6 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
         color: rowBg,
         child: Row(
           children: [
-            // ── Product Name & SKU ────────────────────────────────────────
             Expanded(
               flex: 3,
               child: Padding(
@@ -75,7 +62,7 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      widget.product.name,
+                      widget.stats.variantName,
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
@@ -85,10 +72,21 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      widget.product.sku,
+                      widget.stats.productName,
                       style: textTheme.labelSmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                         fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      widget.stats.variantSku,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: colorScheme.primary,
+                        fontSize: 10,
+                        fontFamily: 'JetBrains Mono',
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -97,7 +95,6 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
                 ),
               ),
             ),
-            // ── Last Printed ──────────────────────────────────────────────
             Expanded(
               flex: 2,
               child: Padding(
@@ -112,7 +109,6 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
                 ),
               ),
             ),
-            // ── Total Prints ──────────────────────────────────────────────
             Expanded(
               flex: 2,
               child: Padding(
@@ -133,7 +129,6 @@ class _FrequentProductRowState extends State<FrequentProductRow> {
                 ),
               ),
             ),
-            // ── Quick Print Action ────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: _QuickPrintButton(onPressed: widget.onQuickPrint),
@@ -162,6 +157,27 @@ class _QuickPrintButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktopOrLarger = AdaptiveValue<bool>(
+      context,
+      defaultValue: false,
+      desktop: true,
+      fourK: true,
+    ).value;
+
+    if (isDesktopOrLarger) {
+      return FilledButton.icon(
+        onPressed: onPressed,
+        icon: const Icon(Icons.print_outlined, size: 16),
+        label: const Text('Quick Print'),
+        style: FilledButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+      );
+    }
+
     return IconButton(
       onPressed: onPressed,
       icon: const Icon(Icons.print_outlined, size: 20),

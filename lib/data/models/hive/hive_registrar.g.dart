@@ -17,6 +17,7 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(SheetConfigHiveModelAdapter());
     registerAdapter(StickerConfigHiveModelAdapter());
     registerAdapter(StickerPointHiveModelAdapter());
+    registerAdapter(VariantPrintStatsHiveModelAdapter());
   }
 }
 
@@ -32,5 +33,6 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(SheetConfigHiveModelAdapter());
     registerAdapter(StickerConfigHiveModelAdapter());
     registerAdapter(StickerPointHiveModelAdapter());
+    registerAdapter(VariantPrintStatsHiveModelAdapter());
   }
 }

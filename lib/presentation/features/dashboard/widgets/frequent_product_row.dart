@@ -45,9 +45,10 @@ class _FrequentVariantRowState extends State<FrequentVariantRow> {
 
     final lastPrinted = _formatDateTime(widget.stats.lastPrintedAt);
 
-    return MouseRegion(
-      onEnter: isDesktopOrLarger ? (_) => setState(() => _isHovered = true) : null,
-      onExit: isDesktopOrLarger ? (_) => setState(() => _isHovered = false) : null,
+    return InkWell(
+      onHover: isDesktopOrLarger ? (value) => setState(() => _isHovered = value) : null,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
         color: rowBg,

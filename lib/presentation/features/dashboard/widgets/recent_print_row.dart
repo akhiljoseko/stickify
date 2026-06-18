@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:stickify/core/utils/adaptive_value.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+import 'package:stickify/app/theme.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/print_job.dart';
 
 class RecentPrintRow extends StatefulWidget {
   const RecentPrintRow({
     required this.job,
-    required this.isEvenRow,
     this.onRepeatPrint,
     super.key,
   });
 
   final PrintJob job;
-  final bool isEvenRow;
   final VoidCallback? onRepeatPrint;
 
   @override
@@ -26,28 +26,54 @@ class _RecentPrintRowState extends State<RecentPrintRow> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final isDesktopOrLarger = AdaptiveValue<bool>(
-      context,
-      defaultValue: false,
-      desktop: true,
-      fourK: true,
-    ).value;
+    final bp = ResponsiveBreakpoints.of(context);
+    final enableHoverEffects = !bp.isMobile && !bp.isTablet;
 
-    final rowBg = _isHovered && isDesktopOrLarger
-        ? colorScheme.surfaceContainerHigh
-        : widget.isEvenRow
-            ? colorScheme.surfaceContainerLow.withValues(alpha: 0.3)
-            : Colors.transparent;
+    final rowBgColor = _isHovered && enableHoverEffects
+        ? colorScheme.containerLow
+        : colorScheme.containerLowest;
 
-    return InkWell(
-      onHover: isDesktopOrLarger ? (value) => setState(() => _isHovered = value) : null,
-      splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
+    return MouseRegion(
+      onEnter: (_) {
+        if (enableHoverEffects) setState(() => _isHovered = true);
+      },
+      onExit: (_) {
+        if (enableHoverEffects) setState(() => _isHovered = false);
+      },
+      cursor: SystemMouseCursors.click,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        color: rowBg,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeInOut,
+        transform: Matrix4.translationValues(
+          _isHovered && enableHoverEffects ? 4 : 0, 0, 0,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: rowBgColor,
+          border: Border(
+            bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
+          ),
+        ),
         child: Row(
           children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: colorScheme.container,
+                image: widget.job.imageUrl != null && widget.job.imageUrl!.isNotEmpty
+                    ? DecorationImage(
+                        image: resolveImageProvider(widget.job.imageUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: widget.job.imageUrl == null || widget.job.imageUrl!.isEmpty
+                  ? Icon(Icons.inventory_2_outlined, size: 16, color: colorScheme.primary)
+                  : null,
+            ),
+            const SizedBox(width: 12),
             _Cell(
               flex: 2,
               child: Column(
@@ -56,7 +82,7 @@ class _RecentPrintRowState extends State<RecentPrintRow> {
                 children: [
                   Text(
                     widget.job.variantName,
-                    style: textTheme.bodySmall?.copyWith(
+                    style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
@@ -66,9 +92,8 @@ class _RecentPrintRowState extends State<RecentPrintRow> {
                   const SizedBox(height: 2),
                   Text(
                     widget.job.variantSku,
-                    style: textTheme.labelSmall?.copyWith(
+                    style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
-                      fontSize: 11,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -107,10 +132,7 @@ class _RecentPrintRowState extends State<RecentPrintRow> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: _RepeatPrintButton(onPressed: widget.onRepeatPrint),
-            ),
+            _RepeatPrintButton(onPressed: widget.onRepeatPrint),
           ],
         ),
       ),
@@ -149,7 +171,7 @@ class _Cell extends StatelessWidget {
     return Expanded(
       flex: flex,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: child,
       ),
     );

@@ -6,7 +6,6 @@ import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
-import 'package:stickify/presentation/features/product/presentation/shared/product_shared_widgets.dart';
 import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
@@ -387,7 +386,7 @@ class ProductFormViewState extends State<ProductFormView> {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: Image(
-                                image: getImageProvider(_imageUrlController.text),
+                                image: resolveImageProvider(_imageUrlController.text),
                                 fit: BoxFit.cover,
                               ),
                             ),

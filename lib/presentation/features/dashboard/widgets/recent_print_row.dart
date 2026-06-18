@@ -39,9 +39,10 @@ class _RecentPrintRowState extends State<RecentPrintRow> {
             ? colorScheme.surfaceContainerLow.withValues(alpha: 0.3)
             : Colors.transparent;
 
-    return MouseRegion(
-      onEnter: isDesktopOrLarger ? (_) => setState(() => _isHovered = true) : null,
-      onExit: isDesktopOrLarger ? (_) => setState(() => _isHovered = false) : null,
+    return InkWell(
+      onHover: isDesktopOrLarger ? (value) => setState(() => _isHovered = value) : null,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
         color: rowBg,

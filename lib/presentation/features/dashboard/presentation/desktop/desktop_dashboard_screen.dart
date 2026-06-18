@@ -277,8 +277,11 @@ class _PrintTableColumnHeaders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: colorScheme.surfaceContainerLow,
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
+      ),
       child: Row(
         children: [
           _HeaderCell(label: 'Variant & SKU', flex: 3, textTheme: textTheme, colorScheme: colorScheme),
@@ -391,8 +394,11 @@ class _TableColumnHeaders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: colorScheme.surfaceContainerLow,
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
+      ),
       child: Row(
         children: [
           _HeaderCell(label: 'Variant & Product', flex: 3, textTheme: textTheme, colorScheme: colorScheme),

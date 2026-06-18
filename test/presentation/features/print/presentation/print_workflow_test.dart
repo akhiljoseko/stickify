@@ -195,6 +195,9 @@ void main() {
             labelCount: any(named: 'labelCount'),
             printedAt: any(named: 'printedAt'),
           )).thenAnswer((_) async => const Result.success(null));
+      when(() => printJobRepository.onPrintJobCreated).thenAnswer(
+        (_) => const Stream.empty(),
+      );
       when(() => printerDiscoveryService.getAvailablePrinters()).thenAnswer(
         (_) async => const [
           PrinterDevice(name: 'Zebra ZT411-A', url: 'zebra-url', isDefault: true),
@@ -310,6 +313,9 @@ void main() {
           .thenAnswer((_) async => Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
           .thenAnswer((_) async => const Result.success([testTemplate]));
+      when(() => printJobRepository.onPrintJobCreated).thenAnswer(
+        (_) => const Stream.empty(),
+      );
       when(() => printerDiscoveryService.getAvailablePrinters()).thenAnswer(
         (_) async => const [
           PrinterDevice(name: 'Zebra ZT411-A (Default)', url: 'zebra-url', isDefault: true),

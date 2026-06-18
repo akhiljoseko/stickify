@@ -7,6 +7,9 @@ import 'package:stickify/domain/entities/print_job.dart';
 /// `lib/data/repositories/`. Cubits depend only on this interface,
 /// never on the concrete implementation.
 abstract interface class PrintJobRepository {
+  /// Fires whenever a new print job is successfully saved.
+  Stream<PrintJob> get onPrintJobCreated;
+
   /// Returns the N most recently completed or in-progress print jobs.
   ///
   /// [limit] controls how many jobs to return (default: 10).

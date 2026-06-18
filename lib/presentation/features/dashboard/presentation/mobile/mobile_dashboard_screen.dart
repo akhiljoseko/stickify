@@ -9,6 +9,7 @@ import 'package:stickify/presentation/features/dashboard/cubits/recent_print_job
 import 'package:stickify/presentation/features/dashboard/cubits/sync_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/sync_state.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/recent_print_row.dart';
+import 'package:stickify/presentation/features/print/widgets/product_variant_selection_dialog.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
 /// Mobile-specific dashboard viewport layout.
@@ -182,171 +183,101 @@ class _SyncBanner extends StatelessWidget {
 class _QuickActionsList extends StatelessWidget {
   const _QuickActionsList();
 
-  static const List<_QuickActionData> _actions = [
+  static List<_QuickActionData> _actions(BuildContext context) => [
     _QuickActionData(
-      id: FeatureId.productCatalogAdmin,
-      icon: Icons.add_circle_outline,
-      title: 'Add Product',
-      subtitle: 'Register SKU details',
+      icon: Icons.print_outlined,
+      title: 'Start New Print',
       isPrimary: true,
+      onTap: () => ProductVariantSelectionDialog.show(context),
     ),
     _QuickActionData(
-      id: FeatureId.templateCreation,
+      icon: Icons.add_circle_outline,
+      title: 'Add Product',
+      onTap: () => context.go('/products?subView=create'),
+    ),
+    _QuickActionData(
       icon: Icons.dashboard_customize_outlined,
       title: 'Create Template',
-      subtitle: 'Visual designer tool',
+      onTap: () => context.go('/templates?action=create'),
     ),
   ];
 
-  void _handleAction(BuildContext context, _QuickActionData action) {
-    if (action.id == FeatureId.productCatalogAdmin) {
-      context.go('/products?subView=create');
-    } else if (action.id == FeatureId.templateCreation) {
-      context.go('/templates?action=create');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.4,
+    final actions = _actions(context);
+    return Row(
+      children: [
+        Expanded(
+          child: _IconActionButton(
+            icon: actions[0].icon,
+            label: actions[0].title,
+            isPrimary: true,
+            onTap: actions[0].onTap,
           ),
-          itemCount: _actions.length,
-          itemBuilder: (context, i) {
-            final action = _actions[i];
-            return _MobileQuickActionCard(
-              icon: action.icon,
-              title: action.title,
-              subtitle: action.subtitle,
-              isPrimary: action.isPrimary,
-              onTap: () => _handleAction(context, action),
-            );
-          },
-        );
-      },
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _IconActionButton(
+            icon: actions[1].icon,
+            label: actions[1].title,
+            onTap: actions[1].onTap,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _IconActionButton(
+            icon: actions[2].icon,
+            label: actions[2].title,
+            onTap: actions[2].onTap,
+          ),
+        ),
+      ],
     );
   }
 }
 
 class _QuickActionData {
   const _QuickActionData({
-    required this.id,
     required this.icon,
     required this.title,
-    required this.subtitle,
+    required this.onTap,
     this.isPrimary = false,
   });
 
-  final FeatureId id;
   final IconData icon;
   final String title;
-  final String subtitle;
+  final VoidCallback onTap;
   final bool isPrimary;
 }
 
-class _MobileQuickActionCard extends StatelessWidget {
-  const _MobileQuickActionCard({
+class _IconActionButton extends StatelessWidget {
+  const _IconActionButton({
     required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.isPrimary,
+    required this.label,
     required this.onTap,
+    this.isPrimary = false,
   });
 
   final IconData icon;
-  final String title;
-  final String subtitle;
-  final bool isPrimary;
+  final String label;
   final VoidCallback onTap;
+  final bool isPrimary;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    final baseBg = isPrimary
-        ? colorScheme.primaryContainer
-        : colorScheme.surfaceContainerLow;
-
-    final titleColor = isPrimary
-        ? colorScheme.onPrimaryContainer
-        : colorScheme.onSurface;
-
-    final subtitleColor = isPrimary
-        ? colorScheme.onPrimaryContainer.withValues(alpha: 0.8)
-        : colorScheme.onSurfaceVariant;
-
-    final iconColor = isPrimary
-        ? colorScheme.onPrimaryContainer
-        : colorScheme.primary;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Ink(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: baseBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: colorScheme.outlineVariant,
+    return SizedBox(
+      height: 56,
+      child: isPrimary
+          ? IconButton.filled(
+            icon: Icon(icon),
+            onPressed: onTap,
+            tooltip: label,
+          )
+          : IconButton.outlined(
+            icon: Icon(icon),
+            onPressed: onTap,
+            tooltip: label,
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isPrimary
-                    ? colorScheme.onPrimaryContainer.withValues(alpha: 0.15)
-                    : colorScheme.primary.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: 20,
-                color: iconColor,
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: titleColor,
-                    fontSize: 13,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: textTheme.bodySmall?.copyWith(
-                    color: subtitleColor,
-                    fontSize: 10,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

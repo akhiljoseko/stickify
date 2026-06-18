@@ -11,6 +11,7 @@ import 'package:stickify/presentation/features/dashboard/cubits/sync_state.dart'
 import 'package:stickify/presentation/features/dashboard/widgets/frequent_product_row.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/quick_action_card.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/recent_print_row.dart';
+import 'package:stickify/presentation/features/print/widgets/product_variant_selection_dialog.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
 /// Desktop-specific dashboard viewport layout.
@@ -127,78 +128,80 @@ class _HeroHeader extends StatelessWidget {
 class _QuickActionsGrid extends StatelessWidget {
   const _QuickActionsGrid();
 
-  static const List<_QuickActionData> _actions = [
+  static List<_QuickActionData> _actions(BuildContext context) => [
     _QuickActionData(
-      id: FeatureId.productCatalogAdmin,
+      icon: Icons.print_outlined,
+      title: 'Start New Print',
+      subtitle: 'Select product & template',
+      isPrimary: true,
+      onTap: () => ProductVariantSelectionDialog.show(context),
+    ),
+    _QuickActionData(
       icon: Icons.add_circle_outline,
       title: 'Add New Product',
       subtitle: 'Register SKU & Metadata',
-      isPrimary: true,
+      onTap: () => context.go('/products?subView=create'),
     ),
     _QuickActionData(
-      id: FeatureId.templateCreation,
       icon: Icons.dashboard_customize_outlined,
       title: 'Create Template',
       subtitle: 'Visual designer tool',
+      onTap: () => context.go('/templates?action=create'),
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final crossAxisCount = w < 480 ? 1 : 2;
-        const targetHeight = 160.0;
-
-        final itemWidth = (w - (crossAxisCount - 1) * 16) / crossAxisCount;
-        final childAspectRatio = itemWidth / targetHeight;
-
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: childAspectRatio,
+    final actions = _actions(context);
+    return Row(
+      children: [
+        Expanded(
+          child: QuickActionCard(
+            icon: actions[0].icon,
+            title: actions[0].title,
+            subtitle: actions[0].subtitle,
+            isPrimary: actions[0].isPrimary,
+            onTap: actions[0].onTap,
           ),
-          itemCount: _actions.length,
-          itemBuilder: (context, i) {
-            final action = _actions[i];
-            return QuickActionCard(
-              icon: action.icon,
-              title: action.title,
-              subtitle: action.subtitle,
-              isPrimary: action.isPrimary,
-              onTap: () {
-                if (action.id == FeatureId.productCatalogAdmin) {
-                  context.go('/products?subView=create');
-                } else if (action.id == FeatureId.templateCreation) {
-                  context.go('/templates?action=create');
-                }
-              },
-            );
-          },
-        );
-      },
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: QuickActionCard(
+            icon: actions[1].icon,
+            title: actions[1].title,
+            subtitle: actions[1].subtitle,
+            isPrimary: actions[1].isPrimary,
+            onTap: actions[1].onTap,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: QuickActionCard(
+            icon: actions[2].icon,
+            title: actions[2].title,
+            subtitle: actions[2].subtitle,
+            isPrimary: actions[2].isPrimary,
+            onTap: actions[2].onTap,
+          ),
+        ),
+      ],
     );
   }
 }
 
 class _QuickActionData {
   const _QuickActionData({
-    required this.id,
     required this.icon,
     required this.title,
     required this.subtitle,
+    required this.onTap,
     this.isPrimary = false,
   });
 
-  final FeatureId id;
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback onTap;
   final bool isPrimary;
 }
 

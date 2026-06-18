@@ -353,11 +353,13 @@ class ProductDetailPanel extends StatelessWidget {
     final heroHeader = Card(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 200,
+        child: Builder(
+          builder: (context) {
+            final screenWidth = MediaQuery.of(context).size.width;
+            final isCompact = screenWidth < 780;
+
+            final imgWidget = Container(
+              width: isCompact ? double.infinity : 200,
               height: 200,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
@@ -372,79 +374,125 @@ class ProductDetailPanel extends StatelessWidget {
               child: product.imageUrl == null || product.imageUrl!.isEmpty
                   ? Icon(Icons.image_outlined, size: 64, color: colorScheme.outline)
                   : null,
-            ),
-            const SizedBox(width: 24),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: colorScheme.container,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      (product.category ?? 'N/A').toUpperCase(),
-                      style: textTheme.labelSmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
+            );
+
+            final infoWidget = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: colorScheme.container,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    (product.category ?? 'N/A').toUpperCase(),
+                    style: textTheme.labelSmall?.copyWith(
+                      color: colorScheme.primary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(product.name, style: textTheme.displayLarge),
-                  const SizedBox(height: 20),
-                  Wrap(
-                    spacing: 32,
-                    runSpacing: 12,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('GLOBAL SKU PREFIX', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
-                          const SizedBox(height: 6),
-                          Text(product.sku, style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('CATEGORY', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
-                          const SizedBox(height: 6),
-                          Text(product.category ?? 'N/A', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('LAST MODIFIED', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
-                          const SizedBox(height: 6),
-                          Text(
-                            product.lastModified != null ? DateFormat.yMMMd().format(product.lastModified!) : 'N/A',
-                            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      if (product.shelfLifeDays != null)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('SHELF LIFE', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
-                            const SizedBox(height: 6),
-                            Text('${product.shelfLifeDays} Days', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                          ],
+                ),
+                const SizedBox(height: 12),
+                Text(product.name, style: textTheme.displayLarge),
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 32,
+                  runSpacing: 12,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('GLOBAL SKU PREFIX', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
+                        const SizedBox(height: 6),
+                        Text(product.sku, style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('CATEGORY', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
+                        const SizedBox(height: 6),
+                        Text(product.category ?? 'N/A', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('LAST MODIFIED', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
+                        const SizedBox(height: 6),
+                        Text(
+                          product.lastModified != null ? DateFormat.yMMMd().format(product.lastModified!) : 'N/A',
+                          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                    ],
+                      ],
+                    ),
+                    if (product.shelfLifeDays != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('SHELF LIFE', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
+                          const SizedBox(height: 6),
+                          Text('${product.shelfLifeDays} Days', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                  ],
+                ),
+              ],
+            );
+
+            Widget adaptiveActions;
+
+            if (screenWidth < 380) {
+              adaptiveActions = PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) async {
+                  if (value == 'edit') {
+                    onEdit(product);
+                  } else if (value == 'delete' && await _confirmDeleteProduct(context)) {
+                    onDelete(product.id);
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: 'edit', child: ListTile(
+                    leading: Icon(Icons.edit, size: 20),
+                    title: Text('Edit'),
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    contentPadding: EdgeInsets.zero,
+                  )),
+                  const PopupMenuItem(value: 'delete', child: ListTile(
+                    leading: Icon(Icons.delete_outline, size: 20),
+                    title: Text('Delete'),
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    contentPadding: EdgeInsets.zero,
+                  )),
+                ],
+              );
+            } else if (screenWidth < 580) {
+              adaptiveActions = Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () => onEdit(product),
+                    icon: const Icon(Icons.edit_outlined),
+                    tooltip: 'Edit Product',
+                  ),
+                  IconButton(
+                    onPressed: () async {
+                      if (await _confirmDeleteProduct(context)) {
+                        onDelete(product.id);
+                      }
+                    },
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Delete Product',
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(width: 24),
-            SizedBox(
-              width: 180,
-              child: Column(
+              );
+            } else {
+              adaptiveActions = Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ElevatedButton.icon(
@@ -467,9 +515,37 @@ class ProductDetailPanel extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-            ),
-          ],
+              );
+            }
+
+            if (isCompact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: imgWidget),
+                      adaptiveActions,
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  infoWidget,
+                ],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                imgWidget,
+                const SizedBox(width: 24),
+                Expanded(child: infoWidget),
+                const SizedBox(width: 24),
+                SizedBox(width: 180, child: adaptiveActions),
+              ],
+            );
+          },
         ),
       ),
     );

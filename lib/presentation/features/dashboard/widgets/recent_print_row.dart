@@ -34,9 +34,9 @@ class _RecentPrintRowState extends State<RecentPrintRow> {
     ).value;
 
     final rowBg = _isHovered && isDesktopOrLarger
-        ? colorScheme.surfaceContainerLow
+        ? colorScheme.surfaceContainerHigh
         : widget.isEvenRow
-            ? colorScheme.surfaceContainerLow.withValues(alpha: 0.4)
+            ? colorScheme.surfaceContainerLow.withValues(alpha: 0.3)
             : Colors.transparent;
 
     return MouseRegion(

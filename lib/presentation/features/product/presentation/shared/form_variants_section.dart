@@ -1,0 +1,223 @@
+import 'package:flutter/material.dart';
+import 'package:stickify/core/core.dart';
+import 'package:stickify/domain/entities/product_variant.dart';
+
+class FormVariantsSection extends StatelessWidget {
+  const FormVariantsSection({
+    required this.varNameController,
+    required this.varSkuController,
+    required this.varQtyController,
+    required this.varUnitController,
+    required this.varWholesaleController,
+    required this.varMrpController,
+    required this.variants,
+    required this.onAddVariant,
+    required this.onRemoveVariant,
+    required this.isMobile,
+    super.key,
+  });
+
+  final TextEditingController varNameController;
+  final TextEditingController varSkuController;
+  final TextEditingController varQtyController;
+  final TextEditingController varUnitController;
+  final TextEditingController varWholesaleController;
+  final TextEditingController varMrpController;
+  final List<ProductVariant> variants;
+  final VoidCallback onAddVariant;
+  final ValueChanged<int> onRemoveVariant;
+  final bool isMobile;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.layers_outlined, color: colorScheme.primary, size: 20),
+                const SizedBox(width: 8),
+                Text('Product Variants', style: textTheme.titleSmall),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (isMobile) ...[
+              TextField(
+                controller: varNameController,
+                decoration: const InputDecoration(labelText: 'Variant Name', hintText: 'e.g. 150g Pouch'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: varSkuController,
+                decoration: const InputDecoration(labelText: 'Variant SKU', hintText: 'e.g. ALM-150P-001'),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: varQtyController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Qty', hintText: '150'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: varUnitController.text,
+                      decoration: const InputDecoration(labelText: 'Unit'),
+                      items: const [
+                        DropdownMenuItem(value: 'pcs', child: Text('pcs')),
+                        DropdownMenuItem(value: 'ml', child: Text('ml')),
+                        DropdownMenuItem(value: 'gm', child: Text('gm')),
+                        DropdownMenuItem(value: 'kg', child: Text('kg')),
+                        DropdownMenuItem(value: 'L', child: Text('L')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) varUnitController.text = val;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: varWholesaleController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Wholesale (₹)', hintText: '8.50'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: varMrpController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'MRP (₹)', hintText: '12.50'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: onAddVariant,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Variant'),
+                ),
+              ),
+            ] else ...[
+              Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      controller: varNameController,
+                      decoration: const InputDecoration(labelText: 'Variant Name', hintText: 'e.g. 150g Pouch'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      controller: varSkuController,
+                      decoration: const InputDecoration(labelText: 'Variant SKU', hintText: 'e.g. ALM-150P-001'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 80,
+                    child: TextField(
+                      controller: varQtyController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Qty', hintText: '150'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 90,
+                    child: DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: varUnitController.text,
+                      decoration: const InputDecoration(labelText: 'Unit'),
+                      items: const [
+                        DropdownMenuItem(value: 'pcs', child: Text('pcs')),
+                        DropdownMenuItem(value: 'ml', child: Text('ml')),
+                        DropdownMenuItem(value: 'gm', child: Text('gm')),
+                        DropdownMenuItem(value: 'kg', child: Text('kg')),
+                        DropdownMenuItem(value: 'L', child: Text('L')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) varUnitController.text = val;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: varWholesaleController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Wholesale (₹)', hintText: '8.50'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: varMrpController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'MRP (₹)', hintText: '12.50'),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: onAddVariant,
+                    icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Add Variant',
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+            ],
+            if (variants.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: variants.length,
+                itemBuilder: (context, i) {
+                  final v = variants[i];
+                  return ListTile(
+                    title: Text(v.name, style: textTheme.titleSmall),
+                    subtitle: Text(
+                      '${v.sku} | ${v.quantity} ${v.unit} | '
+                      'Wholesale: ${formatCurrency(v.wholesale)} | '
+                      'MRP: ${formatCurrency(v.mrp)}',
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      onPressed: () => onRemoveVariant(i),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

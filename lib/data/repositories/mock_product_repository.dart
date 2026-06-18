@@ -1,6 +1,7 @@
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
+import 'package:stickify/domain/entities/paginated_result.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
@@ -148,6 +149,44 @@ class MockProductRepository implements ProductRepository {
       return matchesQuery && matchesCategory;
     }).toList();
     return Result.success(filtered);
+  }
+
+  @override
+  Future<Result<PaginatedResult<Product>, AppError>> getProducts({
+    required int page,
+    required int pageSize,
+    String? query,
+    String? category,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    final filtered = _mockProducts.where((product) {
+      final matchesQuery = query == null || query.isEmpty ||
+          product.name.toLowerCase().contains(query.toLowerCase()) ||
+          product.sku.toLowerCase().contains(query.toLowerCase());
+      final matchesCategory = category == null || category.isEmpty ||
+          (product.category ?? '').toLowerCase() == category.toLowerCase();
+      return matchesQuery && matchesCategory;
+    }).toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+
+    final totalCount = filtered.length;
+    final start = page * pageSize;
+    if (start >= totalCount) {
+      return Result.success(PaginatedResult(
+        items: [],
+        totalCount: totalCount,
+        hasMore: false,
+        currentPage: page,
+      ));
+    }
+    final end = (start + pageSize).clamp(0, filtered.length);
+    final items = filtered.sublist(start, end);
+    return Result.success(PaginatedResult(
+      items: items,
+      totalCount: totalCount,
+      hasMore: end < totalCount,
+      currentPage: page,
+    ));
   }
 
   @override

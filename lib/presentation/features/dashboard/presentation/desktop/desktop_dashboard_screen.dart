@@ -322,11 +322,9 @@ class _PrintTableColumnHeaders extends StatelessWidget {
             textTheme: textTheme,
             colorScheme: colorScheme,
           ),
-          _HeaderCell(
-            label: '',
-            flex: 2,
-            textTheme: textTheme,
-            colorScheme: colorScheme,
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: SizedBox(width: 140),
           ),
         ],
       ),
@@ -462,11 +460,9 @@ class _TableColumnHeaders extends StatelessWidget {
             textTheme: textTheme,
             colorScheme: colorScheme,
           ),
-          _HeaderCell(
-            label: '',
-            flex: 2,
-            textTheme: textTheme,
-            colorScheme: colorScheme,
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: SizedBox(width: 160),
           ),
         ],
       ),

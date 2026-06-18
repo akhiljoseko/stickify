@@ -166,15 +166,12 @@ class _QuickPrintButton extends StatelessWidget {
     ).value;
 
     if (isDesktopOrLarger) {
-      return FilledButton.icon(
+      return ElevatedButton.icon(
         onPressed: onPressed,
-        icon: const Icon(Icons.print_outlined, size: 16),
+        icon: const Icon(Icons.print_outlined, size: 18),
         label: const Text('Quick Print'),
-        style: FilledButton.styleFrom(
-          visualDensity: VisualDensity.compact,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        style: ElevatedButton.styleFrom(
+          shape: const StadiumBorder(),
         ),
       );
     }

@@ -402,21 +402,8 @@ class ProductDetailPanel extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('GLOBAL SKU PREFIX', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              product.sku,
-                              style: textTheme.labelMedium?.copyWith(
-                                fontFamily: 'JetBrains Mono',
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                          ),
+                          const SizedBox(height: 6),
+                          Text(product.sku, style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                         ],
                       ),
                       Column(
@@ -444,20 +431,7 @@ class ProductDetailPanel extends StatelessWidget {
                           children: [
                             Text('SHELF LIFE', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
                             const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                '${product.shelfLifeDays} Days',
-                                style: textTheme.labelMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.secondary,
-                                ),
-                              ),
-                            ),
+                            Text('${product.shelfLifeDays} Days', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                           ],
                         ),
                     ],

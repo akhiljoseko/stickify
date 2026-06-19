@@ -75,78 +75,78 @@ class AppTheme {
   // Light color scheme
   static const ColorScheme lightColorScheme = ColorScheme(
     brightness: Brightness.light,
-    primary: Color(0xFF003461),
+    primary: Color(0xFF1A2A4F),
     onPrimary: Color(0xFFFFFFFF),
-    primaryContainer: Color(0xFF004B87),
-    onPrimaryContainer: Color(0xFF8ABCFF),
-    secondary: Color(0xFF585F64),
+    primaryContainer: Color(0xFF2E3F66),
+    onPrimaryContainer: Color(0xFFD5E3FC),
+    secondary: Color(0xFF4A5B6E),
     onSecondary: Color(0xFFFFFFFF),
     secondaryContainer: Color(0xFFDAE1E6),
-    onSecondaryContainer: Color(0xFF5C6468),
-    tertiary: Color(0xFF003C27),
+    onSecondaryContainer: Color(0xFF4A5B6E),
+    tertiary: Color(0xFF007A7A),
     onTertiary: Color(0xFFFFFFFF),
-    tertiaryContainer: Color(0xFF005539),
-    onTertiaryContainer: Color(0xFF3DD197),
+    tertiaryContainer: Color(0xFF005A5A),
+    onTertiaryContainer: Color(0xFFE0F2F1),
     error: Color(0xFFBA1A1A),
     onError: Color(0xFFFFFFFF),
     errorContainer: Color(0xFFFFDAD6),
     onErrorContainer: Color(0xFF93000A),
-    surface: Color(0xFFF8F9FF),
-    onSurface: Color(0xFF0D1C2E),
-    onSurfaceVariant: Color(0xFF424750),
+    surface: Color(0xFFF5F7FA),
+    onSurface: Color(0xFF1A2A4F),
+    onSurfaceVariant: Color(0xFF4A5B6E),
     outline: Color(0xFF727781),
     outlineVariant: Color(0xFFC2C6D1),
-    inverseSurface: Color(0xFF233144),
-    onInverseSurface: Color(0xFFEAF1FF),
+    inverseSurface: Color(0xFF1E262F),
+    onInverseSurface: Color(0xFFF5F7FA),
     inversePrimary: Color(0xFFA3C9FF),
   );
 
   // Custom Light Surface Level Colors
-  static const Color lightSurfaceDim = Color(0xFFCCDBF3);
-  static const Color lightSurfaceBright = Color(0xFFF8F9FF);
+  static const Color lightSurfaceDim = Color(0xFFDCE1E9);
+  static const Color lightSurfaceBright = Color(0xFFF5F7FA);
   static const Color lightSurfaceContainerLowest = Color(0xFFFFFFFF);
-  static const Color lightSurfaceContainerLow = Color(0xFFEFF4FF);
-  static const Color lightSurfaceContainer = Color(0xFFE6EEFF);
-  static const Color lightSurfaceContainerHigh = Color(0xFFDCE9FF);
-  static const Color lightSurfaceContainerHighest = Color(0xFFD5E3FC);
+  static const Color lightSurfaceContainerLow = Color(0xFFEFF2F6);
+  static const Color lightSurfaceContainer = Color(0xFFE5E9F0);
+  static const Color lightSurfaceContainerHigh = Color(0xFFDBE0EA);
+  static const Color lightSurfaceContainerHighest = Color(0xFFD0D6E2);
 
   // Dark color scheme
   static const ColorScheme darkColorScheme = ColorScheme(
     brightness: Brightness.dark,
-    primary: Color(0xFFA3C9FF),
-    onPrimary: Color(0xFF003158),
-    primaryContainer: Color(0xFF004880),
-    onPrimaryContainer: Color(0xFFD3E4FF),
-    secondary: Color(0xFFC0C7CC),
-    onSecondary: Color(0xFF2A3135),
-    secondaryContainer: Color(0xFF41484C),
-    onSecondaryContainer: Color(0xFFDCE3E8),
-    tertiary: Color(0xFF4EDEA3),
-    onTertiary: Color(0xFF003822),
+    primary: Color(0xFF8E9BB4),
+    onPrimary: Color(0xFF1A2A4F),
+    primaryContainer: Color(0xFF2E3F66),
+    onPrimaryContainer: Color(0xFFD5E3FC),
+    secondary: Color(0xFFB0BEC5),
+    onSecondary: Color(0xFF1E262F),
+    secondaryContainer: Color(0xFF4A5B6E),
+    onSecondaryContainer: Color(0xFFECEFF1),
+    tertiary: Color(0xFF007A7A),
+    onTertiary: Color(0xFFFFFFFF),
     tertiaryContainer: Color(0xFF005234),
     onTertiaryContainer: Color(0xFF6FFBBE),
     error: Color(0xFFFFB4AB),
     onError: Color(0xFF690005),
     errorContainer: Color(0xFF93000A),
     onErrorContainer: Color(0xFFFFDAD6),
-    surface: Color(0xFF0D1C2E),
-    onSurface: Color(0xFFEAF1FF),
-    onSurfaceVariant: Color(0xFFC2C6D1),
-    outline: Color(0xFF8C919D),
-    outlineVariant: Color(0xFF424750),
-    inverseSurface: Color(0xFFEAF1FF),
-    onInverseSurface: Color(0xFF0D1C2E),
-    inversePrimary: Color(0xFF003461),
+    surface: Color(0xFF1E262F),
+    onSurface: Color(0xFFF5F7FA),
+    onSurfaceVariant: Color(0xFFB0BEC5),
+    outline: Color(0xFF78909C),
+    outlineVariant: Color(0xFF4A5B6E),
+    inverseSurface: Color(0xFFF5F7FA),
+    onInverseSurface: Color(0xFF1E262F),
+    inversePrimary: Color(0xFF1A2A4F),
   );
 
   // Custom Dark Surface Level Colors
-  static const Color darkSurfaceDim = Color(0xFF0A121D);
-  static const Color darkSurfaceBright = Color(0xFF1B293A);
-  static const Color darkSurfaceContainerLowest = Color(0xFF070E17);
-  static const Color darkSurfaceContainerLow = Color(0xFF0D1927);
-  static const Color darkSurfaceContainer = Color(0xFF112134);
-  static const Color darkSurfaceContainerHigh = Color(0xFF172A41);
-  static const Color darkSurfaceContainerHighest = Color(0xFF1F3550);
+  static const Color darkSurfaceDim = Color(0xFF141920);
+  static const Color darkSurfaceBright = Color(0xFF252F39);
+  static const Color darkSurfaceContainerLowest = Color(0xFF0F1318);
+  static const Color darkSurfaceContainerLow = Color(0xFF192027);
+  static const Color darkSurfaceContainer = Color(0xFF1E262F);
+  static const Color darkSurfaceContainerHigh = Color(0xFF28323E);
+  static const Color darkSurfaceContainerHighest = Color(0xFF333F4D);
 
   // Theme getters
   static ThemeData get lightTheme {
@@ -182,7 +182,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),
-          borderSide: const BorderSide(color: Color(0xFF003461), width: 2),
+          borderSide: const BorderSide(color: Color(0xFF1A2A4F), width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),
@@ -263,7 +263,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),
-          borderSide: const BorderSide(color: Color(0xFFA3C9FF), width: 2),
+          borderSide: const BorderSide(color: Color(0xFF8E9BB4), width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4),

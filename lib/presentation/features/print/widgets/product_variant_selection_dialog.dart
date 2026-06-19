@@ -19,10 +19,12 @@ class ProductVariantSelectionDialog extends StatefulWidget {
   }
 
   @override
-  State<ProductVariantSelectionDialog> createState() => _ProductVariantSelectionDialogState();
+  State<ProductVariantSelectionDialog> createState() =>
+      _ProductVariantSelectionDialogState();
 }
 
-class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionDialog> {
+class _ProductVariantSelectionDialogState
+    extends State<ProductVariantSelectionDialog> {
   final TextEditingController _searchController = TextEditingController();
   List<Product> _allProducts = [];
   List<Product> _filteredProducts = [];
@@ -72,7 +74,8 @@ class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionD
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredProducts = _allProducts.where((p) {
-        return p.name.toLowerCase().contains(query) || p.sku.toLowerCase().contains(query);
+        return p.name.toLowerCase().contains(query) ||
+            p.sku.toLowerCase().contains(query);
       }).toList();
     });
   }
@@ -98,7 +101,9 @@ class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionD
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          _selectedProduct == null ? 'Select Product' : 'Select Variant',
+                          _selectedProduct == null
+                              ? 'Select Product'
+                              : 'Select Variant',
                           style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.primary,
@@ -142,8 +147,18 @@ class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionD
                                 itemBuilder: (context, i) {
                                   final p = _filteredProducts[i];
                                   return ListTile(
-                                    title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    subtitle: Text(p.sku, style: const TextStyle(fontFamily: 'JetBrains Mono')),
+                                    title: Text(
+                                      p.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      p.sku,
+                                      style: const TextStyle(
+                                        fontFamily: 'JetBrains Mono',
+                                      ),
+                                    ),
                                     trailing: const Icon(Icons.chevron_right),
                                     onTap: () {
                                       setState(() {
@@ -168,11 +183,15 @@ class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionD
                       const SizedBox(height: 12),
                       Text(
                         _selectedProduct!.name,
-                        style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                        style: textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         _selectedProduct!.sku,
-                        style: textTheme.bodySmall?.copyWith(fontFamily: 'JetBrains Mono'),
+                        style: textTheme.bodySmall?.copyWith(
+                          fontFamily: 'JetBrains Mono',
+                        ),
                       ),
                       const SizedBox(height: 20),
                       // Variant selection
@@ -191,7 +210,7 @@ class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionD
                                     const SizedBox(height: 12),
                                     ElevatedButton(
                                       onPressed: () {
-                                        Navigator.pop(context);
+                                        // Navigator.pop(context);
                                         context.go('/products');
                                       },
                                       child: const Text('Go to Products'),
@@ -208,8 +227,15 @@ class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionD
                                 itemBuilder: (context, i) {
                                   final v = _selectedProduct!.variants[i];
                                   return ListTile(
-                                    title: Text(v.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    subtitle: Text('${v.quantity} ${v.unit} | MRP: ₹${v.mrp.toStringAsFixed(2)}'),
+                                    title: Text(
+                                      v.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      '${v.quantity} ${v.unit} | MRP: ₹${v.mrp.toStringAsFixed(2)}',
+                                    ),
                                     trailing: const Icon(Icons.print_outlined),
                                     onTap: () {
                                       Navigator.pop(context);

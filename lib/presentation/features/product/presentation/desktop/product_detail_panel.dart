@@ -701,10 +701,10 @@ class ProductDetailPanel extends StatelessWidget {
                               children: [
                                 IconButton(
                                   onPressed: () {
-                                    PrintTemplateSelectRoute(
-                                      productId: product.id,
-                                      variantSku: v.sku,
-                                    ).go(context);
+                                  PrintTemplateSelectRoute(
+                                    productId: product.id,
+                                    variantSku: v.sku,
+                                  ).push<void>(context);
                                   },
                                   icon: const Icon(Icons.print_outlined, size: 18),
                                   style: IconButton.styleFrom(

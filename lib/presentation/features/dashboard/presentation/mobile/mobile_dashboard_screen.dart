@@ -357,7 +357,7 @@ class _RecentPrintsList extends StatelessWidget {
             variantSku: job.variantSku,
             templateId: job.templateId,
             quantity: job.labelCount,
-          ).go(context),
+          ).push<void>(context),
         );
       },
     );
@@ -426,7 +426,7 @@ class _MobileVariantList extends StatelessWidget {
             PrintTemplateSelectRoute(
               productId: v.productId,
               variantSku: v.variantSku,
-            ).go(context);
+            ).push<void>(context);
           },
         );
       },

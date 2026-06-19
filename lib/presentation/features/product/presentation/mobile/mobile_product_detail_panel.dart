@@ -368,7 +368,7 @@ class MobileProductDetailPanel extends StatelessWidget {
                           PrintTemplateSelectRoute(
                             productId: product.id,
                             variantSku: v.sku,
-                          ).go(context);
+                          ).push<void>(context);
                         } else if (value == 'delete') {
                           final confirm = await showDialog<bool>(
                             context: context,

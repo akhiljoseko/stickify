@@ -174,13 +174,14 @@ class LabelTemplateHiveModelAdapter
       elements: fields[6] == null
           ? const []
           : (fields[6] as List).cast<ElementBlueprintHiveModel>(),
+      imageUrl: fields[7] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, LabelTemplateHiveModel obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -194,7 +195,9 @@ class LabelTemplateHiveModelAdapter
       ..writeByte(5)
       ..write(obj.stickerConfig)
       ..writeByte(6)
-      ..write(obj.elements);
+      ..write(obj.elements)
+      ..writeByte(7)
+      ..write(obj.imageUrl);
   }
 
   @override

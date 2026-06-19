@@ -11,6 +11,7 @@ class TemplateFirestoreModel {
     this.sheetConfig,
     this.stickerConfig,
     this.elements = const [],
+    this.imageUrl,
   });
 
   factory TemplateFirestoreModel.fromDomain(LabelTemplate t) {
@@ -26,6 +27,7 @@ class TemplateFirestoreModel {
           ? null
           : StickerConfigFirestoreModel.fromDomain(t.stickerConfig!),
       elements: t.elements.map(ElementBlueprintFirestoreModel.fromDomain).toList(),
+      imageUrl: t.imageUrl,
     );
   }
 
@@ -53,6 +55,7 @@ class TemplateFirestoreModel {
       elements: (json['elements'] as List? ?? [])
           .map((e) => ElementBlueprintFirestoreModel.fromMap(e as Map<String, dynamic>))
           .toList(),
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 
@@ -63,6 +66,7 @@ class TemplateFirestoreModel {
   final SheetConfigFirestoreModel? sheetConfig;
   final StickerConfigFirestoreModel? stickerConfig;
   final List<ElementBlueprintFirestoreModel> elements;
+  final String? imageUrl;
 
   Map<String, dynamic> toMap() {
     return {
@@ -73,6 +77,7 @@ class TemplateFirestoreModel {
       'sheetConfig': sheetConfig?.toMap(),
       'stickerConfig': stickerConfig?.toMap(),
       'elements': elements.map((e) => e.toMap()).toList(),
+      'imageUrl': imageUrl,
     };
   }
 
@@ -85,6 +90,7 @@ class TemplateFirestoreModel {
       sheetConfig: sheetConfig?.toDomain(),
       stickerConfig: stickerConfig?.toDomain(),
       elements: elements.map((e) => e.toDomain()).toList(),
+      imageUrl: imageUrl,
     );
   }
 }

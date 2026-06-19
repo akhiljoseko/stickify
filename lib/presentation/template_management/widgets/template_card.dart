@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/widgets/widgets.dart';
 
 /// Grid card item displaying metadata and CRUD action buttons for a single template.
 class TemplateCard extends StatefulWidget {
@@ -9,6 +10,7 @@ class TemplateCard extends StatefulWidget {
     required this.template,
     required this.onEdit,
     required this.onDelete,
+    required this.onEditDetails,
     super.key,
   });
 
@@ -20,6 +22,9 @@ class TemplateCard extends StatefulWidget {
 
   /// Callback to delete the template.
   final VoidCallback onDelete;
+
+  /// Callback to edit the template details.
+  final VoidCallback onEditDetails;
 
   @override
   State<TemplateCard> createState() => _TemplateCardState();
@@ -82,32 +87,48 @@ class _TemplateCardState extends State<TemplateCard> {
                     top: Radius.circular(11),
                   ),
                 ),
-                padding: const EdgeInsets.all(12),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Container(
-                    width: 120,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: colorScheme.outlineVariant),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
+                padding: template.imageUrl != null && template.imageUrl!.isNotEmpty
+                    ? EdgeInsets.zero
+                    : const EdgeInsets.all(12),
+                child: template.imageUrl != null && template.imageUrl!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(11),
                         ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.picture_in_picture_alt_outlined,
-                      color: colorScheme.primary.withValues(alpha: 0.5),
-                      size: 32,
-                    ),
-                  ),
-                ),
+                        child: AppImage(
+                          imageUrl: template.imageUrl,
+                          placeholderIcon: Icons.picture_in_picture_alt_outlined,
+                          width: double.infinity,
+                          height: double.infinity,
+                          borderRadius: 0,
+                          iconSize: 32,
+                        ),
+                      )
+                    : FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Container(
+                          width: 120,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: colorScheme.outlineVariant),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.picture_in_picture_alt_outlined,
+                            color: colorScheme.primary.withValues(alpha: 0.5),
+                            size: 32,
+                          ),
+                        ),
+                      ),
               ),
             ),
 
@@ -153,6 +174,8 @@ class _TemplateCardState extends State<TemplateCard> {
                           onSelected: (val) {
                             if (val == 'edit') {
                               widget.onEdit();
+                            } else if (val == 'edit_details') {
+                              widget.onEditDetails();
                             } else if (val == 'delete') {
                               widget.onDelete();
                             }
@@ -165,6 +188,16 @@ class _TemplateCardState extends State<TemplateCard> {
                                   Icon(Icons.edit_outlined, size: 20),
                                   SizedBox(width: 8),
                                   Text('Edit Template'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'edit_details',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.info_outline, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Edit Details'),
                                 ],
                               ),
                             ),

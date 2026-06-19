@@ -10,6 +10,7 @@ class LabelTemplateHiveModel extends HiveObject {
     this.sheetConfig,
     this.stickerConfig,
     this.elements = const [],
+    this.imageUrl,
   });
 
   factory LabelTemplateHiveModel.fromDomain(LabelTemplate t) {
@@ -25,6 +26,7 @@ class LabelTemplateHiveModel extends HiveObject {
           ? null
           : StickerConfigHiveModel.fromDomain(t.stickerConfig!),
       elements: t.elements.map(ElementBlueprintHiveModel.fromDomain).toList(),
+      imageUrl: t.imageUrl,
     );
   }
 
@@ -35,6 +37,7 @@ class LabelTemplateHiveModel extends HiveObject {
   final SheetConfigHiveModel? sheetConfig;
   final StickerConfigHiveModel? stickerConfig;
   final List<ElementBlueprintHiveModel> elements;
+  final String? imageUrl;
 
   LabelTemplate toDomain() {
     return LabelTemplate(
@@ -45,6 +48,7 @@ class LabelTemplateHiveModel extends HiveObject {
       sheetConfig: sheetConfig?.toDomain(),
       stickerConfig: stickerConfig?.toDomain(),
       elements: elements.map((e) => e.toDomain()).toList(),
+      imageUrl: imageUrl,
     );
   }
 }

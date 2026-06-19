@@ -3,6 +3,7 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/print_job.dart';
+import 'package:stickify/presentation/widgets/widgets.dart';
 
 class RecentPrintRow extends StatefulWidget {
   const RecentPrintRow({
@@ -56,22 +57,13 @@ class _RecentPrintRowState extends State<RecentPrintRow> {
         ),
         child: Row(
           children: [
-            Container(
+            AppImage(
+              imageUrl: widget.job.imageUrl,
+              placeholderIcon: Icons.inventory_2_outlined,
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                color: colorScheme.container,
-                image: widget.job.imageUrl != null && widget.job.imageUrl!.isNotEmpty
-                    ? DecorationImage(
-                        image: resolveImageProvider(widget.job.imageUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: widget.job.imageUrl == null || widget.job.imageUrl!.isEmpty
-                  ? Icon(Icons.inventory_2_outlined, size: 16, color: colorScheme.primary)
-                  : null,
+              borderRadius: 4,
+              iconSize: 16,
             ),
             const SizedBox(width: 12),
             _Cell(

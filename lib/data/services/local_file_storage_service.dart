@@ -37,4 +37,32 @@ class LocalFileStorageService implements FileStorageService {
       return Result.failure(UnexpectedError(message: e.toString()));
     }
   }
+
+  @override
+  Future<Result<String, AppError>> uploadTemplateImage(File file) async {
+    try {
+      final docsDir = await getApplicationDocumentsDirectory();
+      final targetDir = Directory(
+        '${docsDir.path}${Platform.pathSeparator}label-grid${Platform.pathSeparator}template-images',
+      );
+
+      // If the file already lives in the target directory, return it directly to avoid duplicate copying
+      if (file.path.startsWith(targetDir.path)) {
+        return Result.success(file.path);
+      }
+
+      if (!targetDir.existsSync()) {
+        targetDir.createSync(recursive: true);
+      }
+
+      final extension = file.path.contains('.') ? file.path.split('.').last : 'png';
+      final fileName = 'tpl_${const Uuid().v4()}.$extension';
+      final targetPath = '${targetDir.path}${Platform.pathSeparator}$fileName';
+
+      final targetFile = await file.copy(targetPath);
+      return Result.success(targetFile.path);
+    } on Exception catch (e) {
+      return Result.failure(UnexpectedError(message: e.toString()));
+    }
+  }
 }

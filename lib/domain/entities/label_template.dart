@@ -17,6 +17,7 @@ class LabelTemplate extends Equatable {
     this.elements = const [],
     this.isFinalized = false,
     this.updatedAt,
+    this.imageUrl,
   });
 
   /// Unique identifier of the label template.
@@ -40,6 +41,9 @@ class LabelTemplate extends Equatable {
   /// Timestamp representing when the template design was last updated.
   final DateTime? updatedAt;
 
+  /// Optional preview image URL or local file path for this template.
+  final String? imageUrl;
+
   @override
   List<Object?> get props => [
         id,
@@ -49,6 +53,7 @@ class LabelTemplate extends Equatable {
         elements,
         isFinalized,
         updatedAt,
+        imageUrl,
       ];
 
   /// Creates a copy of this [LabelTemplate] with the given fields replaced by new values.
@@ -60,6 +65,7 @@ class LabelTemplate extends Equatable {
     List<ElementBlueprint>? elements,
     bool? isFinalized,
     DateTime? updatedAt,
+    String? imageUrl,
   }) {
     return LabelTemplate(
       id: id ?? this.id,
@@ -69,6 +75,7 @@ class LabelTemplate extends Equatable {
       elements: elements ?? this.elements,
       isFinalized: isFinalized ?? this.isFinalized,
       updatedAt: updatedAt ?? this.updatedAt,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 }

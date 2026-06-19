@@ -4,12 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/core/core.dart';
+import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/template_management/bloc/template_list_cubit.dart';
 import 'package:stickify/presentation/template_management/bloc/template_list_state.dart';
 import 'package:stickify/presentation/template_management/widgets/template_card.dart';
 import 'package:stickify/presentation/template_management/widgets/template_card_skeleton.dart';
-import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
+import 'package:stickify/presentation/widgets/widgets.dart';
 
 /// Screen presenting the admin interface for managing custom sticker templates.
 ///
@@ -27,6 +28,7 @@ class TemplateManagementScreen extends StatelessWidget {
       create: (context) {
         final cubit = TemplateListCubit(
           context.read<TemplateRepository>(),
+          context.read<FileStorageService>(),
         );
         unawaited(cubit.loadTemplates());
         return cubit;
@@ -61,41 +63,243 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
 
   void _showCreateTemplateDialog(BuildContext context) {
     final textController = TextEditingController();
+    String? localImagePath;
 
     unawaited(showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Create New Template'),
-          content: TextField(
-            controller: textController,
-            decoration: const InputDecoration(
-              hintText: 'Enter template name',
-              labelText: 'Template Name',
-            ),
-            autofocus: true,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final name = textController.text.trim();
-                if (name.isNotEmpty) {
-                  Navigator.pop(dialogContext);
-                  final cubit = context.read<TemplateListCubit>();
-                  final template = await cubit.createNewTemplate(name);
-                  if (template != null && context.mounted) {
-                    // Navigate to Flow B: Sheet Configuration
-                    SheetConfigRoute(templateId: template.id).go(context);
-                  }
-                }
-              },
-              child: const Text('Create'),
-            ),
-          ],
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final theme = Theme.of(context);
+            final colorScheme = theme.colorScheme;
+            final textTheme = theme.textTheme;
+
+            Future<void> pickImage() async {
+              final path = await context.read<FilePickerService>().pickImage();
+              if (path != null) {
+                setState(() {
+                  localImagePath = path;
+                });
+              }
+            }
+
+            void clearImage() {
+              setState(() {
+                localImagePath = null;
+              });
+            }
+
+            return AlertDialog(
+              title: const Text('Create New Template'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: textController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter template name',
+                      labelText: 'Template Name',
+                    ),
+                    autofocus: true,
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Template Cover Photo (optional)', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: pickImage,
+                    child: Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: colorScheme.outlineVariant),
+                        borderRadius: BorderRadius.circular(8),
+                        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
+                      ),
+                      child: localImagePath != null
+                          ? Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image(
+                                      image: resolveImageProvider(localImagePath!),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 8,
+                                  top: 8,
+                                  child: CircleAvatar(
+                                    backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
+                                    radius: 16,
+                                    child: IconButton(
+                                      icon: Icon(Icons.close, size: 16, color: colorScheme.error),
+                                      onPressed: clearImage,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_photo_alternate_outlined, size: 36, color: colorScheme.primary),
+                                  const SizedBox(height: 8),
+                                  Text('Tap to select cover image', style: textTheme.bodySmall?.copyWith(color: colorScheme.primary)),
+                                ],
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final name = textController.text.trim();
+                    if (name.isNotEmpty) {
+                      Navigator.pop(dialogContext);
+                      final cubit = context.read<TemplateListCubit>();
+                      final template = await cubit.createNewTemplate(name, imageUrl: localImagePath);
+                      if (template != null && context.mounted) {
+                        // Navigate to Flow B: Sheet Configuration
+                        SheetConfigRoute(templateId: template.id).go(context);
+                      }
+                    }
+                  },
+                  child: const Text('Create'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ));
+  }
+
+  void _showEditTemplateDetailsDialog(BuildContext context, LabelTemplate template) {
+    final textController = TextEditingController(text: template.name);
+    var localImagePath = template.imageUrl;
+
+    unawaited(showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final theme = Theme.of(context);
+            final colorScheme = theme.colorScheme;
+            final textTheme = theme.textTheme;
+
+            Future<void> pickImage() async {
+              final path = await context.read<FilePickerService>().pickImage();
+              if (path != null) {
+                setState(() {
+                  localImagePath = path;
+                });
+              }
+            }
+
+            void clearImage() {
+              setState(() {
+                localImagePath = null;
+              });
+            }
+
+            return AlertDialog(
+              title: const Text('Edit Template Details'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: textController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter template name',
+                      labelText: 'Template Name',
+                    ),
+                    autofocus: true,
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Template Cover Photo (optional)', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: pickImage,
+                    child: Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: colorScheme.outlineVariant),
+                        borderRadius: BorderRadius.circular(8),
+                        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
+                      ),
+                      child: localImagePath != null
+                          ? Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image(
+                                      image: resolveImageProvider(localImagePath!),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 8,
+                                  top: 8,
+                                  child: CircleAvatar(
+                                    backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
+                                    radius: 16,
+                                    child: IconButton(
+                                      icon: Icon(Icons.close, size: 16, color: colorScheme.error),
+                                      onPressed: clearImage,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_photo_alternate_outlined, size: 36, color: colorScheme.primary),
+                                  const SizedBox(height: 8),
+                                  Text('Tap to select cover image', style: textTheme.bodySmall?.copyWith(color: colorScheme.primary)),
+                                ],
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final name = textController.text.trim();
+                    if (name.isNotEmpty) {
+                      Navigator.pop(dialogContext);
+                      final cubit = context.read<TemplateListCubit>();
+                      await cubit.updateTemplateDetails(
+                        template,
+                        newName: name,
+                        newImageUrl: localImagePath,
+                      );
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
         );
       },
     ));
@@ -199,6 +403,9 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                                       onEdit: () {
                                         LabelEditorRoute(templateId: template.id).go(context);
                                       },
+                                      onEditDetails: () {
+                                        _showEditTemplateDetailsDialog(context, template);
+                                      },
                                       onDelete: () {
                                         unawaited(context.read<TemplateListCubit>().deleteTemplate(template.id));
                                       },
@@ -227,6 +434,9 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                                     onEdit: () {
                                       // Flow D: Label Designer
                                       LabelEditorRoute(templateId: template.id).go(context);
+                                    },
+                                    onEditDetails: () {
+                                      _showEditTemplateDetailsDialog(context, template);
                                     },
                                     onDelete: () {
                                       // Delete template
@@ -345,11 +555,13 @@ class _CompactTemplateListTile extends StatelessWidget {
     required this.template,
     required this.onEdit,
     required this.onDelete,
+    required this.onEditDetails,
   });
 
   final LabelTemplate template;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onEditDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -373,19 +585,12 @@ class _CompactTemplateListTile extends StatelessWidget {
       child: Row(
         children: [
           // Left: Compact Thumbnail
-          Container(
+          AppImage(
+            imageUrl: template.imageUrl,
+            placeholderIcon: Icons.picture_in_picture_alt_outlined,
             width: 72,
             height: 48,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: colorScheme.outlineVariant),
-            ),
-            child: Icon(
-              Icons.picture_in_picture_alt_outlined,
-              color: colorScheme.primary.withValues(alpha: 0.5),
-              size: 20,
-            ),
+            iconSize: 20,
           ),
           const SizedBox(width: 16),
           // Center: Template Info
@@ -431,6 +636,8 @@ class _CompactTemplateListTile extends StatelessWidget {
             onSelected: (val) {
               if (val == 'edit') {
                 onEdit();
+              } else if (val == 'edit_details') {
+                onEditDetails();
               } else if (val == 'delete') {
                 onDelete();
               }
@@ -443,6 +650,16 @@ class _CompactTemplateListTile extends StatelessWidget {
                     Icon(Icons.edit_outlined, size: 20),
                     SizedBox(width: 8),
                     Text('Edit Template'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'edit_details',
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 20),
+                    SizedBox(width: 8),
+                    Text('Edit Details'),
                   ],
                 ),
               ),

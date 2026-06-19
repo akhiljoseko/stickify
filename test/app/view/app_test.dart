@@ -12,7 +12,9 @@ import 'package:stickify/presentation/features/dashboard/presentation/dashboard_
 import 'package:stickify/presentation/login/login_screen.dart';
 
 class MockAuthService extends Mock implements AuthService {}
+
 class MockRemoteDatabaseService extends Mock implements RemoteDatabaseService {}
+
 class MockLocalDatabase extends Mock implements LocalDatabase {}
 
 void main() {
@@ -30,13 +32,21 @@ void main() {
     // Stub initial service calls
     when(() => mockLocalDb.init()).thenAnswer((_) async {});
     when(() => mockLocalDb.clear()).thenAnswer((_) async {});
-    when(() => mockLocalDb.getAll<PrintJobHiveModel>(any())).thenAnswer((_) async => <PrintJobHiveModel>[]);
-    when(() => mockLocalDb.getAll<ProductHiveModel>(any())).thenAnswer((_) async => <ProductHiveModel>[]);
-    when(() => mockLocalDb.getAll<LabelTemplateHiveModel>(any())).thenAnswer((_) async => <LabelTemplateHiveModel>[]);
-    when(() => mockAuth.authStateChanges).thenAnswer((_) => authStateController.stream);
-    
-    // Seed initial unauthenticated state
-    authStateController.add(null);
+    when(
+      () => mockLocalDb.getAll<PrintJobHiveModel>(any()),
+    ).thenAnswer((_) async => <PrintJobHiveModel>[]);
+    when(
+      () => mockLocalDb.getAll<ProductHiveModel>(any()),
+    ).thenAnswer((_) async => <ProductHiveModel>[]);
+    when(
+      () => mockLocalDb.getAll<LabelTemplateHiveModel>(any()),
+    ).thenAnswer((_) async => <LabelTemplateHiveModel>[]);
+    when(() => mockAuth.authStateChanges).thenAnswer(
+      (_) => (() async* {
+        yield null;
+        yield* authStateController.stream;
+      })(),
+    );
   });
 
   tearDown(() {
@@ -44,41 +54,52 @@ void main() {
   });
 
   group('App', () {
-    testWidgets('renders LoginScreen initially, and DashboardPage after signing in', (tester) async {
-      final locator = await AppServiceLocator.create(
-        localDbOverride: mockLocalDb,
-        authServiceOverride: mockAuth,
-        remoteDbOverride: mockRemoteDb,
-      );
-      await tester.pumpWidget(
-        App(
-          locator: locator,
-        ),
-      );
-      
-      // Allow router and stream listener to execute
-      await tester.pump();
+    testWidgets(
+      'renders LoginScreen initially, and DashboardPage after signing in',
+      (tester) async {
+        final locator = await AppServiceLocator.create(
+          localDbOverride: mockLocalDb,
+          authServiceOverride: mockAuth,
+          remoteDbOverride: mockRemoteDb,
+        );
+        await tester.pumpWidget(
+          App(
+            locator: locator,
+          ),
+        );
 
-      expect(find.byType(LoginScreen), findsOneWidget);
+        // Allow splash screen timer to complete and transition animations to settle
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pump(const Duration(milliseconds: 500));
 
-      // Setup login success stubs
-      when(() => mockAuth.signIn(any(), any())).thenAnswer(
-        (_) async {
-          const user = AppUser(uid: 'user-123', email: 'test@example.com');
-          authStateController.add(user);
-          return const Result.success(user);
-        },
-      );
+        expect(find.byType(LoginScreen), findsOneWidget);
 
-      await tester.enterText(find.bySemanticsLabel('Email Address'), 'test@example.com');
-      await tester.enterText(find.bySemanticsLabel('Password'), 'password123');
-      await tester.tap(find.text('Sign In'));
-      
-      // Let AuthCubit login run and stream changes propagate
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
+        // Setup login success stubs
+        when(() => mockAuth.signIn(any(), any())).thenAnswer(
+          (_) async {
+            const user = AppUser(uid: 'user-123', email: 'test@example.com');
+            authStateController.add(user);
+            return const Result.success(user);
+          },
+        );
 
-      expect(find.byType(DashboardPage), findsOneWidget);
-    });
+        await tester.enterText(
+          find.bySemanticsLabel('Email Address'),
+          'test@example.com',
+        );
+        await tester.enterText(
+          find.bySemanticsLabel('Password'),
+          'password123',
+        );
+        await tester.tap(find.text('Sign In'));
+
+        // Let AuthCubit login run and stream changes propagate
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        expect(find.byType(DashboardPage), findsOneWidget);
+      },
+    );
   });
 }

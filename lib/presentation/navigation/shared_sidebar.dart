@@ -47,7 +47,7 @@ class CustomSidebar extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'LabelFlow Pro',
+                        'Label Grid',
                         style: textTheme.headlineSmall?.copyWith(
                           fontFamily: 'Hanken Grotesk',
                           fontWeight: FontWeight.bold,

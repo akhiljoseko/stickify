@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Welcome to Stickify',
+                            'Welcome to Label Grid',
                             style: textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),

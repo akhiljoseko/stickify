@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "co.inevitablesoftware.stickify" "\0"
-            VALUE "FileDescription", "stickify" "\0"
+            VALUE "CompanyName", "Inevitable Software Company" "\0"
+            VALUE "FileDescription", "Label Grid" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "stickify" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 co.inevitablesoftware.stickify. All rights reserved." "\0"
-            VALUE "OriginalFilename", "stickify.exe" "\0"
-            VALUE "ProductName", "Stickify" "\0"
+            VALUE "InternalName", "label_grid" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Inevitable Software Company. All rights reserved." "\0"
+            VALUE "OriginalFilename", "label_grid.exe" "\0"
+            VALUE "ProductName", "Label Grid" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

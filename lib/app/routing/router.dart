@@ -15,6 +15,7 @@ import 'package:stickify/presentation/forgot_password/forgot_password_screen.dar
 import 'package:stickify/presentation/login/login_screen.dart';
 import 'package:stickify/presentation/registration/register_screen.dart';
 import 'package:stickify/presentation/settings/settings_screen.dart';
+import 'package:stickify/presentation/splash/splash_screen.dart';
 import 'package:stickify/presentation/template_management/template_management_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -41,6 +42,20 @@ part 'router.g.dart';
 // These routes are accessible without authentication. They live outside the
 // AppShellRouteData so they render full-screen without the navigation rail.
 // ─────────────────────────────────────────────────────────────────────────────
+
+/// The splash screen route shown on application startup.
+@TypedGoRoute<SplashRoute>(path: '/splash')
+@immutable
+class SplashRoute extends GoRouteData with $SplashRoute {
+  const SplashRoute();
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const SplashScreen();
+  }
+}
 
 /// The login screen route — entry point for unauthenticated users.
 @TypedGoRoute<LoginRoute>(path: '/login')
@@ -97,7 +112,8 @@ class PrintHistoryRoute extends GoRouteData with $PrintHistoryRoute {
   path: '/print/:productId/variants/:variantSku/templates',
 )
 @immutable
-class PrintTemplateSelectRoute extends GoRouteData with $PrintTemplateSelectRoute {
+class PrintTemplateSelectRoute extends GoRouteData
+    with $PrintTemplateSelectRoute {
   const PrintTemplateSelectRoute({
     required this.productId,
     required this.variantSku,
@@ -398,7 +414,7 @@ class AppRouter {
       // GoRouter always runs the `redirect` callback on the initial location,
       // so even if we start at `/dashboard`, an unauthenticated user will be
       // correctly redirected to `/login` on first frame.
-      initialLocation: '/login',
+      initialLocation: '/splash',
 
       // ── Refresh Listenable ────────────────────────────────────────────────
       // GoRouterRefreshStream wraps the cubit's stream. Every time the cubit
@@ -424,9 +440,17 @@ class AppRouter {
         final authState = authCubit.state;
 
         // ── Step 2: Classify the route the user is trying to reach ─────────
-        // Auth routes are the three public screens. All other routes (the
-        // shell and its branches) are considered protected.
         final uri = state.uri.toString();
+
+        final isSplashRoute = uri.startsWith('/splash');
+        if (isSplashRoute) {
+          return null;
+        }
+
+        if (authState is AuthInitial) {
+          return '/splash';
+        }
+
         final isAuthRoute =
             uri.startsWith('/login') ||
             uri.startsWith('/register') ||

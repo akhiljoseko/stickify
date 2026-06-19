@@ -46,7 +46,10 @@ class ParametersPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Print Parameters', style: textTheme.titleSmall?.copyWith(color: colorScheme.primary)),
+            Text(
+              'Print Parameters',
+              style: textTheme.titleSmall?.copyWith(color: colorScheme.primary),
+            ),
             const SizedBox(height: 20),
             // Quantity
             TextFormField(
@@ -63,7 +66,7 @@ class ParametersPanel extends StatelessWidget {
               },
             ),
             const SizedBox(height: 20),
-             // Printer Selection
+            // Printer Selection
             DropdownButtonFormField<PrinterDevice>(
               isExpanded: true,
               value: loadedState.selectedPrinter,
@@ -71,12 +74,14 @@ class ParametersPanel extends StatelessWidget {
                 labelText: 'Printer Selection',
                 border: OutlineInputBorder(),
               ),
-              items: loadedState.availablePrinters.map((p) =>
-                DropdownMenuItem<PrinterDevice>(
-                  value: p,
-                  child: Text(p.name),
-                ),
-              ).toList(),
+              items: loadedState.availablePrinters
+                  .map(
+                    (p) => DropdownMenuItem<PrinterDevice>(
+                      value: p,
+                      child: Text(p.name),
+                    ),
+                  )
+                  .toList(),
               onChanged: (val) {
                 if (val != null) {
                   context.read<PrintWorkflowCubit>().updatePrinter(val);
@@ -86,32 +91,47 @@ class ParametersPanel extends StatelessWidget {
             const SizedBox(height: 20),
             const Divider(),
             const SizedBox(height: 16),
-            // Stock Metadata
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Label Stock', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      template.name,
-                      style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
+            // Template selection dropdown
+            DropdownButtonFormField<LabelTemplate>(
+              isExpanded: true,
+              initialValue: loadedState.selectedTemplate,
+              decoration: const InputDecoration(
+                labelText: 'Label Template',
+                border: OutlineInputBorder(),
+              ),
+              items: loadedState.templates
+                  .map(
+                    (t) => DropdownMenuItem<LabelTemplate>(
+                      value: t,
+                      child: Text(t.name),
                     ),
-                  ),
-                ),
-              ],
+                  )
+                  .toList(),
+              onChanged: loadedState.templates.isEmpty
+                  ? null
+                  : (val) {
+                      if (val != null) {
+                        context.read<PrintWorkflowCubit>().selectTemplate(val);
+                      }
+                    },
             ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Orientation', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
                 Text(
-                  sheetConfig.pageWidth > sheetConfig.pageHeight ? 'Landscape' : 'Portrait',
-                  style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                  'Orientation',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                Text(
+                  sheetConfig.pageWidth > sheetConfig.pageHeight
+                      ? 'Landscape'
+                      : 'Portrait',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -130,7 +150,9 @@ class ParametersPanel extends StatelessWidget {
                     children: [
                       Text(
                         'Total Labels',
-                        style: textTheme.bodyLarge?.copyWith(color: colorScheme.onPrimaryContainer),
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onPrimaryContainer,
+                        ),
                       ),
                       Text(
                         loadedState.quantity.toString(),
@@ -147,7 +169,9 @@ class ParametersPanel extends StatelessWidget {
                     children: [
                       Text(
                         'Sheets Required',
-                        style: textTheme.bodyLarge?.copyWith(color: colorScheme.onPrimaryContainer),
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onPrimaryContainer,
+                        ),
                       ),
                       Text(
                         totalSheets.toString(),
@@ -178,11 +202,16 @@ class ParametersPanel extends StatelessWidget {
                     ? const SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.print),
                 label: Text(
-                  state is PrintWorkflowSubmitting ? 'Sending to Printer...' : 'Start Print Job',
+                  state is PrintWorkflowSubmitting
+                      ? 'Sending to Printer...'
+                      : 'Start Print Job',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
@@ -283,7 +312,12 @@ class SheetsPreview extends StatelessWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Sheet Layout Preview', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Sheet Layout Preview',
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   legendRow,
                 ],
@@ -292,7 +326,12 @@ class SheetsPreview extends StatelessWidget {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Sheet Layout Preview', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Sheet Layout Preview',
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   legendRow,
                 ],
               );
@@ -309,10 +348,18 @@ class SheetsPreview extends StatelessWidget {
           separatorBuilder: (context, index) => const SizedBox(height: 24),
           itemBuilder: (context, sheetIndex) {
             final disabledOnSheet = loadedState.disabledSlots
-                .where((s) => s >= sheetIndex * slotsPerSheet && s < (sheetIndex + 1) * slotsPerSheet)
+                .where(
+                  (s) =>
+                      s >= sheetIndex * slotsPerSheet &&
+                      s < (sheetIndex + 1) * slotsPerSheet,
+                )
                 .length;
             final activeOnSheet = activePositions
-                .where((s) => s >= sheetIndex * slotsPerSheet && s < (sheetIndex + 1) * slotsPerSheet)
+                .where(
+                  (s) =>
+                      s >= sheetIndex * slotsPerSheet &&
+                      s < (sheetIndex + 1) * slotsPerSheet,
+                )
                 .length;
 
             final sheetTitle = 'Sheet ${sheetIndex + 1}';
@@ -330,19 +377,33 @@ class SheetsPreview extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(sheetTitle.toUpperCase(), style: textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                          sheetTitle.toUpperCase(),
+                          style: textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: disabledOnSheet > 0
-                                ? colorScheme.errorContainer.withValues(alpha: 0.3)
-                                : colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+                                ? colorScheme.errorContainer.withValues(
+                                    alpha: 0.3,
+                                  )
+                                : colorScheme.tertiaryContainer.withValues(
+                                    alpha: 0.3,
+                                  ),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             statusLabel,
                             style: textTheme.labelSmall?.copyWith(
-                              color: disabledOnSheet > 0 ? colorScheme.error : colorScheme.primary,
+                              color: disabledOnSheet > 0
+                                  ? colorScheme.error
+                                  : colorScheme.primary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -355,52 +416,96 @@ class SheetsPreview extends StatelessWidget {
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(color: colorScheme.outlineVariant, width: 2),
+                          border: Border.all(
+                            color: colorScheme.outlineVariant,
+                            width: 2,
+                          ),
                           boxShadow: const [
                             BoxShadow(
                               color: Colors.black12,
                               blurRadius: 8,
                               offset: Offset(0, 4),
-                            )
+                            ),
                           ],
                         ),
                         child: AspectRatio(
-                          aspectRatio: sheetConfig.pageWidth / sheetConfig.pageHeight,
+                          aspectRatio:
+                              sheetConfig.pageWidth / sheetConfig.pageHeight,
                           child: LayoutBuilder(
                             builder: (context, constraints) {
-                              final paddingLeft = (sheetConfig.marginLeft / sheetConfig.pageWidth) * constraints.maxWidth;
-                              final paddingRight = (sheetConfig.marginRight / sheetConfig.pageWidth) * constraints.maxWidth;
-                              final paddingTop = (sheetConfig.marginTop / sheetConfig.pageHeight) * constraints.maxHeight;
-                              final paddingBottom = (sheetConfig.marginBottom / sheetConfig.pageHeight) * constraints.maxHeight;
+                              final paddingLeft =
+                                  (sheetConfig.marginLeft /
+                                      sheetConfig.pageWidth) *
+                                  constraints.maxWidth;
+                              final paddingRight =
+                                  (sheetConfig.marginRight /
+                                      sheetConfig.pageWidth) *
+                                  constraints.maxWidth;
+                              final paddingTop =
+                                  (sheetConfig.marginTop /
+                                      sheetConfig.pageHeight) *
+                                  constraints.maxHeight;
+                              final paddingBottom =
+                                  (sheetConfig.marginBottom /
+                                      sheetConfig.pageHeight) *
+                                  constraints.maxHeight;
 
                               return Padding(
-                                padding: EdgeInsets.fromLTRB(paddingLeft, paddingTop, paddingRight, paddingBottom),
+                                padding: EdgeInsets.fromLTRB(
+                                  paddingLeft,
+                                  paddingTop,
+                                  paddingRight,
+                                  paddingBottom,
+                                ),
                                 child: GridView.builder(
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: sheetConfig.columns,
-                                    crossAxisSpacing: (sheetConfig.columnGap / sheetConfig.pageWidth) * constraints.maxWidth,
-                                    mainAxisSpacing: (sheetConfig.rowGap / sheetConfig.pageHeight) * constraints.maxHeight,
-                                    childAspectRatio: sticker.widthMm / sticker.heightMm,
-                                  ),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: sheetConfig.columns,
+                                        crossAxisSpacing:
+                                            (sheetConfig.columnGap /
+                                                sheetConfig.pageWidth) *
+                                            constraints.maxWidth,
+                                        mainAxisSpacing:
+                                            (sheetConfig.rowGap /
+                                                sheetConfig.pageHeight) *
+                                            constraints.maxHeight,
+                                        childAspectRatio:
+                                            sticker.widthMm / sticker.heightMm,
+                                      ),
                                   itemCount: slotsPerSheet,
                                   itemBuilder: (context, slotGridIndex) {
-                                    final absIndex = sheetIndex * slotsPerSheet + slotGridIndex;
-                                    final isDisabled = loadedState.disabledSlots.contains(absIndex);
-                                    final isActive = activePositions.contains(absIndex);
+                                    final absIndex =
+                                        sheetIndex * slotsPerSheet +
+                                        slotGridIndex;
+                                    final isDisabled = loadedState.disabledSlots
+                                        .contains(absIndex);
+                                    final isActive = activePositions.contains(
+                                      absIndex,
+                                    );
 
                                     if (isDisabled) {
                                       return InkWell(
-                                        onTap: () => context.read<PrintWorkflowCubit>().toggleSlot(absIndex),
+                                        onTap: () => context
+                                            .read<PrintWorkflowCubit>()
+                                            .toggleSlot(absIndex),
                                         child: Container(
                                           decoration: BoxDecoration(
-                                            color: colorScheme.surfaceContainerLow,
-                                            border: Border.all(color: colorScheme.outlineVariant),
-                                            borderRadius: BorderRadius.circular(4),
+                                            color:
+                                                colorScheme.surfaceContainerLow,
+                                            border: Border.all(
+                                              color: colorScheme.outlineVariant,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
                                           ),
                                           child: const Center(
-                                            child: Icon(Icons.close, color: Colors.grey),
+                                            child: Icon(
+                                              Icons.close,
+                                              color: Colors.grey,
+                                            ),
                                           ),
                                         ),
                                       );
@@ -408,26 +513,46 @@ class SheetsPreview extends StatelessWidget {
 
                                     if (isActive) {
                                       return InkWell(
-                                        onTap: () => context.read<PrintWorkflowCubit>().toggleSlot(absIndex),
+                                        onTap: () => context
+                                            .read<PrintWorkflowCubit>()
+                                            .toggleSlot(absIndex),
                                         child: Container(
                                           decoration: BoxDecoration(
-                                            border: Border.all(color: colorScheme.primary, width: 1.5),
-                                            borderRadius: BorderRadius.circular(4),
+                                            border: Border.all(
+                                              color: colorScheme.primary,
+                                              width: 1.5,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
                                           ),
                                           child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(3),
+                                            borderRadius: BorderRadius.circular(
+                                              3,
+                                            ),
                                             child: FittedBox(
                                               child: SizedBox(
                                                 width: sticker.widthMm * 4,
                                                 height: sticker.heightMm * 4,
                                                 child: Stack(
-                                                   children: template.elements.map((bp) {
-                                                    final width = bp.width * 4.0;
-                                                    final height = bp.height * 4.0;
+                                                  children: template.elements.map((
+                                                    bp,
+                                                  ) {
+                                                    final width =
+                                                        bp.width * 4.0;
+                                                    final height =
+                                                        bp.height * 4.0;
                                                     final left = bp.x * 4.0;
                                                     final top = bp.y * 4.0;
-                                                    final renderedChild = ElementRendererRegistry.forBlueprint(bp)
-                                                        .render(context, bp, product: product, variant: variant);
+                                                    final renderedChild =
+                                                        ElementRendererRegistry.forBlueprint(
+                                                          bp,
+                                                        ).render(
+                                                          context,
+                                                          bp,
+                                                          product: product,
+                                                          variant: variant,
+                                                        );
 
                                                     return Positioned(
                                                       left: left,
@@ -435,7 +560,9 @@ class SheetsPreview extends StatelessWidget {
                                                       width: width,
                                                       height: height,
                                                       child: Transform.rotate(
-                                                        angle: bp.rotation * (pi / 180),
+                                                        angle:
+                                                            bp.rotation *
+                                                            (pi / 180),
                                                         child: SizedBox(
                                                           width: width,
                                                           height: height,
@@ -455,11 +582,17 @@ class SheetsPreview extends StatelessWidget {
                                     // Unused/Empty slot at the end
                                     return Container(
                                       decoration: BoxDecoration(
-                                        border: Border.all(color: colorScheme.outlineVariant),
+                                        border: Border.all(
+                                          color: colorScheme.outlineVariant,
+                                        ),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: const Center(
-                                        child: Icon(Icons.radio_button_unchecked, color: Colors.grey, size: 16),
+                                        child: Icon(
+                                          Icons.radio_button_unchecked,
+                                          color: Colors.grey,
+                                          size: 16,
+                                        ),
                                       ),
                                     );
                                   },
@@ -489,7 +622,9 @@ class SheetsPreview extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'If you\'re using a label sheet that has already been partially printed, click on individual slots to mark them as "Used". LabelFlow will automatically adjust the printing sequence and calculate the required sheets.',
-                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],

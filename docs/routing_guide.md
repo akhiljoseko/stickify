@@ -1,4 +1,4 @@
-# Stickify Routing Architecture Guide
+# Label Grid Routing Architecture Guide
 
 > **Stack:** Flutter Desktop · `go_router ^17` · `go_router_builder ^4` · `flutter_bloc ^9` (Cubit)
 
@@ -314,19 +314,39 @@ lib/
 │   │   └── routing.dart             Barrel export
 │   ├── view/
 │   │   └── app.dart                 BlocProvider<AuthCubit> + MaterialApp.router
+│   ├── app_service_locator.dart     Manual service locator for repository/service injection
 │   ├── app.dart                     Re-export
 │   └── theme.dart                   AppTheme tokens
 │
-└── screens/
-    ├── login_screen.dart            AuthCubit.login() → router redirects
-    ├── register_screen.dart
-    ├── forgot_password_screen.dart
-    ├── dashboard_screen.dart
-    ├── product_management_screen.dart  ProductDetailsRoute(id:).go(context)
-    ├── product_details_screen.dart
-    ├── template_management_screen.dart
-    ├── settings_screen.dart         AuthCubit.logout() → router redirects
-    └── screens.dart                 Barrel export
+└── presentation/
+    ├── login/
+    │   └── login_screen.dart        AuthCubit.login() → router redirects
+    ├── registration/
+    │   └── registration_screen.dart
+    ├── forgot_password/
+    │   └── forgot_password_screen.dart
+    ├── template_management/
+    │   └── template_management_screen.dart
+    ├── settings/
+    │   └── settings_screen.dart     AuthCubit.logout() → router redirects
+    ├── splash/
+    │   └── splash_screen.dart       Initial splash loader screen
+    ├── widgets/
+    │   ├── widgets.dart             Barrel export primitive components
+    │   └── app_image.dart           Reusable image renderer primitive
+    └── features/
+        ├── dashboard/
+        │   └── dashboard_screen.dart
+        ├── product/
+        │   ├── product_management_screen.dart
+        │   └── bloc/
+        │       └── product_cubit.dart
+        ├── print/
+        │   ├── template_selection_page.dart
+        │   └── print_workflow_page.dart
+        └── template_editor/
+            └── label_editor/
+                └── label_editor_screen.dart
 
 docs/
 └── routing_guide.md                 ← you are here

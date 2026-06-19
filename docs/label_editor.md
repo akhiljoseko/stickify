@@ -1,6 +1,6 @@
 # Label Designing Editor Module Documentation
 
-This document describes the architectural design, requirements, and concrete implementation details of the visual template designer and label editor in the Stickify application.
+This document describes the architectural design, requirements, and concrete implementation details of the visual template designer and label editor in the Label Grid application.
 
 ---
 
@@ -75,7 +75,7 @@ To translate element blueprints to standard Flutter UI widgets, the presentation
 
 ## 5. Dynamic Token Binding Engine
 
-Placeholders are resolved at render-time using [TextElementRenderer.resolveToken](file:///Volumes/WD-Black-1TB/akhiljose/personal-projects/stickify/lib/presentation/features/template_editor/renderers/text_element_renderer.dart):
+Placeholders are resolved at render-time using [TextElementRenderer.resolveToken](file:///g:/GitHub/stickify/lib/presentation/features/template_editor/renderers/text_element_renderer.dart):
 
 ```
 Token String: "MRP: ₹{{variant.mrp}}"

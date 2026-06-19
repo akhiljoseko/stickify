@@ -1,6 +1,6 @@
-# Stickify Application Modules Guide
+# Label Grid Application Modules Guide
 
-This document provides a comprehensive overview of every logical module in the Stickify Industrial Canvas application, outlining their requirements, architecture, and concrete implementation details.
+This document provides a comprehensive overview of every logical module in the Label Grid Industrial Canvas application, outlining their requirements, architecture, and concrete implementation details.
 
 ---
 
@@ -39,13 +39,13 @@ This document provides a comprehensive overview of every logical module in the S
 - Manage the catalog of products and packaging variants.
 - Support adding and editing products with metadata (name, SKU, category, shelf life, instructions, ingredients, and nutrition facts).
 - Manage multiple variant configurations (weight/quantity, wholesale price, MRP in INR, SKU, unit) under a single parent product.
-- Allow uploading/selecting a local product image via an image picker.
+- Allow uploading/selecting a local product image via an image picker and save it into a managed workspace.
 - Inherit parent product details for variants where appropriate.
 
 ### Implementation Details
-- **Location:** `lib/presentation/products/`
+- **Location:** `lib/presentation/features/product/`
 - **State Management:** `ProductCubit` handles the state transitions (`ProductCatalogInitial`, `ProductCatalogLoading`, `ProductCatalogSuccess`, `ProductCatalogError`) for fetching, saving, updating, and deleting products.
-- **UI Architecture:** Employs a split-pane layout on desktop: a high-density tabular grid on the left and a detail/edit inspector panel on the right. Local images are picked using the `image_picker` package and copied into the application storage directory.
+- **UI Architecture:** Employs a split-pane layout on desktop: a high-density tabular grid on the left and a detail/edit inspector panel on the right. Local images are picked using the `image_picker` package, copied into the application storage directory under `~/documents/label-grid/product-images/` using the custom `FileStorageService`, and rendered uniformly using the `AppImage` widget.
 - **Token Consistency:** Variant SKUs prefill using the parent product SKU to enforce consistent corporate naming schemas.
 
 ---
@@ -79,14 +79,14 @@ This document provides a comprehensive overview of every logical module in the S
 - Shift and reflow downstream labels automatically based on disabled slots.
 - Generate high-fidelity PDF documents matching exact sheet geometries (measured in millimeters).
 - Prevent UI thread blocks or application freezing during CPU-intensive PDF compilation.
-- Launch the native macOS system print dialog directly.
+- Launch the native Windows/system print dialog directly.
 
 ### Implementation Details
 - **Location:** `lib/presentation/features/print/`
-- **Clean Architecture Decoupling:** Uses the domain-level [PrintService](file:///Volumes/WD-Black-1TB/akhiljose/personal-projects/stickify/lib/domain/services/print_service.dart) interface.
-- **Background Isolate Offloading:** The concrete [PdfPrintService](file:///Volumes/WD-Black-1TB/akhiljose/personal-projects/stickify/lib/core/services/pdf_print_service.dart) pre-caches all images on the main thread, then spawns a background isolate via `Isolate.run()` to compile the `pw.Document` and serialize it to bytes (`doc.save()`). This eliminates main thread freezes and macOS spinning mouse cursor hangs.
-- **macOS Deadlock Prevention**: Calls `Printing.layoutPdf` with `dynamicLayout: false` to prevent a known platform channel deadlock between the native printer controller and Flutter's UI thread under experimental merged platform/UI threading configurations. Additionally, merged platform UI threading is disabled in [Info.plist](file:///Volumes/WD-Black-1TB/akhiljose/personal-projects/stickify/macos/Runner/Info.plist) as a global safety measure.
-- **Strategy & Registry Patterns:** Uses [PdfElementRendererRegistry](file:///Volumes/WD-Black-1TB/akhiljose/personal-projects/stickify/lib/core/services/pdf/pdf_element_renderer_registry.dart) and [PdfElementRenderer](file:///Volumes/WD-Black-1TB/akhiljose/personal-projects/stickify/lib/core/services/pdf/pdf_element_renderer.dart) strategies to translate element blueprints to PDF widgets without large procedural conditional blocks.
+- **Clean Architecture Decoupling:** Uses the domain-level [PrintService](file:///g:/GitHub/stickify/lib/domain/services/print_service.dart) interface.
+- **Background Isolate Offloading:** The concrete [PdfPrintService](file:///g:/GitHub/stickify/lib/core/services/pdf_print_service.dart) pre-caches all images on the main thread, then spawns a background isolate via `Isolate.run()` to compile the `pw.Document` and serialize it to bytes (`doc.save()`). This eliminates main thread freezes.
+- **Windows Spooler Dispatch**: For Windows, [WindowsPrintService](file:///g:/GitHub/stickify/lib/core/services/printing/windows/windows_print_service.dart) performs native DEVMODE overrides and prints directly to bypass OS print dialogs, while [WindowsPaperValidator](file:///g:/GitHub/stickify/lib/core/services/printing/windows/windows_paper_validator.dart) validates paper format dimensions.
+- **Strategy & Registry Patterns:** Uses [PdfElementRendererRegistry](file:///g:/GitHub/stickify/lib/core/services/pdf/pdf_element_renderer_registry.dart) and [PdfElementRenderer](file:///g:/GitHub/stickify/lib/core/services/pdf/pdf_element_renderer.dart) strategies to translate element blueprints to PDF widgets without large procedural conditional blocks.
 - **Coordinate Conversion**: Multiplies all blueprint coordinates by `PdfPageFormat.mm` to map virtual layout pixels directly to physical PDF points.
 
 ---
@@ -108,11 +108,15 @@ This document provides a comprehensive overview of every logical module in the S
 ## 6. Data & Storage Infrastructure
 
 ### Requirements
-- Run entirely offline without relying on external databases.
-- Store product catalogs, variants, custom templates, and print history log files.
-- Deliver zero-dependency startup (no database seeding required by default; the app initializes empty files and populates them as user actions occur).
+- Offline-first local data storage backed by seamless cloud sync triggers.
+- Secure, structured folder hierarchy for custom local database boxes and media assets.
+- Support file saving and custom copying operations for label template cover images and product pictures.
 
 ### Implementation Details
-- **Location:** `lib/core/services/document_database.dart` and `lib/data/repositories/`
-- **Database Engine:** Built on `DocumentDatabase`, a lightweight file-based storage layer that writes JSON serialized files (`products.json`, `templates.json`, `print_jobs.json`) to the host operating system's application documents directory (`path_provider`).
-- **Repositories:** Concrete data repositories (`DatabaseProductRepository`, `DatabaseTemplateRepository`, `DatabasePrintJobRepository`) serialize/deserialize entities and manage file read/write synchronization.
+- **Location:** `lib/data/services/hive_local_database.dart`, `lib/data/repositories/`, and `lib/domain/services/file_storage_service.dart`
+- **Local Database (Hive CE):** Initiates through [HiveLocalDatabase](file:///g:/GitHub/stickify/lib/data/services/hive_local_database.dart). On Windows, it creates a dedicated directory at `~/documents/label-grid/database` to store Hive box files (`.hive` files).
+- **Remote Synchronization:** Employs the decorator pattern via repository sync utilities (e.g., [SyncingProductRepository](file:///g:/GitHub/stickify/lib/data/repositories/syncing_product_repository.dart) and [SyncingTemplateRepository](file:///g:/GitHub/stickify/lib/data/repositories/syncing_template_repository.dart)). Changes are applied locally to Hive, queued, and pushed to Cloud Firestore on background workers.
+- **File & Media Storage:** The platform-specific [FileStorageService](file:///g:/GitHub/stickify/lib/domain/services/file_storage_service.dart) organizes user images:
+  - Product images are stored under `~/documents/label-grid/product-images/`.
+  - Template cover images are stored under `~/documents/label-grid/template-images/`.
+  - Generates collision-resistant unique names for saved attachments (`prod_<uuid>.<ext>` and `tpl_<uuid>.<ext>`).

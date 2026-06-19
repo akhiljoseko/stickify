@@ -40,6 +40,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
     required int quantity,
     required Set<int> disabledSlots,
     required PrinterDevice printer,
+    bool printFromBottom = false,
   }) async {
     String? backupToken;
     try {
@@ -152,6 +153,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
         template: template,
         quantity: quantity,
         disabledSlots: disabledSlots,
+        printFromBottom: printFromBottom,
       );
 
       // 4. Apply Windows DEVMODE registry override

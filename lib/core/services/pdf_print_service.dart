@@ -34,6 +34,7 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
     required int quantity,
     required Set<int> disabledSlots,
     required PrinterDevice printer,
+    bool printFromBottom = false,
   }) async {
     try {
       // 1. Pre-print validation layer
@@ -134,6 +135,7 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
         template: template,
         quantity: quantity,
         disabledSlots: disabledSlots,
+        printFromBottom: printFromBottom,
       );
 
       final targetFormat = PdfPageFormat(

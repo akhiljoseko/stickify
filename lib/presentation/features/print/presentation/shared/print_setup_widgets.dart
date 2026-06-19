@@ -8,7 +8,7 @@ import 'package:stickify/presentation/features/print/cubits/print_workflow_state
 import 'package:stickify/presentation/features/template_editor/core/element_renderer_registry.dart';
 
 /// Renders the print configuration parameters (quantity, printer, metadata, print button).
-class ParametersPanel extends StatelessWidget {
+class ParametersPanel extends StatefulWidget {
   /// Creates a [ParametersPanel].
   const ParametersPanel({
     required this.loadedState,
@@ -35,6 +35,51 @@ class ParametersPanel extends StatelessWidget {
   final PrintWorkflowState state;
 
   @override
+  State<ParametersPanel> createState() => _ParametersPanelState();
+}
+
+class _ParametersPanelState extends State<ParametersPanel> {
+  late final TextEditingController _qtyController;
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _qtyController = TextEditingController(text: widget.loadedState.quantity.toString());
+    _focusNode = FocusNode();
+
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        _qtyController.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: _qtyController.text.length,
+        );
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _focusNode.requestFocus();
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(ParametersPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.loadedState.quantity.toString() != _qtyController.text && !_focusNode.hasFocus) {
+      _qtyController.text = widget.loadedState.quantity.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _qtyController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -53,7 +98,8 @@ class ParametersPanel extends StatelessWidget {
             const SizedBox(height: 20),
             // Quantity
             TextFormField(
-              initialValue: loadedState.quantity.toString(),
+              controller: _qtyController,
+              focusNode: _focusNode,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: const InputDecoration(
@@ -69,12 +115,12 @@ class ParametersPanel extends StatelessWidget {
             // Printer Selection
             DropdownButtonFormField<PrinterDevice>(
               isExpanded: true,
-              initialValue: loadedState.selectedPrinter,
+              initialValue: widget.loadedState.selectedPrinter,
               decoration: const InputDecoration(
                 labelText: 'Printer Selection',
                 border: OutlineInputBorder(),
               ),
-              items: loadedState.availablePrinters
+              items: widget.loadedState.availablePrinters
                   .map(
                     (p) => DropdownMenuItem<PrinterDevice>(
                       value: p,
@@ -94,12 +140,12 @@ class ParametersPanel extends StatelessWidget {
             // Template selection dropdown
             DropdownButtonFormField<LabelTemplate>(
               isExpanded: true,
-              initialValue: loadedState.selectedTemplate,
+              initialValue: widget.loadedState.selectedTemplate,
               decoration: const InputDecoration(
                 labelText: 'Label Template',
                 border: OutlineInputBorder(),
               ),
-              items: loadedState.templates
+              items: widget.loadedState.templates
                   .map(
                     (t) => DropdownMenuItem<LabelTemplate>(
                       value: t,
@@ -107,7 +153,7 @@ class ParametersPanel extends StatelessWidget {
                     ),
                   )
                   .toList(),
-              onChanged: loadedState.templates.isEmpty
+              onChanged: widget.loadedState.templates.isEmpty
                   ? null
                   : (val) {
                       if (val != null) {
@@ -119,14 +165,17 @@ class ParametersPanel extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Orientation',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                Expanded(
+                  child: Text(
+                    'Orientation',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Text(
-                  sheetConfig.pageWidth > sheetConfig.pageHeight
+                  widget.sheetConfig.pageWidth > widget.sheetConfig.pageHeight
                       ? 'Landscape'
                       : 'Portrait',
                   style: textTheme.bodyMedium?.copyWith(
@@ -148,14 +197,17 @@ class ParametersPanel extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Total Labels',
-                        style: textTheme.bodyLarge?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
+                      Expanded(
+                        child: Text(
+                          'Total Labels',
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Text(
-                        loadedState.quantity.toString(),
+                        widget.loadedState.quantity.toString(),
                         style: textTheme.headlineMedium?.copyWith(
                           color: colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.bold,
@@ -167,14 +219,17 @@ class ParametersPanel extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Sheets Required',
-                        style: textTheme.bodyLarge?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
+                      Expanded(
+                        child: Text(
+                          'Sheets Required',
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Text(
-                        totalSheets.toString(),
+                        widget.totalSheets.toString(),
                         style: textTheme.headlineMedium?.copyWith(
                           color: colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.bold,
@@ -195,10 +250,10 @@ class ParametersPanel extends StatelessWidget {
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
                 ),
-                onPressed: state is PrintWorkflowSubmitting
+                onPressed: widget.state is PrintWorkflowSubmitting
                     ? null
                     : () => context.read<PrintWorkflowCubit>().startPrintJob(),
-                icon: state is PrintWorkflowSubmitting
+                icon: widget.state is PrintWorkflowSubmitting
                     ? const SizedBox(
                         width: 18,
                         height: 18,
@@ -209,9 +264,9 @@ class ParametersPanel extends StatelessWidget {
                       )
                     : const Icon(Icons.print),
                 label: Text(
-                  state is PrintWorkflowSubmitting
+                  widget.state is PrintWorkflowSubmitting
                       ? 'Sending to Printer...'
-                      : 'Start Print Job',
+                      : 'Print',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
@@ -277,7 +332,7 @@ class SheetsPreview extends StatelessWidget {
       children: [
         LayoutBuilder(
           builder: (context, constraints) {
-            final useVerticalHeader = constraints.maxWidth < 460;
+            final useVerticalHeader = constraints.maxWidth < 600;
             final legendRow = Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -338,13 +393,67 @@ class SheetsPreview extends StatelessWidget {
             }
           },
         ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Builder(
+              builder: (context) {
+                final allFirstSheetSelected = Iterable<int>.generate(slotsPerSheet)
+                    .every((slot) => !loadedState.disabledSlots.contains(slot));
+
+                return OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: () {
+                    final cubit = context.read<PrintWorkflowCubit>();
+                    if (allFirstSheetSelected) {
+                      cubit.deselectAllFirstSheet();
+                    } else {
+                      cubit.selectAllFirstSheet();
+                    }
+                  },
+                  icon: Icon(
+                    allFirstSheetSelected ? Icons.deselect : Icons.select_all,
+                    size: 16,
+                  ),
+                  label: Text(
+                    allFirstSheetSelected ? 'Deselect All First Sheet' : 'Select All First Sheet',
+                  ),
+                );
+              },
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Print from bottom',
+                  style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 8),
+                Switch(
+                  value: loadedState.printFromBottom,
+                  onChanged: (val) {
+                    context.read<PrintWorkflowCubit>().togglePrintFromBottom(value: val);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
 
-        // Sheets scrollable container
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: totalSheets,
+          // Sheets scrollable container
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: totalSheets,
           separatorBuilder: (context, index) => const SizedBox(height: 24),
           itemBuilder: (context, sheetIndex) {
             final disabledOnSheet = loadedState.disabledSlots
@@ -377,12 +486,15 @@ class SheetsPreview extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          sheetTitle.toUpperCase(),
-                          style: textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Text(
+                            sheetTitle.toUpperCase(),
+                            style: textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,

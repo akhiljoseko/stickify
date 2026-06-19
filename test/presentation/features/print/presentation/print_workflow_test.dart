@@ -17,6 +17,7 @@ class MockPrintService extends Mock implements PrintService {}
 class MockPrinterDiscoveryService extends Mock implements PrinterDiscoveryService {}
 class MockPrintJobIdGenerator extends Mock implements PrintJobIdGenerator {}
 class MockVariantPrintStatsRepository extends Mock implements VariantPrintStatsRepository {}
+class MockLocalDatabase extends Mock implements LocalDatabase {}
 
 void main() {
   setUpAll(() {
@@ -73,6 +74,7 @@ void main() {
   late PrinterDiscoveryService printerDiscoveryService;
   late PrintJobIdGenerator printJobIdGenerator;
   late VariantPrintStatsRepository variantPrintStatsRepository;
+  late LocalDatabase localDatabase;
 
   const testProduct = Product(
     id: 'prod-test',
@@ -179,7 +181,10 @@ void main() {
       printerDiscoveryService = MockPrinterDiscoveryService();
       printJobIdGenerator = MockPrintJobIdGenerator();
       variantPrintStatsRepository = MockVariantPrintStatsRepository();
+      localDatabase = MockLocalDatabase();
 
+      when(() => localDatabase.get<bool>(any(), any())).thenAnswer((_) async => false);
+      when(() => localDatabase.save<bool>(any(), any(), any())).thenAnswer((_) async {});
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => const Result.success(testProduct));
@@ -210,6 +215,7 @@ void main() {
             quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printer: any(named: 'printer'),
+            printFromBottom: any(named: 'printFromBottom'),
           )).thenAnswer((_) async => const Result.success(null));
     });
 
@@ -222,6 +228,7 @@ void main() {
         printService: printService,
         printerDiscoveryService: printerDiscoveryService,
         printJobIdGenerator: printJobIdGenerator,
+        localDatabase: localDatabase,
       );
 
       expect(cubit.state, const PrintWorkflowInitial());
@@ -233,7 +240,7 @@ void main() {
       expect(s.product.id, 'prod-test');
       expect(s.variant.sku, 'PROD-VAR-SKU');
       expect(s.selectedTemplate?.id, 'temp-test');
-      expect(s.quantity, 20);
+      expect(s.quantity, 10);
       expect(s.disabledSlots, isEmpty);
     });
 
@@ -246,6 +253,7 @@ void main() {
         printService: printService,
         printerDiscoveryService: printerDiscoveryService,
         printJobIdGenerator: printJobIdGenerator,
+        localDatabase: localDatabase,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -263,6 +271,38 @@ void main() {
       expect((cubit.state as PrintWorkflowLoaded).disabledSlots, isNot(contains(3)));
     });
 
+    test('selectAllFirstSheet, deselectAllFirstSheet and togglePrintFromBottom work', () async {
+      final cubit = PrintWorkflowCubit(
+        productRepository: productRepository,
+        templateRepository: templateRepository,
+        printJobRepository: printJobRepository,
+        variantPrintStatsRepository: variantPrintStatsRepository,
+        printService: printService,
+        printerDiscoveryService: printerDiscoveryService,
+        printJobIdGenerator: printJobIdGenerator,
+        localDatabase: localDatabase,
+      );
+
+      await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
+
+      // Originally, disabledSlots is empty
+      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, isEmpty);
+
+      // Deselect all on first sheet (10 slots)
+      cubit.deselectAllFirstSheet();
+      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, hasLength(10));
+      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, containsAll(Iterable<int>.generate(10)));
+
+      // Select all on first sheet
+      cubit.selectAllFirstSheet();
+      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, isEmpty);
+
+      // Toggle print from bottom
+      await cubit.togglePrintFromBottom(value: true);
+      expect((cubit.state as PrintWorkflowLoaded).printFromBottom, isTrue);
+      verify(() => localDatabase.save<bool>('settings', 'print_from_bottom', true)).called(1);
+    });
+
     test('starting print job successfully dispatches and saves print job', () async {
       final cubit = PrintWorkflowCubit(
         productRepository: productRepository,
@@ -272,6 +312,7 @@ void main() {
         printService: printService,
         printerDiscoveryService: printerDiscoveryService,
         printJobIdGenerator: printJobIdGenerator,
+        localDatabase: localDatabase,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -294,6 +335,7 @@ void main() {
             quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printer: any(named: 'printer'),
+            printFromBottom: any(named: 'printFromBottom'),
           )).called(1);
     });
   });
@@ -307,6 +349,10 @@ void main() {
       printerDiscoveryService = MockPrinterDiscoveryService();
       printJobIdGenerator = MockPrintJobIdGenerator();
       variantPrintStatsRepository = MockVariantPrintStatsRepository();
+      localDatabase = MockLocalDatabase();
+
+      when(() => localDatabase.get<bool>(any(), any())).thenAnswer((_) async => false);
+      when(() => localDatabase.save<bool>(any(), any(), any())).thenAnswer((_) async {});
 
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(() => productRepository.getProductById('prod-test'))
@@ -330,10 +376,11 @@ void main() {
             quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printer: any(named: 'printer'),
+            printFromBottom: any(named: 'printFromBottom'),
           )).thenAnswer((_) async => const Result.success(null));
     });
 
-    Widget buildTestableWidget() {
+    Widget buildTestableWidget({int? quantity}) {
       return MultiRepositoryProvider(
         providers: [
           RepositoryProvider.value(value: productRepository),
@@ -343,17 +390,19 @@ void main() {
           RepositoryProvider.value(value: printService),
           RepositoryProvider.value(value: printerDiscoveryService),
           RepositoryProvider.value(value: printJobIdGenerator),
+          RepositoryProvider.value(value: localDatabase),
         ],
-        child: const PrintSetupPage(
+        child: PrintSetupPage(
           productId: 'prod-test',
           variantSku: 'PROD-VAR-SKU',
           templateId: 'temp-test',
+          quantity: quantity,
         ),
       );
     }
 
     testWidgets('renders configuration page elements with dynamic tokens resolved', (tester) async {
-      await tester.pumpApp(buildTestableWidget(), size: const Size(1200, 1000));
+      await tester.pumpApp(buildTestableWidget(quantity: 20), size: const Size(1200, 1000));
       await tester.pumpAndSettle();
 
       expect(find.text('Dynamic Product'), findsAtLeast(1));
@@ -368,7 +417,7 @@ void main() {
     });
 
     testWidgets('toggling slot reflows downstream labels and updates required sheets', (tester) async {
-      await tester.pumpApp(buildTestableWidget(), size: const Size(1200, 1000));
+      await tester.pumpApp(buildTestableWidget(quantity: 20), size: const Size(1200, 1000));
       await tester.pumpAndSettle();
 
       final firstSlotInkWell = find.descendant(

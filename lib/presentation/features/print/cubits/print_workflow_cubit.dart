@@ -25,6 +25,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     required PrintService printService,
     required PrinterDiscoveryService printerDiscoveryService,
     required PrintJobIdGenerator printJobIdGenerator,
+    required LocalDatabase localDatabase,
   })  : _productRepository = productRepository,
         _templateRepository = templateRepository,
         _printJobRepository = printJobRepository,
@@ -32,6 +33,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         _printService = printService,
         _printerDiscoveryService = printerDiscoveryService,
         _printJobIdGenerator = printJobIdGenerator,
+        _localDatabase = localDatabase,
         super(const PrintWorkflowInitial());
 
   /// Repository providing product catalog records.
@@ -54,6 +56,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
 
   /// Generator for print job IDs.
   final PrintJobIdGenerator _printJobIdGenerator;
+
+  /// Local database instance for settings caching.
+  final LocalDatabase _localDatabase;
 
   /// Loads the initial metadata needed to configure the print job.
   ///
@@ -100,17 +105,28 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 orElse: () => printers.isNotEmpty ? printers.first : const PrinterDevice(name: 'No Printer Found', url: ''),
               );
 
-              var loaded = PrintWorkflowLoaded(
+              final cachedBottom = await _localDatabase.get<bool>('settings', 'print_from_bottom') ?? false;
+
+              final int defaultQty;
+              if (initialQuantity != null && initialQuantity > 0) {
+                defaultQty = initialQuantity;
+              } else if (selected?.sheetConfig != null) {
+                defaultQty = selected!.sheetConfig!.columns * selected.sheetConfig!.rows;
+              } else {
+                defaultQty = 20;
+              }
+
+              final loaded = PrintWorkflowLoaded(
                 product: product,
                 variant: variant,
                 templates: templates,
                 selectedTemplate: selected,
                 availablePrinters: printers,
                 selectedPrinter: defaultPrinter,
+                quantity: defaultQty,
+                printFromBottom: cachedBottom,
+                isQuantityManuallyEdited: initialQuantity != null && initialQuantity > 0,
               );
-              if (initialQuantity != null && initialQuantity > 0) {
-                loaded = loaded.copyWith(quantity: initialQuantity);
-              }
               emit(loaded);
           }
       }
@@ -123,8 +139,16 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   void selectTemplate(LabelTemplate template) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
+      final int qty;
+      if (!s.isQuantityManuallyEdited && template.sheetConfig != null) {
+        qty = template.sheetConfig!.columns * template.sheetConfig!.rows;
+      } else {
+        qty = s.quantity;
+      }
+
       emit(s.copyWith(
         selectedTemplate: () => template,
+        quantity: qty,
         disabledSlots: {}, // reset skipped slots when template changes
       ));
     }
@@ -134,7 +158,10 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   void updateQuantity(int qty) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
-      emit(s.copyWith(quantity: qty));
+      emit(s.copyWith(
+        quantity: qty,
+        isQuantityManuallyEdited: true,
+      ));
     }
   }
 
@@ -157,6 +184,47 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         updated.remove(absoluteSlotIndex);
       } else {
         updated.add(absoluteSlotIndex);
+      }
+      emit(s.copyWith(disabledSlots: updated));
+    }
+  }
+
+  /// Toggles whether to print from the bottom slots of the last sheet.
+  Future<void> togglePrintFromBottom({required bool value}) async {
+    final s = state;
+    if (s is PrintWorkflowLoaded) {
+      emit(s.copyWith(printFromBottom: value));
+      await _localDatabase.save<bool>('settings', 'print_from_bottom', value);
+    }
+  }
+
+  /// Selects all slots in the first sheet.
+  void selectAllFirstSheet() {
+    final s = state;
+    if (s is PrintWorkflowLoaded) {
+      final template = s.selectedTemplate;
+      if (template?.sheetConfig == null) return;
+      final slotsPerSheet = template!.sheetConfig!.columns * template.sheetConfig!.rows;
+      
+      final updated = Set<int>.from(s.disabledSlots);
+      for (var i = 0; i < slotsPerSheet; i++) {
+        updated.remove(i);
+      }
+      emit(s.copyWith(disabledSlots: updated));
+    }
+  }
+
+  /// Deselects all slots in the first sheet.
+  void deselectAllFirstSheet() {
+    final s = state;
+    if (s is PrintWorkflowLoaded) {
+      final template = s.selectedTemplate;
+      if (template?.sheetConfig == null) return;
+      final slotsPerSheet = template!.sheetConfig!.columns * template.sheetConfig!.rows;
+
+      final updated = Set<int>.from(s.disabledSlots);
+      for (var i = 0; i < slotsPerSheet; i++) {
+        updated.add(i);
       }
       emit(s.copyWith(disabledSlots: updated));
     }
@@ -188,6 +256,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         quantity: s.quantity,
         disabledSlots: s.disabledSlots,
         printer: printer,
+        printFromBottom: s.printFromBottom,
       );
 
       switch (printResult) {

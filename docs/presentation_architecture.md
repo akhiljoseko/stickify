@@ -1,4 +1,4 @@
-# Stickify Presentation Architecture Guide
+# Label Grid Presentation Architecture Guide
 
 > **Stack:** Flutter Desktop · `flutter_bloc ^9` (Cubit) · `equatable` · `go_router ^17`
 
@@ -19,7 +19,7 @@
 
 ## 1. Overview
 
-The Presentation layer in Stickify is **modular by feature**. Each feature is fully self-contained under `lib/presentation/features/[feature_name]/` and owns its own:
+The Presentation layer in Label Grid is **modular by feature**. Each feature is fully self-contained under `lib/presentation/features/[feature_name]/` and owns its own:
 
 - **Pages** — dependency injection shells
 - **Cubits** — reactive state management

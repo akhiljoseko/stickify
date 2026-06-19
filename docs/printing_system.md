@@ -1,6 +1,6 @@
 # Printing System Module Documentation
 
-This document describes the architectural design, requirements, concrete implementation details, and extensibility guidelines of the physical PDF printing engine in the Stickify application.
+This document describes the architectural design, requirements, concrete implementation details, and extensibility guidelines of the physical PDF printing engine in the Label Grid application.
 
 ---
 
@@ -126,7 +126,7 @@ When the physical sticker is non-rectangular (e.g., circular, oval, polygonal), 
 
 On Windows, standard print spoolers read printer driver preferences (`DEVMODE`) from the system registry to determine the paper size for a print job. When a custom size (e.g., 180×300 mm) is requested, Windows defaults to the printer's registered default size (typically A4 = 210 mm) if the target form is not explicitly set in the registry. This mismatch shifts layout origins by half the difference (`(210 - 180) / 2 = 15 mm`), throwing labels out of alignment.
 
-Stickify resolves this driver-level issue on Windows by performing a localized registry override before printing, invalidating caches, printing directly, and then restoring original system configurations.
+Label Grid resolves this driver-level issue on Windows by performing a localized registry override before printing, invalidating caches, printing directly, and then restoring original system configurations.
 
 ### 1. DEVMODE Override Lifecycle ([WindowsDevModeManager](file:///g:/GitHub/stickify/lib/core/services/printing/windows/windows_devmode_manager.dart))
 - **Settings Backup**: Reads current print configuration binary preferences from the Windows Registry keys `HKCU:\Printers\DevModes2` and `HKCU:\Printers\DevModePerUser`. It writes a recovery entry to `HKCU:\Printers\DevModeBackup` in case of application crash.

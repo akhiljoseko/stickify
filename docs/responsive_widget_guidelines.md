@@ -1,4 +1,4 @@
-# Stickify Responsive Widget Guidelines
+# Label Grid Responsive Widget Guidelines
 
 > **Stack:** Flutter Desktop · `responsive_framework ^1` · `flutter_bloc ^9`
 >
@@ -23,7 +23,7 @@
 
 ## 1. Breakpoint System
 
-Stickify uses four named breakpoints, defined once in [`AppBreakpoints`](../lib/core/utils/app_breakpoints.dart).
+Label Grid uses four named breakpoints, defined once in [`AppBreakpoints`](../lib/core/utils/app_breakpoints.dart).
 **These are the only official breakpoint values.** Do not invent custom ones.
 
 | Constant              | Value           | Min Width | Max Width | Target Platform   |

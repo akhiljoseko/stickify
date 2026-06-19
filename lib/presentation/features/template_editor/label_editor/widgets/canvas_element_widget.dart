@@ -18,6 +18,7 @@ class CanvasElementWidget extends StatelessWidget {
     required this.onTap,
     required this.zoomLevel,
     this.product,
+    this.variant,
     super.key,
   });
 
@@ -36,6 +37,9 @@ class CanvasElementWidget extends StatelessWidget {
   /// Optional product entity to populate dynamic token references.
   final Product? product;
 
+  /// Optional product variant entity to populate dynamic token references.
+  final ProductVariant? variant;
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -47,7 +51,7 @@ class CanvasElementWidget extends StatelessWidget {
     final top = blueprint.y * AppDimensions.mmToPx * zoomLevel;
 
     final renderedChild = ElementRendererRegistry.forBlueprint(blueprint)
-        .render(context, blueprint, product: product);
+        .render(context, blueprint, product: product, variant: variant);
 
     return Positioned(
       left: left,

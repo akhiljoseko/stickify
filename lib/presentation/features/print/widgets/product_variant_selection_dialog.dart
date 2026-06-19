@@ -216,7 +216,7 @@ class _ProductVariantSelectionDialogState extends State<ProductVariantSelectionD
                                       PrintTemplateSelectRoute(
                                         productId: _selectedProduct!.id,
                                         variantSku: v.sku,
-                                      ).go(context);
+                                      ).push<void>(context);
                                     },
                                   );
                                 },

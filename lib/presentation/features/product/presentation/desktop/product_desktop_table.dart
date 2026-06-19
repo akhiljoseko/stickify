@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/theme.dart';
+import 'package:stickify/core/utils/app_breakpoints.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
@@ -69,9 +70,17 @@ class ProductDesktopTable extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  width: 48,
-                  child: Text('', textAlign: TextAlign.right),
+                Builder(
+                  builder: (context) {
+                    final bp = ResponsiveBreakpoints.of(context);
+                    final hasSpace = bp.breakpoint.name == AppBreakpoints.desktop ||
+                        bp.breakpoint.name == AppBreakpoints.fourK;
+                    final actionWidth = hasSpace ? 96.0 : 48.0;
+                    return SizedBox(
+                      width: actionWidth,
+                      child: const Text('', textAlign: TextAlign.right),
+                    );
+                  },
                 ),
               ],
             ),
@@ -132,19 +141,22 @@ class _DesktopProductTableRowState extends State<DesktopProductTableRow> {
         if (enableHoverEffects) setState(() => _isHovered = false);
       },
       cursor: SystemMouseCursors.click,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeInOut,
-        transform: Matrix4.translationValues(_isHovered ? 4 : 0, 0, 0),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: rowBgColor,
-          border: Border(
-            bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onViewDetails,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeInOut,
+          transform: Matrix4.translationValues(_isHovered ? 4 : 0, 0, 0),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: rowBgColor,
+            border: Border(
+              bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
+            ),
           ),
-        ),
-        child: Row(
-          children: [
+          child: Row(
+            children: [
             AppImage(
               imageUrl: widget.product.imageUrl,
               placeholderIcon: Icons.inventory_2_outlined,
@@ -206,18 +218,40 @@ class _DesktopProductTableRowState extends State<DesktopProductTableRow> {
                 ],
               ),
             ),
-            SizedBox(
-              width: 48,
-              child: IconButton(
-                onPressed: widget.onViewDetails,
-                icon: const Icon(Icons.visibility_outlined, size: 20),
-                tooltip: 'View Details',
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-              ),
+            Builder(
+              builder: (context) {
+                final bp = ResponsiveBreakpoints.of(context);
+                final hasSpace = bp.breakpoint.name == AppBreakpoints.desktop ||
+                    bp.breakpoint.name == AppBreakpoints.fourK;
+                final actionWidth = hasSpace ? 96.0 : 48.0;
+
+                return SizedBox(
+                  width: actionWidth,
+                  child: hasSpace
+                      ? Tooltip(
+                          message: 'View Details',
+                          child: OutlinedButton(
+                            onPressed: widget.onViewDetails,
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            child: const Text('Details'),
+                          ),
+                        )
+                      : IconButton(
+                          onPressed: widget.onViewDetails,
+                          icon: const Icon(Icons.chevron_right),
+                          tooltip: 'View Details',
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                        ),
+                );
+              },
             ),
           ],
         ),
+      ),
       ),
     );
   }

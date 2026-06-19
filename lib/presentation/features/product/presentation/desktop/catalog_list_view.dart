@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/theme.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/product.dart';
@@ -123,7 +124,18 @@ class CatalogListView extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 48, child: Text('', textAlign: TextAlign.right)),
+                        Builder(
+                          builder: (context) {
+                            final bp = ResponsiveBreakpoints.of(context);
+                            final hasSpace = bp.breakpoint.name == AppBreakpoints.desktop ||
+                                bp.breakpoint.name == AppBreakpoints.fourK;
+                            final actionWidth = hasSpace ? 96.0 : 48.0;
+                            return SizedBox(
+                              width: actionWidth,
+                              child: const Text('', textAlign: TextAlign.right),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),

@@ -134,5 +134,19 @@ void main() {
       expect(find.text('VALUE'), findsNothing);
       expect(find.text('Sensitive to high humidity'), findsNothing);
     });
+
+    testWidgets('tapping row opens detail view', (tester) async {
+      await tester.pumpApp(buildTestableWidget(), size: const Size(1200, 800));
+      await tester.pumpAndSettle();
+
+      final firstRow = find.text('ChronoMaster Elite').first;
+      expect(firstRow, findsOneWidget);
+      await tester.tap(firstRow);
+      await tester.pumpAndSettle();
+
+      expect(find.text('GLOBAL SKU PREFIX'), findsOneWidget);
+      expect(find.text('Packaging Variants'), findsOneWidget);
+      expect(find.text('No packaging variants configured.'), findsOneWidget);
+    });
   });
 }

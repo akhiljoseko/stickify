@@ -10,8 +10,7 @@ import 'package:stickify/presentation/features/product/bloc/product_sub_view.dar
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_ingredients_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_nutrition_facts_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_storage_card.dart';
-import 'package:stickify/presentation/widgets/adaptive_layout_switcher.dart';
-import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
+import 'package:stickify/presentation/widgets/widgets.dart';
 
 class ProductDetailPanel extends StatelessWidget {
   const ProductDetailPanel({
@@ -443,22 +442,13 @@ class ProductDetailPanel extends StatelessWidget {
             final screenWidth = MediaQuery.of(context).size.width;
             final isCompact = screenWidth < 780;
 
-            final imgWidget = Container(
+            final imgWidget = AppImage(
+              imageUrl: product.imageUrl,
+              placeholderIcon: Icons.image_outlined,
               width: isCompact ? double.infinity : 200,
               height: 200,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: colorScheme.containerLow,
-                image: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                    ? DecorationImage(
-                        image: resolveImageProvider(product.imageUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: product.imageUrl == null || product.imageUrl!.isEmpty
-                  ? Icon(Icons.image_outlined, size: 64, color: colorScheme.outline)
-                  : null,
+              borderRadius: 8,
+              iconSize: 64,
             );
 
             final infoWidget = Column(

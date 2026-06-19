@@ -69,7 +69,7 @@ types:
         index: 1
   LabelTemplateHiveModel:
     typeId: 2
-    nextIndex: 7
+    nextIndex: 8
     fields:
       id:
         index: 0
@@ -85,6 +85,8 @@ types:
         index: 5
       elements:
         index: 6
+      imageUrl:
+        index: 7
   NutritionFactsHiveModel:
     typeId: 3
     nextIndex: 6

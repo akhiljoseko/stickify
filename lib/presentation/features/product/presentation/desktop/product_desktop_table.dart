@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/theme.dart';
-import 'package:stickify/core/utils/image_utils.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_shared_widgets.dart';
+import 'package:stickify/presentation/widgets/widgets.dart';
 
 class ProductDesktopTable extends StatelessWidget {
   const ProductDesktopTable({required this.products, super.key});
@@ -145,30 +145,13 @@ class _DesktopProductTableRowState extends State<DesktopProductTableRow> {
         ),
         child: Row(
           children: [
-            Container(
+            AppImage(
+              imageUrl: widget.product.imageUrl,
+              placeholderIcon: Icons.inventory_2_outlined,
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                color: colorScheme.container,
-                image:
-                    widget.product.imageUrl != null &&
-                        widget.product.imageUrl!.isNotEmpty
-                    ? DecorationImage(
-                        image: resolveImageProvider(widget.product.imageUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child:
-                  widget.product.imageUrl == null ||
-                      widget.product.imageUrl!.isEmpty
-                  ? Icon(
-                      Icons.inventory_2_outlined,
-                      size: 16,
-                      color: colorScheme.primary,
-                    )
-                  : null,
+              borderRadius: 4,
+              iconSize: 16,
             ),
             const SizedBox(width: 12),
             Expanded(

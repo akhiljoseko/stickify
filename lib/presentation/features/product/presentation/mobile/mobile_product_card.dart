@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:stickify/app/theme.dart';
-import 'package:stickify/core/utils/image_utils.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
+import 'package:stickify/presentation/widgets/widgets.dart';
 
 class MobileProductCard extends StatelessWidget {
   const MobileProductCard({required this.product, super.key});
@@ -32,28 +31,11 @@ class MobileProductCard extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
+                    AppImage(
+                      imageUrl: product.imageUrl,
+                      placeholderIcon: Icons.inventory_2_outlined,
                       width: 48,
                       height: 48,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        color: colorScheme.container,
-                        image:
-                            product.imageUrl != null &&
-                                product.imageUrl!.isNotEmpty
-                            ? DecorationImage(
-                                image: resolveImageProvider(product.imageUrl!),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
-                      ),
-                      child:
-                          product.imageUrl == null || product.imageUrl!.isEmpty
-                          ? Icon(
-                              Icons.inventory_2_outlined,
-                              color: colorScheme.primary,
-                            )
-                          : null,
                     ),
                     const SizedBox(width: 12),
                     Expanded(

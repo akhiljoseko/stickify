@@ -12,4 +12,9 @@ class UnimplementedFileStorageService implements FileStorageService {
   Future<Result<String, AppError>> uploadProductImage(File file) {
     throw UnimplementedError('FileStorageService is only implemented for Windows.');
   }
+
+  @override
+  Future<Result<String, AppError>> uploadTemplateImage(File file) {
+    throw UnimplementedError('FileStorageService is only implemented for Windows.');
+  }
 }

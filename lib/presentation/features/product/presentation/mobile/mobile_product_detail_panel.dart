@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
@@ -9,7 +10,7 @@ import 'package:stickify/presentation/features/product/bloc/product_sub_view.dar
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_ingredients_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_nutrition_facts_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_storage_card.dart';
-import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
+import 'package:stickify/presentation/widgets/widgets.dart';
 
 class MobileProductDetailPanel extends StatelessWidget {
   const MobileProductDetailPanel({
@@ -221,21 +222,12 @@ class MobileProductDetailPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
+            AppImage(
+              imageUrl: product.imageUrl,
+              placeholderIcon: Icons.image_outlined,
               height: 160,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: colorScheme.containerLow,
-                image: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                    ? DecorationImage(
-                        image: resolveImageProvider(product.imageUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: product.imageUrl == null || product.imageUrl!.isEmpty
-                  ? Icon(Icons.image_outlined, size: 48, color: colorScheme.outline)
-                  : null,
+              borderRadius: 8,
+              iconSize: 48,
             ),
             const SizedBox(height: 16),
             Row(
@@ -364,10 +356,10 @@ class MobileProductDetailPanel extends StatelessWidget {
                         if (value == 'edit') {
                           _showEditVariantBottomSheet(context, v);
                         } else if (value == 'print') {
-                          PrintTemplateSelectRoute(
+                          unawaited(PrintTemplateSelectRoute(
                             productId: product.id,
                             variantSku: v.sku,
-                          ).push<void>(context);
+                          ).push<void>(context));
                         } else if (value == 'delete') {
                           final confirm = await showDialog<bool>(
                             context: context,

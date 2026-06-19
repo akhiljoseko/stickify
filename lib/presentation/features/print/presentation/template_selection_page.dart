@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
-import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
+import 'package:stickify/presentation/widgets/widgets.dart';
 
 /// A screen allowing users to pick which finalized [LabelTemplate] to use for the selected product and variant.
 class TemplateSelectionPage extends StatefulWidget {
@@ -266,25 +266,31 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                                                       aspectRatio: sticker != null
                                                           ? (sticker.widthMm / sticker.heightMm)
                                                           : 1.5,
-                                                      child: Padding(
-                                                        padding: const EdgeInsets.all(8),
-                                                        child: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Container(width: double.infinity, height: 4, color: Colors.grey.shade300),
-                                                            const SizedBox(height: 4),
-                                                            Container(width: 30, height: 4, color: Colors.grey.shade300),
-                                                            const Spacer(),
-                                                            Row(
-                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                              children: [
-                                                                Container(width: 20, height: 20, color: Colors.grey.shade300),
-                                                                Container(width: 30, height: 8, color: Colors.grey.shade300),
-                                                              ],
+                                                      child: t.imageUrl != null && t.imageUrl!.isNotEmpty
+                                                          ? AppImage(
+                                                              imageUrl: t.imageUrl,
+                                                              placeholderIcon: Icons.picture_in_picture_alt_outlined,
+                                                              borderRadius: 0,
                                                             )
-                                                          ],
-                                                        ),
-                                                      ),
+                                                          : Padding(
+                                                              padding: const EdgeInsets.all(8),
+                                                              child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                  Container(width: double.infinity, height: 4, color: Colors.grey.shade300),
+                                                                  const SizedBox(height: 4),
+                                                                  Container(width: 30, height: 4, color: Colors.grey.shade300),
+                                                                  const Spacer(),
+                                                                  Row(
+                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                    children: [
+                                                                      Container(width: 20, height: 20, color: Colors.grey.shade300),
+                                                                      Container(width: 30, height: 8, color: Colors.grey.shade300),
+                                                                    ],
+                                                                  )
+                                                                ],
+                                                              ),
+                                                            ),
                                                     ),
                                                   ),
                                                 ),

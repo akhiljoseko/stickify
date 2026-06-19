@@ -28,6 +28,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     required LabelTemplate template,
     required int quantity,
     required Set<int> disabledSlots,
+    bool printFromBottom = false,
   }) async {
     // 1. Pre-cache all network/asset/file images on the main thread
     final imageCache = await _preCacheImages(template);
@@ -41,6 +42,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       disabledSlots: disabledSlots,
       imageCache: imageCache,
       compress: useIsolate,
+      printFromBottom: printFromBottom,
     );
 
     if (useIsolate) {
@@ -119,8 +121,10 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       input.disabledSlots,
     );
     final activePositions = _getActivePositions(
-      input.quantity,
-      input.disabledSlots,
+      qty: input.quantity,
+      slotsPerSheet: slotsPerSheet,
+      disabledSlots: input.disabledSlots,
+      printFromBottom: input.printFromBottom,
     );
 
     final targetFormat = PdfPageFormat(
@@ -141,8 +145,12 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
 
           if (isActive) {
             // Calculate physical grid position in mm
-            final slotX = sheetConfig.marginLeft + c * (sticker.widthMm + sheetConfig.columnGap);
-            final slotY = sheetConfig.marginTop + r * (sticker.heightMm + sheetConfig.rowGap);
+            final slotX =
+                sheetConfig.marginLeft +
+                c * (sticker.widthMm + sheetConfig.columnGap);
+            final slotY =
+                sheetConfig.marginTop +
+                r * (sticker.heightMm + sheetConfig.rowGap);
 
             final slotWidth = sticker.widthMm;
             final slotHeight = sticker.heightMm;
@@ -199,7 +207,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
         renderer = PdfElementRendererRegistry.getRenderer(bp);
       } on Object catch (e, s) {
         throw UnexpectedError(
-          message: 'Unknown element type: No PDF renderer found for ${bp.runtimeType}.',
+          message:
+              'Unknown element type: No PDF renderer found for ${bp.runtimeType}.',
           originalError: e,
           stackTrace: s,
         );
@@ -279,17 +288,61 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
   }
 
   /// Returns a set of all active slot index positions that contain label stickers.
-  static Set<int> _getActivePositions(int qty, Set<int> disabledSlots) {
+  static Set<int> _getActivePositions({
+    required int qty,
+    required int slotsPerSheet,
+    required Set<int> disabledSlots,
+    required bool printFromBottom,
+  }) {
     final active = <int>{};
-    var activePlaced = 0;
-    var currentSlot = 0;
-    while (activePlaced < qty) {
-      if (!disabledSlots.contains(currentSlot)) {
-        active.add(currentSlot);
-        activePlaced++;
+    final totalSheets = _calculateTotalSheets(
+      qty,
+      slotsPerSheet,
+      disabledSlots,
+    );
+    var remainingQty = qty;
+
+    for (var sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
+      final sheetStart = sheetIndex * slotsPerSheet;
+      final sheetEnd = (sheetIndex + 1) * slotsPerSheet;
+
+      var availableOnSheet = 0;
+      for (var slot = sheetStart; slot < sheetEnd; slot++) {
+        if (!disabledSlots.contains(slot)) {
+          availableOnSheet++;
+        }
       }
-      currentSlot++;
+
+      if (availableOnSheet == 0) {
+        continue;
+      }
+
+      final toPlace = min(remainingQty, availableOnSheet);
+      final isLastSheet = sheetIndex == totalSheets - 1;
+
+      if (isLastSheet && printFromBottom) {
+        var placed = 0;
+        for (var slot = sheetEnd - 1; slot >= sheetStart; slot--) {
+          if (placed >= toPlace) break;
+          if (!disabledSlots.contains(slot)) {
+            active.add(slot);
+            placed++;
+          }
+        }
+      } else {
+        var placed = 0;
+        for (var slot = sheetStart; slot < sheetEnd; slot++) {
+          if (placed >= toPlace) break;
+          if (!disabledSlots.contains(slot)) {
+            active.add(slot);
+            placed++;
+          }
+        }
+      }
+
+      remainingQty -= toPlace;
     }
+
     return active;
   }
 }
@@ -305,6 +358,7 @@ class _PdfJobInput {
     required this.disabledSlots,
     required this.imageCache,
     required this.compress,
+    required this.printFromBottom,
   });
 
   /// The active product.
@@ -327,4 +381,7 @@ class _PdfJobInput {
 
   /// Whether to compress the generated PDF.
   final bool compress;
+
+  /// Whether to print from the bottom of the last sheet.
+  final bool printFromBottom;
 }

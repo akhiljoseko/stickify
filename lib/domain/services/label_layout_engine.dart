@@ -11,5 +11,6 @@ abstract interface class LabelLayoutEngine {
     required LabelTemplate template,
     required int quantity,
     required Set<int> disabledSlots,
+    bool printFromBottom = false,
   });
 }

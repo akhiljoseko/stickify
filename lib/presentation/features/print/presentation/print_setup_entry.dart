@@ -1,3 +1,4 @@
+import 'dart:math' show min;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -48,6 +49,7 @@ class PrintSetupPage extends StatelessWidget {
         printService: context.read<PrintService>(),
         printerDiscoveryService: context.read<PrinterDiscoveryService>(),
         printJobIdGenerator: context.read<PrintJobIdGenerator>(),
+        localDatabase: context.read<LocalDatabase>(),
       )..loadWorkflow(productId, variantSku, templateId, quantity),
       child: const _PrintSetupView(),
     );
@@ -79,17 +81,57 @@ class _PrintSetupViewState extends State<_PrintSetupView> {
     return (currentSlot / slotsPerSheet).floor() + 1;
   }
 
-  Set<int> _getActivePositions(int qty, Set<int> disabledSlots) {
+  Set<int> _getActivePositions({
+    required int qty,
+    required int slotsPerSheet,
+    required Set<int> disabledSlots,
+    required bool printFromBottom,
+  }) {
     final active = <int>{};
-    var activePlaced = 0;
-    var currentSlot = 0;
-    while (activePlaced < qty) {
-      if (!disabledSlots.contains(currentSlot)) {
-        active.add(currentSlot);
-        activePlaced++;
+    final totalSheets = _calculateTotalSheets(qty, slotsPerSheet, disabledSlots);
+    var remainingQty = qty;
+
+    for (var sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
+      final sheetStart = sheetIndex * slotsPerSheet;
+      final sheetEnd = (sheetIndex + 1) * slotsPerSheet;
+
+      var availableOnSheet = 0;
+      for (var slot = sheetStart; slot < sheetEnd; slot++) {
+        if (!disabledSlots.contains(slot)) {
+          availableOnSheet++;
+        }
       }
-      currentSlot++;
+
+      if (availableOnSheet == 0) {
+        continue;
+      }
+
+      final toPlace = min(remainingQty, availableOnSheet);
+      final isLastSheet = sheetIndex == totalSheets - 1;
+
+      if (isLastSheet && printFromBottom) {
+        var placed = 0;
+        for (var slot = sheetEnd - 1; slot >= sheetStart; slot--) {
+          if (placed >= toPlace) break;
+          if (!disabledSlots.contains(slot)) {
+            active.add(slot);
+            placed++;
+          }
+        }
+      } else {
+        var placed = 0;
+        for (var slot = sheetStart; slot < sheetEnd; slot++) {
+          if (placed >= toPlace) break;
+          if (!disabledSlots.contains(slot)) {
+            active.add(slot);
+            placed++;
+          }
+        }
+      }
+
+      remainingQty -= toPlace;
     }
+
     return active;
   }
 
@@ -186,8 +228,10 @@ class _PrintSetupViewState extends State<_PrintSetupView> {
             loadedState.disabledSlots,
           );
           final activePositions = _getActivePositions(
-            loadedState.quantity,
-            loadedState.disabledSlots,
+            qty: loadedState.quantity,
+            slotsPerSheet: slotsPerSheet,
+            disabledSlots: loadedState.disabledSlots,
+            printFromBottom: loadedState.printFromBottom,
           );
 
           final parametersPanel = ParametersPanel(

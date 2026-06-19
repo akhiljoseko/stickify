@@ -34,6 +34,8 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     this.availablePrinters = const [],
     this.selectedPrinter,
     this.disabledSlots = const {},
+    this.printFromBottom = false,
+    this.isQuantityManuallyEdited = false,
   });
 
   /// The active product.
@@ -60,6 +62,12 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
   /// Set of disabled label slot grid indices to skip when compiling.
   final Set<int> disabledSlots;
 
+  /// Whether to print from the bottom of the last sheet.
+  final bool printFromBottom;
+
+  /// Whether the user has manually edited the quantity field.
+  final bool isQuantityManuallyEdited;
+
   /// Returns a copy of the state with modified fields.
   PrintWorkflowLoaded copyWith({
     Product? product,
@@ -70,6 +78,8 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     List<PrinterDevice>? availablePrinters,
     PrinterDevice? Function()? selectedPrinter,
     Set<int>? disabledSlots,
+    bool? printFromBottom,
+    bool? isQuantityManuallyEdited,
   }) {
     return PrintWorkflowLoaded(
       product: product ?? this.product,
@@ -80,6 +90,8 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
       availablePrinters: availablePrinters ?? this.availablePrinters,
       selectedPrinter: selectedPrinter != null ? selectedPrinter() : this.selectedPrinter,
       disabledSlots: disabledSlots ?? this.disabledSlots,
+      printFromBottom: printFromBottom ?? this.printFromBottom,
+      isQuantityManuallyEdited: isQuantityManuallyEdited ?? this.isQuantityManuallyEdited,
     );
   }
 
@@ -93,6 +105,8 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
         availablePrinters,
         selectedPrinter,
         disabledSlots,
+        printFromBottom,
+        isQuantityManuallyEdited,
       ];
 }
 

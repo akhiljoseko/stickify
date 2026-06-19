@@ -4,6 +4,7 @@ import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/core/utils/token_registry.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
+import 'package:stickify/presentation/features/template_editor/widgets/setup_fields.dart';
 
 /// Sidebar panel displaying detailed configuration inputs for the selected canvas element.
 ///
@@ -335,26 +336,17 @@ class PropertiesPanel extends StatelessWidget {
       Text('Shape Styling', style: textTheme.titleSmall),
       const SizedBox(height: 12),
 
-      // Corner radius slider
-      Text(
-        'Corner Radius: ${bp.cornerRadius.toInt()} px',
-        style: textTheme.bodySmall,
-      ),
-      Slider(
-        max: 30,
+      SetupNumberField(
+        labelText: 'Corner Radius (px)',
         value: bp.cornerRadius,
         onChanged: (val) {
           cubit.updateElementProperty(bp.id, bp.copyWith(cornerRadius: val));
         },
       ),
+      const SizedBox(height: 12),
 
-      // Stroke width slider
-      Text(
-        'Stroke Width: ${bp.strokeWidth.toInt()} px',
-        style: textTheme.bodySmall,
-      ),
-      Slider(
-        max: 10,
+      SetupNumberField(
+        labelText: 'Stroke Width (px)',
         value: bp.strokeWidth,
         onChanged: (val) {
           cubit.updateElementProperty(bp.id, bp.copyWith(strokeWidth: val));
@@ -557,18 +549,24 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
 
         // User-friendly Field Injector Dropdown
         DropdownButtonFormField<String>(
+          isExpanded: true,
           decoration: const InputDecoration(
             labelText: 'Insert Dynamic Token',
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
-          hint: const Text('Select token to insert'),
-          items: tokenRegistry
-              .where((t) => t.visibleInDropdown)
-              .map((t) {
+          hint: const Text(
+            'Select token to insert',
+            overflow: TextOverflow.ellipsis,
+          ),
+          items: tokenRegistry.where((t) => t.visibleInDropdown).map((t) {
             return DropdownMenuItem<String>(
               value: t.token,
-              child: Text('[${t.category}] ${t.displayName}'),
+              child: Text(
+                '[${t.category}] ${t.displayName}',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             );
           }).toList(),
           onChanged: (token) {
@@ -579,15 +577,9 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
         ),
         const SizedBox(height: 16),
 
-        // Font size slider
-        Text(
-          'Font Size: ${bp.fontSize.toInt()} px',
-          style: widget.textTheme.bodySmall,
-        ),
-        Slider(
-          min: 1,
-          max: 72,
-          value: bp.fontSize.clamp(1.0, 72.0),
+        SetupNumberField(
+          labelText: 'Font Size (px)',
+          value: bp.fontSize,
           onChanged: (val) {
             final oldFontSize = bp.fontSize;
             final scale = val / oldFontSize;
@@ -603,38 +595,26 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
             );
           },
         ),
+        const SizedBox(height: 12),
 
-        // Max lines slider
-        Text(
-          'Max Lines: ${bp.maxLines}',
-          style: widget.textTheme.bodySmall,
-        ),
-        Slider(
-          min: 1,
-          max: 10,
-          divisions: 9,
-          value: bp.maxLines.toDouble(),
+        SetupIntField(
+          labelText: 'Max Lines',
+          value: bp.maxLines,
           onChanged: (val) {
-            final newMaxLines = val.toInt();
-            final newHeight = newMaxLines * bp.fontSize * 1.3;
+            final newHeight = val * bp.fontSize * 1.3;
             widget.cubit.updateElementProperty(
               bp.id,
               bp.copyWith(
-                maxLines: newMaxLines,
+                maxLines: val,
                 height: newHeight,
               ),
             );
           },
         ),
+        const SizedBox(height: 12),
 
-        // Letter spacing slider
-        Text(
-          'Letter Spacing: ${bp.letterSpacing.toStringAsFixed(1)}',
-          style: widget.textTheme.bodySmall,
-        ),
-        Slider(
-          min: -2,
-          max: 10,
+        SetupNumberField(
+          labelText: 'Letter Spacing',
           value: bp.letterSpacing,
           onChanged: (val) {
             widget.cubit.updateElementProperty(
@@ -643,6 +623,7 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
             );
           },
         ),
+        const SizedBox(height: 16),
 
         // Font weight toggle (Regular vs Bold)
         Row(
@@ -830,18 +811,24 @@ class _BarcodePropertiesWidgetState extends State<BarcodePropertiesWidget> {
 
         // User-friendly Field Injector Dropdown
         DropdownButtonFormField<String>(
+          isExpanded: true,
           decoration: const InputDecoration(
             labelText: 'Insert Dynamic Token',
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
-          hint: const Text('Select token to insert'),
-          items: tokenRegistry
-              .where((t) => t.visibleInDropdown)
-              .map((t) {
+          hint: const Text(
+            'Select token to insert',
+            overflow: TextOverflow.ellipsis,
+          ),
+          items: tokenRegistry.where((t) => t.visibleInDropdown).map((t) {
             return DropdownMenuItem<String>(
               value: t.token,
-              child: Text('[${t.category}] ${t.displayName}'),
+              child: Text(
+                '[${t.category}] ${t.displayName}',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             );
           }).toList(),
           onChanged: (token) {
@@ -992,18 +979,24 @@ class _QrPropertiesWidgetState extends State<QrPropertiesWidget> {
 
         // User-friendly Field Injector Dropdown
         DropdownButtonFormField<String>(
+          isExpanded: true,
           decoration: const InputDecoration(
             labelText: 'Insert Dynamic Token',
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
-          hint: const Text('Select token to insert'),
-          items: tokenRegistry
-              .where((t) => t.visibleInDropdown)
-              .map((t) {
+          hint: const Text(
+            'Select token to insert',
+            overflow: TextOverflow.ellipsis,
+          ),
+          items: tokenRegistry.where((t) => t.visibleInDropdown).map((t) {
             return DropdownMenuItem<String>(
               value: t.token,
-              child: Text('[${t.category}] ${t.displayName}'),
+              child: Text(
+                '[${t.category}] ${t.displayName}',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             );
           }).toList(),
           onChanged: (token) {

@@ -39,159 +39,165 @@ class ProductDetailPanel extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          constraints: const BoxConstraints(maxWidth: 480),
-          title: Text('Edit Variant - ${variant.name}'),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextFormField(
-                    controller: nameController,
-                    decoration: const InputDecoration(labelText: 'Variant Name'),
-                    validator: (val) => (val == null || val.trim().isEmpty) ? 'Name is required' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: skuController,
-                    decoration: const InputDecoration(labelText: 'SKU'),
-                    validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
+        return StatefulBuilder(
+          builder: (dialogContext, setState) {
+            return AlertDialog(
+              constraints: const BoxConstraints(maxWidth: 480),
+              title: Text('Edit Variant - ${variant.name}'),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: quantityController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(labelText: 'Quantity'),
-                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
-                        ),
+                      TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(labelText: 'Variant Name'),
+                        validator: (val) => (val == null || val.trim().isEmpty) ? 'Name is required' : null,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: const ['pcs', 'ml', 'gm', 'kg', 'L'].contains(unitController.text) ? unitController.text : 'gm',
-                          decoration: const InputDecoration(labelText: 'Unit'),
-                          items: const [
-                            DropdownMenuItem(value: 'pcs', child: Text('pcs')),
-                            DropdownMenuItem(value: 'ml', child: Text('ml')),
-                            DropdownMenuItem(value: 'gm', child: Text('gm')),
-                            DropdownMenuItem(value: 'kg', child: Text('kg')),
-                            DropdownMenuItem(value: 'L', child: Text('L')),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) unitController.text = val;
-                          },
-                        ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: skuController,
+                        decoration: const InputDecoration(labelText: 'SKU'),
+                        validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: wholesaleController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(labelText: 'Wholesale Price (₹)'),
-                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: mrpController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(labelText: 'MRP (₹)'),
-                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  FutureBuilder<List<LabelTemplate>>(
-                    future: (() async {
-                      final repo = context.read<TemplateRepository>();
-                      final result = await repo.fetchTemplates();
-                      return switch (result) {
-                        Success(value: final templates) =>
-                          templates.where((t) => t.isFinalized).toList(),
-                        Failure() => <LabelTemplate>[],
-                      };
-                    })(),
-                    builder: (context, snapshot) {
-                      final templates = (snapshot.data ?? <LabelTemplate>[])
-                        ..sort((a, b) => a.name.compareTo(b.name));
-                      final isLoading =
-                          snapshot.connectionState != ConnectionState.done;
-                      return TemplateSelectorField(
-                        templates: templates,
-                        selectedTemplateId: selectedTemplateId,
-                        labelText: 'Default Template (optional)',
-                        allowNone: true,
-                        onChanged: isLoading
-                            ? null
-                            : (val) {
-                                selectedTemplateId = val;
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: quantityController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              decoration: const InputDecoration(labelText: 'Quantity'),
+                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              initialValue: const ['pcs', 'ml', 'gm', 'kg', 'L'].contains(unitController.text) ? unitController.text : 'gm',
+                              decoration: const InputDecoration(labelText: 'Unit'),
+                              items: const [
+                                DropdownMenuItem(value: 'pcs', child: Text('pcs')),
+                                DropdownMenuItem(value: 'ml', child: Text('ml')),
+                                DropdownMenuItem(value: 'gm', child: Text('gm')),
+                                DropdownMenuItem(value: 'kg', child: Text('kg')),
+                                DropdownMenuItem(value: 'L', child: Text('L')),
+                              ],
+                              onChanged: (val) {
+                                if (val != null) unitController.text = val;
                               },
-                      );
-                    },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: wholesaleController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              decoration: const InputDecoration(labelText: 'Wholesale Price (₹)'),
+                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextFormField(
+                              controller: mrpController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              decoration: const InputDecoration(labelText: 'MRP (₹)'),
+                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      FutureBuilder<List<LabelTemplate>>(
+                        future: (() async {
+                          final repo = context.read<TemplateRepository>();
+                          final result = await repo.fetchTemplates();
+                          return switch (result) {
+                            Success(value: final templates) =>
+                              templates.where((t) => t.isFinalized).toList(),
+                            Failure() => <LabelTemplate>[],
+                          };
+                        })(),
+                        builder: (context, snapshot) {
+                          final templates = (snapshot.data ?? <LabelTemplate>[])
+                            ..sort((a, b) => a.name.compareTo(b.name));
+                          final isLoading =
+                              snapshot.connectionState != ConnectionState.done;
+                          return TemplateSelectorField(
+                            templates: templates,
+                            selectedTemplateId: selectedTemplateId,
+                            labelText: 'Default Template (optional)',
+                            allowNone: true,
+                            onChanged: isLoading
+                                ? null
+                                : (val) {
+                                    setState(() {
+                                      selectedTemplateId = val;
+                                    });
+                                  },
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  final updatedVariants = product.variants.map((v) {
-                    if (v.sku == variant.sku) {
-                      return ProductVariant(
-                        name: nameController.text.trim(),
-                        sku: skuController.text.trim(),
-                        quantity: double.parse(quantityController.text),
-                        unit: unitController.text.trim(),
-                        wholesale: double.parse(wholesaleController.text),
-                        mrp: double.parse(mrpController.text),
-                        defaultTemplateId: selectedTemplateId,
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      final updatedVariants = product.variants.map((v) {
+                        if (v.sku == variant.sku) {
+                          return ProductVariant(
+                            name: nameController.text.trim(),
+                            sku: skuController.text.trim(),
+                            quantity: double.parse(quantityController.text),
+                            unit: unitController.text.trim(),
+                            wholesale: double.parse(wholesaleController.text),
+                            mrp: double.parse(mrpController.text),
+                            defaultTemplateId: selectedTemplateId,
+                          );
+                        }
+                        return v;
+                      }).toList();
+
+                      final updatedProduct = Product(
+                        id: product.id,
+                        name: product.name,
+                        sku: product.sku,
+                        category: product.category,
+                        shelfLifeDays: product.shelfLifeDays,
+                        storageConditions: product.storageConditions,
+                        imageUrl: product.imageUrl,
+                        ingredients: product.ingredients,
+                        nutritionFacts: product.nutritionFacts,
+                        variants: List.unmodifiable(updatedVariants),
+                        lastModified: DateTime.now(),
                       );
+
+                      context.read<ProductCubit>().saveProduct(
+                            updatedProduct,
+                            nextView: ProductDetailView(updatedProduct),
+                          );
+                      Navigator.pop(dialogContext);
                     }
-                    return v;
-                  }).toList();
-
-                  final updatedProduct = Product(
-                    id: product.id,
-                    name: product.name,
-                    sku: product.sku,
-                    category: product.category,
-                    shelfLifeDays: product.shelfLifeDays,
-                    storageConditions: product.storageConditions,
-                    imageUrl: product.imageUrl,
-                    ingredients: product.ingredients,
-                    nutritionFacts: product.nutritionFacts,
-                    variants: List.unmodifiable(updatedVariants),
-                    lastModified: DateTime.now(),
-                  );
-
-                  context.read<ProductCubit>().saveProduct(
-                    updatedProduct,
-                    nextView: ProductDetailView(updatedProduct),
-                  );
-                  Navigator.pop(dialogContext);
-                }
-              },
-              child: const Text('Save Variant'),
-            ),
-          ],
+                  },
+                  child: const Text('Save Variant'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -210,153 +216,159 @@ class ProductDetailPanel extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          constraints: const BoxConstraints(maxWidth: 480),
-          title: const Text('Add Variant'),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextFormField(
-                    controller: nameController,
-                    decoration: const InputDecoration(labelText: 'Variant Name'),
-                    validator: (val) => (val == null || val.trim().isEmpty) ? 'Name is required' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: skuController,
-                    decoration: const InputDecoration(labelText: 'SKU'),
-                    validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
+        return StatefulBuilder(
+          builder: (dialogContext, setState) {
+            return AlertDialog(
+              constraints: const BoxConstraints(maxWidth: 480),
+              title: const Text('Add Variant'),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: quantityController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(labelText: 'Quantity'),
-                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
-                        ),
+                      TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(labelText: 'Variant Name'),
+                        validator: (val) => (val == null || val.trim().isEmpty) ? 'Name is required' : null,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: unitController.text,
-                          decoration: const InputDecoration(labelText: 'Unit'),
-                          items: const [
-                            DropdownMenuItem(value: 'pcs', child: Text('pcs')),
-                            DropdownMenuItem(value: 'ml', child: Text('ml')),
-                            DropdownMenuItem(value: 'gm', child: Text('gm')),
-                            DropdownMenuItem(value: 'kg', child: Text('kg')),
-                            DropdownMenuItem(value: 'L', child: Text('L')),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) unitController.text = val;
-                          },
-                        ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: skuController,
+                        decoration: const InputDecoration(labelText: 'SKU'),
+                        validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: wholesaleController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(labelText: 'Wholesale Price (₹)'),
-                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: mrpController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(labelText: 'MRP (₹)'),
-                          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  FutureBuilder<List<LabelTemplate>>(
-                    future: (() async {
-                      final repo = context.read<TemplateRepository>();
-                      final result = await repo.fetchTemplates();
-                      return switch (result) {
-                        Success(value: final templates) =>
-                          templates.where((t) => t.isFinalized).toList(),
-                        Failure() => <LabelTemplate>[],
-                      };
-                    })(),
-                    builder: (context, snapshot) {
-                      final templates = (snapshot.data ?? <LabelTemplate>[])
-                        ..sort((a, b) => a.name.compareTo(b.name));
-                      final isLoading =
-                          snapshot.connectionState != ConnectionState.done;
-                      return TemplateSelectorField(
-                        templates: templates,
-                        selectedTemplateId: selectedTemplateId,
-                        labelText: 'Default Template (optional)',
-                        allowNone: true,
-                        onChanged: isLoading
-                            ? null
-                            : (val) {
-                                selectedTemplateId = val;
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: quantityController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              decoration: const InputDecoration(labelText: 'Quantity'),
+                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              initialValue: unitController.text,
+                              decoration: const InputDecoration(labelText: 'Unit'),
+                              items: const [
+                                DropdownMenuItem(value: 'pcs', child: Text('pcs')),
+                                DropdownMenuItem(value: 'ml', child: Text('ml')),
+                                DropdownMenuItem(value: 'gm', child: Text('gm')),
+                                DropdownMenuItem(value: 'kg', child: Text('kg')),
+                                DropdownMenuItem(value: 'L', child: Text('L')),
+                              ],
+                              onChanged: (val) {
+                                if (val != null) unitController.text = val;
                               },
-                      );
-                    },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: wholesaleController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              decoration: const InputDecoration(labelText: 'Wholesale Price (₹)'),
+                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextFormField(
+                              controller: mrpController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              decoration: const InputDecoration(labelText: 'MRP (₹)'),
+                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      FutureBuilder<List<LabelTemplate>>(
+                        future: (() async {
+                          final repo = context.read<TemplateRepository>();
+                          final result = await repo.fetchTemplates();
+                          return switch (result) {
+                            Success(value: final templates) =>
+                              templates.where((t) => t.isFinalized).toList(),
+                            Failure() => <LabelTemplate>[],
+                          };
+                        })(),
+                        builder: (context, snapshot) {
+                          final templates = (snapshot.data ?? <LabelTemplate>[])
+                            ..sort((a, b) => a.name.compareTo(b.name));
+                          final isLoading =
+                              snapshot.connectionState != ConnectionState.done;
+                          return TemplateSelectorField(
+                            templates: templates,
+                            selectedTemplateId: selectedTemplateId,
+                            labelText: 'Default Template (optional)',
+                            allowNone: true,
+                            onChanged: isLoading
+                                ? null
+                                : (val) {
+                                    setState(() {
+                                      selectedTemplateId = val;
+                                    });
+                                  },
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  final newVariant = ProductVariant(
-                    name: nameController.text.trim(),
-                    sku: skuController.text.trim(),
-                    quantity: double.parse(quantityController.text),
-                    unit: unitController.text.trim(),
-                    wholesale: double.parse(wholesaleController.text),
-                    mrp: double.parse(mrpController.text),
-                    defaultTemplateId: selectedTemplateId,
-                  );
-                  final updatedVariants = [...product.variants, newVariant];
-                  final updatedProduct = Product(
-                    id: product.id,
-                    name: product.name,
-                    sku: product.sku,
-                    category: product.category,
-                    shelfLifeDays: product.shelfLifeDays,
-                    storageConditions: product.storageConditions,
-                    imageUrl: product.imageUrl,
-                    ingredients: product.ingredients,
-                    nutritionFacts: product.nutritionFacts,
-                    variants: List.unmodifiable(updatedVariants),
-                    lastModified: DateTime.now(),
-                  );
-                  context.read<ProductCubit>().saveProduct(
-                    updatedProduct,
-                    nextView: ProductDetailView(updatedProduct),
-                  );
-                  Navigator.pop(dialogContext);
-                }
-              },
-              child: const Text('Add Variant'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      final newVariant = ProductVariant(
+                        name: nameController.text.trim(),
+                        sku: skuController.text.trim(),
+                        quantity: double.parse(quantityController.text),
+                        unit: unitController.text.trim(),
+                        wholesale: double.parse(wholesaleController.text),
+                        mrp: double.parse(mrpController.text),
+                        defaultTemplateId: selectedTemplateId,
+                      );
+                      final updatedVariants = [...product.variants, newVariant];
+                      final updatedProduct = Product(
+                        id: product.id,
+                        name: product.name,
+                        sku: product.sku,
+                        category: product.category,
+                        shelfLifeDays: product.shelfLifeDays,
+                        storageConditions: product.storageConditions,
+                        imageUrl: product.imageUrl,
+                        ingredients: product.ingredients,
+                        nutritionFacts: product.nutritionFacts,
+                        variants: List.unmodifiable(updatedVariants),
+                        lastModified: DateTime.now(),
+                      );
+                      context.read<ProductCubit>().saveProduct(
+                            updatedProduct,
+                            nextView: ProductDetailView(updatedProduct),
+                          );
+                      Navigator.pop(dialogContext);
+                    }
+                  },
+                  child: const Text('Add Variant'),
+                ),
+              ],
+            );
+          },
         );
       },
     );

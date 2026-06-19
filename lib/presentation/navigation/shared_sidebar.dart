@@ -43,41 +43,19 @@ class CustomSidebar extends StatelessWidget {
               if (showText) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Label Grid',
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontFamily: 'Hanken Grotesk',
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Warehouse Admin',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+                  child: Image.asset(
+                    'assets/logo.png',
+                    height: 80,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ] else ...[
                 Center(
-                  child: Container(
+                  child: Image.asset(
+                    'assets/logo.png',
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.sticky_note_2_rounded,
-                      color: colorScheme.onPrimaryContainer,
-                      size: 22,
-                    ),
+                    fit: BoxFit.contain,
                   ),
                 ),
               ],
@@ -103,7 +81,42 @@ class CustomSidebar extends StatelessWidget {
                 ),
               ),
 
-
+              // Powered by tag at the bottom
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: showText ? 24.0 : 4.0,
+                  vertical: showText ? 16.0 : 8.0,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: showText
+                      ? CrossAxisAlignment.start
+                      : CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'POWERED BY',
+                      style: textTheme.labelSmall?.copyWith(
+                        fontSize: showText ? 9.0 : 7.5,
+                        letterSpacing: showText ? 1.0 : 0.5,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.6,
+                        ),
+                      ),
+                      textAlign: showText ? TextAlign.left : TextAlign.center,
+                    ),
+                    const SizedBox(height: 6),
+                    Image.asset(
+                      Theme.of(context).brightness == Brightness.dark
+                          ? 'assets/inevitable-logo-dark.png'
+                          : 'assets/inevitable-logo.png',
+                      height: showText ? 40 : 16,
+                      width: showText ? null : 56,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
+                ),
+              ),
             ],
           );
         },
@@ -144,8 +157,8 @@ class _SidebarItemState extends State<_SidebarItem> {
     final itemBg = widget.isSelected
         ? colorScheme.secondaryContainer
         : _isHovered
-            ? colorScheme.surfaceContainerHigh
-            : Colors.transparent;
+        ? colorScheme.surfaceContainerHigh
+        : Colors.transparent;
 
     final textColor = widget.isSelected
         ? colorScheme.primary
@@ -163,7 +176,9 @@ class _SidebarItemState extends State<_SidebarItem> {
             color: itemBg,
             border: Border(
               right: BorderSide(
-                color: widget.isSelected ? colorScheme.primary : Colors.transparent,
+                color: widget.isSelected
+                    ? colorScheme.primary
+                    : Colors.transparent,
                 width: 2,
               ),
             ),
@@ -186,7 +201,9 @@ class _SidebarItemState extends State<_SidebarItem> {
                     widget.label,
                     style: textTheme.labelMedium?.copyWith(
                       fontFamily: 'JetBrains Mono',
-                      fontWeight: widget.isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: widget.isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w500,
                       color: textColor,
                     ),
                     maxLines: 1,

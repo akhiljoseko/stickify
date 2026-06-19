@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:stickify/data/models/hive/hive_registrar.g.dart';
 import 'package:stickify/domain/domain.dart';
 
@@ -11,7 +13,14 @@ class HiveLocalDatabase implements LocalDatabase {
     if (path != null) {
       Hive.init(path);
     } else {
-      await Hive.initFlutter();
+      final docsDir = await getApplicationDocumentsDirectory();
+      final dbDir = Directory(
+        '${docsDir.path}${Platform.pathSeparator}label-grid${Platform.pathSeparator}database',
+      );
+      if (!dbDir.existsSync()) {
+        dbDir.createSync(recursive: true);
+      }
+      Hive.init(dbDir.path);
     }
     try {
       Hive.registerAdapters();

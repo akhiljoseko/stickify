@@ -31,8 +31,8 @@ class MockProductRepository implements ProductRepository {
         Ingredient(name: 'Lithium Battery', percentage: 10),
       ],
       variants: const [
-        ProductVariant(name: 'Silver Edition', quantity: 1, unit: 'pcs', wholesale: 150, mrp: 299, sku: 'WTCH-293-882-EL-SLV', defaultTemplateId: null),
-        ProductVariant(name: 'Black Edition', quantity: 1, unit: 'pcs', wholesale: 180, mrp: 349, sku: 'WTCH-293-882-EL-BLK', defaultTemplateId: null),
+        ProductVariant(name: 'Silver Edition', quantity: 1, unit: 'pcs', wholesale: 150, mrp: 299, sku: 'WTCH-293-882-EL-SLV'),
+        ProductVariant(name: 'Black Edition', quantity: 1, unit: 'pcs', wholesale: 180, mrp: 349, sku: 'WTCH-293-882-EL-BLK'),
       ],
     ),
     Product(
@@ -50,7 +50,7 @@ class MockProductRepository implements ProductRepository {
         Ingredient(name: 'Memory Foam', percentage: 20),
       ],
       variants: const [
-        ProductVariant(name: 'Standard Black', quantity: 1, unit: 'pcs', wholesale: 85, mrp: 149, sku: 'AUD-HX0-912-PR-BLK', defaultTemplateId: null),
+        ProductVariant(name: 'Standard Black', quantity: 1, unit: 'pcs', wholesale: 85, mrp: 149, sku: 'AUD-HX0-912-PR-BLK'),
       ],
     ),
     Product(
@@ -67,8 +67,8 @@ class MockProductRepository implements ProductRepository {
         Ingredient(name: 'Rubber Sole', percentage: 40),
       ],
       variants: const [
-        ProductVariant(name: 'Size 9', quantity: 1, unit: 'pcs', wholesale: 45, mrp: 89, sku: 'FWR-SH-442-AP-09', defaultTemplateId: null),
-        ProductVariant(name: 'Size 10', quantity: 1, unit: 'pcs', wholesale: 45, mrp: 89, sku: 'FWR-SH-442-AP-10', defaultTemplateId: null),
+        ProductVariant(name: 'Size 9', quantity: 1, unit: 'pcs', wholesale: 45, mrp: 89, sku: 'FWR-SH-442-AP-09'),
+        ProductVariant(name: 'Size 10', quantity: 1, unit: 'pcs', wholesale: 45, mrp: 89, sku: 'FWR-SH-442-AP-10'),
       ],
     ),
     Product(
@@ -85,7 +85,7 @@ class MockProductRepository implements ProductRepository {
         Ingredient(name: 'Aluminum Alloy Body', percentage: 50),
       ],
       variants: const [
-        ProductVariant(name: 'Standard 35mm', quantity: 35, unit: 'ml', wholesale: 450, mrp: 899, sku: 'OPT-CAM-001-LM-35', defaultTemplateId: null),
+        ProductVariant(name: 'Standard 35mm', quantity: 35, unit: 'ml', wholesale: 450, mrp: 899, sku: 'OPT-CAM-001-LM-35'),
       ],
     ),
     Product(
@@ -113,9 +113,9 @@ class MockProductRepository implements ProductRepository {
         fiber: 12,
       ),
       variants: const [
-        ProductVariant(name: '150g Pouch', quantity: 150, unit: 'gm', wholesale: 8.50, mrp: 12.50, sku: 'ALM-150P-001', defaultTemplateId: null),
-        ProductVariant(name: '500g Jar', quantity: 500, unit: 'gm', wholesale: 24.99, mrp: 34.99, sku: 'ALM-500J-002', defaultTemplateId: null),
-        ProductVariant(name: '1kg Bulk Box', quantity: 1, unit: 'kg', wholesale: 42, mrp: 59, sku: 'ALM-1000B-003', defaultTemplateId: null),
+        ProductVariant(name: '150g Pouch', quantity: 150, unit: 'gm', wholesale: 8.50, mrp: 12.50, sku: 'ALM-150P-001'),
+        ProductVariant(name: '500g Jar', quantity: 500, unit: 'gm', wholesale: 24.99, mrp: 34.99, sku: 'ALM-500J-002'),
+        ProductVariant(name: '1kg Bulk Box', quantity: 1, unit: 'kg', wholesale: 42, mrp: 59, sku: 'ALM-1000B-003'),
       ],
     ),
   ];

@@ -36,7 +36,7 @@ void main() {
       ),
     );
     registerFallbackValue(
-      Product(
+      const Product(
         id: 'fallback-prod',
         name: 'Fallback',
         sku: 'SKU',
@@ -50,7 +50,6 @@ void main() {
         wholesale: 0,
         mrp: 0,
         sku: 'SKU',
-        defaultTemplateId: null,
       ),
     );
     registerFallbackValue(
@@ -75,11 +74,11 @@ void main() {
   late PrintJobIdGenerator printJobIdGenerator;
   late VariantPrintStatsRepository variantPrintStatsRepository;
 
-  final testProduct = Product(
+  const testProduct = Product(
     id: 'prod-test',
     name: 'Dynamic Product',
     sku: 'PROD-SKU',
-    variants: const [
+    variants: [
       ProductVariant(
         name: 'Pack of 10',
         quantity: 10,
@@ -87,7 +86,6 @@ void main() {
         wholesale: 150,
         mrp: 200,
         sku: 'PROD-VAR-SKU',
-        defaultTemplateId: null,
       ),
     ],
   );
@@ -184,7 +182,7 @@ void main() {
 
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(() => productRepository.getProductById('prod-test'))
-          .thenAnswer((_) async => Result.success(testProduct));
+          .thenAnswer((_) async => const Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
           .thenAnswer((_) async => const Result.success([testTemplate]));
       when(() => printJobRepository.savePrintJob(any()))
@@ -312,7 +310,7 @@ void main() {
 
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(() => productRepository.getProductById('prod-test'))
-          .thenAnswer((_) async => Result.success(testProduct));
+          .thenAnswer((_) async => const Result.success(testProduct));
       when(() => templateRepository.fetchTemplates())
           .thenAnswer((_) async => const Result.success([testTemplate]));
       when(() => printJobRepository.onPrintJobCreated).thenAnswer(

@@ -69,7 +69,7 @@ class ParametersPanel extends StatelessWidget {
             // Printer Selection
             DropdownButtonFormField<PrinterDevice>(
               isExpanded: true,
-              value: loadedState.selectedPrinter,
+              initialValue: loadedState.selectedPrinter,
               decoration: const InputDecoration(
                 labelText: 'Printer Selection',
                 border: OutlineInputBorder(),

@@ -63,7 +63,7 @@ void main() {
         });
 
         test('save and delete product', () async {
-          final newProduct = Product(
+          const newProduct = Product(
             id: 'prod-new-99',
             name: 'Super Sticker Pack',
             sku: 'STK-99-SUPER',
@@ -81,17 +81,17 @@ void main() {
         });
 
         test('save three products', () async {
-          final p1 = Product(
+          const p1 = Product(
             id: 'prod-1',
             name: 'Product A',
             sku: 'SKU-A',
           );
-          final p2 = Product(
+          const p2 = Product(
             id: 'prod-2',
             name: 'Product B',
             sku: 'SKU-B',
           );
-          final p3 = Product(
+          const p3 = Product(
             id: 'prod-3',
             name: 'Product C',
             sku: 'SKU-C',
@@ -195,7 +195,7 @@ void main() {
 
       group('DatabaseSearchRepository', () {
         test('search items dynamically matches text', () async {
-          final p1 = Product(
+          const p1 = Product(
             id: 'prod-chrono',
             name: 'ChronoMaster Elite',
             sku: 'CHRONO-01',
@@ -208,7 +208,7 @@ void main() {
         });
 
         test('search filters with category facets', () async {
-          final p1 = Product(
+          const p1 = Product(
             id: 'prod-search-1',
             name: 'Search Product',
             sku: 'SP-01',

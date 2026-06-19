@@ -80,7 +80,7 @@ void main() {
   late FakePrintingPlatform fakePrintingPlatform;
   late WindowsPrintService service;
 
-  final testProduct = Product(
+  const testProduct = Product(
     id: 'prod-1',
     name: 'Cold Brew Coffee',
     sku: 'CB-100',
@@ -93,7 +93,6 @@ void main() {
     wholesale: 2.5,
     mrp: 3.5,
     sku: 'CB-100-BTL',
-    defaultTemplateId: null,
   );
 
   const testSheet = SheetConfig(
@@ -137,7 +136,7 @@ void main() {
       columnGap: 0,
       rowGap: 0,
     ));
-    registerFallbackValue(Product(
+    registerFallbackValue(const Product(
       id: '',
       name: '',
       sku: '',
@@ -146,10 +145,9 @@ void main() {
       name: '',
       quantity: 0,
       unit: '',
-      wholesale: 0.0,
-      mrp: 0.0,
+      wholesale: 0,
+      mrp: 0,
       sku: '',
-      defaultTemplateId: null,
     ));
     registerFallbackValue(const LabelTemplate(
       id: '',

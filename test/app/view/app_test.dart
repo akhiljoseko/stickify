@@ -1,12 +1,13 @@
 import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stickify/app/app.dart';
 import 'package:stickify/core/core.dart';
-import 'package:stickify/domain/domain.dart';
 import 'package:stickify/data/models/hive/print_job_hive_model.dart';
 import 'package:stickify/data/models/hive/product_hive_model.dart';
 import 'package:stickify/data/models/hive/template_hive_model.dart';
+import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/presentation/dashboard_entry.dart';
 import 'package:stickify/presentation/login/login_screen.dart';
 

@@ -4,8 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/core/core.dart';
-import 'package:stickify/core/environment/app_environment.dart';
-import 'package:stickify/core/environment/app_experience.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/template_management/bloc/template_list_cubit.dart';
 import 'package:stickify/presentation/template_management/bloc/template_list_state.dart';

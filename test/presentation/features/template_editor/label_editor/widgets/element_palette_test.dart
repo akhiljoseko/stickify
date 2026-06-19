@@ -28,7 +28,6 @@ void main() {
             create: (_) => EditorCubit(MockTemplateRepository(), 'temp-123'),
             child: const ElementPalette(),
           ),
-          width: 400,
         ),
       );
 

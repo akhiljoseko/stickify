@@ -9,7 +9,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ZoomControls(
-              zoomLevel: 1.0,
+              zoomLevel: 1,
               onZoomChanged: (_) {},
             ),
           ),
@@ -26,7 +26,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ZoomControls(
-              zoomLevel: 1.0,
+              zoomLevel: 1,
               onZoomChanged: (val) {
                 zoomValue = val;
               },
@@ -50,12 +50,12 @@ void main() {
     });
 
     testWidgets('shows zoom-to-fit button when onZoomToFit is provided', (tester) async {
-      bool zoomToFitCalled = false;
+      var zoomToFitCalled = false;
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: ZoomControls(
-              zoomLevel: 1.0,
+              zoomLevel: 1,
               onZoomChanged: (_) {},
               onZoomToFit: () {
                 zoomToFitCalled = true;
@@ -76,7 +76,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ZoomControls(
-              zoomLevel: 1.0,
+              zoomLevel: 1,
               onZoomChanged: (_) {},
             ),
           ),

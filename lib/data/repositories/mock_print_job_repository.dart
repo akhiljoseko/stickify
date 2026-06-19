@@ -31,7 +31,6 @@ class MockPrintJobRepository implements PrintJobRepository {
       printerStation: 'Station #03',
       printedAt: DateTime(2023, 10, 24, 14, 30),
       labelCount: 48,
-      imageUrl: null,
     ),
     PrintJob(
       id: 'job-002',
@@ -45,7 +44,6 @@ class MockPrintJobRepository implements PrintJobRepository {
       printerStation: 'Station #01',
       printedAt: DateTime(2023, 10, 24, 12, 10),
       labelCount: 120,
-      imageUrl: null,
     ),
     PrintJob(
       id: 'job-003',
@@ -59,7 +57,6 @@ class MockPrintJobRepository implements PrintJobRepository {
       printerStation: 'Station #02',
       printedAt: DateTime(2023, 10, 23, 9, 45),
       labelCount: 24,
-      imageUrl: null,
     ),
     PrintJob(
       id: 'job-004',
@@ -73,7 +70,6 @@ class MockPrintJobRepository implements PrintJobRepository {
       printerStation: 'Station #02',
       printedAt: DateTime(2023, 10, 25, 8),
       labelCount: 200,
-      imageUrl: null,
     ),
     PrintJob(
       id: 'job-005',
@@ -87,7 +83,6 @@ class MockPrintJobRepository implements PrintJobRepository {
       printerStation: 'Station #05',
       printedAt: DateTime(2023, 10, 25, 8, 15),
       labelCount: 60,
-      imageUrl: null,
     ),
   ];
 

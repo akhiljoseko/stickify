@@ -1,5 +1,6 @@
 import 'package:stickify/core/services/pdf/pdf_element_renderer.dart';
 import 'package:stickify/core/services/pdf/pdf_element_renderers.dart';
+import 'package:stickify/core/services/printing/label_pdf_layout_engine.dart' show LabelPdfLayoutEngine;
 import 'package:stickify/domain/domain.dart';
 
 /// Registry mapping [ElementBlueprint] types to their corresponding [PdfElementRenderer] Strategy.

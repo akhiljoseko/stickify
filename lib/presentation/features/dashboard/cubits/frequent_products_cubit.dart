@@ -16,7 +16,7 @@ class FrequentVariantsCubit extends Cubit<FrequentVariantsState> {
 
   Future<void> loadFrequentVariants() async {
     emit(const FrequentVariantsLoading());
-    final result = await _repository.getTopFrequent(limit: 15);
+    final result = await _repository.getTopFrequent();
     switch (result) {
       case Success(value: final variants):
         emit(FrequentVariantsLoaded(variants: variants));

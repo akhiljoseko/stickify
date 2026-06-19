@@ -69,6 +69,9 @@ class _AppState extends State<App> {
         RepositoryProvider<FilePickerService>.value(
           value: locator.filePickerService,
         ),
+        RepositoryProvider<FileStorageService>.value(
+          value: locator.fileStorageService,
+        ),
         RepositoryProvider<FeatureAccessService>.value(
           value: locator.featureAccessService,
         ),

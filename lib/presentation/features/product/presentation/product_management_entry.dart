@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/environment/app_environment.dart';
 import 'package:stickify/core/environment/app_experience.dart';
-import 'package:stickify/domain/repositories/product_repository.dart';
+import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/presentation/desktop/desktop_product_management_screen.dart';
 import 'package:stickify/presentation/features/product/presentation/mobile/mobile_product_management_screen.dart';
@@ -22,6 +22,7 @@ class ProductManagementScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => ProductCubit(
         context.read<ProductRepository>(),
+        context.read<FileStorageService>(),
       )..fetchPage(pageKey: 0, pageSize: 20),
       child: const _ProductManagementView(),
     );

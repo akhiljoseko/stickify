@@ -37,6 +37,7 @@ export 'repositories/template_repository.dart';
 export 'repositories/variant_print_stats_repository.dart';
 export 'services/auth_service.dart';
 export 'services/feature_access_service.dart';
+export 'services/file_storage_service.dart';
 export 'services/label_layout_engine.dart';
 export 'services/local_database.dart';
 export 'services/paper_validation_engine.dart';

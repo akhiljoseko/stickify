@@ -1,18 +1,20 @@
+import 'dart:io';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
-import 'package:stickify/domain/entities/product.dart';
-import 'package:stickify/domain/repositories/product_repository.dart';
+import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/product/bloc/product_paging_state.dart';
 import 'package:stickify/presentation/features/product/bloc/product_state.dart';
 import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 
 class ProductCubit extends Cubit<ProductState> {
-  ProductCubit(this._productRepository)
+  ProductCubit(this._productRepository, this._fileStorageService)
       : super(ProductPageLoaded(
           pagingState: ProductPagingState(isLoading: true),
         ));
 
   final ProductRepository _productRepository;
+  final FileStorageService _fileStorageService;
 
   Future<void> fetchPage({
     required int pageKey,
@@ -106,7 +108,27 @@ class ProductCubit extends Cubit<ProductState> {
 
   Future<void> saveProduct(Product product, {ProductSubView? nextView}) async {
     emit(const ProductFormSubmitting());
-    final result = await _productRepository.saveProduct(product);
+
+    var finalProduct = product;
+    final imageUrl = product.imageUrl;
+    if (imageUrl != null &&
+        imageUrl.isNotEmpty &&
+        !imageUrl.startsWith('http://') &&
+        !imageUrl.startsWith('https://')) {
+      final file = File(imageUrl);
+      if (file.existsSync()) {
+        final uploadResult = await _fileStorageService.uploadProductImage(file);
+        switch (uploadResult) {
+          case Success(value: final savedPath):
+            finalProduct = product.copyWith(imageUrl: savedPath);
+          case Failure(error: final err):
+            emit(ProductFormError('Failed to save product image: ${err.message}'));
+            return;
+        }
+      }
+    }
+
+    final result = await _productRepository.saveProduct(finalProduct);
     switch (result) {
       case Success():
         emit(const ProductFormSuccess());

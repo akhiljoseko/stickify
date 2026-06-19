@@ -6,13 +6,16 @@ import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/paginated_result.dart';
 import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/repositories/product_repository.dart';
+import 'package:stickify/domain/services/file_storage_service.dart';
 import 'package:stickify/presentation/features/product/presentation/product_management_entry.dart';
 import '../../../../helpers/pump_app.dart';
 
 class MockProductRepository extends Mock implements ProductRepository {}
+class MockFileStorageService extends Mock implements FileStorageService {}
 
 void main() {
   late ProductRepository productRepository;
+  late FileStorageService fileStorageService;
   late List<Product> mockProducts;
 
   setUpAll(() {
@@ -27,6 +30,7 @@ void main() {
 
   setUp(() {
     productRepository = MockProductRepository();
+    fileStorageService = MockFileStorageService();
     mockProducts = [
       const Product(
         id: 'prod-1',
@@ -59,8 +63,11 @@ void main() {
   });
 
   Widget buildTestableWidget() {
-    return RepositoryProvider<ProductRepository>.value(
-      value: productRepository,
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<ProductRepository>.value(value: productRepository),
+        RepositoryProvider<FileStorageService>.value(value: fileStorageService),
+      ],
       child: const ProductManagementScreen(),
     );
   }

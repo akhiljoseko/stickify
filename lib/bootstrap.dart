@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:stickify/app/app.dart';
 import 'package:stickify/core/services/pdf/pdf_element_renderer_registry.dart';
 import 'package:stickify/data/models/hive/hive_registrar.g.dart';
@@ -30,7 +32,9 @@ class AppBlocObserver extends BlocObserver {
 }
 
 /// Global initialization block to configure cross-flavor logic and launch the application.
-Future<void> bootstrap(FutureOr<Widget> Function(AppServiceLocator locator) builder) async {
+Future<void> bootstrap(
+  FutureOr<Widget> Function(AppServiceLocator locator) builder,
+) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   PdfElementRendererRegistry.registerDefaults();
@@ -43,7 +47,14 @@ Future<void> bootstrap(FutureOr<Widget> Function(AppServiceLocator locator) buil
     persistenceEnabled: true,
   );
 
-  await Hive.initFlutter();
+  final docsDir = await getApplicationDocumentsDirectory();
+  final dbDir = Directory(
+    '${docsDir.path}${Platform.pathSeparator}label-grid${Platform.pathSeparator}database',
+  );
+  if (!dbDir.existsSync()) {
+    dbDir.createSync(recursive: true);
+  }
+  Hive.init(dbDir.path);
   try {
     Hive.registerAdapters();
   } on Object catch (_) {

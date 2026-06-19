@@ -430,5 +430,30 @@ void main() {
 
       expect(find.text('3'), findsOneWidget);
     });
+
+    testWidgets('tapping template selector opens dialog and allows template change', (tester) async {
+      await tester.pumpApp(buildTestableWidget(quantity: 20), size: const Size(1200, 1000));
+      await tester.pumpAndSettle();
+
+      // Find the template selector field
+      final templateSelector = find.text('A4 Shipping Label (10 labels)');
+      expect(templateSelector, findsOneWidget);
+
+      // Tap on it to open the selection dialog
+      await tester.tap(templateSelector);
+      await tester.pumpAndSettle();
+
+      // Check that the dialog is open
+      expect(find.text('Select Label Template'), findsOneWidget);
+      expect(find.textContaining('90x50 mm | 10 stickers/sheet'), findsOneWidget);
+
+      // Tap cancel to close dialog
+      final cancelButton = find.text('Cancel');
+      expect(cancelButton, findsOneWidget);
+      await tester.tap(cancelButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Select Label Template'), findsNothing);
+    });
   });
 }

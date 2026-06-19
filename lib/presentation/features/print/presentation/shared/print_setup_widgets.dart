@@ -6,6 +6,7 @@ import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_cubit.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_state.dart';
 import 'package:stickify/presentation/features/template_editor/core/element_renderer_registry.dart';
+import 'package:stickify/presentation/widgets/widgets.dart';
 
 /// Renders the print configuration parameters (quantity, printer, metadata, print button).
 class ParametersPanel extends StatefulWidget {
@@ -138,26 +139,16 @@ class _ParametersPanelState extends State<ParametersPanel> {
             const Divider(),
             const SizedBox(height: 16),
             // Template selection dropdown
-            DropdownButtonFormField<LabelTemplate>(
-              isExpanded: true,
-              initialValue: widget.loadedState.selectedTemplate,
-              decoration: const InputDecoration(
-                labelText: 'Label Template',
-                border: OutlineInputBorder(),
-              ),
-              items: widget.loadedState.templates
-                  .map(
-                    (t) => DropdownMenuItem<LabelTemplate>(
-                      value: t,
-                      child: Text(t.name),
-                    ),
-                  )
-                  .toList(),
+            TemplateSelectorField(
+              templates: widget.loadedState.templates,
+              selectedTemplateId: widget.loadedState.selectedTemplate?.id,
+              labelText: 'Label Template',
               onChanged: widget.loadedState.templates.isEmpty
-                  ? null
+                  ? (_) {}
                   : (val) {
                       if (val != null) {
-                        context.read<PrintWorkflowCubit>().selectTemplate(val);
+                        final template = widget.loadedState.templates.firstWhere((t) => t.id == val);
+                        context.read<PrintWorkflowCubit>().selectTemplate(template);
                       }
                     },
             ),

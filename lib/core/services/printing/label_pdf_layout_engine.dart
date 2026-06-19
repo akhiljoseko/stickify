@@ -33,6 +33,12 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     // 1. Pre-cache all network/asset/file images on the main thread
     final imageCache = await _preCacheImages(template);
 
+    // Load custom Unicode fonts on main thread (isolates cannot run rootBundle load)
+    final regularFontData = await rootBundle.load('assets/fonts/Arial-Regular.ttf');
+    final boldFontData = await rootBundle.load('assets/fonts/Arial-Bold.ttf');
+    final regularFontBytes = regularFontData.buffer.asUint8List();
+    final boldFontBytes = boldFontData.buffer.asUint8List();
+
     // 2. Offload compilation to a background Isolate (unless configured not to)
     final jobInput = _PdfJobInput(
       product: product,
@@ -43,6 +49,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       imageCache: imageCache,
       compress: useIsolate,
       printFromBottom: printFromBottom,
+      regularFontBytes: regularFontBytes,
+      boldFontBytes: boldFontBytes,
     );
 
     if (useIsolate) {
@@ -109,6 +117,14 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
 
     final doc = pw.Document(
       compress: input.compress,
+    );
+
+    // Create TrueType fonts from loaded bytes
+    final regularFont = pw.Font.ttf(input.regularFontBytes.buffer.asByteData());
+    final boldFont = pw.Font.ttf(input.boldFontBytes.buffer.asByteData());
+    final pageTheme = pw.ThemeData.withFont(
+      base: regularFont,
+      bold: boldFont,
     );
 
     final sheetConfig = input.template.sheetConfig!;
@@ -179,6 +195,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       doc.addPage(
         pw.Page(
           pageFormat: targetFormat,
+          theme: pageTheme,
           build: (context) {
             return pw.Stack(
               children: pageSlots,
@@ -359,6 +376,8 @@ class _PdfJobInput {
     required this.imageCache,
     required this.compress,
     required this.printFromBottom,
+    required this.regularFontBytes,
+    required this.boldFontBytes,
   });
 
   /// The active product.
@@ -384,4 +403,10 @@ class _PdfJobInput {
 
   /// Whether to print from the bottom of the last sheet.
   final bool printFromBottom;
+
+  /// Regular font bytes.
+  final Uint8List regularFontBytes;
+
+  /// Bold font bytes.
+  final Uint8List boldFontBytes;
 }

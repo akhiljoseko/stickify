@@ -60,7 +60,7 @@ class ZoomControls extends StatelessWidget {
             child: Slider(
               value: zoomLevel,
               min: 0.5,
-              max: 2.0,
+              max: 2,
               divisions: 30,
               onChanged: onZoomChanged,
             ),

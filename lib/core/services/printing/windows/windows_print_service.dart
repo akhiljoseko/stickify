@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
@@ -14,12 +13,10 @@ import 'package:stickify/domain/domain.dart';
 class WindowsPrintService implements PrintService, PrinterDiscoveryService {
   /// Instantiates a new [WindowsPrintService].
   WindowsPrintService({
-    required LabelLayoutEngine layoutEngine,
-    required PaperValidationEngine paperValidator,
-    required WindowsDevModeManager devModeManager,
-  })  : _layoutEngine = layoutEngine,
-        _paperValidator = paperValidator,
-        _devModeManager = devModeManager {
+    required this._layoutEngine,
+    required this._paperValidator,
+    required this._devModeManager,
+  }) {
     _devModeManager.healOnStartup();
   }
 

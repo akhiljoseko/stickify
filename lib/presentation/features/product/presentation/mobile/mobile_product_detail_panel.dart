@@ -29,7 +29,7 @@ class MobileProductDetailPanel extends StatelessWidget {
     final wholesaleController = TextEditingController(text: variant.wholesale.toString());
     final mrpController = TextEditingController(text: variant.mrp.toString());
     final formKey = GlobalKey<FormState>();
-    String? selectedTemplateId = variant.defaultTemplateId;
+    var selectedTemplateId = variant.defaultTemplateId;
 
     showModalBottomSheet<void>(
       context: context,
@@ -141,7 +141,6 @@ class MobileProductDetailPanel extends StatelessWidget {
                         ),
                         items: [
                           const DropdownMenuItem<String?>(
-                            value: null,
                             child: Text('None (always pick)'),
                           ),
                           ...templates.map(
@@ -643,7 +642,6 @@ class MobileProductDetailPanel extends StatelessWidget {
                         ),
                         items: [
                           const DropdownMenuItem<String?>(
-                            value: null,
                             child: Text('None (always pick)'),
                           ),
                           ...templates.map(

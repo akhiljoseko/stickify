@@ -17,7 +17,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(
-      Product(
+      const Product(
         id: 'fallback',
         name: 'Fallback',
         sku: 'SKU-FALLBACK',
@@ -28,13 +28,13 @@ void main() {
   setUp(() {
     productRepository = MockProductRepository();
     mockProducts = [
-      Product(
+      const Product(
         id: 'prod-1',
         name: 'ChronoMaster Elite',
         sku: 'WTCH-293-882-EL',
         category: 'Snacks',
       ),
-      Product(
+      const Product(
         id: 'prod-2',
         name: 'OmniAudio Pro-X',
         sku: 'AUD-HX0-912-PR',

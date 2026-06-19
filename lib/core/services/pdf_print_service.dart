@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
@@ -14,8 +13,8 @@ import 'package:stickify/domain/domain.dart';
 class PdfPrintService implements PrintService, PrinterDiscoveryService {
   /// Instantiates a new [PdfPrintService].
   const PdfPrintService({
-    required LabelLayoutEngine layoutEngine,
-  }) : _layoutEngine = layoutEngine;
+    required this._layoutEngine,
+  });
 
   final LabelLayoutEngine _layoutEngine;
 

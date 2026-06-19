@@ -7,13 +7,10 @@ import 'package:stickify/presentation/features/dashboard/cubits/sync_state.dart'
 class SyncCubit extends Cubit<SyncState> {
   /// Creates a [SyncCubit] instance.
   SyncCubit({
-    required SyncableProductRepository productRepo,
-    required SyncableTemplateRepository templateRepo,
-    required AuthService auth,
-  })  : _productRepo = productRepo,
-        _templateRepo = templateRepo,
-        _auth = auth,
-        super(const SyncInitial());
+    required this._productRepo,
+    required this._templateRepo,
+    required this._auth,
+  })  : super(const SyncInitial());
 
   final SyncableProductRepository _productRepo;
   final SyncableTemplateRepository _templateRepo;

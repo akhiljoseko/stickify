@@ -35,7 +35,7 @@ void main() {
                     ),
                     isSelected: false,
                     onTap: () {},
-                    zoomLevel: 1.0,
+                    zoomLevel: 1,
                   ),
                 ],
               ),

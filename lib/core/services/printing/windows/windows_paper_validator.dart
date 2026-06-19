@@ -33,7 +33,7 @@ class WindowsPaperValidator implements PaperValidationEngine {
       }
 
       final dynamic decoded = jsonDecode(result.stdout.toString());
-      List<dynamic> papers = [];
+      var papers = <dynamic>[];
       if (decoded is List) {
         papers = decoded;
       } else if (decoded is Map) {

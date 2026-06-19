@@ -227,7 +227,6 @@ class ProductFormViewState extends State<ProductFormView> {
             wholesale: wholesale,
             mrp: mrp,
             sku: sku,
-            defaultTemplateId: null,
           ),
         );
         _varNameController.clear();

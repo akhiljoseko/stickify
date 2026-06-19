@@ -29,7 +29,7 @@ void main() {
       'load emits default config when template has no sheet config',
       build: () {
         when(() => templateRepository.fetchTemplate(templateId)).thenAnswer(
-          (_) async => Result.success(
+          (_) async => const Result.success(
             LabelTemplate(id: templateId, name: 'Test'),
           ),
         );
@@ -53,7 +53,7 @@ void main() {
     blocTest<SheetConfigCubit, SheetConfigState>(
       'load reads sheet config from template when present',
       build: () {
-        final existingConfig = const SheetConfig(
+        const existingConfig = SheetConfig(
           pageWidth: 210,
           pageHeight: 297,
           marginTop: 10,
@@ -66,7 +66,7 @@ void main() {
           rowGap: 2,
         );
         when(() => templateRepository.fetchTemplate(templateId)).thenAnswer(
-          (_) async => Result.success(
+          (_) async => const Result.success(
             LabelTemplate(id: templateId, name: 'Test', sheetConfig: existingConfig),
           ),
         );

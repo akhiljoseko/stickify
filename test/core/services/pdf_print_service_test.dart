@@ -14,7 +14,7 @@ void main() {
 
   late PdfPrintService service;
   late FakePrintingPlatform mockPrintingPlatform;
-  final testProduct = Product(
+  const testProduct = Product(
     id: 'prod-1',
     name: 'Cold Brew Coffee',
     sku: 'CB-100',
@@ -27,12 +27,11 @@ void main() {
     wholesale: 2.5,
     mrp: 3.5,
     sku: 'CB-100-BTL',
-    defaultTemplateId: null,
   );
 
   setUp(() {
     PdfElementRendererRegistry.registerDefaults();
-    service = PdfPrintService(layoutEngine: const LabelPdfLayoutEngine(useIsolate: false));
+    service = const PdfPrintService(layoutEngine: LabelPdfLayoutEngine(useIsolate: false));
     mockPrintingPlatform = FakePrintingPlatform();
     PrintingPlatform.instance = mockPrintingPlatform;
   });

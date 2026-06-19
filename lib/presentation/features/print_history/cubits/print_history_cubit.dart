@@ -15,7 +15,7 @@ class PrintHistoryCubit extends Cubit<PrintHistoryState> {
   Future<void> loadFirstPage() async {
     emit(const PrintHistoryLoading());
     _lastPrintedAt = null;
-    final result = await _repository.getJobsPaginated(limit: 20);
+    final result = await _repository.getJobsPaginated();
     switch (result) {
       case Success(value: final jobs):
         _lastPrintedAt = jobs.isNotEmpty ? jobs.last.printedAt : null;
@@ -32,7 +32,6 @@ class PrintHistoryCubit extends Cubit<PrintHistoryState> {
 
     emit(PrintHistoryLoadingMore(jobs: s.jobs));
     final result = await _repository.getJobsPaginated(
-      limit: _pageSize,
       before: _lastPrintedAt,
     );
     switch (result) {

@@ -8,6 +8,7 @@ import 'package:stickify/presentation/features/print/cubits/print_workflow_state
 import 'package:stickify/presentation/features/print/presentation/desktop/desktop_print_setup_screen.dart';
 import 'package:stickify/presentation/features/print/presentation/mobile/mobile_print_setup_screen.dart';
 import 'package:stickify/presentation/features/print/presentation/shared/print_setup_widgets.dart';
+import 'package:stickify/presentation/features/print/presentation/shared/printer_loading_dialog.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
 
 /// Screen for configuring and executing a label print job.
@@ -53,8 +54,15 @@ class PrintSetupPage extends StatelessWidget {
   }
 }
 
-class _PrintSetupView extends StatelessWidget {
+class _PrintSetupView extends StatefulWidget {
   const _PrintSetupView();
+
+  @override
+  State<_PrintSetupView> createState() => _PrintSetupViewState();
+}
+
+class _PrintSetupViewState extends State<_PrintSetupView> {
+  bool _isDialogOpen = false;
 
   int _calculateTotalSheets(int qty, int slotsPerSheet, Set<int> disabledSlots) {
     if (qty <= 0) return 0;
@@ -93,6 +101,24 @@ class _PrintSetupView extends StatelessWidget {
 
     return BlocConsumer<PrintWorkflowCubit, PrintWorkflowState>(
       listener: (context, state) {
+        if (state is PrintWorkflowSubmitting) {
+          if (!_isDialogOpen) {
+            _isDialogOpen = true;
+            showDialog<void>(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => const PrinterLoadingDialog(),
+            ).then((_) {
+              _isDialogOpen = false;
+            });
+          }
+        } else {
+          if (_isDialogOpen) {
+            Navigator.of(context).pop();
+            _isDialogOpen = false;
+          }
+        }
+
         if (state is PrintWorkflowSuccess) {
           context.read<NotificationService>().showSuccess(
             'Print job ${state.printJob.id} successfully dispatched to printer!',

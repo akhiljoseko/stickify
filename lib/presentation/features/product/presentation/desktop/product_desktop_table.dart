@@ -69,15 +69,24 @@ class ProductDesktopTable extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 48, child: Text('', textAlign: TextAlign.right)),
+                const SizedBox(
+                  width: 48,
+                  child: Text('', textAlign: TextAlign.right),
+                ),
               ],
             ),
           ),
           Column(
-            children: products.map((product) => DesktopProductTableRow(
-              product: product,
-              onViewDetails: () => context.read<ProductCubit>().setSubView(ProductDetailView(product)),
-            )).toList(),
+            children: products
+                .map(
+                  (product) => DesktopProductTableRow(
+                    product: product,
+                    onViewDetails: () => context
+                        .read<ProductCubit>()
+                        .setSubView(ProductDetailView(product)),
+                  ),
+                )
+                .toList(),
           ),
         ],
       ),
@@ -142,15 +151,23 @@ class _DesktopProductTableRowState extends State<DesktopProductTableRow> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
                 color: colorScheme.container,
-                image: widget.product.imageUrl != null && widget.product.imageUrl!.isNotEmpty
+                image:
+                    widget.product.imageUrl != null &&
+                        widget.product.imageUrl!.isNotEmpty
                     ? DecorationImage(
                         image: resolveImageProvider(widget.product.imageUrl!),
                         fit: BoxFit.cover,
                       )
                     : null,
               ),
-              child: widget.product.imageUrl == null || widget.product.imageUrl!.isEmpty
-                  ? Icon(Icons.inventory_2_outlined, size: 16, color: colorScheme.primary)
+              child:
+                  widget.product.imageUrl == null ||
+                      widget.product.imageUrl!.isEmpty
+                  ? Icon(
+                      Icons.inventory_2_outlined,
+                      size: 16,
+                      color: colorScheme.primary,
+                    )
                   : null,
             ),
             const SizedBox(width: 12),
@@ -163,14 +180,6 @@ class _DesktopProductTableRowState extends State<DesktopProductTableRow> {
                     widget.product.name,
                     style: textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    widget.product.storageConditions ?? 'Standard Specs',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -192,11 +201,16 @@ class _DesktopProductTableRowState extends State<DesktopProductTableRow> {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: colorScheme.outlineVariant),
-                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+                      color: colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.2,
+                      ),
                     ),
                     child: Text(
                       widget.product.category ?? 'N/A',

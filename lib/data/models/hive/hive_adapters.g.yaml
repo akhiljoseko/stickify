@@ -157,7 +157,7 @@ types:
         index: 12
   ProductVariantHiveModel:
     typeId: 6
-    nextIndex: 6
+    nextIndex: 7
     fields:
       name:
         index: 0
@@ -171,6 +171,8 @@ types:
         index: 4
       sku:
         index: 5
+      defaultTemplateId:
+        index: 6
   SheetConfigHiveModel:
     typeId: 7
     nextIndex: 10
@@ -217,7 +219,7 @@ types:
         index: 1
   VariantPrintStatsHiveModel:
     typeId: 10
-    nextIndex: 7
+    nextIndex: 8
     fields:
       variantSku:
         index: 0
@@ -233,3 +235,5 @@ types:
         index: 5
       imageUrl:
         index: 6
+      defaultTemplateId:
+        index: 7

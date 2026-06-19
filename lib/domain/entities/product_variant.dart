@@ -12,6 +12,7 @@ class ProductVariant extends Equatable {
     required this.wholesale,
     required this.mrp,
     required this.sku,
+    this.defaultTemplateId,
   });
 
   /// Name of the variant, e.g. '150g Pouch'.
@@ -32,6 +33,9 @@ class ProductVariant extends Equatable {
   /// Unique Stock Keeping Unit (SKU) identifying this variant.
   final String sku;
 
+  /// Optional default template ID for quick-print.
+  final String? defaultTemplateId;
+
   /// Price per single unit, auto-calculated as [mrp] / [quantity].
   double get unitPrice => quantity > 0 ? mrp / quantity : 0;
 
@@ -42,6 +46,7 @@ class ProductVariant extends Equatable {
     double? wholesale,
     double? mrp,
     String? sku,
+    String? defaultTemplateId,
   }) {
     return ProductVariant(
       name: name ?? this.name,
@@ -50,6 +55,7 @@ class ProductVariant extends Equatable {
       wholesale: wholesale ?? this.wholesale,
       mrp: mrp ?? this.mrp,
       sku: sku ?? this.sku,
+      defaultTemplateId: defaultTemplateId ?? this.defaultTemplateId,
     );
   }
 
@@ -61,5 +67,6 @@ class ProductVariant extends Equatable {
         wholesale,
         mrp,
         sku,
+        defaultTemplateId,
       ];
 }

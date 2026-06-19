@@ -10,6 +10,7 @@ class VariantPrintStatsHiveModel extends HiveObject {
     required this.totalPrints,
     required this.lastPrintedAt,
     this.imageUrl,
+    this.defaultTemplateId,
   });
 
   factory VariantPrintStatsHiveModel.fromDomain(VariantPrintStats s) {
@@ -21,6 +22,7 @@ class VariantPrintStatsHiveModel extends HiveObject {
       totalPrints: s.totalPrints,
       lastPrintedAt: s.lastPrintedAt,
       imageUrl: s.imageUrl,
+      defaultTemplateId: s.defaultTemplateId,
     );
   }
 
@@ -31,6 +33,7 @@ class VariantPrintStatsHiveModel extends HiveObject {
   final int totalPrints;
   final DateTime lastPrintedAt;
   final String? imageUrl;
+  final String? defaultTemplateId;
 
   VariantPrintStats toDomain() {
     return VariantPrintStats(
@@ -41,6 +44,7 @@ class VariantPrintStatsHiveModel extends HiveObject {
       totalPrints: totalPrints,
       lastPrintedAt: lastPrintedAt,
       imageUrl: imageUrl,
+      defaultTemplateId: defaultTemplateId,
     );
   }
 }

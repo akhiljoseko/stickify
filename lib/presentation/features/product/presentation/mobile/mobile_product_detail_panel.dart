@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/app/theme.dart';
-import 'package:stickify/core/utils/image_utils.dart';
-import 'package:stickify/domain/entities/product.dart';
-import 'package:stickify/domain/entities/product_variant.dart';
+import 'package:stickify/core/core.dart';
+import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_ingredients_card.dart';
@@ -30,6 +29,7 @@ class MobileProductDetailPanel extends StatelessWidget {
     final wholesaleController = TextEditingController(text: variant.wholesale.toString());
     final mrpController = TextEditingController(text: variant.mrp.toString());
     final formKey = GlobalKey<FormState>();
+    String? selectedTemplateId = variant.defaultTemplateId;
 
     showModalBottomSheet<void>(
       context: context,
@@ -117,6 +117,48 @@ class MobileProductDetailPanel extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  FutureBuilder<List<LabelTemplate>>(
+                    future: (() async {
+                      final repo = context.read<TemplateRepository>();
+                      final result = await repo.fetchTemplates();
+                      return switch (result) {
+                        Success(value: final templates) =>
+                          templates.where((t) => t.isFinalized).toList(),
+                        Failure() => <LabelTemplate>[],
+                      };
+                    })(),
+                    builder: (context, snapshot) {
+                      final templates = (snapshot.data ?? <LabelTemplate>[])
+                        ..sort((a, b) => a.name.compareTo(b.name));
+                      final isLoading =
+                          snapshot.connectionState != ConnectionState.done;
+                      return DropdownButtonFormField<String?>(
+                        initialValue: selectedTemplateId,
+                        decoration: const InputDecoration(
+                          labelText: 'Default Template (optional)',
+                          hintText: 'None',
+                        ),
+                        items: [
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('None (always pick)'),
+                          ),
+                          ...templates.map(
+                            (t) => DropdownMenuItem<String?>(
+                              value: t.id,
+                              child: Text(t.name),
+                            ),
+                          ),
+                        ],
+                        onChanged: isLoading
+                            ? null
+                            : (val) {
+                                selectedTemplateId = val;
+                              },
+                      );
+                    },
+                  ),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
@@ -130,6 +172,7 @@ class MobileProductDetailPanel extends StatelessWidget {
                               unit: unitController.text.trim(),
                               wholesale: double.parse(wholesaleController.text),
                               mrp: double.parse(mrpController.text),
+                              defaultTemplateId: selectedTemplateId,
                             );
                           }
                           return v;
@@ -488,6 +531,7 @@ class MobileProductDetailPanel extends StatelessWidget {
     final wholesaleController = TextEditingController();
     final mrpController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    String? selectedTemplateId;
 
     showModalBottomSheet<void>(
       context: context,
@@ -575,6 +619,48 @@ class MobileProductDetailPanel extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  FutureBuilder<List<LabelTemplate>>(
+                    future: (() async {
+                      final repo = context.read<TemplateRepository>();
+                      final result = await repo.fetchTemplates();
+                      return switch (result) {
+                        Success(value: final templates) =>
+                          templates.where((t) => t.isFinalized).toList(),
+                        Failure() => <LabelTemplate>[],
+                      };
+                    })(),
+                    builder: (context, snapshot) {
+                      final templates = (snapshot.data ?? <LabelTemplate>[])
+                        ..sort((a, b) => a.name.compareTo(b.name));
+                      final isLoading =
+                          snapshot.connectionState != ConnectionState.done;
+                      return DropdownButtonFormField<String?>(
+                        initialValue: selectedTemplateId,
+                        decoration: const InputDecoration(
+                          labelText: 'Default Template (optional)',
+                          hintText: 'None',
+                        ),
+                        items: [
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('None (always pick)'),
+                          ),
+                          ...templates.map(
+                            (t) => DropdownMenuItem<String?>(
+                              value: t.id,
+                              child: Text(t.name),
+                            ),
+                          ),
+                        ],
+                        onChanged: isLoading
+                            ? null
+                            : (val) {
+                                selectedTemplateId = val;
+                              },
+                      );
+                    },
+                  ),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
@@ -586,6 +672,7 @@ class MobileProductDetailPanel extends StatelessWidget {
                           unit: unitController.text.trim(),
                           wholesale: double.parse(wholesaleController.text),
                           mrp: double.parse(mrpController.text),
+                          defaultTemplateId: selectedTemplateId,
                         );
                         final updatedProduct = Product(
                           id: product.id,

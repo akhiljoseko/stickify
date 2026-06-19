@@ -21,6 +21,7 @@ void main() {
     wholesale: 2.5,
     mrp: 3.5,
     sku: 'CB-100-BTL',
+    defaultTemplateId: null,
   );
 
   setUp(() {

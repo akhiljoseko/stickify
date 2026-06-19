@@ -411,13 +411,14 @@ class ProductVariantHiveModelAdapter
       wholesale: (fields[3] as num).toDouble(),
       mrp: (fields[4] as num).toDouble(),
       sku: fields[5] as String,
+      defaultTemplateId: fields[6] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ProductVariantHiveModel obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -429,7 +430,9 @@ class ProductVariantHiveModelAdapter
       ..writeByte(4)
       ..write(obj.mrp)
       ..writeByte(5)
-      ..write(obj.sku);
+      ..write(obj.sku)
+      ..writeByte(6)
+      ..write(obj.defaultTemplateId);
   }
 
   @override
@@ -606,13 +609,14 @@ class VariantPrintStatsHiveModelAdapter
       totalPrints: (fields[4] as num).toInt(),
       lastPrintedAt: fields[5] as DateTime,
       imageUrl: fields[6] as String?,
+      defaultTemplateId: fields[7] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, VariantPrintStatsHiveModel obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.variantSku)
       ..writeByte(1)
@@ -626,7 +630,9 @@ class VariantPrintStatsHiveModelAdapter
       ..writeByte(5)
       ..write(obj.lastPrintedAt)
       ..writeByte(6)
-      ..write(obj.imageUrl);
+      ..write(obj.imageUrl)
+      ..writeByte(7)
+      ..write(obj.defaultTemplateId);
   }
 
   @override

@@ -50,6 +50,7 @@ void main() {
         wholesale: 0,
         mrp: 0,
         sku: 'SKU',
+        defaultTemplateId: null,
       ),
     );
     registerFallbackValue(
@@ -86,6 +87,7 @@ void main() {
         wholesale: 150,
         mrp: 200,
         sku: 'PROD-VAR-SKU',
+        defaultTemplateId: null,
       ),
     ],
   );

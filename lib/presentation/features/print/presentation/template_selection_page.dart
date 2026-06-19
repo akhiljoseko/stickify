@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
@@ -85,7 +86,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
               productId: widget.productId,
               variantSku: widget.variantSku,
               templateId: variant.defaultTemplateId!,
-            ).push<void>(context);
+            ).pushReplacement(context);
             return;
           }
 
@@ -134,6 +135,13 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text('Select Template'),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -146,36 +154,6 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                       padding: const EdgeInsets.all(24),
                       sliver: SliverList(
                         delegate: SliverChildListDelegate([
-                          // Breadcrumbs & Header
-                          Row(
-                            children: [
-                              Text(
-                                'Products',
-                                style: textTheme.bodySmall?.copyWith(
-                                  fontFamily: 'JetBrains Mono',
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              Icon(Icons.chevron_right, size: 14, color: colorScheme.onSurfaceVariant),
-                              Text(
-                                'Inventory',
-                                style: textTheme.bodySmall?.copyWith(
-                                  fontFamily: 'JetBrains Mono',
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              Icon(Icons.chevron_right, size: 14, color: colorScheme.onSurfaceVariant),
-                              Text(
-                                'Template Selection',
-                                style: textTheme.bodySmall?.copyWith(
-                                  fontFamily: 'JetBrains Mono',
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
                           Text(
                             '${product.name} - ${variant.name}',
                             style: textTheme.displayLarge?.copyWith(
@@ -396,7 +374,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                         productId: product.id,
                         variantSku: variant.sku,
                         templateId: _selectedTemplateId!,
-                      ).push<void>(context);
+                      ).pushReplacement(context);
                     },
                     icon: const Icon(Icons.arrow_forward),
                     label: const Text('Continue to Print Configuration'),

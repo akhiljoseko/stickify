@@ -97,69 +97,87 @@ class _SplashScreenState extends State<SplashScreen>
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: Center(
+      body: SafeArea(
         child: AnimatedBuilder(
           animation: _animationController,
           builder: (context, child) {
-            return Opacity(
-              opacity: _fadeAnimation.value,
-              child: Transform.scale(
-                scale: _scaleAnimation.value,
-                child: child,
-              ),
-            );
-          },
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo Image
-              Image.asset(
-                'assets/logo.png',
-                width: 180,
-                height: 180,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  // Fallback icon if logo image fails to load
-                  return Icon(
-                    Icons.grid_view_rounded,
-                    size: 120,
-                    color: colorScheme.primary,
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              // App Name
-              Text(
-                'Label Grid',
-                style: textTheme.displayMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              // App Subtitle / Tagline
-              Text(
-                'Enterprise Sticker Label Operations',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 48),
-              // Modern, subtle progress indicator
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    colorScheme.primary.withValues(alpha: 0.7),
+            return Stack(
+              children: [
+                // Center Content
+                Align(
+                  child: Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Larger Logo Image in the Center
+                          Image.asset(
+                            'assets/logo.png',
+                            width: 260,
+                            height: 260,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.grid_view_rounded,
+                                size: 160,
+                                color: colorScheme.primary,
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 48),
+                          // Modern, subtle progress indicator
+                          SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                colorScheme.primary.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+                // Powered by tag at the bottom
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'POWERED BY',
+                            style: textTheme.labelSmall?.copyWith(
+                              fontSize: 8.5,
+                              letterSpacing: 1,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Image.asset(
+                            Theme.of(context).brightness == Brightness.dark
+                                ? 'assets/inevitable-logo-dark.png'
+                                : 'assets/inevitable-logo.png',
+                            height: 20,
+                            fit: BoxFit.contain,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

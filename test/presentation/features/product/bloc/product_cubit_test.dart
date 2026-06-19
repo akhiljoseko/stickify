@@ -1,10 +1,9 @@
+import 'dart:io';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stickify/core/core.dart';
-import 'package:stickify/domain/entities/paginated_result.dart';
-import 'package:stickify/domain/entities/product.dart';
-import 'package:stickify/domain/repositories/product_repository.dart';
+import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_paging_state.dart';
 import 'package:stickify/presentation/features/product/bloc/product_state.dart';
@@ -12,8 +11,11 @@ import 'package:stickify/presentation/features/product/bloc/product_sub_view.dar
 
 class MockProductRepository extends Mock implements ProductRepository {}
 
+class MockFileStorageService extends Mock implements FileStorageService {}
+
 void main() {
   late ProductRepository productRepository;
+  late FileStorageService fileStorageService;
   late List<Product> mockProducts;
 
   setUpAll(() {
@@ -24,10 +26,12 @@ void main() {
         sku: 'SKU-FALLBACK',
       ),
     );
+    registerFallbackValue(File(''));
   });
 
   setUp(() {
     productRepository = MockProductRepository();
+    fileStorageService = MockFileStorageService();
     mockProducts = [
       const Product(
         id: 'prod-1',
@@ -48,23 +52,32 @@ void main() {
     blocTest<ProductCubit, ProductState>(
       'fetchPage emits ProductPageLoaded with loading then items',
       build: () {
-        when(() => productRepository.getProducts(
-              page: any(named: 'page'),
-              pageSize: any(named: 'pageSize'),
-              query: any(named: 'query'),
-              category: any(named: 'category'),
-            )).thenAnswer((_) async => Result.success(PaginatedResult(
+        when(
+          () => productRepository.getProducts(
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+            query: any(named: 'query'),
+            category: any(named: 'category'),
+          ),
+        ).thenAnswer(
+          (_) async => Result.success(
+            PaginatedResult(
               items: mockProducts,
               totalCount: 2,
               hasMore: false,
               currentPage: 0,
-            )));
-        return ProductCubit(productRepository);
+            ),
+          ),
+        );
+        return ProductCubit(productRepository, fileStorageService);
       },
       act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20),
       expect: () => [
-        isA<ProductPageLoaded>()
-            .having((s) => s.pagingState.isLoading, 'loading first', true),
+        isA<ProductPageLoaded>().having(
+          (s) => s.pagingState.isLoading,
+          'loading first',
+          true,
+        ),
         isA<ProductPageLoaded>()
             .having((s) => s.pagingState.isLoading, 'loading done', false)
             .having((s) => s.pagingState.items?.length, 'items length', 2)
@@ -75,20 +88,29 @@ void main() {
     blocTest<ProductCubit, ProductState>(
       'fetchPage emits error in pagingState when repository fails',
       build: () {
-        when(() => productRepository.getProducts(
-              page: any(named: 'page'),
-              pageSize: any(named: 'pageSize'),
-              query: any(named: 'query'),
-              category: any(named: 'category'),
-            )).thenAnswer((_) async => const Result.failure(DatabaseError(
+        when(
+          () => productRepository.getProducts(
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+            query: any(named: 'query'),
+            category: any(named: 'category'),
+          ),
+        ).thenAnswer(
+          (_) async => const Result.failure(
+            DatabaseError(
               message: 'Local database is corrupted.',
-            )));
-        return ProductCubit(productRepository);
+            ),
+          ),
+        );
+        return ProductCubit(productRepository, fileStorageService);
       },
       act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20),
       expect: () => [
-        isA<ProductPageLoaded>()
-            .having((s) => s.pagingState.isLoading, 'loading first', true),
+        isA<ProductPageLoaded>().having(
+          (s) => s.pagingState.isLoading,
+          'loading first',
+          true,
+        ),
         isA<ProductPageLoaded>()
             .having((s) => s.pagingState.isLoading, 'loading done', false)
             .having((s) => s.pagingState.error, 'error', isNotNull),
@@ -98,26 +120,32 @@ void main() {
     blocTest<ProductCubit, ProductState>(
       'fetchPage with query filters results',
       build: () {
-        when(() => productRepository.getProducts(
-              page: any(named: 'page'),
-              pageSize: any(named: 'pageSize'),
-              query: any(named: 'query'),
-              category: any(named: 'category'),
-            )).thenAnswer((invocation) async {
-          final query = invocation.namedArguments[const Symbol('query')] as String?;
+        when(
+          () => productRepository.getProducts(
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+            query: any(named: 'query'),
+            category: any(named: 'category'),
+          ),
+        ).thenAnswer((invocation) async {
+          final query =
+              invocation.namedArguments[const Symbol('query')] as String?;
           final filtered = query == null || query.isEmpty
               ? mockProducts
               : mockProducts.where((p) => p.name.contains(query)).toList();
-          return Result.success(PaginatedResult(
-            items: filtered,
-            totalCount: filtered.length,
-            hasMore: false,
-            currentPage: 0,
-          ));
+          return Result.success(
+            PaginatedResult(
+              items: filtered,
+              totalCount: filtered.length,
+              hasMore: false,
+              currentPage: 0,
+            ),
+          );
         });
-        return ProductCubit(productRepository);
+        return ProductCubit(productRepository, fileStorageService);
       },
-      act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20, query: 'Chrono'),
+      act: (cubit) =>
+          cubit.fetchPage(pageKey: 0, pageSize: 20, query: 'Chrono'),
       expect: () => [
         isA<ProductPageLoaded>()
             .having((s) => s.pagingState.isLoading, 'loading first', true)
@@ -132,26 +160,32 @@ void main() {
     blocTest<ProductCubit, ProductState>(
       'fetchPage with category filters results',
       build: () {
-        when(() => productRepository.getProducts(
-              page: any(named: 'page'),
-              pageSize: any(named: 'pageSize'),
-              query: any(named: 'query'),
-              category: any(named: 'category'),
-            )).thenAnswer((invocation) async {
-          final category = invocation.namedArguments[const Symbol('category')] as String?;
+        when(
+          () => productRepository.getProducts(
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+            query: any(named: 'query'),
+            category: any(named: 'category'),
+          ),
+        ).thenAnswer((invocation) async {
+          final category =
+              invocation.namedArguments[const Symbol('category')] as String?;
           final filtered = category == null || category.isEmpty
               ? mockProducts
               : mockProducts.where((p) => p.category == category).toList();
-          return Result.success(PaginatedResult(
-            items: filtered,
-            totalCount: filtered.length,
-            hasMore: false,
-            currentPage: 0,
-          ));
+          return Result.success(
+            PaginatedResult(
+              items: filtered,
+              totalCount: filtered.length,
+              hasMore: false,
+              currentPage: 0,
+            ),
+          );
         });
-        return ProductCubit(productRepository);
+        return ProductCubit(productRepository, fileStorageService);
       },
-      act: (cubit) => cubit.fetchPage(pageKey: 0, pageSize: 20, category: 'Pickles'),
+      act: (cubit) =>
+          cubit.fetchPage(pageKey: 0, pageSize: 20, category: 'Pickles'),
       expect: () => [
         isA<ProductPageLoaded>()
             .having((s) => s.pagingState.isLoading, 'loading first', true)
@@ -159,25 +193,35 @@ void main() {
         isA<ProductPageLoaded>()
             .having((s) => s.pagingState.isLoading, 'loading done', false)
             .having((s) => s.pagingState.items?.length, 'items length', 1)
-            .having((s) => s.pagingState.categoryFilter, 'categoryFilter', 'Pickles'),
+            .having(
+              (s) => s.pagingState.categoryFilter,
+              'categoryFilter',
+              'Pickles',
+            ),
       ],
     );
 
     blocTest<ProductCubit, ProductState>(
       'setSubView switches subView state correctly',
       build: () {
-        when(() => productRepository.getProducts(
-              page: any(named: 'page'),
-              pageSize: any(named: 'pageSize'),
-              query: any(named: 'query'),
-              category: any(named: 'category'),
-            )).thenAnswer((_) async => Result.success(PaginatedResult(
+        when(
+          () => productRepository.getProducts(
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+            query: any(named: 'query'),
+            category: any(named: 'category'),
+          ),
+        ).thenAnswer(
+          (_) async => Result.success(
+            PaginatedResult(
               items: mockProducts,
               totalCount: 2,
               hasMore: false,
               currentPage: 0,
-            )));
-        return ProductCubit(productRepository);
+            ),
+          ),
+        );
+        return ProductCubit(productRepository, fileStorageService);
       },
       seed: () => ProductPageLoaded(
         pagingState: ProductPagingState(
@@ -188,36 +232,53 @@ void main() {
       ),
       act: (cubit) => cubit.setSubView(const ProductCreateView()),
       expect: () => [
-        isA<ProductPageLoaded>()
-            .having((s) => s.subView, 'subView', const ProductCreateView()),
+        isA<ProductPageLoaded>().having(
+          (s) => s.subView,
+          'subView',
+          const ProductCreateView(),
+        ),
       ],
     );
 
     blocTest<ProductCubit, ProductState>(
       'saveProduct emits FormSubmitting, FormSuccess, then reloads',
       build: () {
-        when(() => productRepository.saveProduct(any())).thenAnswer((_) async => const Result.success(null));
-        when(() => productRepository.getProducts(
-              page: any(named: 'page'),
-              pageSize: any(named: 'pageSize'),
-              query: any(named: 'query'),
-              category: any(named: 'category'),
-            )).thenAnswer((_) async => Result.success(PaginatedResult(
+        when(
+          () => productRepository.saveProduct(any()),
+        ).thenAnswer((_) async => const Result.success(null));
+        when(
+          () => productRepository.getProducts(
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+            query: any(named: 'query'),
+            category: any(named: 'category'),
+          ),
+        ).thenAnswer(
+          (_) async => Result.success(
+            PaginatedResult(
               items: mockProducts,
               totalCount: 2,
               hasMore: false,
               currentPage: 0,
-            )));
-        return ProductCubit(productRepository);
+            ),
+          ),
+        );
+        return ProductCubit(productRepository, fileStorageService);
       },
       act: (cubit) => cubit.saveProduct(mockProducts[0]),
       expect: () => [
         const ProductFormSubmitting(),
         const ProductFormSuccess(),
-        isA<ProductPageLoaded>()
-            .having((s) => s.pagingState.isLoading, 'loading first', true),
-        isA<ProductPageLoaded>()
-            .having((s) => s.pagingState.isLoading, 'loading done', false),
+        isA<ProductPageLoaded>().having(
+          (s) => s.pagingState.isLoading,
+          'loading first',
+          true,
+        ),
+        isA<ProductPageLoaded>().having(
+          (s) => s.pagingState.isLoading,
+          'loading done',
+          false,
+        ),
       ],
       verify: (_) {
         verify(() => productRepository.saveProduct(any())).called(1);
@@ -228,11 +289,13 @@ void main() {
       'saveProduct emits FormError when repository fails',
       build: () {
         when(() => productRepository.saveProduct(any())).thenAnswer(
-          (_) async => const Result.failure(NetworkError(
-            message: 'Network connection lost.',
-          )),
+          (_) async => const Result.failure(
+            NetworkError(
+              message: 'Network connection lost.',
+            ),
+          ),
         );
-        return ProductCubit(productRepository);
+        return ProductCubit(productRepository, fileStorageService);
       },
       act: (cubit) => cubit.saveProduct(mockProducts[0]),
       expect: () => [
@@ -244,8 +307,10 @@ void main() {
     blocTest<ProductCubit, ProductState>(
       'deleteProduct calls repository and removes item from state',
       build: () {
-        when(() => productRepository.deleteProduct(any())).thenAnswer((_) async => const Result.success(null));
-        return ProductCubit(productRepository);
+        when(
+          () => productRepository.deleteProduct(any()),
+        ).thenAnswer((_) async => const Result.success(null));
+        return ProductCubit(productRepository, fileStorageService);
       },
       seed: () => ProductPageLoaded(
         pagingState: ProductPagingState(
@@ -258,10 +323,83 @@ void main() {
       expect: () => [
         isA<ProductPageLoaded>()
             .having((s) => s.pagingState.items?.length, 'items length', 1)
-            .having((s) => s.pagingState.items?.first.id, 'remaining product id', 'prod-2'),
+            .having(
+              (s) => s.pagingState.items?.first.id,
+              'remaining product id',
+              'prod-2',
+            ),
       ],
       verify: (_) {
         verify(() => productRepository.deleteProduct('prod-1')).called(1);
+      },
+    );
+
+    blocTest<ProductCubit, ProductState>(
+      'saveProduct uploads local image and saves updated product on success',
+      build: () {
+        when(() => fileStorageService.uploadProductImage(any())).thenAnswer(
+          (_) async => const Result.success(
+            '~/documents/label-grid/product-images/img_123.png',
+          ),
+        );
+        when(() => productRepository.saveProduct(any())).thenAnswer(
+          (_) async => const Result.success(null),
+        );
+        when(
+          () => productRepository.getProducts(
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+            query: any(named: 'query'),
+            category: any(named: 'category'),
+          ),
+        ).thenAnswer(
+          (_) async => Result.success(
+            PaginatedResult(
+              items: mockProducts,
+              totalCount: 2,
+              hasMore: false,
+              currentPage: 0,
+            ),
+          ),
+        );
+        return ProductCubit(productRepository, fileStorageService);
+      },
+      act: (cubit) {
+        final tempFile = File(
+          '${Directory.systemTemp.path}/test_upload_img.png',
+        )..createSync();
+        final productWithLocalImage = mockProducts[0].copyWith(
+          imageUrl: tempFile.path,
+        );
+        return cubit.saveProduct(productWithLocalImage);
+      },
+      expect: () => [
+        const ProductFormSubmitting(),
+        const ProductFormSuccess(),
+        isA<ProductPageLoaded>().having(
+          (s) => s.pagingState.isLoading,
+          'loading first',
+          true,
+        ),
+        isA<ProductPageLoaded>().having(
+          (s) => s.pagingState.isLoading,
+          'loading done',
+          false,
+        ),
+      ],
+      verify: (_) {
+        verify(() => fileStorageService.uploadProductImage(any())).called(1);
+        verify(
+          () => productRepository.saveProduct(
+            any(
+              that: isA<Product>().having(
+                (p) => p.imageUrl,
+                'imageUrl',
+                '~/documents/label-grid/product-images/img_123.png',
+              ),
+            ),
+          ),
+        ).called(1);
       },
     );
   });

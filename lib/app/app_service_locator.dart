@@ -25,6 +25,8 @@ import 'package:stickify/data/services/firebase_auth_service.dart';
 import 'package:stickify/data/services/firestore_remote_database_service.dart';
 import 'package:stickify/data/services/hive_local_database.dart';
 import 'package:stickify/data/services/hive_sync_queue.dart';
+import 'package:stickify/data/services/local_file_storage_service.dart';
+import 'package:stickify/data/services/unimplemented_file_storage_service.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Centralized Dependency Injection container and service locator.
@@ -42,6 +44,7 @@ class AppServiceLocator {
     required this.printJobIdGenerator,
     required this.featureAccessService,
     required this.notificationService,
+    required this.fileStorageService,
     required this._authSubscription,
   });
 
@@ -50,6 +53,7 @@ class AppServiceLocator {
     LocalDatabase? localDbOverride,
     AuthService? authServiceOverride,
     RemoteDatabaseService? remoteDbOverride,
+    FileStorageService? fileStorageOverride,
   }) async {
     final database = localDbOverride ?? HiveLocalDatabase();
     await database.init();
@@ -94,6 +98,10 @@ class AppServiceLocator {
     const printJobIdGenerator = TimestampPrintJobIdGenerator();
     const featureAccessService = FeatureAccessService();
     final notificationService = NotificationService();
+    final fileStorageService = fileStorageOverride ??
+        (Platform.isWindows
+            ? const LocalFileStorageService()
+            : const UnimplementedFileStorageService());
 
     // The subscription is saved in a private field and cancelled inside locator dispose method.
     // ignore: cancel_subscriptions
@@ -128,6 +136,7 @@ class AppServiceLocator {
       printJobIdGenerator: printJobIdGenerator,
       featureAccessService: featureAccessService,
       notificationService: notificationService,
+      fileStorageService: fileStorageService,
       authSubscription: authSubscription,
     );
   }
@@ -167,6 +176,9 @@ class AppServiceLocator {
 
   /// The notification service for transient messages.
   final NotificationService notificationService;
+
+  /// The file storage service.
+  final FileStorageService fileStorageService;
 
   final StreamSubscription<AppUser?> _authSubscription;
 

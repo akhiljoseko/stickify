@@ -29,6 +29,7 @@ extension PumpApp on WidgetTester {
           ..resetPhysicalSize()
           ..resetDevicePixelRatio();
         await binding.setSurfaceSize(null);
+        await pump();
       });
     }
 

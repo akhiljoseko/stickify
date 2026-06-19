@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:stickify/core/utils/token_registry.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/label_element_renderer.dart';
 
@@ -11,67 +12,13 @@ class TextElementRenderer implements LabelElementRenderer {
   static String resolveToken(String template, Product? product, [ProductVariant? variant]) {
     var result = template;
 
-    // Resolve MFG / Manufacturing Date
-    final mfgDate = DateTime.now();
-    final day = mfgDate.day.toString().padLeft(2, '0');
-    final month = mfgDate.month.toString().padLeft(2, '0');
-    final year = mfgDate.year.toString();
-    final formattedMfg = '$day-$month-$year';
-
-    result = result.replaceAll('{{mfg}}', formattedMfg);
-    result = result.replaceAll('{{mfgDate}}', formattedMfg);
-
-    if (product != null) {
-      result = result.replaceAllMapped(RegExp(r'\{\{product\.([a-zA-Z0-9_]+)\}\}'), (match) {
-        final field = match.group(1);
-        switch (field) {
-          case 'id':
-            return product.id;
-          case 'name':
-            return product.name;
-          case 'sku':
-            return variant != null ? variant.sku : product.sku;
-          case 'category':
-            return product.category ?? '';
-          case 'shelfLifeDays':
-            return product.shelfLifeDays?.toString() ?? '';
-          case 'storageConditions':
-            return product.storageConditions ?? '';
-          case 'imageUrl':
-            return product.imageUrl ?? '';
-          case 'ingredients':
-            return product.ingredientsString;
-          case 'mfg':
-          case 'mfgDate':
-            return formattedMfg;
-          default:
-            return match.group(0) ?? '';
-        }
-      });
+    for (final tokenDef in tokenRegistry) {
+      if (result.contains(tokenDef.token)) {
+        final value = tokenDef.getValue(product, variant);
+        result = result.replaceAll(tokenDef.token, value);
+      }
     }
-    if (variant != null) {
-      result = result.replaceAllMapped(RegExp(r'\{\{variant\.([a-zA-Z0-9_]+)\}\}'), (match) {
-        final field = match.group(1);
-        switch (field) {
-          case 'name':
-            return variant.name;
-          case 'sku':
-            return variant.sku;
-          case 'quantity':
-            return variant.quantity % 1 == 0
-                ? variant.quantity.toInt().toString()
-                : variant.quantity.toString();
-          case 'unit':
-            return variant.unit;
-          case 'wholesale':
-            return variant.wholesale.toStringAsFixed(2);
-          case 'mrp':
-            return variant.mrp.toStringAsFixed(2);
-          default:
-            return match.group(0) ?? '';
-        }
-      });
-    }
+
     return result;
   }
 

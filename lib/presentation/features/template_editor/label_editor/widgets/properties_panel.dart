@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/platform/file_picker_service.dart';
+import 'package:stickify/core/utils/token_registry.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/bloc/editor_cubit.dart';
 
@@ -526,23 +527,6 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
     );
   }
 
-  static const Map<String, String> _productFields = {
-    'Product Name': '{{product.name}}',
-    'SKU Code': '{{product.sku}}',
-    'Product ID': '{{product.id}}',
-    'Category': '{{product.category}}',
-    'Shelf Life (Days)': '{{product.shelfLifeDays}}',
-    'Storage Conditions': '{{product.storageConditions}}',
-    'Ingredients': '{{product.ingredients}}',
-    'MFG Date': '{{product.mfgDate}}',
-    'MRP': '{{variant.mrp}}',
-    'Wholesale Price': '{{variant.wholesale}}',
-    'Variant Name': '{{variant.name}}',
-    'Variant SKU': '{{variant.sku}}',
-    'Variant Quantity': '{{variant.quantity}}',
-    'Variant Unit': '{{variant.unit}}',
-  };
-
   @override
   Widget build(BuildContext context) {
     final bp = widget.blueprint;
@@ -574,15 +558,17 @@ class _TextPropertiesWidgetState extends State<TextPropertiesWidget> {
         // User-friendly Field Injector Dropdown
         DropdownButtonFormField<String>(
           decoration: const InputDecoration(
-            labelText: 'Insert Product Field',
+            labelText: 'Insert Dynamic Token',
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
-          hint: const Text('Select field to insert'),
-          items: _productFields.entries.map((entry) {
+          hint: const Text('Select token to insert'),
+          items: tokenRegistry
+              .where((t) => t.visibleInDropdown)
+              .map((t) {
             return DropdownMenuItem<String>(
-              value: entry.value,
-              child: Text(entry.key),
+              value: t.token,
+              child: Text('[${t.category}] ${t.displayName}'),
             );
           }).toList(),
           onChanged: (token) {
@@ -815,23 +801,6 @@ class _BarcodePropertiesWidgetState extends State<BarcodePropertiesWidget> {
     );
   }
 
-  static const Map<String, String> _productFields = {
-    'Product Name': '{{product.name}}',
-    'SKU Code': '{{product.sku}}',
-    'Product ID': '{{product.id}}',
-    'Category': '{{product.category}}',
-    'Shelf Life (Days)': '{{product.shelfLifeDays}}',
-    'Storage Conditions': '{{product.storageConditions}}',
-    'Ingredients': '{{product.ingredients}}',
-    'MFG Date': '{{product.mfgDate}}',
-    'MRP': '{{variant.mrp}}',
-    'Wholesale Price': '{{variant.wholesale}}',
-    'Variant Name': '{{variant.name}}',
-    'Variant SKU': '{{variant.sku}}',
-    'Variant Quantity': '{{variant.quantity}}',
-    'Variant Unit': '{{variant.unit}}',
-  };
-
   @override
   Widget build(BuildContext context) {
     final bp = widget.blueprint;
@@ -862,15 +831,17 @@ class _BarcodePropertiesWidgetState extends State<BarcodePropertiesWidget> {
         // User-friendly Field Injector Dropdown
         DropdownButtonFormField<String>(
           decoration: const InputDecoration(
-            labelText: 'Insert Product Field',
+            labelText: 'Insert Dynamic Token',
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
-          hint: const Text('Select field to insert'),
-          items: _productFields.entries.map((entry) {
+          hint: const Text('Select token to insert'),
+          items: tokenRegistry
+              .where((t) => t.visibleInDropdown)
+              .map((t) {
             return DropdownMenuItem<String>(
-              value: entry.value,
-              child: Text(entry.key),
+              value: t.token,
+              child: Text('[${t.category}] ${t.displayName}'),
             );
           }).toList(),
           onChanged: (token) {
@@ -992,23 +963,6 @@ class _QrPropertiesWidgetState extends State<QrPropertiesWidget> {
     );
   }
 
-  static const Map<String, String> _productFields = {
-    'Product Name': '{{product.name}}',
-    'SKU Code': '{{product.sku}}',
-    'Product ID': '{{product.id}}',
-    'Category': '{{product.category}}',
-    'Shelf Life (Days)': '{{product.shelfLifeDays}}',
-    'Storage Conditions': '{{product.storageConditions}}',
-    'Ingredients': '{{product.ingredients}}',
-    'MFG Date': '{{product.mfgDate}}',
-    'MRP': '{{variant.mrp}}',
-    'Wholesale Price': '{{variant.wholesale}}',
-    'Variant Name': '{{variant.name}}',
-    'Variant SKU': '{{variant.sku}}',
-    'Variant Quantity': '{{variant.quantity}}',
-    'Variant Unit': '{{variant.unit}}',
-  };
-
   @override
   Widget build(BuildContext context) {
     final bp = widget.blueprint;
@@ -1039,15 +993,17 @@ class _QrPropertiesWidgetState extends State<QrPropertiesWidget> {
         // User-friendly Field Injector Dropdown
         DropdownButtonFormField<String>(
           decoration: const InputDecoration(
-            labelText: 'Insert Product Field',
+            labelText: 'Insert Dynamic Token',
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
-          hint: const Text('Select field to insert'),
-          items: _productFields.entries.map((entry) {
+          hint: const Text('Select token to insert'),
+          items: tokenRegistry
+              .where((t) => t.visibleInDropdown)
+              .map((t) {
             return DropdownMenuItem<String>(
-              value: entry.value,
-              child: Text(entry.key),
+              value: t.token,
+              child: Text('[${t.category}] ${t.displayName}'),
             );
           }).toList(),
           onChanged: (token) {

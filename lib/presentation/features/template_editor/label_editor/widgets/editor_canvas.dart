@@ -18,6 +18,7 @@ class EditorCanvas extends StatefulWidget {
     required this.selectedElementId,
     required this.zoomLevel,
     this.product,
+    this.variant,
     super.key,
   });
 
@@ -35,6 +36,9 @@ class EditorCanvas extends StatefulWidget {
 
   /// Optional product entity to populate dynamic token values.
   final Product? product;
+
+  /// Optional product variant entity to populate dynamic token values.
+  final ProductVariant? variant;
 
   @override
   State<EditorCanvas> createState() => _EditorCanvasState();
@@ -294,6 +298,7 @@ class _EditorCanvasState extends State<EditorCanvas> {
                                     isSelected: bp.id == widget.selectedElementId,
                                     zoomLevel: widget.zoomLevel,
                                     product: widget.product,
+                                    variant: widget.variant,
                                     onTap: () {
                                       _focusNode.requestFocus();
                                       context.read<EditorCubit>().selectElement(

@@ -99,6 +99,16 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
             category: 'Beverages',
             shelfLifeDays: 90,
             storageConditions: 'Keep refrigerated below 5°C',
+            variants: [
+              ProductVariant(
+                name: 'Sample 12oz Bottle',
+                quantity: 12,
+                unit: 'oz',
+                wholesale: 2.5,
+                mrp: 3.99,
+                sku: 'BEV-CB-ORG-12-BOT',
+              ),
+            ],
           );
         });
       }
@@ -133,12 +143,25 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
           } else {
             _initialLoadDone = true;
           }
+          final sampleVariant = _sampleProduct?.variants.firstOrNull ??
+              (_sampleProduct != null
+                  ? const ProductVariant(
+                      name: 'Sample 12oz Bottle',
+                      quantity: 12,
+                      unit: 'oz',
+                      wholesale: 2.5,
+                      mrp: 3.99,
+                      sku: 'BEV-CB-ORG-12-BOT',
+                    )
+                  : null);
+
           final canvasWidget = EditorCanvas(
             stickerConfig: state.stickerConfig,
             elements: state.elements,
             selectedElementId: state.selectedElementId,
             zoomLevel: state.zoomLevel,
             product: _sampleProduct,
+            variant: sampleVariant,
           );
 
           final propertiesPanelWidget = PropertiesPanel(

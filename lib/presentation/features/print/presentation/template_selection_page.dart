@@ -78,6 +78,17 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
               finalized = templates.where((t) => t.isFinalized).toList();
           }
 
+          if (variant.defaultTemplateId != null &&
+              finalized.any((t) => t.id == variant.defaultTemplateId)) {
+            if (!mounted) return;
+            PrintSetupRoute(
+              productId: widget.productId,
+              variantSku: widget.variantSku,
+              templateId: variant.defaultTemplateId!,
+            ).go(context);
+            return;
+          }
+
           setState(() {
             _product = product;
             _variant = variant;

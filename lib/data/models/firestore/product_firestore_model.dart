@@ -270,6 +270,7 @@ class ProductVariantFirestoreModel {
       wholesale: wholesale,
       mrp: mrp,
       sku: sku,
+      defaultTemplateId: null,
     );
   }
 }

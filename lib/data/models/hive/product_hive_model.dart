@@ -135,6 +135,7 @@ class ProductVariantHiveModel extends HiveObject {
     required this.wholesale,
     required this.mrp,
     required this.sku,
+    this.defaultTemplateId,
   });
 
   factory ProductVariantHiveModel.fromDomain(ProductVariant v) {
@@ -145,6 +146,7 @@ class ProductVariantHiveModel extends HiveObject {
       wholesale: v.wholesale,
       mrp: v.mrp,
       sku: v.sku,
+      defaultTemplateId: v.defaultTemplateId,
     );
   }
 
@@ -154,6 +156,7 @@ class ProductVariantHiveModel extends HiveObject {
   final double wholesale;
   final double mrp;
   final String sku;
+  final String? defaultTemplateId;
 
   ProductVariant toDomain() {
     return ProductVariant(
@@ -163,6 +166,7 @@ class ProductVariantHiveModel extends HiveObject {
       wholesale: wholesale,
       mrp: mrp,
       sku: sku,
+      defaultTemplateId: defaultTemplateId,
     );
   }
 }

@@ -128,23 +128,11 @@ class ProductDetailPanel extends StatelessWidget {
                         ..sort((a, b) => a.name.compareTo(b.name));
                       final isLoading =
                           snapshot.connectionState != ConnectionState.done;
-                      return DropdownButtonFormField<String?>(
-                        initialValue: selectedTemplateId,
-                        decoration: const InputDecoration(
-                          labelText: 'Default Template (optional)',
-                          hintText: 'None',
-                        ),
-                        items: [
-                          const DropdownMenuItem<String?>(
-                            child: Text('None (always pick)'),
-                          ),
-                          ...templates.map(
-                            (t) => DropdownMenuItem<String?>(
-                              value: t.id,
-                              child: Text(t.name),
-                            ),
-                          ),
-                        ],
+                      return TemplateSelectorField(
+                        templates: templates,
+                        selectedTemplateId: selectedTemplateId,
+                        labelText: 'Default Template (optional)',
+                        allowNone: true,
                         onChanged: isLoading
                             ? null
                             : (val) {
@@ -311,23 +299,11 @@ class ProductDetailPanel extends StatelessWidget {
                         ..sort((a, b) => a.name.compareTo(b.name));
                       final isLoading =
                           snapshot.connectionState != ConnectionState.done;
-                      return DropdownButtonFormField<String?>(
-                        initialValue: selectedTemplateId,
-                        decoration: const InputDecoration(
-                          labelText: 'Default Template (optional)',
-                          hintText: 'None',
-                        ),
-                        items: [
-                          const DropdownMenuItem<String?>(
-                            child: Text('None (always pick)'),
-                          ),
-                          ...templates.map(
-                            (t) => DropdownMenuItem<String?>(
-                              value: t.id,
-                              child: Text(t.name),
-                            ),
-                          ),
-                        ],
+                      return TemplateSelectorField(
+                        templates: templates,
+                        selectedTemplateId: selectedTemplateId,
+                        labelText: 'Default Template (optional)',
+                        allowNone: true,
                         onChanged: isLoading
                             ? null
                             : (val) {

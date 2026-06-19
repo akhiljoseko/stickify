@@ -33,7 +33,7 @@ void main() {
   }
 
   group('SplashScreen Widget Tests', () {
-    testWidgets('renders logo, app name, subtitle and loading indicator', (
+    testWidgets('renders logo, powered by text, and loading indicator', (
       tester,
     ) async {
       when(() => authCubit.state).thenReturn(const AuthInitial());
@@ -41,8 +41,8 @@ void main() {
       await tester.pumpApp(buildTestableWidget());
       await tester.pump();
 
-      expect(find.text('Label Grid'), findsOneWidget);
-      expect(find.text('Enterprise Sticker Label Operations'), findsOneWidget);
+      expect(find.text('POWERED BY'), findsOneWidget);
+      expect(find.byType(Image), findsAtLeastNWidgets(2));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
   });

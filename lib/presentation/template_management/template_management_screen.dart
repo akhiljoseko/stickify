@@ -62,6 +62,8 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
   }
 
   void _showCreateTemplateDialog(BuildContext context) {
+    final cubit = context.read<TemplateListCubit>();
+    final filePicker = context.read<FilePickerService>();
     final textController = TextEditingController();
     String? localImagePath;
 
@@ -69,13 +71,13 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setState) {
-            final theme = Theme.of(context);
+          builder: (dialogContext, setState) {
+            final theme = Theme.of(dialogContext);
             final colorScheme = theme.colorScheme;
             final textTheme = theme.textTheme;
 
             Future<void> pickImage() async {
-              final path = await context.read<FilePickerService>().pickImage();
+              final path = await filePicker.pickImage();
               if (path != null) {
                 setState(() {
                   localImagePath = path;
@@ -165,7 +167,6 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                     final name = textController.text.trim();
                     if (name.isNotEmpty) {
                       Navigator.pop(dialogContext);
-                      final cubit = context.read<TemplateListCubit>();
                       final template = await cubit.createNewTemplate(name, imageUrl: localImagePath);
                       if (template != null && context.mounted) {
                         // Navigate to Flow B: Sheet Configuration
@@ -184,6 +185,8 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
   }
 
   void _showEditTemplateDetailsDialog(BuildContext context, LabelTemplate template) {
+    final cubit = context.read<TemplateListCubit>();
+    final filePicker = context.read<FilePickerService>();
     final textController = TextEditingController(text: template.name);
     var localImagePath = template.imageUrl;
 
@@ -191,13 +194,13 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setState) {
-            final theme = Theme.of(context);
+          builder: (dialogContext, setState) {
+            final theme = Theme.of(dialogContext);
             final colorScheme = theme.colorScheme;
             final textTheme = theme.textTheme;
 
             Future<void> pickImage() async {
-              final path = await context.read<FilePickerService>().pickImage();
+              final path = await filePicker.pickImage();
               if (path != null) {
                 setState(() {
                   localImagePath = path;
@@ -287,7 +290,6 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                     final name = textController.text.trim();
                     if (name.isNotEmpty) {
                       Navigator.pop(dialogContext);
-                      final cubit = context.read<TemplateListCubit>();
                       await cubit.updateTemplateDetails(
                         template,
                         newName: name,

@@ -210,7 +210,7 @@ class _ProductVariantSelectionDialogState
                                     const SizedBox(height: 12),
                                     ElevatedButton(
                                       onPressed: () {
-                                        // Navigator.pop(context);
+                                        Navigator.pop(context);
                                         context.go('/products');
                                       },
                                       child: const Text('Go to Products'),
@@ -238,11 +238,13 @@ class _ProductVariantSelectionDialogState
                                     ),
                                     trailing: const Icon(Icons.print_outlined),
                                     onTap: () {
-                                      Navigator.pop(context);
                                       PrintTemplateSelectRoute(
                                         productId: _selectedProduct!.id,
                                         variantSku: v.sku,
                                       ).push<void>(context);
+                                      setState(() {
+                                        _selectedProduct = null;
+                                      });
                                     },
                                   );
                                 },

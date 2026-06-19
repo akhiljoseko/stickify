@@ -145,31 +145,49 @@ class _TemplateListTile extends StatelessWidget {
         ? '${template.stickerConfig!.widthMm.toStringAsFixed(0)}x${template.stickerConfig!.heightMm.toStringAsFixed(0)} mm'
         : 'N/A';
 
-    return ListTile(
-      selected: isSelected,
-      leading: AppImage(
-        imageUrl: template.imageUrl,
-        placeholderIcon: Icons.description_outlined,
-        width: 48,
-        height: 48,
-        borderRadius: 4,
-      ),
-      title: Text(
-        template.name,
-        style: textTheme.bodyLarge?.copyWith(
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-      subtitle: Text(
-        '$dimensions | $stickersCount stickers/sheet',
-        style: textTheme.bodySmall?.copyWith(
-          color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
-        ),
-      ),
-      trailing: isSelected
-          ? Icon(Icons.check_circle, color: colorScheme.primary)
-          : null,
+    return InkWell(
       onTap: onTap,
+      child: Container(
+        color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.15) : null,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            AppImage(
+              imageUrl: template.imageUrl,
+              placeholderIcon: Icons.description_outlined,
+              width: 80,
+              height: 80,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    template.name,
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '$dimensions | $stickersCount stickers/sheet',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (isSelected)
+              Icon(Icons.check_circle, color: colorScheme.primary)
+            else
+              const SizedBox(width: 24),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -191,31 +209,52 @@ class _NoneListTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return ListTile(
-      selected: isSelected,
-      leading: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Icon(Icons.block, color: colorScheme.onSurfaceVariant),
-      ),
-      title: Text(
-        noneLabel,
-        style: textTheme.bodyLarge?.copyWith(
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-      subtitle: Text(
-        'No default template selected',
-        style: textTheme.bodySmall,
-      ),
-      trailing: isSelected
-          ? Icon(Icons.check_circle, color: colorScheme.primary)
-          : null,
+    return InkWell(
       onTap: onTap,
+      child: Container(
+        color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.15) : null,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(Icons.block, color: colorScheme.onSurfaceVariant, size: 32),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    noneLabel,
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'No default template selected',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (isSelected)
+              Icon(Icons.check_circle, color: colorScheme.primary)
+            else
+              const SizedBox(width: 24),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -240,33 +279,38 @@ class _TemplateDialog extends StatelessWidget {
     return AlertDialog(
       title: const Text('Select Label Template'),
       content: SizedBox(
-        width: 400,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (allowNone) ...[
-                _NoneListTile(
-                  noneLabel: noneLabel,
-                  isSelected: selectedTemplateId == null,
-                  onTap: () {
-                    onChanged(null);
-                    Navigator.pop(context);
-                  },
-                ),
-                const Divider(),
+        width: 500,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (allowNone) ...[
+                  _NoneListTile(
+                    noneLabel: noneLabel,
+                    isSelected: selectedTemplateId == null,
+                    onTap: () {
+                      onChanged(null);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const Divider(),
+                ],
+                ...templates.map((t) {
+                  return _TemplateListTile(
+                    template: t,
+                    isSelected: selectedTemplateId == t.id,
+                    onTap: () {
+                      onChanged(t.id);
+                      Navigator.pop(context);
+                    },
+                  );
+                }),
               ],
-              ...templates.map((t) {
-                return _TemplateListTile(
-                  template: t,
-                  isSelected: selectedTemplateId == t.id,
-                  onTap: () {
-                    onChanged(t.id);
-                    Navigator.pop(context);
-                  },
-                );
-              }),
-            ],
+            ),
           ),
         ),
       ),

@@ -11,6 +11,8 @@ List<RouteBase> get $appRoutes => [
   $registerRoute,
   $forgotPasswordRoute,
   $printHistoryRoute,
+  $printTemplateSelectRoute,
+  $printSetupRoute,
   $appShellRouteData,
 ];
 
@@ -113,6 +115,91 @@ mixin $PrintHistoryRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
+RouteBase get $printTemplateSelectRoute => GoRouteData.$route(
+  path: '/print/:productId/variants/:variantSku/templates',
+  parentNavigatorKey: PrintTemplateSelectRoute.$parentNavigatorKey,
+  factory: $PrintTemplateSelectRoute._fromState,
+);
+
+mixin $PrintTemplateSelectRoute on GoRouteData {
+  static PrintTemplateSelectRoute _fromState(GoRouterState state) =>
+      PrintTemplateSelectRoute(
+        productId: state.pathParameters['productId']!,
+        variantSku: state.pathParameters['variantSku']!,
+      );
+
+  PrintTemplateSelectRoute get _self => this as PrintTemplateSelectRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/print/${Uri.encodeComponent(_self.productId)}/variants/${Uri.encodeComponent(_self.variantSku)}/templates',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $printSetupRoute => GoRouteData.$route(
+  path: '/print/:productId/variants/:variantSku/setup/:templateId',
+  parentNavigatorKey: PrintSetupRoute.$parentNavigatorKey,
+  factory: $PrintSetupRoute._fromState,
+);
+
+mixin $PrintSetupRoute on GoRouteData {
+  static PrintSetupRoute _fromState(GoRouterState state) => PrintSetupRoute(
+    productId: state.pathParameters['productId']!,
+    variantSku: state.pathParameters['variantSku']!,
+    templateId: state.pathParameters['templateId']!,
+    quantity: _$convertMapValue(
+      'quantity',
+      state.uri.queryParameters,
+      int.tryParse,
+    ),
+  );
+
+  PrintSetupRoute get _self => this as PrintSetupRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/print/${Uri.encodeComponent(_self.productId)}/variants/${Uri.encodeComponent(_self.variantSku)}/setup/${Uri.encodeComponent(_self.templateId)}',
+    queryParams: {
+      if (_self.quantity != null) 'quantity': _self.quantity!.toString(),
+    },
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+T? _$convertMapValue<T>(
+  String key,
+  Map<String, String> map,
+  T? Function(String) converter,
+) {
+  final value = map[key];
+  return value == null ? null : converter(value);
+}
+
 RouteBase get $appShellRouteData => StatefulShellRouteData.$route(
   factory: $AppShellRouteDataExtension._fromState,
   branches: [
@@ -129,18 +216,6 @@ RouteBase get $appShellRouteData => StatefulShellRouteData.$route(
         GoRouteData.$route(
           path: '/products',
           factory: $ProductManagementRoute._fromState,
-          routes: [
-            GoRouteData.$route(
-              path: ':productId/variants/:variantSku/print/templates',
-              parentNavigatorKey: PrintTemplateSelectRoute.$parentNavigatorKey,
-              factory: $PrintTemplateSelectRoute._fromState,
-            ),
-            GoRouteData.$route(
-              path: ':productId/variants/:variantSku/print/setup/:templateId',
-              parentNavigatorKey: PrintSetupRoute.$parentNavigatorKey,
-              factory: $PrintSetupRoute._fromState,
-            ),
-          ],
         ),
       ],
     ),
@@ -217,70 +292,6 @@ mixin $ProductManagementRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/products');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $PrintTemplateSelectRoute on GoRouteData {
-  static PrintTemplateSelectRoute _fromState(GoRouterState state) =>
-      PrintTemplateSelectRoute(
-        productId: state.pathParameters['productId']!,
-        variantSku: state.pathParameters['variantSku']!,
-      );
-
-  PrintTemplateSelectRoute get _self => this as PrintTemplateSelectRoute;
-
-  @override
-  String get location => GoRouteData.$location(
-    '/products/${Uri.encodeComponent(_self.productId)}/variants/${Uri.encodeComponent(_self.variantSku)}/print/templates',
-  );
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $PrintSetupRoute on GoRouteData {
-  static PrintSetupRoute _fromState(GoRouterState state) => PrintSetupRoute(
-    productId: state.pathParameters['productId']!,
-    variantSku: state.pathParameters['variantSku']!,
-    templateId: state.pathParameters['templateId']!,
-    quantity: _$convertMapValue(
-      'quantity',
-      state.uri.queryParameters,
-      int.tryParse,
-    ),
-  );
-
-  PrintSetupRoute get _self => this as PrintSetupRoute;
-
-  @override
-  String get location => GoRouteData.$location(
-    '/products/${Uri.encodeComponent(_self.productId)}/variants/${Uri.encodeComponent(_self.variantSku)}/print/setup/${Uri.encodeComponent(_self.templateId)}',
-    queryParams: {
-      if (_self.quantity != null) 'quantity': _self.quantity!.toString(),
-    },
-  );
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -437,13 +448,4 @@ mixin $SettingsRoute on GoRouteData {
 
   @override
   void replace(BuildContext context) => context.replace(location);
-}
-
-T? _$convertMapValue<T>(
-  String key,
-  Map<String, String> map,
-  T? Function(String) converter,
-) {
-  final value = map[key];
-  return value == null ? null : converter(value);
 }

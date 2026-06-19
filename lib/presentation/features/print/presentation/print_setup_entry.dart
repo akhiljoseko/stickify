@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:stickify/app/routing/router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_cubit.dart';
@@ -97,13 +97,13 @@ class _PrintSetupView extends StatelessWidget {
           context.read<NotificationService>().showSuccess(
             'Print job ${state.printJob.id} successfully dispatched to printer!',
           );
-          const DashboardRoute().go(context);
+          context.pop();
         }
         if (state is PrintWorkflowError) {
           BlockingErrorDialog.show(
             context,
             message: state.message,
-            onClose: () => Navigator.of(context).pop(),
+            onClose: () => context.pop(),
           );
         }
       },
@@ -189,7 +189,7 @@ class _PrintSetupView extends StatelessWidget {
               title: const Text('Print Configuration'),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
               ),
             ),
             body: AdaptiveScrollWrapper(

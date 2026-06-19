@@ -92,6 +92,64 @@ class PrintHistoryRoute extends GoRouteData with $PrintHistoryRoute {
   }
 }
 
+/// Print template selection route — full-screen overlay outside the shell.
+@TypedGoRoute<PrintTemplateSelectRoute>(
+  path: '/print/:productId/variants/:variantSku/templates',
+)
+@immutable
+class PrintTemplateSelectRoute extends GoRouteData with $PrintTemplateSelectRoute {
+  const PrintTemplateSelectRoute({
+    required this.productId,
+    required this.variantSku,
+  });
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  final String productId;
+  final String variantSku;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return TemplateSelectionPage(
+      productId: productId,
+      variantSku: variantSku,
+    );
+  }
+}
+
+/// Print setup/preview route — full-screen overlay outside the shell.
+@TypedGoRoute<PrintSetupRoute>(
+  path: '/print/:productId/variants/:variantSku/setup/:templateId',
+)
+@immutable
+class PrintSetupRoute extends GoRouteData with $PrintSetupRoute {
+  const PrintSetupRoute({
+    required this.productId,
+    required this.variantSku,
+    required this.templateId,
+    this.quantity,
+  });
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  final String productId;
+  final String variantSku;
+  final String templateId;
+
+  /// Optional initial quantity to pre-fill in the print setup.
+  final int? quantity;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return PrintSetupPage(
+      productId: productId,
+      variantSku: variantSku,
+      templateId: templateId,
+      quantity: quantity,
+    );
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PROTECTED SHELL — StatefulShellRoute
 //
@@ -128,14 +186,6 @@ class PrintHistoryRoute extends GoRouteData with $PrintHistoryRoute {
       routes: [
         TypedGoRoute<ProductManagementRoute>(
           path: '/products',
-          routes: [
-            TypedGoRoute<PrintTemplateSelectRoute>(
-              path: ':productId/variants/:variantSku/print/templates',
-            ),
-            TypedGoRoute<PrintSetupRoute>(
-              path: ':productId/variants/:variantSku/print/setup/:templateId',
-            ),
-          ],
         ),
       ],
     ),
@@ -232,56 +282,6 @@ class ProductManagementRoute extends GoRouteData with $ProductManagementRoute {
   Widget build(BuildContext context, GoRouterState state) {
     final subView = state.uri.queryParameters['subView'];
     return ProductManagementScreen(initialSubView: subView);
-  }
-}
-
-@immutable
-class PrintTemplateSelectRoute extends GoRouteData with $PrintTemplateSelectRoute {
-  const PrintTemplateSelectRoute({
-    required this.productId,
-    required this.variantSku,
-  });
-
-  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
-
-  final String productId;
-  final String variantSku;
-
-  @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return TemplateSelectionPage(
-      productId: productId,
-      variantSku: variantSku,
-    );
-  }
-}
-
-@immutable
-class PrintSetupRoute extends GoRouteData with $PrintSetupRoute {
-  const PrintSetupRoute({
-    required this.productId,
-    required this.variantSku,
-    required this.templateId,
-    this.quantity,
-  });
-
-  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
-
-  final String productId;
-  final String variantSku;
-  final String templateId;
-
-  /// Optional initial quantity to pre-fill in the print setup.
-  final int? quantity;
-
-  @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return PrintSetupPage(
-      productId: productId,
-      variantSku: variantSku,
-      templateId: templateId,
-      quantity: quantity,
-    );
   }
 }
 

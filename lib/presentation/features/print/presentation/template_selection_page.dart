@@ -85,7 +85,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
               productId: widget.productId,
               variantSku: widget.variantSku,
               templateId: variant.defaultTemplateId!,
-            ).go(context);
+            ).push<void>(context);
             return;
           }
 
@@ -396,7 +396,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                         productId: product.id,
                         variantSku: variant.sku,
                         templateId: _selectedTemplateId!,
-                      ).go(context);
+                      ).push<void>(context);
                     },
                     icon: const Icon(Icons.arrow_forward),
                     label: const Text('Continue to Print Configuration'),

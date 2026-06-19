@@ -220,6 +220,7 @@ class ProductVariantFirestoreModel {
     required this.wholesale,
     required this.mrp,
     required this.sku,
+    this.defaultTemplateId,
   });
 
   factory ProductVariantFirestoreModel.fromDomain(ProductVariant v) {
@@ -230,6 +231,7 @@ class ProductVariantFirestoreModel {
       wholesale: v.wholesale,
       mrp: v.mrp,
       sku: v.sku,
+      defaultTemplateId: v.defaultTemplateId,
     );
   }
 
@@ -241,6 +243,7 @@ class ProductVariantFirestoreModel {
       wholesale: (m['wholesale'] as num? ?? 0.0).toDouble(),
       mrp: (m['mrp'] as num? ?? 0.0).toDouble(),
       sku: m['sku'] as String? ?? '',
+      defaultTemplateId: m['defaultTemplateId'] as String?,
     );
   }
 
@@ -250,6 +253,7 @@ class ProductVariantFirestoreModel {
   final double wholesale;
   final double mrp;
   final String sku;
+  final String? defaultTemplateId;
 
   Map<String, dynamic> toMap() {
     return {
@@ -259,6 +263,7 @@ class ProductVariantFirestoreModel {
       'wholesale': wholesale,
       'mrp': mrp,
       'sku': sku,
+      'defaultTemplateId': defaultTemplateId,
     };
   }
 
@@ -270,6 +275,7 @@ class ProductVariantFirestoreModel {
       wholesale: wholesale,
       mrp: mrp,
       sku: sku,
+      defaultTemplateId: defaultTemplateId,
     );
   }
 }

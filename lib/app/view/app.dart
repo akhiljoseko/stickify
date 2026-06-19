@@ -38,19 +38,43 @@ class _AppState extends State<App> {
       providers: [
         RepositoryProvider<LocalDatabase>.value(value: locator.database),
         RepositoryProvider<AuthService>.value(value: locator.authService),
-        RepositoryProvider<ProductRepository>.value(value: locator.productRepository),
-        RepositoryProvider<SyncableProductRepository>.value(value: locator.productRepository),
-        RepositoryProvider<TemplateRepository>.value(value: locator.templateRepository),
-        RepositoryProvider<SyncableTemplateRepository>.value(value: locator.templateRepository),
-        RepositoryProvider<PrintJobRepository>.value(value: locator.printJobRepository),
-        RepositoryProvider<VariantPrintStatsRepository>.value(value: locator.variantPrintStatsRepository),
-        RepositoryProvider<SearchRepository>.value(value: locator.searchRepository),
+        RepositoryProvider<ProductRepository>.value(
+          value: locator.productRepository,
+        ),
+        RepositoryProvider<SyncableProductRepository>.value(
+          value: locator.productRepository,
+        ),
+        RepositoryProvider<TemplateRepository>.value(
+          value: locator.templateRepository,
+        ),
+        RepositoryProvider<SyncableTemplateRepository>.value(
+          value: locator.templateRepository,
+        ),
+        RepositoryProvider<PrintJobRepository>.value(
+          value: locator.printJobRepository,
+        ),
+        RepositoryProvider<VariantPrintStatsRepository>.value(
+          value: locator.variantPrintStatsRepository,
+        ),
+        RepositoryProvider<SearchRepository>.value(
+          value: locator.searchRepository,
+        ),
         RepositoryProvider<PrintService>.value(value: locator.printService),
-        RepositoryProvider<PrinterDiscoveryService>.value(value: locator.printService as PrinterDiscoveryService),
-        RepositoryProvider<PrintJobIdGenerator>.value(value: locator.printJobIdGenerator),
-        RepositoryProvider<FilePickerService>.value(value: locator.filePickerService),
-        RepositoryProvider<FeatureAccessService>.value(value: locator.featureAccessService),
-        RepositoryProvider<NotificationService>.value(value: locator.notificationService),
+        RepositoryProvider<PrinterDiscoveryService>.value(
+          value: locator.printService as PrinterDiscoveryService,
+        ),
+        RepositoryProvider<PrintJobIdGenerator>.value(
+          value: locator.printJobIdGenerator,
+        ),
+        RepositoryProvider<FilePickerService>.value(
+          value: locator.filePickerService,
+        ),
+        RepositoryProvider<FeatureAccessService>.value(
+          value: locator.featureAccessService,
+        ),
+        RepositoryProvider<NotificationService>.value(
+          value: locator.notificationService,
+        ),
       ],
       child: BlocProvider(
         // Create the AuthCubit once for the entire app lifetime.
@@ -92,7 +116,7 @@ class _AppViewState extends State<_AppView> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Stickify Industrial Canvas',
+      title: 'Label Grid',
 
       // ── Theme ────────────────────────────────────────────────────────────
       theme: AppTheme.lightTheme,

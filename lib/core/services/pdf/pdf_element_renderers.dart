@@ -17,13 +17,9 @@ class PdfTextElementRenderer implements PdfElementRenderer<TextElementBlueprint>
     ProductVariant? variant,
     Map<String, Uint8List> imageCache,
   ) {
-    var text = blueprint.isDynamic
+    final text = blueprint.isDynamic
         ? TextElementRenderer.resolveToken(blueprint.content, product, variant)
         : blueprint.content;
-
-    // Standard PDF fonts (Helvetica, Courier, Times) do not support the Unicode Rupee symbol (₹),
-    // which causes printing crashes. Replace it with 'Rs. ' to ensure safe rendering.
-    text = text.replaceAll('₹', 'Rs. ');
 
     final fontWeight = switch (blueprint.fontWeightValue) {
       >= 700 => pw.FontWeight.bold,
@@ -91,13 +87,9 @@ class PdfBarcodeElementRenderer implements PdfElementRenderer<BarcodeElementBlue
     ProductVariant? variant,
     Map<String, Uint8List> imageCache,
   ) {
-    var barcodeData = blueprint.isDynamic
+    final barcodeData = blueprint.isDynamic
         ? TextElementRenderer.resolveToken(blueprint.data, product, variant)
         : blueprint.data;
-
-    // Standard PDF fonts (Helvetica, Courier, Times) do not support the Unicode Rupee symbol (₹),
-    // which causes printing crashes. Replace it with 'Rs. ' to ensure safe rendering.
-    barcodeData = barcodeData.replaceAll('₹', 'Rs. ');
 
     final data = barcodeData.isEmpty ? '12345678' : barcodeData;
 

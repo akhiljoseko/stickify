@@ -10,7 +10,7 @@ The printing module is designed to map visual labels designed in the editor to a
 
 Key operational requirements include:
 - **Sheet Configuration Grid**: Calculate slots on print sheets from column/row layouts and margins in physical millimeters.
-- **Dynamic Reflowing Grid**: Support toggling individual slots on a sheet to mark them as "skipped/used" (e.g., when reusing partially printed label sheets). Enable automatic downstream reflowing.
+- **Dynamic Reflowing Grid**: Support toggling individual slots as well as entire rows of slots on a sheet to mark them as "skipped/used" (e.g., when reusing partially printed label sheets). Enable automatic downstream reflowing.
 - **Millimeter Accuracy**: Scale all layout calculations in points to match precise millimeter dimensions on physical paper.
 - **Dynamic Printer Listing**: Query available system printer devices dynamically and pre-select the system default printer.
 - **Windows Alignment Parity**: Resolve the systematic 15 mm left-alignment shift when printing custom sheet sizes on Windows printer drivers.

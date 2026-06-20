@@ -153,6 +153,7 @@ void main() {
       id: '',
       name: '',
     ));
+    registerFallbackValue(PdfPageFormat.standard);
   });
 
   setUp(() {
@@ -222,6 +223,7 @@ void main() {
             template: any(named: 'template'),
             quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
+            physicalFormat: any(named: 'physicalFormat'),
           )).thenAnswer((_) async => Uint8List(0));
       fakePrintingPlatform.printersList = [];
 
@@ -251,6 +253,7 @@ void main() {
             template: any(named: 'template'),
             quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
+            physicalFormat: any(named: 'physicalFormat'),
           )).thenAnswer((_) async => Uint8List(0));
       fakePrintingPlatform.printersList = [
         const Printer(name: 'Zebra ZT411-A', url: 'zebra-url', isDefault: true),
@@ -273,6 +276,7 @@ void main() {
             template: any(named: 'template'),
             quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
+            physicalFormat: any(named: 'physicalFormat'),
           )).called(1);
       verify(() => mockDevModeManager.applySettings(any(), any())).called(1);
       verify(() => mockDevModeManager.restoreSettings(any(), 'backup-token-xyz')).called(1);

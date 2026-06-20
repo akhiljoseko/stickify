@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:pdf/pdf.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Abstract service interface for generating layout PDF bytes.
@@ -12,5 +13,6 @@ abstract interface class LabelLayoutEngine {
     required int quantity,
     required Set<int> disabledSlots,
     bool printFromBottom = false,
+    PdfPageFormat? physicalFormat,
   });
 }

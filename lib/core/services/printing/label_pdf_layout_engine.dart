@@ -125,6 +125,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     final pageTheme = pw.ThemeData.withFont(
       base: regularFont,
       bold: boldFont,
+      fontFallback: [regularFont, boldFont],
     );
 
     final sheetConfig = input.template.sheetConfig!;

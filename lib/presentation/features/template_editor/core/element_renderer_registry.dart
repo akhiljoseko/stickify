@@ -3,6 +3,7 @@ import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/template_editor/core/label_element_renderer.dart';
 import 'package:stickify/presentation/features/template_editor/renderers/barcode_element_renderer.dart';
 import 'package:stickify/presentation/features/template_editor/renderers/image_element_renderer.dart';
+import 'package:stickify/presentation/features/template_editor/renderers/nutrition_table_element_renderer.dart';
 import 'package:stickify/presentation/features/template_editor/renderers/qr_element_renderer.dart';
 import 'package:stickify/presentation/features/template_editor/renderers/shape_element_renderer.dart';
 import 'package:stickify/presentation/features/template_editor/renderers/text_element_renderer.dart';
@@ -17,6 +18,7 @@ class ElementRendererRegistry {
     QrElementBlueprint: QrElementRenderer(),
     ImageElementBlueprint: ImageElementRenderer(),
     ShapeElementBlueprint: ShapeElementRenderer(),
+    NutritionTableElementBlueprint: NutritionTableElementRenderer(),
   };
 
   static LabelElementRenderer forBlueprint(ElementBlueprint b) {

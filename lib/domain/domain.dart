@@ -10,6 +10,7 @@ library;
 export 'entities/editor/barcode_element_blueprint.dart';
 export 'entities/editor/element_blueprint.dart';
 export 'entities/editor/image_element_blueprint.dart';
+export 'entities/editor/nutrition_table_element_blueprint.dart';
 export 'entities/editor/qr_element_blueprint.dart';
 export 'entities/editor/shape_element_blueprint.dart';
 export 'entities/editor/text_element_blueprint.dart';

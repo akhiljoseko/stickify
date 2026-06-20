@@ -246,6 +246,9 @@ class ElementBlueprintHiveModel extends HiveObject {
       networkUrl = eb.networkUrl;
       localFilePath = eb.localFilePath;
       fit = eb.fit.name;
+    } else if (eb is NutritionTableElementBlueprint) {
+      type = 'nutrition_table';
+      colorHex = eb.colorHex;
     }
 
     return ElementBlueprintHiveModel(
@@ -390,6 +393,16 @@ class ElementBlueprintHiveModel extends HiveObject {
             (e) => e.name == fit,
             orElse: () => BlueprintBoxFit.contain,
           ),
+        );
+      case 'nutrition_table':
+        return NutritionTableElementBlueprint(
+          id: id,
+          x: x,
+          y: y,
+          width: width,
+          height: height,
+          rotation: rotation,
+          colorHex: colorHex ?? 0xFF000000,
         );
       default:
         throw UnimplementedError('Unknown blueprint type: $type');

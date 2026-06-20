@@ -167,7 +167,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
       final success = await Printing.directPrintPdf(
         printer: resolvedPrinter,
         onLayout: (format) async {
-          return await _layoutEngine.buildPdfBytes(
+          return _layoutEngine.buildPdfBytes(
             product: product,
             variant: variant,
             template: template,

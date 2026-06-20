@@ -29,7 +29,7 @@ class MobileDashboardScreen extends StatelessWidget {
             );
             // Refresh data
             context.read<RecentPrintJobsCubit>().loadRecentJobs();
-            context.read<FrequentVariantsCubit>().loadFrequentVariants();
+            context.read<FrequentProductsCubit>().loadFrequentVariants();
           } else if (state is SyncFailure) {
             context.read<NotificationService>().showError(
               'Sync failed: ${state.error}',
@@ -118,7 +118,9 @@ class _SyncBanner extends StatelessWidget {
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: colorScheme.primary.withValues(alpha: 0.15)),
+            border: Border.all(
+              color: colorScheme.primary.withValues(alpha: 0.15),
+            ),
           ),
           child: Row(
             children: [
@@ -269,15 +271,15 @@ class _IconActionButton extends StatelessWidget {
       height: 56,
       child: isPrimary
           ? IconButton.filled(
-            icon: Icon(icon),
-            onPressed: onTap,
-            tooltip: label,
-          )
+              icon: Icon(icon),
+              onPressed: onTap,
+              tooltip: label,
+            )
           : IconButton.outlined(
-            icon: Icon(icon),
-            onPressed: onTap,
-            tooltip: label,
-          ),
+              icon: Icon(icon),
+              onPressed: onTap,
+              tooltip: label,
+            ),
     );
   }
 }
@@ -300,7 +302,9 @@ class _RecentPrintsSection extends StatelessWidget {
             Expanded(
               child: Text(
                 'Recently Printed',
-                style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -320,13 +324,13 @@ class _RecentPrintsSection extends StatelessWidget {
         const SizedBox(height: 8),
         BlocBuilder<RecentPrintJobsCubit, RecentPrintJobsState>(
           builder: (context, state) => switch (state) {
-            RecentPrintJobsInitial() || RecentPrintJobsLoading() =>
-              const _SectionLoadingIndicator(),
+            RecentPrintJobsInitial() ||
+            RecentPrintJobsLoading() => const _SectionLoadingIndicator(),
             RecentPrintJobsLoaded(:final jobs) => _RecentPrintsList(jobs: jobs),
             RecentPrintJobsError(:final message) => _SectionErrorView(
-                message: message,
-                onRetry: context.read<RecentPrintJobsCubit>().loadRecentJobs,
-              ),
+              message: message,
+              onRetry: context.read<RecentPrintJobsCubit>().loadRecentJobs,
+            ),
           },
         ),
       ],
@@ -382,7 +386,9 @@ class _FrequentProductsSection extends StatelessWidget {
             Expanded(
               child: Text(
                 'Frequent Used Products',
-                style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -390,16 +396,19 @@ class _FrequentProductsSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        BlocBuilder<FrequentVariantsCubit, FrequentVariantsState>(
+        BlocBuilder<FrequentProductsCubit, FrequentVariantsState>(
           builder: (context, state) => switch (state) {
-            FrequentVariantsInitial() || FrequentVariantsLoading() =>
-              const _SectionLoadingIndicator(),
-            FrequentVariantsLoaded(:final variants) =>
-              _MobileVariantList(variants: variants),
+            FrequentVariantsInitial() ||
+            FrequentVariantsLoading() => const _SectionLoadingIndicator(),
+            FrequentVariantsLoaded(:final variants) => _MobileVariantList(
+              variants: variants,
+            ),
             FrequentVariantsError(:final message) => _SectionErrorView(
-                message: message,
-                onRetry: context.read<FrequentVariantsCubit>().loadFrequentVariants,
-              ),
+              message: message,
+              onRetry: context
+                  .read<FrequentProductsCubit>()
+                  .loadFrequentVariants,
+            ),
           },
         ),
       ],
@@ -568,7 +577,9 @@ class _SectionErrorView extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Could not load data',
-            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 8),
           TextButton(

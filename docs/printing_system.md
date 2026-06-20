@@ -142,6 +142,16 @@ Label Grid resolves this driver-level issue on Windows by performing a localized
 - It verifies that a registered paper form size matches the requested layout within a `±1.5 mm` tolerance (supporting standard and landscape/flipped orientations).
 - If no matching paper size is registered on the system, the print job fails with a clear validation instruction directing the user to register the custom paper sheet in Windows Print Server Properties first.
 
+### 3. Dynamic Landscape Shift Offset Correction
+- **Problem**: Custom landscape sheets (width > height) printed on Windows spooled in Portrait mode (`dmOrientation = 1` in DEVMODE) experienced a vertical shift of approximately 5mm, where the top of the sticker was cut off.
+- **RCA**: The Windows print spooler C++ layer (`print_job.cpp`) translates the PDF page coordinates on the physical canvas by subtracting the driver's unprintable margins (`-marginLeft`, `-marginTop` = typically ~3mm). However, for landscape dimensions printed under a Portrait spooling job, the printer driver GDI coordinate origin is physically at 0mm (borderless origin). Subtracting the top margin shifts the entire layout **UP** relative to the physical page, cutting off elements.
+- **Why Horizontal remains Unshifted**: The printer driver natively aligns the horizontal coordinate system correctly. Adding a horizontal shift (`shiftX`) causes elements to print shifted to the right (e.g. shifting the left margin by 3mm). Therefore, only the vertical axis requires correction.
+- **Solution**:
+  - The PDF document compilation is executed dynamically inside the `onLayout` callback of `Printing.directPrintPdf`, capturing the driver-reported margins (`format.marginLeft` and `format.marginTop`) dynamically.
+  - If the layout configuration is landscape (`pageWidth > pageHeight`), the layout engine adds the top margin as a positive offset to the `y` coordinates (`shiftY = format.marginTop`), which counters the negative offset applied by the Windows print spooler C++ layer (`0 - marginTop + marginTop = 0mm`).
+  - `shiftX` is kept at `0` to prevent horizontal alignment shifts, maintaining 100% accurate placement.
+  - Portrait sheets (width <= height) skip this adjustment, preserving their original stable alignment.
+
 ---
 
 ## 9. Future Platform Extensibility Guide

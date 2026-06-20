@@ -230,6 +230,30 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     }
   }
 
+  /// Selects or deselects all slots in a specific row of a sheet.
+  void toggleRowSlots(int sheetIndex, int rowIndex, {required bool select}) {
+    final s = state;
+    if (s is PrintWorkflowLoaded) {
+      final template = s.selectedTemplate;
+      if (template?.sheetConfig == null) return;
+      final config = template!.sheetConfig!;
+      final columns = config.columns;
+      final slotsPerSheet = config.columns * config.rows;
+
+      final updated = Set<int>.from(s.disabledSlots);
+      final rowStart = sheetIndex * slotsPerSheet + rowIndex * columns;
+      for (var c = 0; c < columns; c++) {
+        final absIndex = rowStart + c;
+        if (select) {
+          updated.remove(absIndex);
+        } else {
+          updated.add(absIndex);
+        }
+      }
+      emit(s.copyWith(disabledSlots: updated));
+    }
+  }
+
   /// Compiles the dynamic layout and dispatches the print job.
   ///
   /// Generates the PDF, calls the system printer, and appends a record

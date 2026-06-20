@@ -6,11 +6,11 @@ import 'package:stickify/domain/repositories/variant_print_stats_repository.dart
 
 part 'frequent_products_state.dart';
 
-class FrequentVariantsCubit extends Cubit<FrequentVariantsState> {
-  FrequentVariantsCubit({
+class FrequentProductsCubit extends Cubit<FrequentVariantsState> {
+  FrequentProductsCubit({
     required VariantPrintStatsRepository variantPrintStatsRepository,
-  })  : _repository = variantPrintStatsRepository,
-        super(const FrequentVariantsInitial());
+  }) : _repository = variantPrintStatsRepository,
+       super(const FrequentVariantsInitial());
 
   final VariantPrintStatsRepository _repository;
 

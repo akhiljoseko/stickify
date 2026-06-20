@@ -18,6 +18,7 @@ abstract interface class PrintJobRepository {
   /// Returns a paginated list of print jobs before the given [before] timestamp.
   ///
   /// [limit] controls page size (default: 20). Pass [before] as the
+  // ignore: comment_references
   /// [printedAt] of the oldest item on the current page to fetch the next page.
   /// Pass `null` to fetch the first (most recent) page.
   Future<Result<List<PrintJob>, AppError>> getJobsPaginated({
@@ -26,7 +27,9 @@ abstract interface class PrintJobRepository {
   });
 
   /// Returns all print jobs associated with a specific product [variantSku].
-  Future<Result<List<PrintJob>, AppError>> getJobsByVariantSku(String variantSku);
+  Future<Result<List<PrintJob>, AppError>> getJobsByVariantSku(
+    String variantSku,
+  );
 
   /// Saves a print job to the repository database.
   Future<Result<void, AppError>> savePrintJob(PrintJob job);

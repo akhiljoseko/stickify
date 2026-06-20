@@ -5,6 +5,7 @@ analyzer:
   errors:
     discarded_futures: ignore
     lines_longer_than_80_chars: ignore
+    one_member_abstracts: ignore 
   exclude:
     - lib/l10n/gen/*
     - build/**

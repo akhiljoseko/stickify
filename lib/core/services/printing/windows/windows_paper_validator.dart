@@ -1,3 +1,6 @@
+//
+// ignore_for_file: avoid_dynamic_calls
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:stickify/core/services/printing/windows/powershell_scripts.dart';
@@ -9,7 +12,10 @@ class WindowsPaperValidator implements PaperValidationEngine {
   WindowsPaperValidator();
 
   @override
-  Future<bool> isPaperSizeSupported(PrinterDevice printer, SheetConfig sheet) async {
+  Future<bool> isPaperSizeSupported(
+    PrinterDevice printer,
+    SheetConfig sheet,
+  ) async {
     if (!Platform.isWindows) return true;
 
     try {
@@ -49,8 +55,12 @@ class WindowsPaperValidator implements PaperValidationEngine {
         final h = (paper['Height'] as num?)?.toDouble();
         if (w == null || h == null) continue;
 
-        final normalMatch = (w - targetW).abs() <= tolerance && (h - targetH).abs() <= tolerance;
-        final flippedMatch = (w - targetH).abs() <= tolerance && (h - targetW).abs() <= tolerance;
+        final normalMatch =
+            (w - targetW).abs() <= tolerance &&
+            (h - targetH).abs() <= tolerance;
+        final flippedMatch =
+            (w - targetH).abs() <= tolerance &&
+            (h - targetW).abs() <= tolerance;
 
         if (normalMatch || flippedMatch) {
           return true;

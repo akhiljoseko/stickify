@@ -56,10 +56,18 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Discard changes?'),
-        content: const Text('You have unsaved changes in the sheet configuration. Do you want to discard them?'),
+        content: const Text(
+          'You have unsaved changes in the sheet configuration. Do you want to discard them?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Discard')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Discard'),
+          ),
         ],
       ),
     );
@@ -103,7 +111,7 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
               children: [
                 Text('Page Setup', style: textTheme.titleMedium),
                 const SizedBox(height: 16),
-                
+
                 // Page Width & Height
                 Row(
                   children: [
@@ -113,8 +121,8 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                         labelText: 'Page Width (mm)',
                         onChanged: (val) {
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(pageWidth: val),
-                              );
+                            config.copyWith(pageWidth: val),
+                          );
                         },
                       ),
                     ),
@@ -125,8 +133,8 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                         labelText: 'Page Height (mm)',
                         onChanged: (val) {
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(pageHeight: val),
-                              );
+                            config.copyWith(pageHeight: val),
+                          );
                         },
                       ),
                     ),
@@ -143,8 +151,8 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                         labelText: 'Columns',
                         onChanged: (count) {
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(columns: count),
-                              );
+                            config.copyWith(columns: count),
+                          );
                         },
                       ),
                     ),
@@ -155,8 +163,8 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                         labelText: 'Rows',
                         onChanged: (count) {
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(rows: count),
-                              );
+                            config.copyWith(rows: count),
+                          );
                         },
                       ),
                     ),
@@ -166,7 +174,7 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
 
                 Text('Page Margins (mm)', style: textTheme.titleSmall),
                 const SizedBox(height: 12),
-                
+
                 // Margin inputs
                 Row(
                   children: [
@@ -176,8 +184,8 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                         labelText: 'Top',
                         onChanged: (val) {
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(marginTop: val),
-                              );
+                            config.copyWith(marginTop: val),
+                          );
                         },
                       ),
                     ),
@@ -188,8 +196,8 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                         labelText: 'Bottom',
                         onChanged: (val) {
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(marginBottom: val),
-                              );
+                            config.copyWith(marginBottom: val),
+                          );
                         },
                       ),
                     ),
@@ -200,8 +208,8 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                         labelText: 'Left',
                         onChanged: (val) {
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(marginLeft: val),
-                              );
+                            config.copyWith(marginLeft: val),
+                          );
                         },
                       ),
                     ),
@@ -212,8 +220,8 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                         labelText: 'Right',
                         onChanged: (val) {
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(marginRight: val),
-                              );
+                            config.copyWith(marginRight: val),
+                          );
                         },
                       ),
                     ),
@@ -221,9 +229,12 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                 ),
                 const SizedBox(height: 24),
 
-                Text('Sticker Spacing / Gaps (mm)', style: textTheme.titleSmall),
+                Text(
+                  'Sticker Spacing / Gaps (mm)',
+                  style: textTheme.titleSmall,
+                ),
                 const SizedBox(height: 12),
-                
+
                 // Spacing gaps
                 Row(
                   children: [
@@ -233,8 +244,8 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                         labelText: 'Horizontal Gap',
                         onChanged: (val) {
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(columnGap: val),
-                              );
+                            config.copyWith(columnGap: val),
+                          );
                         },
                       ),
                     ),
@@ -245,8 +256,8 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                         labelText: 'Vertical Gap',
                         onChanged: (val) {
                           context.read<SheetConfigCubit>().updateConfig(
-                                config.copyWith(rowGap: val),
-                              );
+                            config.copyWith(rowGap: val),
+                          );
                         },
                       ),
                     ),
@@ -302,11 +313,12 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                         Expanded(
                           flex: 4,
                           child: AdaptiveScrollWrapper(
-                            builder: (context, controller) => SingleChildScrollView(
-                              controller: controller,
-                              padding: const EdgeInsets.all(32),
-                              child: formPane,
-                            ),
+                            builder: (context, controller) =>
+                                SingleChildScrollView(
+                                  controller: controller,
+                                  padding: const EdgeInsets.all(32),
+                                  child: formPane,
+                                ),
                           ),
                         ),
                         const VerticalDivider(width: 1, thickness: 1),
@@ -318,10 +330,13 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                     ),
                   ),
                 ),
-                
+
                 // Footer
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     border: Border(
@@ -333,14 +348,15 @@ class _SheetConfigViewState extends State<_SheetConfigView> {
                     children: [
                       OutlinedButton(
                         onPressed: () async {
-                          if (await _confirmBack()) {
+                          if (await _confirmBack() && context.mounted) {
                             const TemplateManagementRoute().go(context);
                           }
                         },
                         child: const Text('Back to List'),
                       ),
                       ElevatedButton(
-                        onPressed: () => context.read<SheetConfigCubit>().saveAndContinue(),
+                        onPressed: () =>
+                            context.read<SheetConfigCubit>().saveAndContinue(),
                         child: const Text('Next: Sticker Setup'),
                       ),
                     ],

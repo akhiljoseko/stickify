@@ -56,10 +56,18 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Discard changes?'),
-        content: const Text('You have unsaved changes in the sticker configuration. Do you want to discard them?'),
+        content: const Text(
+          'You have unsaved changes in the sticker configuration. Do you want to discard them?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Discard')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Discard'),
+          ),
         ],
       ),
     );
@@ -101,7 +109,7 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
               children: [
                 Text('Sticker Dimensions', style: textTheme.titleMedium),
                 const SizedBox(height: 16),
-                
+
                 // Width & Height
                 Row(
                   children: [
@@ -110,7 +118,9 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                         value: state.widthMm,
                         labelText: 'Width (mm)',
                         onChanged: (val) {
-                          context.read<StickerSetupCubit>().updateFields(widthMm: val);
+                          context.read<StickerSetupCubit>().updateFields(
+                            widthMm: val,
+                          );
                         },
                       ),
                     ),
@@ -120,7 +130,9 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                         value: state.heightMm,
                         labelText: 'Height (mm)',
                         onChanged: (val) {
-                          context.read<StickerSetupCubit>().updateFields(heightMm: val);
+                          context.read<StickerSetupCubit>().updateFields(
+                            heightMm: val,
+                          );
                         },
                       ),
                     ),
@@ -133,14 +145,19 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                   value: state.cornerRadiusMm,
                   labelText: 'Corner Radius (mm)',
                   onChanged: (val) {
-                    context.read<StickerSetupCubit>().updateFields(cornerRadiusMm: val);
+                    context.read<StickerSetupCubit>().updateFields(
+                      cornerRadiusMm: val,
+                    );
                   },
                 ),
                 const SizedBox(height: 24),
 
-                Text('Printable Area Padding / Margins (mm)', style: textTheme.titleSmall),
+                Text(
+                  'Printable Area Padding / Margins (mm)',
+                  style: textTheme.titleSmall,
+                ),
                 const SizedBox(height: 12),
-                
+
                 // Padding inputs
                 Row(
                   children: [
@@ -149,7 +166,9 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                         value: state.paddingTop,
                         labelText: 'Top',
                         onChanged: (val) {
-                          context.read<StickerSetupCubit>().updateFields(paddingTop: val);
+                          context.read<StickerSetupCubit>().updateFields(
+                            paddingTop: val,
+                          );
                         },
                       ),
                     ),
@@ -159,7 +178,9 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                         value: state.paddingBottom,
                         labelText: 'Bottom',
                         onChanged: (val) {
-                          context.read<StickerSetupCubit>().updateFields(paddingBottom: val);
+                          context.read<StickerSetupCubit>().updateFields(
+                            paddingBottom: val,
+                          );
                         },
                       ),
                     ),
@@ -169,7 +190,9 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                         value: state.paddingLeft,
                         labelText: 'Left',
                         onChanged: (val) {
-                          context.read<StickerSetupCubit>().updateFields(paddingLeft: val);
+                          context.read<StickerSetupCubit>().updateFields(
+                            paddingLeft: val,
+                          );
                         },
                       ),
                     ),
@@ -179,7 +202,9 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                         value: state.paddingRight,
                         labelText: 'Right',
                         onChanged: (val) {
-                          context.read<StickerSetupCubit>().updateFields(paddingRight: val);
+                          context.read<StickerSetupCubit>().updateFields(
+                            paddingRight: val,
+                          );
                         },
                       ),
                     ),
@@ -193,19 +218,26 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Use Custom Polygon Printable Area'),
-                  subtitle: const Text('Define an arbitrary safe design shape via coordinate points'),
+                  subtitle: const Text(
+                    'Define an arbitrary safe design shape via coordinate points',
+                  ),
                   value: state.isCustomPolygon,
                   onChanged: (val) {
-                    context.read<StickerSetupCubit>().toggleCustomPolygon(enabled: val);
+                    context.read<StickerSetupCubit>().toggleCustomPolygon(
+                      enabled: val,
+                    );
                   },
                 ),
-                
+
                 if (state.isCustomPolygon) ...[
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Polygon Edge Points (mm)', style: textTheme.titleSmall),
+                      Text(
+                        'Polygon Edge Points (mm)',
+                        style: textTheme.titleSmall,
+                      ),
                       TextButton.icon(
                         icon: const Icon(Icons.add, size: 18),
                         label: const Text('Add Point'),
@@ -224,7 +256,10 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                     // to support older versions in the build environment.
                     // ignore: deprecated_member_use
                     onReorder: (oldIdx, newIdx) {
-                      context.read<StickerSetupCubit>().reorderPolygonPoints(oldIdx, newIdx);
+                      context.read<StickerSetupCubit>().reorderPolygonPoints(
+                        oldIdx,
+                        newIdx,
+                      );
                     },
                     itemBuilder: (context, index) {
                       final point = state.polygonPoints[index];
@@ -237,11 +272,14 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                             ReorderableDragStartListener(
                               index: index,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
                                 child: Icon(
                                   Icons.drag_handle,
                                   size: 20,
-                                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                                  color: colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.6),
                                 ),
                               ),
                             ),
@@ -263,9 +301,14 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                                 keyString: 'pt_${pointId}_x',
                                 value: point.x,
                                 labelText: 'X (mm)',
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
                                 onChanged: (val) {
-                                  context.read<StickerSetupCubit>().updatePolygonPoint(index, val, point.y);
+                                  context
+                                      .read<StickerSetupCubit>()
+                                      .updatePolygonPoint(index, val, point.y);
                                 },
                               ),
                             ),
@@ -275,17 +318,27 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                                 keyString: 'pt_${pointId}_y',
                                 value: point.y,
                                 labelText: 'Y (mm)',
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
                                 onChanged: (val) {
-                                  context.read<StickerSetupCubit>().updatePolygonPoint(index, point.x, val);
+                                  context
+                                      .read<StickerSetupCubit>()
+                                      .updatePolygonPoint(index, point.x, val);
                                 },
                               ),
                             ),
                             const SizedBox(width: 8),
                             IconButton(
-                              icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                              icon: Icon(
+                                Icons.delete_outline,
+                                color: colorScheme.error,
+                              ),
                               onPressed: state.polygonPoints.length > 3
-                                  ? () => context.read<StickerSetupCubit>().removePolygonPoint(index)
+                                  ? () => context
+                                        .read<StickerSetupCubit>()
+                                        .removePolygonPoint(index)
                                   : null,
                             ),
                           ],
@@ -303,7 +356,10 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                Text('Live Sticker Layout Preview', style: textTheme.titleSmall),
+                Text(
+                  'Live Sticker Layout Preview',
+                  style: textTheme.titleSmall,
+                ),
                 const SizedBox(height: 16),
                 Expanded(
                   child: LayoutBuilder(
@@ -324,7 +380,7 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                       // Convert mm radius to pixels
                       final scale = drawW / state.widthMm;
                       final radiusPx = state.cornerRadiusMm * scale;
-                      
+
                       return Center(
                         child: Container(
                           width: drawW,
@@ -332,7 +388,10 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(radiusPx),
-                            border: Border.all(color: colorScheme.outlineVariant, width: 2),
+                            border: Border.all(
+                              color: colorScheme.outlineVariant,
+                              width: 2,
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.08),
@@ -360,7 +419,9 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                                   child: Text(
                                     'Printable Safe Area',
                                     style: TextStyle(
-                                      color: Colors.red.shade300.withValues(alpha: 0.8),
+                                      color: Colors.red.shade300.withValues(
+                                        alpha: 0.8,
+                                      ),
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -410,11 +471,12 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                         Expanded(
                           flex: 4,
                           child: AdaptiveScrollWrapper(
-                            builder: (context, controller) => SingleChildScrollView(
-                              controller: controller,
-                              padding: const EdgeInsets.all(32),
-                              child: formPane,
-                            ),
+                            builder: (context, controller) =>
+                                SingleChildScrollView(
+                                  controller: controller,
+                                  padding: const EdgeInsets.all(32),
+                                  child: formPane,
+                                ),
                           ),
                         ),
                         const VerticalDivider(width: 1, thickness: 1),
@@ -426,10 +488,13 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                     ),
                   ),
                 ),
-                
+
                 // Footer
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     border: Border(
@@ -441,16 +506,19 @@ class _StickerSetupViewState extends State<_StickerSetupView> {
                     children: [
                       OutlinedButton(
                         onPressed: () async {
-                          if (await _confirmBack()) {
+                          if (await _confirmBack() && context.mounted) {
                             SheetConfigRoute(
-                              templateId: context.read<StickerSetupCubit>().templateId,
+                              templateId: context
+                                  .read<StickerSetupCubit>()
+                                  .templateId,
                             ).go(context);
                           }
                         },
                         child: const Text('Back'),
                       ),
                       ElevatedButton(
-                        onPressed: () => context.read<StickerSetupCubit>().saveAndContinue(),
+                        onPressed: () =>
+                            context.read<StickerSetupCubit>().saveAndContinue(),
                         child: const Text('Next: Label Designer'),
                       ),
                     ],

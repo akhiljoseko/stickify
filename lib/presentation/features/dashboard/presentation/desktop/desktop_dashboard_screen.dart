@@ -32,7 +32,7 @@ class DesktopDashboardScreen extends StatelessWidget {
             );
             // Refresh data
             context.read<RecentPrintJobsCubit>().loadRecentJobs();
-            context.read<FrequentVariantsCubit>().loadFrequentVariants();
+            context.read<FrequentProductsCubit>().loadFrequentVariants();
           } else if (state is SyncFailure) {
             context.read<NotificationService>().showError(
               'Sync failed: ${state.error}',
@@ -235,8 +235,7 @@ class _RecentPrintsSection extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               TextButton(
-                onPressed: () =>
-                    const PrintHistoryRoute().push<void>(context),
+                onPressed: () => const PrintHistoryRoute().push<void>(context),
                 child: Text(
                   'View History',
                   style: textTheme.labelMedium?.copyWith(
@@ -270,7 +269,9 @@ class _RecentPrintsSection extends StatelessWidget {
                   ),
                   RecentPrintJobsError(:final message) => _SectionErrorView(
                     message: message,
-                    onRetry: context.read<RecentPrintJobsCubit>().loadRecentJobs,
+                    onRetry: context
+                        .read<RecentPrintJobsCubit>()
+                        .loadRecentJobs,
                   ),
                 },
               ),
@@ -341,15 +342,19 @@ class _RecentPrintsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: jobs.map((job) => RecentPrintRow(
-        job: job,
-        onRepeatPrint: () => PrintSetupRoute(
-          productId: job.productId,
-          variantSku: job.variantSku,
-          templateId: job.templateId,
-          quantity: job.labelCount,
-        ).push<void>(context),
-      )).toList(),
+      children: jobs
+          .map(
+            (job) => RecentPrintRow(
+              job: job,
+              onRepeatPrint: () => PrintSetupRoute(
+                productId: job.productId,
+                variantSku: job.variantSku,
+                templateId: job.templateId,
+                quantity: job.labelCount,
+              ).push<void>(context),
+            ),
+          )
+          .toList(),
     );
   }
 }
@@ -392,18 +397,22 @@ class _FrequentProductsSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _TableColumnHeaders(colorScheme: colorScheme, textTheme: textTheme),
-              BlocBuilder<FrequentVariantsCubit, FrequentVariantsState>(
+              _TableColumnHeaders(
+                colorScheme: colorScheme,
+                textTheme: textTheme,
+              ),
+              BlocBuilder<FrequentProductsCubit, FrequentVariantsState>(
                 builder: (context, state) => switch (state) {
                   FrequentVariantsInitial() ||
                   FrequentVariantsLoading() => const _SectionLoadingIndicator(),
-                  FrequentVariantsLoaded(:final variants) => _DesktopVariantsTable(
-                    variants: variants,
-                  ),
+                  FrequentVariantsLoaded(:final variants) =>
+                    _DesktopVariantsTable(
+                      variants: variants,
+                    ),
                   FrequentVariantsError(:final message) => _SectionErrorView(
                     message: message,
                     onRetry: context
-                        .read<FrequentVariantsCubit>()
+                        .read<FrequentProductsCubit>()
                         .loadFrequentVariants,
                   ),
                 },
@@ -502,15 +511,19 @@ class _DesktopVariantsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: variants.map((v) => FrequentVariantRow(
-        stats: v,
-        onQuickPrint: () {
-          PrintTemplateSelectRoute(
-            productId: v.productId,
-            variantSku: v.variantSku,
-          ).push<void>(context);
-        },
-      )).toList(),
+      children: variants
+          .map(
+            (v) => FrequentVariantRow(
+              stats: v,
+              onQuickPrint: () {
+                PrintTemplateSelectRoute(
+                  productId: v.productId,
+                  variantSku: v.variantSku,
+                ).push<void>(context);
+              },
+            ),
+          )
+          .toList(),
     );
   }
 }

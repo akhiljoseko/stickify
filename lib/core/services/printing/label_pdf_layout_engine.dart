@@ -29,6 +29,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     required int quantity,
     required Set<int> disabledSlots,
     bool printFromBottom = false,
+    PdfPageFormat? physicalFormat,
   }) async {
     // 1. Pre-cache all network/asset/file images on the main thread
     final imageCache = await _preCacheImages(template);
@@ -51,6 +52,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       printFromBottom: printFromBottom,
       regularFontBytes: regularFontBytes,
       boldFontBytes: boldFontBytes,
+      physicalFormat: physicalFormat,
     );
 
     if (useIsolate) {
@@ -150,6 +152,14 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       marginAll: 0,
     );
 
+    final physicalFormat = input.physicalFormat;
+    double shiftX = 0;
+    double shiftY = 0;
+    if (physicalFormat != null && sheetConfig.pageWidth > sheetConfig.pageHeight) {
+      shiftX = physicalFormat.marginLeft / PdfPageFormat.mm;
+      shiftY = physicalFormat.marginTop / PdfPageFormat.mm;
+    }
+
     // Build pages using absolute stacking coordinates
     for (var sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
       final pageSlots = <pw.Widget>[];
@@ -164,10 +174,12 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
             // Calculate physical grid position in mm
             final slotX =
                 sheetConfig.marginLeft +
-                c * (sticker.widthMm + sheetConfig.columnGap);
+                c * (sticker.widthMm + sheetConfig.columnGap) +
+                shiftX;
             final slotY =
                 sheetConfig.marginTop +
-                r * (sticker.heightMm + sheetConfig.rowGap);
+                r * (sticker.heightMm + sheetConfig.rowGap) +
+                shiftY;
 
             final slotWidth = sticker.widthMm;
             final slotHeight = sticker.heightMm;
@@ -379,6 +391,7 @@ class _PdfJobInput {
     required this.printFromBottom,
     required this.regularFontBytes,
     required this.boldFontBytes,
+    this.physicalFormat,
   });
 
   /// The active product.
@@ -410,4 +423,7 @@ class _PdfJobInput {
 
   /// Bold font bytes.
   final Uint8List boldFontBytes;
+
+  /// Physical format returned by GDI / printer driver.
+  final PdfPageFormat? physicalFormat;
 }

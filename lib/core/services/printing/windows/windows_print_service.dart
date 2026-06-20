@@ -145,21 +145,10 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
           ),
         );
       }
-
-      // 3. Generate PDF bytes
-      final pdfBytes = await _layoutEngine.buildPdfBytes(
-        product: product,
-        variant: variant,
-        template: template,
-        quantity: quantity,
-        disabledSlots: disabledSlots,
-        printFromBottom: printFromBottom,
-      );
-
-      // 4. Apply Windows DEVMODE registry override
+      // 3. Apply Windows DEVMODE registry override
       backupToken = await _devModeManager.applySettings(printer, sheetConfig);
 
-      // 5. Retrieve target printer model
+      // 4. Retrieve target printer model
       final printers = await Printing.listPrinters();
       final Printer resolvedPrinter;
       try {
@@ -174,10 +163,20 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
         );
       }
 
-      // 6. Direct print without system dialog using overridden printer settings
+      // 5. Direct print without system dialog using overridden printer settings
       final success = await Printing.directPrintPdf(
         printer: resolvedPrinter,
-        onLayout: (format) async => pdfBytes,
+        onLayout: (format) async {
+          return await _layoutEngine.buildPdfBytes(
+            product: product,
+            variant: variant,
+            template: template,
+            quantity: quantity,
+            disabledSlots: disabledSlots,
+            printFromBottom: printFromBottom,
+            physicalFormat: format,
+          );
+        },
         format: PdfPageFormat(
           sheetConfig.pageWidth * PdfPageFormat.mm,
           sheetConfig.pageHeight * PdfPageFormat.mm,

@@ -156,7 +156,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     double shiftX = 0;
     double shiftY = 0;
     if (physicalFormat != null && sheetConfig.pageWidth > sheetConfig.pageHeight) {
-      shiftX = physicalFormat.marginLeft / PdfPageFormat.mm;
+      // Horizontal coordinate is already correctly aligned on landscape custom sheets,
+      // so shiftX remains 0.
       shiftY = physicalFormat.marginTop / PdfPageFormat.mm;
     }
 

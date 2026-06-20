@@ -153,10 +153,9 @@ if ($Action -eq "set") {
     $w = [Int16][Math]::Round($WidthMm * 10)
     $h = [Int16][Math]::Round($HeightMm * 10)
 
+    # Always Portrait (1) for custom paper sizes since layout coordinates/rotation are already
+    # fully composed in the generated PDF bytes. This prevents driver-level double-rotation.
     $orient = [Int16]1
-    if ($w -gt $h) {
-        $orient = [Int16]2
-    }
 
     Set-Int16 $modifiedBytes 76 $orient
     Set-Int16 $modifiedBytes 78 $paperSizeId

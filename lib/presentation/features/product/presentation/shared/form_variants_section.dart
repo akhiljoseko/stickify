@@ -13,7 +13,10 @@ class FormVariantsSection extends StatelessWidget {
     required this.variants,
     required this.onAddVariant,
     required this.onRemoveVariant,
+    required this.onEditVariant,
     required this.isMobile,
+    this.editingIndex,
+    this.onCancelEdit,
     super.key,
   });
 
@@ -26,7 +29,10 @@ class FormVariantsSection extends StatelessWidget {
   final List<ProductVariant> variants;
   final VoidCallback onAddVariant;
   final ValueChanged<int> onRemoveVariant;
+  final ValueChanged<int> onEditVariant;
   final bool isMobile;
+  final int? editingIndex;
+  final VoidCallback? onCancelEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -111,10 +117,24 @@ class FormVariantsSection extends StatelessWidget {
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: onAddVariant,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Variant'),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: onAddVariant,
+                        icon: Icon(editingIndex != null ? Icons.check : Icons.add),
+                        label: Text(editingIndex != null ? 'Update Variant' : 'Add Variant'),
+                      ),
+                    ),
+                    if (editingIndex != null && onCancelEdit != null) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: onCancelEdit,
+                        icon: const Icon(Icons.cancel_outlined),
+                        tooltip: 'Cancel Edit',
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ] else ...[
@@ -185,10 +205,19 @@ class FormVariantsSection extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: onAddVariant,
-                    icon: const Icon(Icons.add_circle_outline),
-                    tooltip: 'Add Variant',
+                    icon: Icon(editingIndex != null ? Icons.check_circle_outlined : Icons.add_circle_outline),
+                    tooltip: editingIndex != null ? 'Update Variant' : 'Add Variant',
                     visualDensity: VisualDensity.compact,
                   ),
+                  if (editingIndex != null && onCancelEdit != null) ...[
+                    const SizedBox(width: 4),
+                    IconButton(
+                      onPressed: onCancelEdit,
+                      icon: const Icon(Icons.cancel_outlined),
+                      tooltip: 'Cancel Edit',
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -207,9 +236,20 @@ class FormVariantsSection extends StatelessWidget {
                       'Wholesale: ${formatCurrency(v.wholesale)} | '
                       'MRP: ${formatCurrency(v.mrp)}',
                     ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: () => onRemoveVariant(i),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, size: 20),
+                          onPressed: () => onEditVariant(i),
+                          tooltip: 'Edit Variant',
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 20),
+                          onPressed: () => onRemoveVariant(i),
+                          tooltip: 'Delete Variant',
+                        ),
+                      ],
                     ),
                   );
                 },

@@ -560,145 +560,192 @@ class SheetsPreview extends StatelessWidget {
                                   paddingRight,
                                   paddingBottom,
                                 ),
-                                child: GridView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: sheetConfig.columns,
-                                        crossAxisSpacing:
-                                            (sheetConfig.columnGap /
-                                                sheetConfig.pageWidth) *
-                                            constraints.maxWidth,
-                                        mainAxisSpacing:
-                                            (sheetConfig.rowGap /
-                                                sheetConfig.pageHeight) *
-                                            constraints.maxHeight,
-                                        childAspectRatio:
-                                            sticker.widthMm / sticker.heightMm,
-                                      ),
-                                  itemCount: slotsPerSheet,
-                                  itemBuilder: (context, slotGridIndex) {
-                                    final absIndex =
-                                        sheetIndex * slotsPerSheet +
-                                        slotGridIndex;
-                                    final isDisabled = loadedState.disabledSlots
-                                        .contains(absIndex);
-                                    final isActive = activePositions.contains(
-                                      absIndex,
-                                    );
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    SizedBox(
+                                      width: 24,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: List.generate(sheetConfig.rows, (rowIndex) {
+                                          final rowSlots = List.generate(
+                                            sheetConfig.columns,
+                                            (c) => sheetIndex * slotsPerSheet + rowIndex * sheetConfig.columns + c,
+                                          );
+                                          final allEnabled = rowSlots.every(
+                                            (slot) => !loadedState.disabledSlots.contains(slot),
+                                          );
+                                          final allDisabled = rowSlots.every(
+                                            (slot) => loadedState.disabledSlots.contains(slot),
+                                          );
+                                          final bool? checkboxValue = allEnabled
+                                              ? true
+                                              : (allDisabled ? false : null);
 
-                                    if (isDisabled) {
-                                      return InkWell(
-                                        onTap: () => context
-                                            .read<PrintWorkflowCubit>()
-                                            .toggleSlot(absIndex),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color:
-                                                colorScheme.surfaceContainerLow,
-                                            border: Border.all(
-                                              color: colorScheme.outlineVariant,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                          ),
-                                          child: const Center(
-                                            child: Icon(
-                                              Icons.close,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }
-
-                                    if (isActive) {
-                                      return InkWell(
-                                        onTap: () => context
-                                            .read<PrintWorkflowCubit>()
-                                            .toggleSlot(absIndex),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: colorScheme.primary,
-                                              width: 1.5,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                          ),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              3,
-                                            ),
-                                            child: FittedBox(
-                                              child: SizedBox(
-                                                width: sticker.widthMm * 4,
-                                                height: sticker.heightMm * 4,
-                                                child: Stack(
-                                                  children: template.elements.map((
-                                                    bp,
-                                                  ) {
-                                                    final width =
-                                                        bp.width * 4.0;
-                                                    final height =
-                                                        bp.height * 4.0;
-                                                    final left = bp.x * 4.0;
-                                                    final top = bp.y * 4.0;
-                                                    final renderedChild =
-                                                        ElementRendererRegistry.forBlueprint(
-                                                          bp,
-                                                        ).render(
-                                                          context,
-                                                          bp,
-                                                          product: product,
-                                                          variant: variant,
-                                                        );
-
-                                                    return Positioned(
-                                                      left: left,
-                                                      top: top,
-                                                      width: width,
-                                                      height: height,
-                                                      child: Transform.rotate(
-                                                        angle:
-                                                            bp.rotation *
-                                                            (pi / 180),
-                                                        child: SizedBox(
-                                                          width: width,
-                                                          height: height,
-                                                          child: renderedChild,
-                                                        ),
-                                                      ),
-                                                    );
-                                                  }).toList(),
-                                                ),
+                                          return Expanded(
+                                            child: Center(
+                                              child: Checkbox(
+                                                tristate: true,
+                                                value: checkboxValue,
+                                                activeColor: colorScheme.primary,
+                                                onChanged: (val) {
+                                                  final select = val == true;
+                                                  context.read<PrintWorkflowCubit>().toggleRowSlots(
+                                                    sheetIndex,
+                                                    rowIndex,
+                                                    select: select,
+                                                  );
+                                                },
                                               ),
                                             ),
-                                          ),
-                                        ),
-                                      );
-                                    }
-
-                                    // Unused/Empty slot at the end
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: colorScheme.outlineVariant,
-                                        ),
-                                        borderRadius: BorderRadius.circular(4),
+                                          );
+                                        }),
                                       ),
-                                      child: const Center(
-                                        child: Icon(
-                                          Icons.radio_button_unchecked,
-                                          color: Colors.grey,
-                                          size: 16,
-                                        ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: GridView.builder(
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        gridDelegate:
+                                            SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: sheetConfig.columns,
+                                              crossAxisSpacing:
+                                                  (sheetConfig.columnGap /
+                                                      sheetConfig.pageWidth) *
+                                                  constraints.maxWidth,
+                                              mainAxisSpacing:
+                                                  (sheetConfig.rowGap /
+                                                      sheetConfig.pageHeight) *
+                                                  constraints.maxHeight,
+                                              childAspectRatio:
+                                                  sticker.widthMm / sticker.heightMm,
+                                            ),
+                                        itemCount: slotsPerSheet,
+                                        itemBuilder: (context, slotGridIndex) {
+                                          final absIndex =
+                                              sheetIndex * slotsPerSheet +
+                                              slotGridIndex;
+                                          final isDisabled = loadedState.disabledSlots
+                                              .contains(absIndex);
+                                          final isActive = activePositions.contains(
+                                            absIndex,
+                                          );
+      
+                                          if (isDisabled) {
+                                            return InkWell(
+                                              onTap: () => context
+                                                  .read<PrintWorkflowCubit>()
+                                                  .toggleSlot(absIndex),
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      colorScheme.surfaceContainerLow,
+                                                  border: Border.all(
+                                                    color: colorScheme.outlineVariant,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(
+                                                    4,
+                                                  ),
+                                                ),
+                                                child: const Center(
+                                                  child: Icon(
+                                                    Icons.close,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }
+      
+                                          if (isActive) {
+                                            return InkWell(
+                                              onTap: () => context
+                                                  .read<PrintWorkflowCubit>()
+                                                  .toggleSlot(absIndex),
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: colorScheme.primary,
+                                                    width: 1.5,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(
+                                                    4,
+                                                  ),
+                                                ),
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(
+                                                    3,
+                                                  ),
+                                                  child: FittedBox(
+                                                    child: SizedBox(
+                                                      width: sticker.widthMm * 4,
+                                                      height: sticker.heightMm * 4,
+                                                      child: Stack(
+                                                        children: template.elements.map((
+                                                          bp,
+                                                        ) {
+                                                          final width =
+                                                              bp.width * 4.0;
+                                                          final height =
+                                                              bp.height * 4.0;
+                                                          final left = bp.x * 4.0;
+                                                          final top = bp.y * 4.0;
+                                                          final renderedChild =
+                                                              ElementRendererRegistry.forBlueprint(
+                                                                bp,
+                                                              ).render(
+                                                                context,
+                                                                bp,
+                                                                product: product,
+                                                                variant: variant,
+                                                              );
+      
+                                                          return Positioned(
+                                                            left: left,
+                                                            top: top,
+                                                            width: width,
+                                                            height: height,
+                                                            child: Transform.rotate(
+                                                              angle:
+                                                                  bp.rotation *
+                                                                  (pi / 180),
+                                                              child: SizedBox(
+                                                                width: width,
+                                                                height: height,
+                                                                child: renderedChild,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }
+      
+                                          // Unused/Empty slot at the end
+                                          return Container(
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: colorScheme.outlineVariant,
+                                              ),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: const Center(
+                                              child: Icon(
+                                                Icons.radio_button_unchecked,
+                                                color: Colors.grey,
+                                                size: 16,
+                                              ),
+                                            ),
+                                          );
+                                        },
                                       ),
-                                    );
-                                  },
+                                    ),
+                                  ],
                                 ),
                               );
                             },

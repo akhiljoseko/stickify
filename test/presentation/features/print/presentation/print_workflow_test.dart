@@ -303,6 +303,33 @@ void main() {
       verify(() => localDatabase.save<bool>('settings', 'print_from_bottom', true)).called(1);
     });
 
+    test('toggleRowSlots selects and deselects entire row correctly', () async {
+      final cubit = PrintWorkflowCubit(
+        productRepository: productRepository,
+        templateRepository: templateRepository,
+        printJobRepository: printJobRepository,
+        variantPrintStatsRepository: variantPrintStatsRepository,
+        printService: printService,
+        printerDiscoveryService: printerDiscoveryService,
+        printJobIdGenerator: printJobIdGenerator,
+        localDatabase: localDatabase,
+      );
+
+      await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
+
+      // Originally, disabledSlots is empty
+      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, isEmpty);
+
+      // Deselect row 1 of sheet 0 (columns = 2, so slots 2 and 3 are row 1)
+      cubit.toggleRowSlots(0, 1, select: false);
+      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, containsAll([2, 3]));
+      expect((cubit.state as PrintWorkflowLoaded).disabledSlots.length, 2);
+
+      // Select row 1 back
+      cubit.toggleRowSlots(0, 1, select: true);
+      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, isEmpty);
+    });
+
     test('starting print job successfully dispatches and saves print job', () async {
       final cubit = PrintWorkflowCubit(
         productRepository: productRepository,
@@ -454,6 +481,24 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Select Label Template'), findsNothing);
+    });
+
+    testWidgets('toggling row checkbox toggles all slots in that row', (tester) async {
+      await tester.pumpApp(buildTestableWidget(quantity: 20), size: const Size(1200, 1000));
+      await tester.pumpAndSettle();
+
+      // Verify checkboxes are rendered.
+      // With 20 labels and 10 labels/sheet, there are 2 sheets.
+      // Each sheet has 5 rows. So 10 checkboxes total.
+      final checkboxes = find.byType(Checkbox);
+      expect(checkboxes, findsNWidgets(10));
+
+      // Tap on the first checkbox (row 0 of sheet 0, contains slots 0 and 1).
+      await tester.tap(checkboxes.first);
+      await tester.pumpAndSettle();
+
+      // Disabling 2 slots on sheet 0 pushes the remaining printed labels to a 3rd sheet.
+      expect(find.text('3'), findsOneWidget);
     });
   });
 }

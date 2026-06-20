@@ -36,6 +36,7 @@ class BarcodeElementRenderer implements LabelElementRenderer {
     final barcodeWidget = BarcodeWidget(
       barcode: barcodeSymbology,
       data: data,
+      drawText: false,
       errorBuilder: (context, error) => const Center(
         child: Text(
           'Invalid Barcode',

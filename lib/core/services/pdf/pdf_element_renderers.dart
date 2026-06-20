@@ -106,6 +106,7 @@ class PdfBarcodeElementRenderer implements PdfElementRenderer<BarcodeElementBlue
       data: data,
       width: widthMm * PdfPageFormat.mm,
       height: heightMm * PdfPageFormat.mm,
+      drawText: false,
     );
 
     if (!blueprint.showLabel) {

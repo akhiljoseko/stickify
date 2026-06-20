@@ -32,6 +32,7 @@ We maintain specialized manuals for each subsystem in the [`docs/`](docs/) direc
 - 🏛️ **[Presentation Architecture Pattern](file:///g:/GitHub/stickify/docs/presentation_architecture.md)**: Details of the `Page`/`View` model, widget scoping scopes, state lifecycle requirements, and boilerplate templates for new feature development.
 - ✏️ **[Sticker Label Designer & Editor](file:///g:/GitHub/stickify/docs/label_editor.md)**: Bounding box manipulations, pixel-to-millimeter scaling, registry-based element rendering, and the Regex token-binding engine (`{{product.name}}`, etc.).
 - 🖨️ **[Spooler & Spooler Alignment System](file:///g:/GitHub/stickify/docs/printing_system.md)**: Direct-to-hardware dispatch, background isolate PDF compiling, custom printable polygon clipping, and Windows registry `DEVMODE` corrections to fix alignment shifts.
+- 🪵 **[Logging & Diagnostics Guide](file:///g:/GitHub/stickify/docs/logging.md)**: SOLID logging architecture, console & daily-rolling file targets (max 5 files at 5MB), uncaught crash interceptions, and production application support data paths.
 - 🧩 **[Application Modules Reference](file:///g:/GitHub/stickify/docs/modules_guide.md)**: Comprehensive mapping of Dashboard, Product Management, Template lists, and local offline-first SQLite/Hive persistence infrastructure.
 
 ---

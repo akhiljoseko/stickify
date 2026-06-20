@@ -48,6 +48,7 @@ class PdfElementRendererRegistry {
     register<BarcodeElementBlueprint>(const PdfBarcodeElementRenderer());
     register<QrElementBlueprint>(const PdfQrElementRenderer());
     register<ImageElementBlueprint>(const PdfImageElementRenderer());
+    register<NutritionTableElementBlueprint>(const PdfNutritionTableElementRenderer());
   }
 
   /// Returns the concrete [PdfElementRenderer] strategy corresponding to the type of [blueprint].

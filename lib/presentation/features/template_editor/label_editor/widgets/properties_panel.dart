@@ -238,6 +238,13 @@ class PropertiesPanel extends StatelessWidget {
           ..._buildImageProperties(context, bp, textTheme, colorScheme),
         if (bp is ShapeElementBlueprint)
           ..._buildShapeProperties(context, bp, textTheme, colorScheme),
+        if (bp is NutritionTableElementBlueprint)
+          NutritionTablePropertiesWidget(
+            blueprint: bp,
+            cubit: cubit,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          ),
 
         const SizedBox(height: 24),
         const Divider(),
@@ -1006,6 +1013,70 @@ class _QrPropertiesWidgetState extends State<QrPropertiesWidget> {
           },
         ),
       ],
+    );
+  }
+}
+
+class NutritionTablePropertiesWidget extends StatelessWidget {
+  const NutritionTablePropertiesWidget({
+    required this.blueprint,
+    required this.cubit,
+    required this.textTheme,
+    required this.colorScheme,
+    super.key,
+  });
+
+  final NutritionTableElementBlueprint blueprint;
+  final EditorCubit cubit;
+  final TextTheme textTheme;
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Nutrition Table Styling', style: textTheme.titleSmall),
+        const SizedBox(height: 16),
+
+        // Color Swatches
+        Text('Color Swatch', style: textTheme.bodySmall),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _buildColorSwatch(0xFF000000, Colors.black),
+            _buildColorSwatch(0xFFFF0000, Colors.red),
+            _buildColorSwatch(0xFF2196F3, Colors.blue),
+            _buildColorSwatch(0xFF4CAF50, Colors.green),
+            _buildColorSwatch(0xFFFF9800, Colors.orange),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildColorSwatch(int hex, Color color) {
+    final isSelected = blueprint.colorHex == hex;
+    return GestureDetector(
+      onTap: () {
+        cubit.updateElementProperty(
+          blueprint.id,
+          blueprint.copyWith(colorHex: hex),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: isSelected ? Border.all(color: Colors.white, width: 2) : null,
+          boxShadow: isSelected
+              ? [const BoxShadow(color: Colors.black26, blurRadius: 4)]
+              : null,
+        ),
+      ),
     );
   }
 }

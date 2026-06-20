@@ -207,3 +207,100 @@ class PdfImageElementRenderer implements PdfElementRenderer<ImageElementBlueprin
     );
   }
 }
+
+/// Concrete Strategy for rendering [NutritionTableElementBlueprint] into PDF nutrition tables.
+class PdfNutritionTableElementRenderer implements PdfElementRenderer<NutritionTableElementBlueprint> {
+  /// Creates a [PdfNutritionTableElementRenderer] instance.
+  const PdfNutritionTableElementRenderer();
+
+  @override
+  pw.Widget render(
+    NutritionTableElementBlueprint blueprint,
+    Product? product,
+    ProductVariant? variant,
+    Map<String, Uint8List> imageCache,
+  ) {
+    final textColor = PdfColor.fromInt(blueprint.colorHex);
+
+    // Resolve nutrition facts from product or use default mock values
+    final nutrition = product?.nutritionFacts;
+    final calories = nutrition?.calories ?? 250.0;
+    final protein = nutrition?.protein ?? 10.0;
+    final totalFat = nutrition?.totalFat ?? 8.0;
+    final saturatedFat = nutrition?.saturatedFat ?? 2.5;
+    final totalCarbs = nutrition?.totalCarbs ?? 30.0;
+    final fiber = nutrition?.fiber ?? 3.0;
+
+    return pw.FittedBox(
+      fit: pw.BoxFit.fill,
+      child: pw.Container(
+        width: 240,
+        height: 320,
+        decoration: pw.BoxDecoration(
+          color: PdfColors.white,
+          border: pw.Border.all(color: textColor, width: 4),
+        ),
+        padding: const pw.EdgeInsets.all(12),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            pw.Text(
+              'Nutrition Facts',
+              style: pw.TextStyle(
+                fontSize: 24,
+                fontWeight: pw.FontWeight.bold,
+                color: textColor,
+              ),
+              textAlign: pw.TextAlign.center,
+            ),
+            pw.Divider(color: textColor, thickness: 4, height: 16),
+            _buildRow('Energy/Calories', '${calories.toStringAsFixed(0)} kcal', textColor, isBold: true),
+            pw.Divider(color: textColor, thickness: 2, height: 10),
+            _buildRow('Total Fat', '${totalFat.toStringAsFixed(1)} g', textColor),
+            pw.Divider(color: textColor, thickness: 1, height: 10),
+            _buildRow('  Saturated Fat', '${saturatedFat.toStringAsFixed(1)} g', textColor, isSub: true),
+            pw.Divider(color: textColor, thickness: 2, height: 10),
+            _buildRow('Total Carbohydrate', '${totalCarbs.toStringAsFixed(1)} g', textColor),
+            pw.Divider(color: textColor, thickness: 1, height: 10),
+            _buildRow('  Dietary Fiber', '${fiber.toStringAsFixed(1)} g', textColor, isSub: true),
+            pw.Divider(color: textColor, thickness: 2, height: 10),
+            _buildRow('Protein', '${protein.toStringAsFixed(1)} g', textColor, isBold: true),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildRow(
+    String label,
+    String value,
+    PdfColor color, {
+    bool isBold = false,
+    bool isSub = false,
+  }) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 2),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(
+              fontSize: isSub ? 15 : 16,
+              fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+              color: color,
+            ),
+          ),
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

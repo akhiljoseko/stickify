@@ -208,13 +208,28 @@ void main() {
         final pdfNoShiftString = String.fromCharCodes(pdfBytesNoShift);
         final pdfWithShiftString = String.fromCharCodes(pdfBytesWithShift);
 
-        // In no shift: element x is at 10mm (28.34 pt)
-        // In shifted: element x is at 10mm + 15mm = 25mm (70.86 pt)
-        // Let's verify both generated PDF contents differ, indicating positioning changes.
         expect(pdfBytesNoShift, isNotNull);
         expect(pdfBytesWithShift, isNotNull);
         expect(pdfNoShiftString != pdfWithShiftString, isTrue, 
             reason: 'Generated PDF with shift must differ from no-shift PDF');
+
+        // Extract translation matrices from the generated shifted PDF stream.
+        final cmRegex = RegExp(r'1\s+0\s+0\s+1\s+([0-9.-]+)\s+([0-9.-]+)\s+cm');
+        final matches = cmRegex.allMatches(pdfWithShiftString).toList();
+
+        // Verify that the sticker slot translation (which corresponds to slot position on the sheet)
+        // was shifted vertically by -10mm (-28.346 pt) but remains unshifted horizontally (tx = 0).
+        final hasVerticalShiftOnly = matches.any((m) {
+          final tx = double.parse(m.group(1)!);
+          final ty = double.parse(m.group(2)!);
+          return tx == 0.0 && (ty - -28.34646).abs() < 0.01;
+        });
+
+        expect(
+          hasVerticalShiftOnly,
+          isTrue,
+          reason: 'Sticker slot must be shifted vertically by -10mm (-28.346 pt) and not horizontally',
+        );
       },
     );
   });

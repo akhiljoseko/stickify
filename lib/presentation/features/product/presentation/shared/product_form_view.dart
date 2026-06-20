@@ -59,6 +59,7 @@ class ProductFormViewState extends State<ProductFormView> {
 
   final List<Ingredient> _ingredients = [];
   final List<ProductVariant> _variants = [];
+  int? _editingVariantIndex;
 
   final TextEditingController _ingNameController = TextEditingController();
   final TextEditingController _ingPercentController = TextEditingController();
@@ -219,23 +220,55 @@ class ProductFormViewState extends State<ProductFormView> {
 
     if (name.isNotEmpty && sku.isNotEmpty) {
       setState(() {
-        _variants.add(
-          ProductVariant(
-            name: name,
-            quantity: qty,
-            unit: unit,
-            wholesale: wholesale,
-            mrp: mrp,
-            sku: sku,
-          ),
+        final variant = ProductVariant(
+          name: name,
+          quantity: qty,
+          unit: unit,
+          wholesale: wholesale,
+          mrp: mrp,
+          sku: sku,
         );
+
+        if (_editingVariantIndex != null) {
+          _variants[_editingVariantIndex!] = variant;
+          _editingVariantIndex = null;
+        } else {
+          _variants.add(variant);
+        }
+
         _varNameController.clear();
         _varSkuController.text = _skuController.text;
         _varQtyController.clear();
         _varWholesaleController.clear();
         _varMrpController.clear();
+        _varUnitController.text = 'pcs';
       });
     }
+  }
+
+  void _editVariant(int index) {
+    final v = _variants[index];
+    setState(() {
+      _editingVariantIndex = index;
+      _varNameController.text = v.name;
+      _varSkuController.text = v.sku;
+      _varQtyController.text = v.quantity.toString();
+      _varUnitController.text = v.unit;
+      _varWholesaleController.text = v.wholesale.toString();
+      _varMrpController.text = v.mrp.toString();
+    });
+  }
+
+  void _cancelEditVariant() {
+    setState(() {
+      _editingVariantIndex = null;
+      _varNameController.clear();
+      _varSkuController.text = _skuController.text;
+      _varQtyController.clear();
+      _varWholesaleController.clear();
+      _varMrpController.clear();
+      _varUnitController.text = 'pcs';
+    });
   }
 
   void _clearImage() {
@@ -298,8 +331,26 @@ class ProductFormViewState extends State<ProductFormView> {
       varMrpController: _varMrpController,
       variants: _variants,
       onAddVariant: _addVariant,
-      onRemoveVariant: (i) => setState(() => _variants.removeAt(i)),
+      onRemoveVariant: (i) {
+        setState(() {
+          _variants.removeAt(i);
+          if (_editingVariantIndex == i) {
+            _editingVariantIndex = null;
+            _varNameController.clear();
+            _varSkuController.text = _skuController.text;
+            _varQtyController.clear();
+            _varWholesaleController.clear();
+            _varMrpController.clear();
+            _varUnitController.text = 'pcs';
+          } else if (_editingVariantIndex != null && _editingVariantIndex! > i) {
+            _editingVariantIndex = _editingVariantIndex! - 1;
+          }
+        });
+      },
+      onEditVariant: _editVariant,
       isMobile: isMobile,
+      editingIndex: _editingVariantIndex,
+      onCancelEdit: _cancelEditVariant,
     );
 
     final formFields = Form(

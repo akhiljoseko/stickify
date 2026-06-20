@@ -108,7 +108,6 @@ class ElementPalette extends StatelessWidget {
           width: 30,
           height: 40,
           rotation: 0,
-          colorHex: 0xFF000000,
         ),
       ),
       _PaletteItemData(

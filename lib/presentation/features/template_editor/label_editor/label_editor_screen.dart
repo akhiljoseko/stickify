@@ -56,10 +56,18 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Discard changes?'),
-        content: const Text('You have unsaved changes in the label design. Do you want to discard them?'),
+        content: const Text(
+          'You have unsaved changes in the label design. Do you want to discard them?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Discard')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Discard'),
+          ),
         ],
       ),
     );
@@ -143,7 +151,8 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
           } else {
             _initialLoadDone = true;
           }
-          final sampleVariant = _sampleProduct?.variants.firstOrNull ??
+          final sampleVariant =
+              _sampleProduct?.variants.firstOrNull ??
               (_sampleProduct != null
                   ? const ProductVariant(
                       name: 'Sample 12oz Bottle',
@@ -167,7 +176,7 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
           final propertiesPanelWidget = PropertiesPanel(
             selectedElement: state.selectedElement,
             onBack: () async {
-              if (await _confirmBack()) {
+              if (await _confirmBack() && context.mounted) {
                 StickerSetupRoute(templateId: cubit.templateId).go(context);
               }
             },
@@ -186,7 +195,8 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
             final availW = viewport.width - 256 - 320 - 48;
             final availH = viewport.height - kToolbarHeight - 60 - 48;
             final stickerW = state.stickerConfig.widthMm * AppDimensions.mmToPx;
-            final stickerH = state.stickerConfig.heightMm * AppDimensions.mmToPx;
+            final stickerH =
+                state.stickerConfig.heightMm * AppDimensions.mmToPx;
             final fitW = availW / stickerW;
             final fitH = availH / stickerH;
             return min(fitW, fitH).clamp(0.5, 2.0).floorToDouble();
@@ -253,13 +263,19 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
                         const Spacer(),
                         TextButton.icon(
                           icon: Icon(
-                            _showHorizontalPalette ? Icons.close : Icons.add_circle_outline,
-                            color: _showHorizontalPalette ? colorScheme.error : colorScheme.primary,
+                            _showHorizontalPalette
+                                ? Icons.close
+                                : Icons.add_circle_outline,
+                            color: _showHorizontalPalette
+                                ? colorScheme.error
+                                : colorScheme.primary,
                           ),
                           label: Text(
                             _showHorizontalPalette ? 'Close' : 'Add',
                             style: TextStyle(
-                              color: _showHorizontalPalette ? colorScheme.error : colorScheme.primary,
+                              color: _showHorizontalPalette
+                                  ? colorScheme.error
+                                  : colorScheme.primary,
                             ),
                           ),
                           onPressed: () {
@@ -274,8 +290,14 @@ class _LabelEditorViewState extends State<_LabelEditorView> {
                         if (state.selectedElementId != null) ...[
                           const SizedBox(width: 16),
                           TextButton.icon(
-                            icon: const Icon(Icons.deselect, color: Colors.grey),
-                            label: const Text('Deselect', style: TextStyle(color: Colors.grey)),
+                            icon: const Icon(
+                              Icons.deselect,
+                              color: Colors.grey,
+                            ),
+                            label: const Text(
+                              'Deselect',
+                              style: TextStyle(color: Colors.grey),
+                            ),
                             onPressed: cubit.deselectAll,
                           ),
                         ],

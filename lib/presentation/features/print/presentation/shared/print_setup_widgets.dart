@@ -576,9 +576,9 @@ class SheetsPreview extends StatelessWidget {
                                             (slot) => !loadedState.disabledSlots.contains(slot),
                                           );
                                           final allDisabled = rowSlots.every(
-                                            (slot) => loadedState.disabledSlots.contains(slot),
+                                            loadedState.disabledSlots.contains,
                                           );
-                                          final bool? checkboxValue = allEnabled
+                                          final checkboxValue = allEnabled
                                               ? true
                                               : (allDisabled ? false : null);
 

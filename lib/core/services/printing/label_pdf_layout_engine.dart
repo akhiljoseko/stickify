@@ -153,7 +153,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     );
 
     final physicalFormat = input.physicalFormat;
-    double shiftX = 0;
+    const double shiftX = 0;
     double shiftY = 0;
     if (physicalFormat != null && sheetConfig.pageWidth > sheetConfig.pageHeight) {
       // Horizontal coordinate is already correctly aligned on landscape custom sheets,

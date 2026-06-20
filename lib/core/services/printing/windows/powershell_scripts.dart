@@ -130,9 +130,8 @@ if ($Action -eq "set") {
             $hMm = [Math]::Round($ps.Height * 0.254, 1)
             
             $matchNormal = [Math]::Abs($wMm - $targetW) -le $tolerance -and [Math]::Abs($hMm - $targetH) -le $tolerance
-            $matchFlipped = [Math]::Abs($wMm - $targetH) -le $tolerance -and [Math]::Abs($hMm - $targetW) -le $tolerance
             
-            if ($matchNormal -or $matchFlipped) {
+            if ($matchNormal) {
                 $paperSizeId = $ps.RawKind
                 break
             }

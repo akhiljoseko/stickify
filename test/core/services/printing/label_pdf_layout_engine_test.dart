@@ -372,18 +372,20 @@ void main() {
         final cmRegex = RegExp(r'1\s+0\s+0\s+1\s+([0-9.-]+)\s+([0-9.-]+)\s+cm');
         final matches = cmRegex.allMatches(pdfString).toList();
 
-        // Verify that the sticker slot translation (which corresponds to slot position on the sheet)
-        // was shifted horizontally by +5mm (14.173 pt) and vertically by +10mm (which corresponds to -28.346 pt translation shift).
+        // Verify that the element translation (representing the slot position + local offset)
+        // was shifted correctly:
+        // tx = (bp.x + offsetX) = (10 + 5) = 15mm = 42.519 pt
+        // ty = pageHeight - bp.height - (bp.y + offsetY) = 200 - 20 - 20 = 160mm = 453.543 pt
         final hasCorrectShifts = matches.any((m) {
           final tx = double.parse(m.group(1)!);
           final ty = double.parse(m.group(2)!);
-          return (tx - 14.1732).abs() < 0.1 && (ty - -28.3464).abs() < 0.1;
+          return (tx - 42.519).abs() < 0.1 && (ty - 453.543).abs() < 0.1;
         });
 
         expect(
           hasCorrectShifts,
           isTrue,
-          reason: 'Sticker slot must be shifted by +5mm horizontally and +10mm vertically',
+          reason: 'Sticker element must be shifted by +5mm horizontally and +10mm vertically inside the slot',
         );
       },
     );

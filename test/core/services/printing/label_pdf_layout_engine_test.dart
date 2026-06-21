@@ -232,5 +232,88 @@ void main() {
         );
       },
     );
+
+    test(
+      'buildPdfBytes compiles portrait page format and applies rotation when spooled format is flipped portrait',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-landscape-flipped',
+          name: 'Landscape Flipped Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 208,
+            pageHeight: 180,
+            marginTop: 0,
+            marginBottom: 0,
+            marginLeft: 0,
+            marginRight: 0,
+            columns: 1,
+            rows: 1,
+            columnGap: 0,
+            rowGap: 0,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 208,
+            heightMm: 180,
+            cornerRadiusMm: 0,
+            printableArea: [],
+          ),
+          elements: [
+            TextElementBlueprint(
+              id: 'text-test',
+              x: 10,
+              y: 10,
+              width: 100,
+              height: 20,
+              rotation: 0,
+              content: 'Flipped Test',
+              isDynamic: false,
+              fontSize: 12,
+              fontWeightValue: 400,
+              textAlign: BlueprintTextAlign.left,
+              colorHex: 0xFF000000,
+            ),
+          ],
+        );
+
+        // Physical spooled format is flipped portrait (180 x 208 mm)
+        final pdfBytes = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 1,
+          disabledSlots: {},
+          physicalFormat: const PdfPageFormat(
+            180 * PdfPageFormat.mm,
+            208 * PdfPageFormat.mm,
+          ),
+        );
+
+        expect(pdfBytes, isNotNull);
+        final pdfString = String.fromCharCodes(pdfBytes);
+
+        // 1. MediaBox must match the Portrait format dimensions: 180 x 208 mm
+        // 180mm = 510.236 pt
+        // 208mm = 589.606 pt
+        final mediaBoxRegex = RegExp(
+          r'/MediaBox\s*\[\s*0\s+0\s+([0-9.]+)\s+([0-9.]+)\s*\]',
+        );
+        final match = mediaBoxRegex.firstMatch(pdfString);
+        expect(match, isNotNull, reason: 'MediaBox must be defined in the PDF');
+        final parsedWidth = double.parse(match!.group(1)!);
+        final parsedHeight = double.parse(match.group(2)!);
+        expect(parsedWidth, closeTo(510.236, 0.1));
+        expect(parsedHeight, closeTo(589.606, 0.1));
+
+        // 2. Verify rotation matrix exists in the generated PDF stream.
+        // Rotation of -pi/2 maps [0, -1, 1, 0, 0, ty] where ty is the physical page height in points
+        final rotateMatrixRegex = RegExp(r'0\s+-1\s+1\s+0\s+-?0\s+([0-9.]+)\s+cm');
+        final matrixMatch = rotateMatrixRegex.firstMatch(pdfString);
+        expect(matrixMatch, isNotNull, reason: 'PDF must contain a -90 degrees rotation matrix');
+        final ty = double.parse(matrixMatch!.group(1)!);
+        expect(ty, closeTo(589.606, 0.1));
+        
+        expect(pdfBytes.length, greaterThan(0));
+      },
+    );
   });
 }

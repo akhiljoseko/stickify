@@ -221,23 +221,12 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       doc.addPage(
         pw.Page(
           pageFormat: targetFormat,
+          orientation: isSpooledAsPortrait ? pw.PageOrientation.landscape : null,
           theme: pageTheme,
           build: (context) {
-            final content = pw.SizedBox(
-              width: sheetConfig.pageWidth * PdfPageFormat.mm,
-              height: sheetConfig.pageHeight * PdfPageFormat.mm,
-              child: pw.Stack(
-                children: pageSlots,
-              ),
+            return pw.Stack(
+              children: pageSlots,
             );
-
-            if (isSpooledAsPortrait) {
-              return pw.Transform.rotate(
-                angle: -pi / 2, // 90 degrees counter-clockwise
-                child: content,
-              );
-            }
-            return content;
           },
         ),
       );

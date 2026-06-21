@@ -373,17 +373,17 @@ void main() {
         final matches = cmRegex.allMatches(pdfString).toList();
 
         // Verify that the sticker slot translation (which corresponds to slot position on the sheet)
-        // was shifted horizontally by +5mm (14.173 pt) and vertically by +10mm (which corresponds to -28.346 pt translation shift).
+        // was shifted horizontally by -5mm (-14.173 pt) and vertically by -10mm (-28.346 pt).
         final hasCorrectShifts = matches.any((m) {
           final tx = double.parse(m.group(1)!);
           final ty = double.parse(m.group(2)!);
-          return (tx - 14.1732).abs() < 0.1 && (ty - -28.3464).abs() < 0.1;
+          return (tx - -14.1732).abs() < 0.1 && (ty - 28.3464).abs() < 0.1;
         });
 
         expect(
           hasCorrectShifts,
           isTrue,
-          reason: 'Sticker slot must be shifted by +5mm horizontally and +10mm vertically',
+          reason: 'Sticker slot must be shifted by -5mm horizontally and -10mm vertically',
         );
       },
     );

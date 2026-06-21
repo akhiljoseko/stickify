@@ -285,8 +285,6 @@ void main() {
           physicalFormat: const PdfPageFormat(
             180 * PdfPageFormat.mm,
             208 * PdfPageFormat.mm,
-            marginLeft: 0,
-            marginTop: 0,
           ),
         );
 
@@ -307,6 +305,86 @@ void main() {
         expect(parsedHeight, closeTo(589.606, 0.1));
         // 2. The PDF compiles successfully and has bytes
         expect(pdfBytes.length, greaterThan(0));
+      },
+    );
+
+    test(
+      'buildPdfBytes applies printer margins shift horizontally and vertically',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-margins-shift',
+          name: 'Margins Shift Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 200,
+            pageHeight: 200,
+            marginTop: 0,
+            marginBottom: 0,
+            marginLeft: 0,
+            marginRight: 0,
+            columns: 1,
+            rows: 1,
+            columnGap: 0,
+            rowGap: 0,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 200,
+            heightMm: 200,
+            cornerRadiusMm: 0,
+            printableArea: [],
+          ),
+          elements: [
+            TextElementBlueprint(
+              id: 'text-test',
+              x: 10,
+              y: 10,
+              width: 100,
+              height: 20,
+              rotation: 0,
+              content: 'Shift Test',
+              isDynamic: false,
+              fontSize: 12,
+              fontWeightValue: 400,
+              textAlign: BlueprintTextAlign.left,
+              colorHex: 0xFF000000,
+            ),
+          ],
+        );
+
+        // 1. With margins: Left = 5mm, Top = 10mm
+        final pdfBytes = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 1,
+          disabledSlots: {},
+          margins: const PrinterMargins(
+            left: 5,
+            top: 10,
+            right: 5,
+            bottom: 5,
+          ),
+        );
+
+        expect(pdfBytes, isNotNull);
+        final pdfString = String.fromCharCodes(pdfBytes);
+
+        // Extract translation matrices from the generated shifted PDF stream.
+        final cmRegex = RegExp(r'1\s+0\s+0\s+1\s+([0-9.-]+)\s+([0-9.-]+)\s+cm');
+        final matches = cmRegex.allMatches(pdfString).toList();
+
+        // Verify that the sticker slot translation (which corresponds to slot position on the sheet)
+        // was shifted horizontally by -5mm (-14.173 pt) and vertically by -10mm (-28.346 pt).
+        final hasCorrectShifts = matches.any((m) {
+          final tx = double.parse(m.group(1)!);
+          final ty = double.parse(m.group(2)!);
+          return (tx - -14.1732).abs() < 0.1 && (ty - 28.3464).abs() < 0.1;
+        });
+
+        expect(
+          hasCorrectShifts,
+          isTrue,
+          reason: 'Sticker slot must be shifted by -5mm horizontally and -10mm vertically',
+        );
       },
     );
   });

@@ -1,8 +1,12 @@
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:stickify/core/core.dart';
+import 'package:stickify/core/services/printing/windows/powershell_scripts.dart';
 import 'package:stickify/core/services/printing/windows/windows_devmode_manager.dart';
 import 'package:stickify/domain/domain.dart';
 
@@ -30,6 +34,50 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
     return list
         .map((p) => PrinterDevice(name: p.name, url: p.url, isDefault: p.isDefault))
         .toList();
+  }
+
+  @override
+  Future<PrinterMargins> getPrinterMargins(PrinterDevice printer, SheetConfig sheet) async {
+    if (!Platform.isWindows) return PrinterMargins.zero;
+
+    try {
+      final tempDir = Directory.systemTemp;
+      final scriptFile = File('${tempDir.path}/get_margins.ps1');
+      await scriptFile.writeAsString(PowershellScripts.getMargins);
+
+      final result = await Process.run('powershell', [
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-File',
+        scriptFile.path,
+        '-PrinterName',
+        printer.name,
+        '-WidthMm',
+        sheet.pageWidth.toString(),
+        '-HeightMm',
+        sheet.pageHeight.toString(),
+      ]);
+
+      if (result.exitCode == 0) {
+        final dynamic decoded = jsonDecode(result.stdout.toString());
+        if (decoded is Map) {
+          final left = (decoded['Left'] as num?)?.toDouble() ?? 0.0;
+          final top = (decoded['Top'] as num?)?.toDouble() ?? 0.0;
+          final right = (decoded['Right'] as num?)?.toDouble() ?? 0.0;
+          final bottom = (decoded['Bottom'] as num?)?.toDouble() ?? 0.0;
+          return PrinterMargins(
+            left: left,
+            top: top,
+            right: right,
+            bottom: bottom,
+          );
+        }
+      }
+    } catch (_) {
+      // Fail-silent, fallback to zero margins
+    }
+    return PrinterMargins.zero;
   }
 
   @override
@@ -145,6 +193,9 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
           ),
         );
       }
+      // Retrieve margins
+      final margins = await getPrinterMargins(printer, sheetConfig);
+
       // 3. Apply Windows DEVMODE registry override
       backupToken = await _devModeManager.applySettings(printer, sheetConfig);
 
@@ -175,6 +226,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
             disabledSlots: disabledSlots,
             printFromBottom: printFromBottom,
             physicalFormat: format,
+            margins: margins,
           );
         },
         format: PdfPageFormat(

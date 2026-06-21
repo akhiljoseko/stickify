@@ -14,5 +14,6 @@ abstract interface class LabelLayoutEngine {
     required Set<int> disabledSlots,
     bool printFromBottom = false,
     PdfPageFormat? physicalFormat,
+    PrinterMargins? margins,
   });
 }

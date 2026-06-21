@@ -295,4 +295,49 @@ if (Test-Path $backupPath) {
     }
 }
 ''';
+
+  /// PowerShell script that queries margins for a specific printer and sheet size.
+  static const String getMargins = r'''
+param (
+    [string]$PrinterName,
+    [double]$WidthMm,
+    [double]$HeightMm
+)
+[System.Reflection.Assembly]::LoadWithPartialName("System.Drawing") | Out-Null
+$settings = New-Object System.Drawing.Printing.PrinterSettings
+$settings.PrinterName = $PrinterName
+
+# Find matching paper size
+$targetW = $WidthMm / 0.254 * 10
+$targetH = $HeightMm / 0.254 * 10
+$tolerance = 1.5 / 0.254 * 10
+$matched = $false
+
+foreach ($ps in $settings.PaperSizes) {
+    if ([Math]::Abs($ps.Width - $targetW) -le $tolerance -and [Math]::Abs($ps.Height - $targetH) -le $tolerance) {
+        $settings.DefaultPageSettings.PaperSize = $ps
+        $matched = $true
+        break
+    }
+}
+
+if (-not $matched) {
+    foreach ($ps in $settings.PaperSizes) {
+        if ([Math]::Abs($ps.Width - $targetH) -le $tolerance -and [Math]::Abs($ps.Height - $targetW) -le $tolerance) {
+            $settings.DefaultPageSettings.PaperSize = $ps
+            $matched = $true
+            break
+        }
+    }
+}
+
+$p = $settings.DefaultPageSettings.PrintableArea
+$sz = $settings.DefaultPageSettings.PaperSize
+[PSCustomObject]@{
+    Left = [Math]::Round($p.X * 0.254, 2)
+    Top = [Math]::Round($p.Y * 0.254, 2)
+    Right = [Math]::Round(($sz.Width - $p.Right) * 0.254, 2)
+    Bottom = [Math]::Round(($sz.Height - $p.Bottom) * 0.254, 2)
+} | ConvertTo-Json
+''';
 }

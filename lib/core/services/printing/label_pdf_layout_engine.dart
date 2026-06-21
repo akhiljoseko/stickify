@@ -146,16 +146,30 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       printFromBottom: input.printFromBottom,
     );
 
-    final targetFormat = PdfPageFormat(
-      sheetConfig.pageWidth * PdfPageFormat.mm,
-      sheetConfig.pageHeight * PdfPageFormat.mm,
-      marginAll: 0,
-    );
-
     final physicalFormat = input.physicalFormat;
+
+    // Detect if spooled format is Portrait while template layout is Landscape (Case B)
+    final bool isSpooledAsPortrait = physicalFormat != null &&
+        sheetConfig.pageWidth > sheetConfig.pageHeight &&
+        physicalFormat.width < physicalFormat.height;
+
+    final targetFormat = isSpooledAsPortrait
+        ? PdfPageFormat(
+            physicalFormat.width,
+            physicalFormat.height,
+            marginAll: 0,
+          )
+        : PdfPageFormat(
+            sheetConfig.pageWidth * PdfPageFormat.mm,
+            sheetConfig.pageHeight * PdfPageFormat.mm,
+            marginAll: 0,
+          );
+
     const double shiftX = 0;
     double shiftY = 0;
-    if (physicalFormat != null && sheetConfig.pageWidth > sheetConfig.pageHeight) {
+    if (physicalFormat != null &&
+        sheetConfig.pageWidth > sheetConfig.pageHeight &&
+        !isSpooledAsPortrait) {
       // Horizontal coordinate is already correctly aligned on landscape custom sheets,
       // so shiftX remains 0.
       shiftY = physicalFormat.marginTop / PdfPageFormat.mm;
@@ -209,6 +223,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       doc.addPage(
         pw.Page(
           pageFormat: targetFormat,
+          orientation: isSpooledAsPortrait ? pw.PageOrientation.landscape : null,
           theme: pageTheme,
           build: (context) {
             return pw.Stack(

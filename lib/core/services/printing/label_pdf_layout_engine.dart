@@ -30,7 +30,6 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     required Set<int> disabledSlots,
     bool printFromBottom = false,
     PdfPageFormat? physicalFormat,
-    PrinterMargins? margins,
   }) async {
     // 1. Pre-cache all network/asset/file images on the main thread
     final imageCache = await _preCacheImages(template);
@@ -54,7 +53,6 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       regularFontBytes: regularFontBytes,
       boldFontBytes: boldFontBytes,
       physicalFormat: physicalFormat,
-      margins: margins,
     );
 
     if (useIsolate) {
@@ -149,10 +147,9 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     );
 
     final physicalFormat = input.physicalFormat;
-    final margins = input.margins ?? PrinterMargins.zero;
 
     // Detect if spooled format is Portrait while template layout is Landscape (Case B)
-    final isSpooledAsPortrait = physicalFormat != null &&
+    final bool isSpooledAsPortrait = physicalFormat != null &&
         sheetConfig.pageWidth > sheetConfig.pageHeight &&
         physicalFormat.width < physicalFormat.height;
 
@@ -168,21 +165,14 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
             marginAll: 0,
           );
 
-    final double shiftX;
-    final double shiftY;
-
-    if (isSpooledAsPortrait) {
-      // Rotated 90 degrees counter-clockwise: horizontal maps to vertical, vertical maps to horizontal
-      shiftX = -margins.top;
-      shiftY = -margins.left;
-    } else {
-      shiftX = -margins.left;
-      // In Case A (landscape template spooled landscape), we also have the physical format marginTop shift correction
-      double marginShiftY = 0;
-      if (physicalFormat != null && sheetConfig.pageWidth > sheetConfig.pageHeight) {
-        marginShiftY = physicalFormat.marginTop / PdfPageFormat.mm;
-      }
-      shiftY = -margins.top + marginShiftY;
+    const double shiftX = 0;
+    double shiftY = 0;
+    if (physicalFormat != null &&
+        sheetConfig.pageWidth > sheetConfig.pageHeight &&
+        !isSpooledAsPortrait) {
+      // Horizontal coordinate is already correctly aligned on landscape custom sheets,
+      // so shiftX remains 0.
+      shiftY = physicalFormat.marginTop / PdfPageFormat.mm;
     }
 
     // Build pages using absolute stacking coordinates
@@ -418,7 +408,6 @@ class _PdfJobInput {
     required this.regularFontBytes,
     required this.boldFontBytes,
     this.physicalFormat,
-    this.margins,
   });
 
   /// The active product.
@@ -453,7 +442,4 @@ class _PdfJobInput {
 
   /// Physical format returned by GDI / printer driver.
   final PdfPageFormat? physicalFormat;
-
-  /// Hardware unprintable margins.
-  final PrinterMargins? margins;
 }

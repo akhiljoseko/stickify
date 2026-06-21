@@ -116,11 +116,6 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 defaultQty = 20;
               }
 
-              var initialMargins = PrinterMargins.zero;
-              if (selected?.sheetConfig != null) {
-                initialMargins = await _getMarginsForPrinter(defaultPrinter, selected!.sheetConfig!);
-              }
-
               final loaded = PrintWorkflowLoaded(
                 product: product,
                 variant: variant,
@@ -131,7 +126,6 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 quantity: defaultQty,
                 printFromBottom: cachedBottom,
                 isQuantityManuallyEdited: initialQuantity != null && initialQuantity > 0,
-                selectedPrinterMargins: initialMargins,
               );
               emit(loaded);
           }
@@ -157,16 +151,6 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         quantity: qty,
         disabledSlots: {}, // reset skipped slots when template changes
       ));
-
-      // Fetch margins asynchronously for the new template size
-      if (s.selectedPrinter != null && template.sheetConfig != null) {
-        _getMarginsForPrinter(s.selectedPrinter!, template.sheetConfig!).then((margins) {
-          final current = state;
-          if (current is PrintWorkflowLoaded && current.selectedTemplate?.id == template.id) {
-            emit(current.copyWith(selectedPrinterMargins: margins));
-          }
-        });
-      }
     }
   }
 
@@ -182,20 +166,10 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   }
 
   /// Updates the selected destination printer.
-  Future<void> updatePrinter(PrinterDevice printer) async {
+  void updatePrinter(PrinterDevice printer) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
       emit(s.copyWith(selectedPrinter: () => printer));
-
-      // Fetch margins asynchronously
-      final template = s.selectedTemplate;
-      if (template?.sheetConfig != null) {
-        final margins = await _getMarginsForPrinter(printer, template!.sheetConfig!);
-        final current = state;
-        if (current is PrintWorkflowLoaded && current.selectedPrinter?.name == printer.name) {
-          emit(current.copyWith(selectedPrinterMargins: margins));
-        }
-      }
     }
   }
 
@@ -347,20 +321,5 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
           }
       }
     }
-  }
-
-  Future<PrinterMargins> _getMarginsForPrinter(PrinterDevice printer, SheetConfig sheet) async {
-    try {
-      final cached = await _localDatabase.get<Map<dynamic, dynamic>>('printer_margins', printer.name);
-      if (cached != null) {
-        return PrinterMargins.fromJson(Map<String, dynamic>.from(cached));
-      }
-    } catch (_) {}
-
-    final margins = await _printerDiscoveryService.getPrinterMargins(printer, sheet);
-    try {
-      await _localDatabase.save<Map<String, dynamic>>('printer_margins', printer.name, margins.toJson());
-    } catch (_) {}
-    return margins;
   }
 }

@@ -65,21 +65,6 @@ void main() {
         url: 'fallback-url',
       ),
     );
-    registerFallbackValue(PrinterMargins.zero);
-    registerFallbackValue(
-      const SheetConfig(
-        pageWidth: 210,
-        pageHeight: 297,
-        marginTop: 10,
-        marginBottom: 10,
-        marginLeft: 10,
-        marginRight: 10,
-        columns: 2,
-        rows: 5,
-        columnGap: 5,
-        rowGap: 5,
-      ),
-    );
   });
 
   late ProductRepository productRepository;
@@ -199,9 +184,7 @@ void main() {
       localDatabase = MockLocalDatabase();
 
       when(() => localDatabase.get<bool>(any(), any())).thenAnswer((_) async => false);
-      when(() => localDatabase.get<Map<dynamic, dynamic>>(any(), any())).thenAnswer((_) async => null);
       when(() => localDatabase.save<bool>(any(), any(), any())).thenAnswer((_) async {});
-      when(() => localDatabase.save<Map<String, dynamic>>(any(), any(), any())).thenAnswer((_) async {});
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(() => productRepository.getProductById('prod-test'))
           .thenAnswer((_) async => const Result.success(testProduct));
@@ -234,8 +217,6 @@ void main() {
             printer: any(named: 'printer'),
             printFromBottom: any(named: 'printFromBottom'),
           )).thenAnswer((_) async => const Result.success(null));
-      when(() => printerDiscoveryService.getPrinterMargins(any(), any()))
-          .thenAnswer((_) async => PrinterMargins.zero);
     });
 
     test('loads workflow successfully and sets initial state', () async {
@@ -280,7 +261,7 @@ void main() {
       cubit.updateQuantity(35);
       expect((cubit.state as PrintWorkflowLoaded).quantity, 35);
 
-      await cubit.updatePrinter(const PrinterDevice(name: 'Industrial Master B3', url: 'industrial-url'));
+      cubit.updatePrinter(const PrinterDevice(name: 'Industrial Master B3', url: 'industrial-url'));
       expect((cubit.state as PrintWorkflowLoaded).selectedPrinter?.name, 'Industrial Master B3');
 
       cubit.toggleSlot(3);
@@ -398,9 +379,7 @@ void main() {
       localDatabase = MockLocalDatabase();
 
       when(() => localDatabase.get<bool>(any(), any())).thenAnswer((_) async => false);
-      when(() => localDatabase.get<Map<dynamic, dynamic>>(any(), any())).thenAnswer((_) async => null);
       when(() => localDatabase.save<bool>(any(), any(), any())).thenAnswer((_) async {});
-      when(() => localDatabase.save<Map<String, dynamic>>(any(), any(), any())).thenAnswer((_) async {});
 
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(() => productRepository.getProductById('prod-test'))
@@ -426,8 +405,6 @@ void main() {
             printer: any(named: 'printer'),
             printFromBottom: any(named: 'printFromBottom'),
           )).thenAnswer((_) async => const Result.success(null));
-      when(() => printerDiscoveryService.getPrinterMargins(any(), any()))
-          .thenAnswer((_) async => PrinterMargins.zero);
     });
 
     Widget buildTestableWidget({int? quantity}) {

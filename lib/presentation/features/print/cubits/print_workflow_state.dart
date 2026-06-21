@@ -36,6 +36,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     this.disabledSlots = const {},
     this.printFromBottom = false,
     this.isQuantityManuallyEdited = false,
+    this.selectedPrinterMargins = PrinterMargins.zero,
   });
 
   /// The active product.
@@ -68,6 +69,9 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
   /// Whether the user has manually edited the quantity field.
   final bool isQuantityManuallyEdited;
 
+  /// The hardware margins of the selected printer.
+  final PrinterMargins selectedPrinterMargins;
+
   /// Returns a copy of the state with modified fields.
   PrintWorkflowLoaded copyWith({
     Product? product,
@@ -80,6 +84,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     Set<int>? disabledSlots,
     bool? printFromBottom,
     bool? isQuantityManuallyEdited,
+    PrinterMargins? selectedPrinterMargins,
   }) {
     return PrintWorkflowLoaded(
       product: product ?? this.product,
@@ -92,6 +97,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
       disabledSlots: disabledSlots ?? this.disabledSlots,
       printFromBottom: printFromBottom ?? this.printFromBottom,
       isQuantityManuallyEdited: isQuantityManuallyEdited ?? this.isQuantityManuallyEdited,
+      selectedPrinterMargins: selectedPrinterMargins ?? this.selectedPrinterMargins,
     );
   }
 
@@ -107,6 +113,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
         disabledSlots,
         printFromBottom,
         isQuantityManuallyEdited,
+        selectedPrinterMargins,
       ];
 }
 

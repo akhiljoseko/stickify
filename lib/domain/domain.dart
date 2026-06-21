@@ -22,6 +22,7 @@ export 'entities/nutrition_facts.dart';
 export 'entities/paginated_result.dart';
 export 'entities/print_job.dart';
 export 'entities/printer_device.dart';
+export 'entities/printer_margins.dart';
 export 'entities/product.dart';
 export 'entities/product_variant.dart';
 export 'entities/search_item.dart';

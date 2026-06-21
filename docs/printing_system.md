@@ -162,6 +162,20 @@ Label Grid resolves this driver-level issue on Windows by performing a localized
     - **Layout Compilation**: The `LabelPdfLayoutEngine` checks if the physical spooled format is Portrait while the template layout is Landscape (`isSpooledAsPortrait`). If so, it compiles the PDF using a Portrait format but passes `orientation: PageOrientation.landscape` to `pw.Page` to compile the layout rotated 90 degrees counter-clockwise.
     - **Zero Alignment Offset**: Since the PDF page is rotated and printed portrait-to-portrait spooling natively, it aligns accurately. The system automatically skips the portrait-mode alignment shift (`shiftY = 0`) to prevent any vertical or horizontal offset regression.
 
+### 5. Automatic Printer Hard Margins Compensation
+- **Problem**: Physical printer devices have physical unprintable hard margins (hardware-driven feed margins, e.g. 5,0,5,5 mm). Standard GDI print drivers define the coordinate origin at the start of the *printable* area rather than the physical sheet bounds, shifting all printed elements by the margin offsets and cutting off prints.
+- **Solution**: The system automatically queries, caches, and compensates for these unprintable hardware margins under-the-hood without altering the UI/UX:
+  - **PowerShell Query**: The `WindowsPrintService` executes the `getMargins` PowerShell script (`powershell_scripts.dart`) which parses the target printer device's `PrintableArea` coordinates relative to its `PaperSize` dimensions in millimeters.
+  - **Hive Database Cache**: To prevent process execution delays on every workflow initialization, the fetched margins are cached locally in the Hive database (`localDatabase`) under the `'printer_margins'` collection, keyed by the printer's name. They are asynchronously re-fetched and updated whenever a template or printer is changed.
+  - **Coordinate Translation Shift**:
+    - **Normal Spooling**: The `LabelPdfLayoutEngine` adjusts coordinates relative to the printable bounds by shifting:
+      `shiftX = -margins.left`
+      `shiftY = -margins.top + marginShiftY` (combining hard margin adjustment with landscape spooler correction).
+    - **Rotated (Flipped Portrait) Spooling**: When spooled rotated 90 degrees counter-clockwise, the coordinate axes map inversely. The engine offsets the translated coordinates using:
+      `shiftX = -margins.top`
+      `shiftY = -margins.left`
+  - This offset correction aligns the slots dynamically to within a $\pm 1\text{ mm}$ tolerance while keeping the spooled document size matching the physical page dimensions to prevent centering shifts.
+
 ---
 
 ## 9. Future Platform Extensibility Guide

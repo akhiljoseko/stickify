@@ -152,6 +152,16 @@ Label Grid resolves this driver-level issue on Windows by performing a localized
   - `shiftX` is kept at `0` to prevent horizontal alignment shifts, maintaining 100% accurate placement.
   - Portrait sheets (width <= height) skip this adjustment, preserving their original stable alignment.
 
+### 4. Custom Landscape Sheets Spooled in Portrait (Flipped Form Size)
+- **Problem**: Some Windows printer drivers do not support registering custom paper sizes in landscape dimensions (e.g., width 208 mm x height 180 mm) and restrict forms to Portrait dimensions only (height > width).
+- **Solution**: 
+  - Users can register a flipped portrait paper size (e.g., width 180 mm x height 208 mm) on their Windows system instead.
+  - The system automatically handles this configuration transparently:
+    - **Paper Verification**: The PowerShell script scans registered paper sizes for a flipped match (where driver width/height corresponds to the template height/width).
+    - **Registry Override**: If a flipped match is found, the `WindowsDevModeManager` swaps the target width and height parameters written to the DEVMODE struct to match the portrait-registered form.
+    - **Layout Compilation**: The `LabelPdfLayoutEngine` checks if the physical spooled format is Portrait while the template layout is Landscape (`isSpooledAsPortrait`). If so, it compiles the PDF using a Portrait format but passes `orientation: PageOrientation.landscape` to `pw.Page` to compile the layout rotated 90 degrees counter-clockwise.
+    - **Zero Alignment Offset**: Since the PDF page is rotated and printed portrait-to-portrait spooling natively, it aligns accurately. The system automatically skips the portrait-mode alignment shift (`shiftY = 0`) to prevent any vertical or horizontal offset regression.
+
 ---
 
 ## 9. Future Platform Extensibility Guide

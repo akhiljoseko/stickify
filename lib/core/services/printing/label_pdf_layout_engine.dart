@@ -168,21 +168,14 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
             marginAll: 0,
           );
 
-    final double shiftX;
-    final double shiftY;
+    const shiftX = 0;
+    double shiftY = 0;
 
-    if (isSpooledAsPortrait) {
-      // Rotated 90 degrees counter-clockwise: horizontal maps to vertical, vertical maps to horizontal
-      shiftX = margins.top;
-      shiftY = margins.left;
-    } else {
-      shiftX = margins.left;
+    if (!isSpooledAsPortrait &&
+        physicalFormat != null &&
+        sheetConfig.pageWidth > sheetConfig.pageHeight) {
       // In Case A (landscape template spooled landscape), we also have the physical format marginTop shift correction
-      double marginShiftY = 0;
-      if (physicalFormat != null && sheetConfig.pageWidth > sheetConfig.pageHeight) {
-        marginShiftY = physicalFormat.marginTop / PdfPageFormat.mm;
-      }
-      shiftY = margins.top + marginShiftY;
+      shiftY = physicalFormat.marginTop / PdfPageFormat.mm;
     }
 
     // Build pages using absolute stacking coordinates
@@ -196,18 +189,55 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
           final isActive = activePositions.contains(absIndex);
 
           if (isActive) {
-            // Calculate physical grid position in mm
-            final slotX =
-                sheetConfig.marginLeft +
-                c * (sticker.widthMm + sheetConfig.columnGap) +
-                shiftX;
-            final slotY =
-                sheetConfig.marginTop +
-                r * (sticker.heightMm + sheetConfig.rowGap) +
-                shiftY;
+            // Calculate nominal physical grid position on the sheet (in mm)
+            final physicalLeft = sheetConfig.marginLeft + c * (sticker.widthMm + sheetConfig.columnGap);
+            final physicalTop = sheetConfig.marginTop + r * (sticker.heightMm + sheetConfig.rowGap);
+            final physicalRight = physicalLeft + sticker.widthMm;
+            final physicalBottom = physicalTop + sticker.heightMm;
+
+            final slotX = physicalLeft + shiftX;
+            final slotY = physicalTop + shiftY;
 
             final slotWidth = sticker.widthMm;
             final slotHeight = sticker.heightMm;
+
+            double localOffsetX = 0;
+            double localOffsetY = 0;
+
+            if (margins != PrinterMargins.zero) {
+              if (isSpooledAsPortrait) {
+                // Rotated 90 degrees counter-clockwise
+                final rotatedMarginLeft = margins.bottom;
+                final rotatedMarginTop = margins.left;
+                final rotatedMarginRight = margins.top;
+                final rotatedMarginBottom = margins.right;
+
+                if (physicalLeft < rotatedMarginLeft) {
+                  localOffsetX = rotatedMarginLeft - physicalLeft;
+                } else if (physicalRight > sheetConfig.pageWidth - rotatedMarginRight) {
+                  localOffsetX = -(physicalRight - (sheetConfig.pageWidth - rotatedMarginRight));
+                }
+
+                if (physicalTop < rotatedMarginTop) {
+                  localOffsetY = rotatedMarginTop - physicalTop;
+                } else if (physicalBottom > sheetConfig.pageHeight - rotatedMarginBottom) {
+                  localOffsetY = -(physicalBottom - (sheetConfig.pageHeight - rotatedMarginBottom));
+                }
+              } else {
+                // Normal spooling (Portrait or normal Landscape)
+                if (physicalLeft < margins.left) {
+                  localOffsetX = margins.left - physicalLeft;
+                } else if (physicalRight > sheetConfig.pageWidth - margins.right) {
+                  localOffsetX = -(physicalRight - (sheetConfig.pageWidth - margins.right));
+                }
+
+                if (physicalTop < margins.top) {
+                  localOffsetY = margins.top - physicalTop;
+                } else if (physicalBottom > sheetConfig.pageHeight - margins.bottom) {
+                  localOffsetY = -(physicalBottom - (sheetConfig.pageHeight - margins.bottom));
+                }
+              }
+            }
 
             pageSlots.add(
               pw.Positioned(
@@ -222,6 +252,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
                     product: input.product,
                     variant: input.variant,
                     imageCache: input.imageCache,
+                    offsetX: localOffsetX,
+                    offsetY: localOffsetY,
                   ),
                 ),
               ),
@@ -254,6 +286,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     required Product product,
     required ProductVariant variant,
     required Map<String, Uint8List> imageCache,
+    double offsetX = 0.0,
+    double offsetY = 0.0,
   }) {
     final elements = <pw.Widget>[];
 
@@ -278,8 +312,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
 
       elements.add(
         pw.Positioned(
-          left: bp.x * PdfPageFormat.mm,
-          top: bp.y * PdfPageFormat.mm,
+          left: (bp.x + offsetX) * PdfPageFormat.mm,
+          top: (bp.y + offsetY) * PdfPageFormat.mm,
           child: pw.Transform.rotate(
             angle: bp.rotation * (pi / 180),
             child: pw.SizedBox(

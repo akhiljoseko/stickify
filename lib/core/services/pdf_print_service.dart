@@ -27,11 +27,6 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
   }
 
   @override
-  Future<PrinterMargins> getPrinterMargins(PrinterDevice printer, SheetConfig sheet) async {
-    return PrinterMargins.zero;
-  }
-
-  @override
   Future<Result<void, AppError>> printLabels({
     required Product product,
     required ProductVariant variant,

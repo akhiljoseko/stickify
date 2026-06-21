@@ -4,7 +4,4 @@ import 'package:stickify/domain/domain.dart';
 abstract interface class PrinterDiscoveryService {
   /// Retrieves list of available system printer devices.
   Future<List<PrinterDevice>> getAvailablePrinters();
-
-  /// Retrieves the hardware margins for a given printer and sheet config.
-  Future<PrinterMargins> getPrinterMargins(PrinterDevice printer, SheetConfig sheet);
 }

@@ -169,11 +169,11 @@ Label Grid resolves this driver-level issue on Windows by performing a localized
   - **Hive Database Cache**: To prevent process execution delays on every workflow initialization, the fetched margins are cached locally in the Hive database (`localDatabase`) under the `'printer_margins'` collection, keyed by the printer's name. They are asynchronously re-fetched and updated whenever a template or printer is changed.
   - **Coordinate Translation Shift**:
     - **Normal Spooling**: The `LabelPdfLayoutEngine` adjusts coordinates relative to the printable bounds by shifting:
-      `shiftX = -margins.left`
-      `shiftY = -margins.top + marginShiftY` (combining hard margin adjustment with landscape spooler correction).
+      `shiftX = margins.left`
+      `shiftY = margins.top + marginShiftY` (combining hard margin adjustment with landscape spooler correction).
     - **Rotated (Flipped Portrait) Spooling**: When spooled rotated 90 degrees counter-clockwise, the coordinate axes map inversely. The engine offsets the translated coordinates using:
-      `shiftX = -margins.top`
-      `shiftY = -margins.left`
+      `shiftX = margins.top`
+      `shiftY = margins.left`
   - This offset correction aligns the slots dynamically to within a $\pm 1\text{ mm}$ tolerance while keeping the spooled document size matching the physical page dimensions to prevent centering shifts.
 
 ---

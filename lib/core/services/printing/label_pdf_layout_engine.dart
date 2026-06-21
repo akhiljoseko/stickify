@@ -173,16 +173,16 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
 
     if (isSpooledAsPortrait) {
       // Rotated 90 degrees counter-clockwise: horizontal maps to vertical, vertical maps to horizontal
-      shiftX = -margins.top;
-      shiftY = -margins.left;
+      shiftX = margins.top;
+      shiftY = margins.left;
     } else {
-      shiftX = -margins.left;
+      shiftX = margins.left;
       // In Case A (landscape template spooled landscape), we also have the physical format marginTop shift correction
       double marginShiftY = 0;
       if (physicalFormat != null && sheetConfig.pageWidth > sheetConfig.pageHeight) {
         marginShiftY = physicalFormat.marginTop / PdfPageFormat.mm;
       }
-      shiftY = -margins.top + marginShiftY;
+      shiftY = margins.top + marginShiftY;
     }
 
     // Build pages using absolute stacking coordinates

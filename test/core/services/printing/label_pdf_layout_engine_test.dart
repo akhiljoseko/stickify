@@ -305,11 +305,13 @@ void main() {
         expect(parsedHeight, closeTo(589.606, 0.1));
 
         // 2. Verify rotation matrix exists in the generated PDF stream.
-        // Rotation of -pi/2 maps [0, -1, 1, 0, 0, ty] where ty is the physical page height in points
-        final rotateMatrixRegex = RegExp(r'0\s+-1\s+1\s+0\s+-?0\s+([0-9.]+)\s+cm');
+        // Rotation of -pi/2 maps [0, -1, 1, 0, tx, ty]
+        final rotateMatrixRegex = RegExp(r'0\s+-1\s+1\s+0\s+-?([0-9.]+)\s+([0-9.]+)\s+cm');
         final matrixMatch = rotateMatrixRegex.firstMatch(pdfString);
         expect(matrixMatch, isNotNull, reason: 'PDF must contain a -90 degrees rotation matrix');
-        final ty = double.parse(matrixMatch!.group(1)!);
+        final tx = double.parse(matrixMatch!.group(1)!);
+        final ty = double.parse(matrixMatch.group(2)!);
+        expect(tx, closeTo(79.370, 0.1));
         expect(ty, closeTo(589.606, 0.1));
         
         expect(pdfBytes.length, greaterThan(0));

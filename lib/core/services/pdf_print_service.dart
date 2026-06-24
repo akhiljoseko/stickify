@@ -36,6 +36,11 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
   }
 
   @override
+  Future<List<DiscoveredPrinter>> getDiscoveredPrinters() {
+    throw UnimplementedError('getDiscoveredPrinters is not implemented in PdfPrintService');
+  }
+
+  @override
   Future<Result<void, AppError>> printLabels({
     required Product product,
     required ProductVariant variant,

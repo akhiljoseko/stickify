@@ -50,6 +50,12 @@ class _AppState extends State<App> {
         RepositoryProvider<SyncableTemplateRepository>.value(
           value: locator.templateRepository,
         ),
+        RepositoryProvider<PrinterProfileRepository>.value(
+          value: locator.printerProfileRepository,
+        ),
+        RepositoryProvider<SyncablePrinterProfileRepository>.value(
+          value: locator.printerProfileRepository,
+        ),
         RepositoryProvider<PrintJobRepository>.value(
           value: locator.printJobRepository,
         ),

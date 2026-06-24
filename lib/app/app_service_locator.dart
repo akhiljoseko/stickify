@@ -13,12 +13,15 @@ import 'package:stickify/core/services/printing/windows/windows_devmode_manager.
 import 'package:stickify/core/services/printing/windows/windows_paper_validator.dart';
 import 'package:stickify/core/services/printing/windows/windows_print_service.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
+import 'package:stickify/data/repositories/database_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
 import 'package:stickify/data/repositories/database_template_repository.dart';
 import 'package:stickify/data/repositories/database_variant_print_stats_repository.dart';
+import 'package:stickify/data/repositories/firestore_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/firestore_product_repository.dart';
 import 'package:stickify/data/repositories/firestore_template_repository.dart';
+import 'package:stickify/data/repositories/syncing_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/syncing_product_repository.dart';
 import 'package:stickify/data/repositories/syncing_template_repository.dart';
 import 'package:stickify/data/services/firebase_auth_service.dart';
@@ -36,6 +39,7 @@ class AppServiceLocator {
     required this.authService,
     required this.productRepository,
     required this.templateRepository,
+    required this.printerProfileRepository,
     required this.printJobRepository,
     required this.variantPrintStatsRepository,
     required this.searchRepository,
@@ -64,6 +68,7 @@ class AppServiceLocator {
 
     final localProductRepo = DatabaseProductRepository(database: database);
     final localTemplateRepo = DatabaseTemplateRepository(database: database);
+    final localPrinterProfileRepo = DatabasePrinterProfileRepository(database: database);
     final syncQueue = HiveSyncQueue(database: database);
 
     final productRepository = SyncingProductRepository(
@@ -72,6 +77,10 @@ class AppServiceLocator {
     );
     final templateRepository = SyncingTemplateRepository(
       local: localTemplateRepo,
+      syncQueue: syncQueue,
+    );
+    final printerProfileRepository = SyncingPrinterProfileRepository(
+      local: localPrinterProfileRepo,
       syncQueue: syncQueue,
     );
     final printJobRepository = DatabasePrintJobRepository(
@@ -123,9 +132,11 @@ class AppServiceLocator {
         final uid = user.uid;
         productRepository.remote = FirestoreProductRepository(remoteDb: remoteDb, userId: uid);
         templateRepository.remote = FirestoreTemplateRepository(remoteDb: remoteDb, userId: uid);
+        printerProfileRepository.remote = FirestorePrinterProfileRepository(remoteDb: remoteDb, userId: uid);
       } else {
         productRepository.remote = null;
         templateRepository.remote = null;
+        printerProfileRepository.remote = null;
       }
     });
 
@@ -134,6 +145,7 @@ class AppServiceLocator {
     if (currentUser != null) {
       productRepository.remote = FirestoreProductRepository(remoteDb: remoteDb, userId: currentUser.uid);
       templateRepository.remote = FirestoreTemplateRepository(remoteDb: remoteDb, userId: currentUser.uid);
+      printerProfileRepository.remote = FirestorePrinterProfileRepository(remoteDb: remoteDb, userId: currentUser.uid);
     }
 
     return AppServiceLocator._(
@@ -141,6 +153,7 @@ class AppServiceLocator {
       authService: authService,
       productRepository: productRepository,
       templateRepository: templateRepository,
+      printerProfileRepository: printerProfileRepository,
       printJobRepository: printJobRepository,
       variantPrintStatsRepository: variantPrintStatsRepository,
       searchRepository: searchRepository,
@@ -166,6 +179,9 @@ class AppServiceLocator {
 
   /// The syncing template repository.
   final SyncableTemplateRepository templateRepository;
+
+  /// The syncing printer profile repository.
+  final SyncablePrinterProfileRepository printerProfileRepository;
 
   /// The local-only print job repository.
   final PrintJobRepository printJobRepository;

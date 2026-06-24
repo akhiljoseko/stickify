@@ -648,3 +648,459 @@ class VariantPrintStatsHiveModelAdapter
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+
+class CalibrationRuleHiveModelAdapter
+    extends TypeAdapter<CalibrationRuleHiveModel> {
+  @override
+  final typeId = 11;
+
+  @override
+  CalibrationRuleHiveModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return CalibrationRuleHiveModel(
+      target: fields[0] as CalibrationTargetHiveModel,
+      transformation: fields[1] as PrintStickerTransformHiveModel,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, CalibrationRuleHiveModel obj) {
+    writer
+      ..writeByte(2)
+      ..writeByte(0)
+      ..write(obj.target)
+      ..writeByte(1)
+      ..write(obj.transformation);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CalibrationRuleHiveModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class CalibrationTargetHiveModelAdapter
+    extends TypeAdapter<CalibrationTargetHiveModel> {
+  @override
+  final typeId = 12;
+
+  @override
+  CalibrationTargetHiveModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return CalibrationTargetHiveModel(
+      type: fields[0] as String,
+      index: (fields[1] as num?)?.toInt(),
+      edgeGroup: fields[2] as String?,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, CalibrationTargetHiveModel obj) {
+    writer
+      ..writeByte(3)
+      ..writeByte(0)
+      ..write(obj.type)
+      ..writeByte(1)
+      ..write(obj.index)
+      ..writeByte(2)
+      ..write(obj.edgeGroup);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CalibrationTargetHiveModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class OptimizationPreferencesHiveModelAdapter
+    extends TypeAdapter<OptimizationPreferencesHiveModel> {
+  @override
+  final typeId = 13;
+
+  @override
+  OptimizationPreferencesHiveModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return OptimizationPreferencesHiveModel(
+      allowScaling: fields[0] as bool,
+      allowTranslation: fields[1] as bool,
+      preferShrinkOverShift: fields[2] as bool,
+      allowStickerSpecificAdjustment: fields[3] as bool,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, OptimizationPreferencesHiveModel obj) {
+    writer
+      ..writeByte(4)
+      ..writeByte(0)
+      ..write(obj.allowScaling)
+      ..writeByte(1)
+      ..write(obj.allowTranslation)
+      ..writeByte(2)
+      ..write(obj.preferShrinkOverShift)
+      ..writeByte(3)
+      ..write(obj.allowStickerSpecificAdjustment);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OptimizationPreferencesHiveModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class PaperConfigurationReferenceHiveModelAdapter
+    extends TypeAdapter<PaperConfigurationReferenceHiveModel> {
+  @override
+  final typeId = 14;
+
+  @override
+  PaperConfigurationReferenceHiveModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return PaperConfigurationReferenceHiveModel(
+      id: fields[0] as String,
+      displayName: fields[1] as String,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, PaperConfigurationReferenceHiveModel obj) {
+    writer
+      ..writeByte(2)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.displayName);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PaperConfigurationReferenceHiveModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class PrintStickerTransformHiveModelAdapter
+    extends TypeAdapter<PrintStickerTransformHiveModel> {
+  @override
+  final typeId = 15;
+
+  @override
+  PrintStickerTransformHiveModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return PrintStickerTransformHiveModel(
+      offsetX: (fields[0] as num).toDouble(),
+      offsetY: (fields[1] as num).toDouble(),
+      scaleX: (fields[2] as num).toDouble(),
+      scaleY: (fields[3] as num).toDouble(),
+      anchorX: (fields[4] as num).toDouble(),
+      anchorY: (fields[5] as num).toDouble(),
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, PrintStickerTransformHiveModel obj) {
+    writer
+      ..writeByte(6)
+      ..writeByte(0)
+      ..write(obj.offsetX)
+      ..writeByte(1)
+      ..write(obj.offsetY)
+      ..writeByte(2)
+      ..write(obj.scaleX)
+      ..writeByte(3)
+      ..write(obj.scaleY)
+      ..writeByte(4)
+      ..write(obj.anchorX)
+      ..writeByte(5)
+      ..write(obj.anchorY);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PrintStickerTransformHiveModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class PrinterCalibrationHiveModelAdapter
+    extends TypeAdapter<PrinterCalibrationHiveModel> {
+  @override
+  final typeId = 16;
+
+  @override
+  PrinterCalibrationHiveModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return PrinterCalibrationHiveModel(
+      enabled: fields[0] as bool,
+      calibrationRules: (fields[1] as List).cast<CalibrationRuleHiveModel>(),
+      lastCalibratedAt: fields[2] as DateTime?,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, PrinterCalibrationHiveModel obj) {
+    writer
+      ..writeByte(3)
+      ..writeByte(0)
+      ..write(obj.enabled)
+      ..writeByte(1)
+      ..write(obj.calibrationRules)
+      ..writeByte(2)
+      ..write(obj.lastCalibratedAt);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PrinterCalibrationHiveModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class PrinterCapabilitiesHiveModelAdapter
+    extends TypeAdapter<PrinterCapabilitiesHiveModel> {
+  @override
+  final typeId = 17;
+
+  @override
+  PrinterCapabilitiesHiveModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return PrinterCapabilitiesHiveModel(
+      supportsCustomPaperSize: fields[0] as bool,
+      supportsPortraitCustomPaper: fields[1] as bool,
+      supportsLandscapeCustomPaper: fields[2] as bool,
+      supportsManualFeed: fields[3] as bool,
+      supportsBorderlessPrinting: fields[4] as bool,
+      supportsTraySelection: fields[5] as bool,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, PrinterCapabilitiesHiveModel obj) {
+    writer
+      ..writeByte(6)
+      ..writeByte(0)
+      ..write(obj.supportsCustomPaperSize)
+      ..writeByte(1)
+      ..write(obj.supportsPortraitCustomPaper)
+      ..writeByte(2)
+      ..write(obj.supportsLandscapeCustomPaper)
+      ..writeByte(3)
+      ..write(obj.supportsManualFeed)
+      ..writeByte(4)
+      ..write(obj.supportsBorderlessPrinting)
+      ..writeByte(5)
+      ..write(obj.supportsTraySelection);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PrinterCapabilitiesHiveModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class PrinterIdentityHiveModelAdapter
+    extends TypeAdapter<PrinterIdentityHiveModel> {
+  @override
+  final typeId = 18;
+
+  @override
+  PrinterIdentityHiveModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return PrinterIdentityHiveModel(
+      systemPrinterName: fields[0] as String,
+      manufacturer: fields[1] as String,
+      model: fields[2] as String,
+      driverName: fields[3] as String,
+      driverVersion: fields[4] as String,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, PrinterIdentityHiveModel obj) {
+    writer
+      ..writeByte(5)
+      ..writeByte(0)
+      ..write(obj.systemPrinterName)
+      ..writeByte(1)
+      ..write(obj.manufacturer)
+      ..writeByte(2)
+      ..write(obj.model)
+      ..writeByte(3)
+      ..write(obj.driverName)
+      ..writeByte(4)
+      ..write(obj.driverVersion);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PrinterIdentityHiveModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class PrinterProfileHiveModelAdapter
+    extends TypeAdapter<PrinterProfileHiveModel> {
+  @override
+  final typeId = 19;
+
+  @override
+  PrinterProfileHiveModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return PrinterProfileHiveModel(
+      id: fields[0] as String,
+      displayName: fields[1] as String,
+      status: fields[2] as String,
+      printerIdentity: fields[3] as PrinterIdentityHiveModel,
+      capabilities: fields[4] as PrinterCapabilitiesHiveModel,
+      optimizationPreferences: fields[5] as OptimizationPreferencesHiveModel,
+      trays: (fields[6] as List).cast<PrinterTrayProfileHiveModel>(),
+      createdAt: fields[7] as DateTime,
+      updatedAt: fields[8] as DateTime,
+      lastValidatedAt: fields[9] as DateTime?,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, PrinterProfileHiveModel obj) {
+    writer
+      ..writeByte(10)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.displayName)
+      ..writeByte(2)
+      ..write(obj.status)
+      ..writeByte(3)
+      ..write(obj.printerIdentity)
+      ..writeByte(4)
+      ..write(obj.capabilities)
+      ..writeByte(5)
+      ..write(obj.optimizationPreferences)
+      ..writeByte(6)
+      ..write(obj.trays)
+      ..writeByte(7)
+      ..write(obj.createdAt)
+      ..writeByte(8)
+      ..write(obj.updatedAt)
+      ..writeByte(9)
+      ..write(obj.lastValidatedAt);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PrinterProfileHiveModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class PrinterTrayProfileHiveModelAdapter
+    extends TypeAdapter<PrinterTrayProfileHiveModel> {
+  @override
+  final typeId = 20;
+
+  @override
+  PrinterTrayProfileHiveModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return PrinterTrayProfileHiveModel(
+      trayIdentifier: fields[0] as String,
+      displayName: fields[1] as String,
+      supportedPaperConfigurations: (fields[2] as List)
+          .cast<PaperConfigurationReferenceHiveModel>(),
+      calibration: fields[3] as PrinterCalibrationHiveModel,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, PrinterTrayProfileHiveModel obj) {
+    writer
+      ..writeByte(4)
+      ..writeByte(0)
+      ..write(obj.trayIdentifier)
+      ..writeByte(1)
+      ..write(obj.displayName)
+      ..writeByte(2)
+      ..write(obj.supportedPaperConfigurations)
+      ..writeByte(3)
+      ..write(obj.calibration);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PrinterTrayProfileHiveModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}

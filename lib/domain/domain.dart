@@ -8,6 +8,7 @@
 library;
 
 export 'entities/calibration_rule.dart';
+export 'entities/discovered_printer.dart';
 export 'entities/editor/barcode_element_blueprint.dart';
 export 'entities/editor/element_blueprint.dart';
 export 'entities/editor/image_element_blueprint.dart';
@@ -31,6 +32,7 @@ export 'entities/printer_capabilities.dart';
 export 'entities/printer_device.dart';
 export 'entities/printer_identity.dart';
 export 'entities/printer_profile.dart';
+export 'entities/printer_profile_match_result.dart';
 export 'entities/printer_tray_profile.dart';
 export 'entities/product.dart';
 export 'entities/product_variant.dart';

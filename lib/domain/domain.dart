@@ -7,6 +7,7 @@
 /// ```
 library;
 
+export 'entities/calibration_rule.dart';
 export 'entities/editor/barcode_element_blueprint.dart';
 export 'entities/editor/element_blueprint.dart';
 export 'entities/editor/image_element_blueprint.dart';
@@ -19,10 +20,17 @@ export 'entities/feature_id.dart';
 export 'entities/ingredient.dart';
 export 'entities/label_template.dart';
 export 'entities/nutrition_facts.dart';
+export 'entities/optimization_preferences.dart';
 export 'entities/paginated_result.dart';
+export 'entities/paper_configuration_reference.dart';
 export 'entities/print_coordinate_context.dart';
 export 'entities/print_job.dart';
+export 'entities/printer_calibration.dart';
+export 'entities/printer_capabilities.dart';
 export 'entities/printer_device.dart';
+export 'entities/printer_identity.dart';
+export 'entities/printer_profile.dart';
+export 'entities/printer_tray_profile.dart';
 export 'entities/product.dart';
 export 'entities/product_variant.dart';
 export 'entities/search_item.dart';

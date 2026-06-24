@@ -21,8 +21,11 @@ import 'package:stickify/domain/entities/print_coordinate_context.dart';
 /// translations from multiple rules, horizontal scaling and horizontal anchor from one rule,
 /// and vertical scaling and vertical anchor from another rule.
 class CalibrationTransformComposer {
+  /// Creates a [CalibrationTransformComposer] instance.
+  const CalibrationTransformComposer();
+
   /// Composes the list of [matchingRules] into a single [PrintStickerTransform].
-  static PrintStickerTransform compose(List<CalibrationRule> matchingRules) {
+  PrintStickerTransform compose(List<CalibrationRule> matchingRules) {
     if (matchingRules.isEmpty) {
       return const PrintStickerTransform.identity();
     }
@@ -89,7 +92,7 @@ class CalibrationTransformComposer {
     );
   }
 
-  static int _getSpecificity(TargetType type) {
+  int _getSpecificity(TargetType type) {
     switch (type) {
       case TargetType.sticker:
         return 5;

@@ -4,6 +4,13 @@ import 'package:stickify/core/error/result.dart';
 import 'package:stickify/domain/domain.dart';
 
 void main() {
+  const matcher = CalibrationRuleMatcher();
+  const composer = CalibrationTransformComposer();
+  const resolver = PrinterCalibrationCoordinateResolver(
+    ruleMatcher: matcher,
+    transformComposer: composer,
+  );
+
   group('CalibrationRuleMatcher Tests', () {
     const totalRows = 4;
     const totalColumns = 3;
@@ -14,7 +21,7 @@ void main() {
         transformation: PrintStickerTransform.identity(),
       );
 
-      final match = CalibrationRuleMatcher.matches(
+      final match = matcher.matches(
         rule: rule,
         row: 1,
         column: 2,
@@ -33,7 +40,7 @@ void main() {
       );
 
       expect(
-        CalibrationRuleMatcher.matches(
+        matcher.matches(
           rule: rule,
           row: 2,
           column: 0,
@@ -45,7 +52,7 @@ void main() {
       );
 
       expect(
-        CalibrationRuleMatcher.matches(
+        matcher.matches(
           rule: rule,
           row: 1,
           column: 0,
@@ -64,7 +71,7 @@ void main() {
       );
 
       expect(
-        CalibrationRuleMatcher.matches(
+        matcher.matches(
           rule: rule,
           row: 0,
           column: 1,
@@ -76,7 +83,7 @@ void main() {
       );
 
       expect(
-        CalibrationRuleMatcher.matches(
+        matcher.matches(
           rule: rule,
           row: 0,
           column: 2,
@@ -95,7 +102,7 @@ void main() {
       );
 
       expect(
-        CalibrationRuleMatcher.matches(
+        matcher.matches(
           rule: rule,
           row: 2,
           column: 1,
@@ -107,7 +114,7 @@ void main() {
       );
 
       expect(
-        CalibrationRuleMatcher.matches(
+        matcher.matches(
           rule: rule,
           row: 2,
           column: 2,
@@ -139,7 +146,7 @@ void main() {
 
       test('Left edge matches column == 0', () {
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: leftEdgeRule,
             row: 1,
             column: 0,
@@ -150,7 +157,7 @@ void main() {
           isTrue,
         );
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: leftEdgeRule,
             row: 1,
             column: 1,
@@ -164,7 +171,7 @@ void main() {
 
       test('Right edge matches column == totalColumns - 1', () {
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: rightEdgeRule,
             row: 1,
             column: 2,
@@ -175,7 +182,7 @@ void main() {
           isTrue,
         );
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: rightEdgeRule,
             row: 1,
             column: 1,
@@ -189,7 +196,7 @@ void main() {
 
       test('Top edge matches row == 0', () {
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: topEdgeRule,
             row: 0,
             column: 1,
@@ -200,7 +207,7 @@ void main() {
           isTrue,
         );
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: topEdgeRule,
             row: 1,
             column: 1,
@@ -214,7 +221,7 @@ void main() {
 
       test('Bottom edge matches row == totalRows - 1', () {
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: bottomEdgeRule,
             row: 3,
             column: 1,
@@ -225,7 +232,7 @@ void main() {
           isTrue,
         );
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: bottomEdgeRule,
             row: 2,
             column: 1,
@@ -240,7 +247,7 @@ void main() {
       test('Single-row / single-column boundary edge cases match multiple edges simultaneously', () {
         // 1x1 sheet: slot at (0,0) is left, right, top, and bottom
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: leftEdgeRule,
             row: 0,
             column: 0,
@@ -251,7 +258,7 @@ void main() {
           isTrue,
         );
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: rightEdgeRule,
             row: 0,
             column: 0,
@@ -262,7 +269,7 @@ void main() {
           isTrue,
         );
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: topEdgeRule,
             row: 0,
             column: 0,
@@ -273,7 +280,7 @@ void main() {
           isTrue,
         );
         expect(
-          CalibrationRuleMatcher.matches(
+          matcher.matches(
             rule: bottomEdgeRule,
             row: 0,
             column: 0,
@@ -289,7 +296,7 @@ void main() {
 
   group('CalibrationTransformComposer Tests', () {
     test('Empty rule list produces identity transform', () {
-      final result = CalibrationTransformComposer.compose(const []);
+      final result = composer.compose(const []);
       expect(result, equals(const PrintStickerTransform.identity()));
     });
 
@@ -305,7 +312,7 @@ void main() {
         ),
       ];
 
-      final result = CalibrationTransformComposer.compose(rules);
+      final result = composer.compose(rules);
       expect(result.offsetX, equals(1.0));
       expect(result.offsetY, equals(1.5));
     });
@@ -322,7 +329,7 @@ void main() {
         ),
       ];
 
-      final result = CalibrationTransformComposer.compose(rules);
+      final result = composer.compose(rules);
       expect(result.offsetX, equals(2.0));
       expect(result.offsetY, equals(3.0));
       expect(result.scaleX, equals(0.95));
@@ -345,7 +352,7 @@ void main() {
         ),
       ];
 
-      final result = CalibrationTransformComposer.compose(rules);
+      final result = composer.compose(rules);
       expect(result.scaleX, equals(0.95));
       expect(result.scaleY, equals(0.92));
       expect(result.anchorX, equals(0.0));
@@ -364,7 +371,7 @@ void main() {
         ),
       ];
 
-      final result = CalibrationTransformComposer.compose(rules);
+      final result = composer.compose(rules);
       expect(result.scaleX, equals(0.95));
     });
 
@@ -388,7 +395,7 @@ void main() {
         ),
       ];
 
-      final result = CalibrationTransformComposer.compose(rules);
+      final result = composer.compose(rules);
       expect(result.offsetX, equals(0.0));
       expect(result.offsetY, equals(0.0));
     });
@@ -401,7 +408,7 @@ void main() {
         ),
       ];
 
-      final result = CalibrationTransformComposer.compose(rules);
+      final result = composer.compose(rules);
       expect(result.scaleX, equals(1.0));
       expect(result.scaleY, equals(1.0));
       expect(result.anchorX, equals(0.5));
@@ -452,7 +459,7 @@ void main() {
         sheetConfig: sheetConfig,
       );
 
-      final result = PrinterCalibrationCoordinateResolver.resolve(request);
+      final result = resolver.resolve(request);
 
       expect(result, isA<Failure<PrintCoordinateContext, ValidationError>>());
       final error = (result as Failure<PrintCoordinateContext, ValidationError>).error;
@@ -483,7 +490,7 @@ void main() {
         sheetConfig: sheetConfig,
       );
 
-      final result = PrinterCalibrationCoordinateResolver.resolve(request);
+      final result = resolver.resolve(request);
 
       expect(result, isA<Success<PrintCoordinateContext, ValidationError>>());
       final context = (result as Success<PrintCoordinateContext, ValidationError>).value;
@@ -497,7 +504,7 @@ void main() {
         sheetConfig: sheetConfig, // 2x2 = 4 slots
       );
 
-      final result = PrinterCalibrationCoordinateResolver.resolve(request);
+      final result = resolver.resolve(request);
 
       expect(result, isA<Success<PrintCoordinateContext, ValidationError>>());
       final context = (result as Success<PrintCoordinateContext, ValidationError>).value;
@@ -555,7 +562,7 @@ void main() {
         sheetConfig: sheetConfig, // 2x2 = 4 slots
       );
 
-      final result = PrinterCalibrationCoordinateResolver.resolve(request);
+      final result = resolver.resolve(request);
       final context = (result as Success<PrintCoordinateContext, ValidationError>).value;
 
       // Row 0 (index 0 and 1) should be identity, thus omitted from the map.

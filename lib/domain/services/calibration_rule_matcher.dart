@@ -2,6 +2,9 @@ import 'package:stickify/domain/entities/calibration_rule.dart';
 
 /// Service that determines if a given [CalibrationRule] applies to a specific sticker slot on a sheet.
 class CalibrationRuleMatcher {
+  /// Creates a [CalibrationRuleMatcher] instance.
+  const CalibrationRuleMatcher();
+
   /// Checks if [rule] matches a sticker slot specified by its position parameters.
   ///
   /// - [row]: Zero-based row index of the slot.
@@ -9,7 +12,7 @@ class CalibrationRuleMatcher {
   /// - [absoluteStickerIndex]: Zero-based absolute index of the sticker.
   /// - [totalRows]: Total number of rows in the sheet configuration.
   /// - [totalColumns]: Total number of columns in the sheet configuration.
-  static bool matches({
+  bool matches({
     required CalibrationRule rule,
     required int row,
     required int column,

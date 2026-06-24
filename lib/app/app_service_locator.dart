@@ -9,6 +9,7 @@ import 'package:stickify/core/presentation/notifications/notification_service.da
 import 'package:stickify/core/services/pdf_print_service.dart';
 import 'package:stickify/core/services/print_job/timestamp_print_job_id_generator.dart';
 import 'package:stickify/core/services/printing/label_pdf_layout_engine.dart';
+import 'package:stickify/core/services/printing/print_calibration_context_resolver.dart';
 import 'package:stickify/core/services/printing/windows/windows_devmode_manager.dart';
 import 'package:stickify/core/services/printing/windows/windows_paper_validator.dart';
 import 'package:stickify/core/services/printing/windows/windows_print_service.dart';
@@ -97,6 +98,15 @@ class AppServiceLocator {
 
     const layoutEngine = LabelPdfLayoutEngine();
 
+    // Register calibration engine components
+    const matcher = CalibrationRuleMatcher();
+    const composer = CalibrationTransformComposer();
+    const resolver = PrinterCalibrationCoordinateResolver(
+      ruleMatcher: matcher,
+      transformComposer: composer,
+    );
+    const calibrationResolver = PrintCalibrationContextResolver(resolver);
+
     // Use typed local variables so both PrintService and PrinterDiscoveryService
     // can be stored without a runtime cast. The knowledge that each concrete
     // service implements both interfaces is encapsulated here in the factory.
@@ -107,11 +117,15 @@ class AppServiceLocator {
         layoutEngine: layoutEngine,
         paperValidator: WindowsPaperValidator(),
         devModeManager: WindowsDevModeManager(),
+        calibrationResolver: calibrationResolver,
       );
       printService = svc;
       printerDiscoveryService = svc;
     } else {
-      const svc = PdfPrintService(layoutEngine: LabelPdfLayoutEngine());
+      const svc = PdfPrintService(
+        layoutEngine: layoutEngine,
+        calibrationResolver: calibrationResolver,
+      );
       printService = svc;
       printerDiscoveryService = svc;
     }

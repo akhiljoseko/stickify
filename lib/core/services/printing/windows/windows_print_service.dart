@@ -1,7 +1,10 @@
-
+// The named parameters must be public for callers in other libraries, but the
+// internal fields are kept private to preserve encapsulation, requiring initializer lists.
+// ignore_for_file: prefer_initializing_formals
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:stickify/core/core.dart';
+import 'package:stickify/core/services/printing/print_calibration_context_resolver.dart';
 import 'package:stickify/core/services/printing/print_pre_flight_validator.dart';
 import 'package:stickify/core/services/printing/windows/windows_devmode_manager.dart';
 import 'package:stickify/domain/domain.dart';
@@ -13,11 +16,16 @@ import 'package:stickify/domain/domain.dart';
 class WindowsPrintService implements PrintService, PrinterDiscoveryService {
   /// Instantiates a new [WindowsPrintService].
   WindowsPrintService({
-    required this._layoutEngine,
-    required this._paperValidator,
-    required this._devModeManager,
+    required LabelLayoutEngine layoutEngine,
+    required PaperValidationEngine paperValidator,
+    required WindowsDevModeManager devModeManager,
+    required PrintCalibrationContextResolver calibrationResolver,
     PrintPreFlightValidator? preFlightValidator,
-  })  : _preFlightValidator =
+  })  : _layoutEngine = layoutEngine,
+        _paperValidator = paperValidator,
+        _devModeManager = devModeManager,
+        _calibrationResolver = calibrationResolver,
+        _preFlightValidator =
             preFlightValidator ?? const PrintPreFlightValidator() {
     _devModeManager.healOnStartup();
   }
@@ -25,6 +33,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
   final LabelLayoutEngine _layoutEngine;
   final PaperValidationEngine _paperValidator;
   final WindowsDevModeManager _devModeManager;
+  final PrintCalibrationContextResolver _calibrationResolver;
   final PrintPreFlightValidator _preFlightValidator;
 
   @override
@@ -44,6 +53,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,
+    PrintExecutionConfiguration? executionConfiguration,
   }) async {
     String? backupToken;
     try {
@@ -89,10 +99,17 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
         );
       }
 
-      // 5. Direct print without system dialog using overridden printer settings.
-      // The identity PrintCoordinateContext is passed here — no calibration or
-      // optimization is applied in Phase 1A. Future phases will resolve and
-      // pass a printer-profile-specific context.
+      // 5. Resolve coordinate context
+      final calibrationResult = _calibrationResolver.resolve(
+        executionConfiguration: executionConfiguration,
+        sheetConfig: sheetConfig,
+      );
+      if (calibrationResult case Failure(error: final err)) {
+        return Result.failure(err);
+      }
+      final coordinateContext = (calibrationResult as Success<PrintCoordinateContext, AppError>).value;
+
+      // 6. Direct print without system dialog using overridden printer settings.
       final success = await Printing.directPrintPdf(
         printer: resolvedPrinter,
         onLayout: (format) async {
@@ -104,7 +121,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
             disabledSlots: disabledSlots,
             printFromBottom: printFromBottom,
             physicalFormat: format,
-            coordinateContext: const PrintCoordinateContext.identity(),
+            coordinateContext: coordinateContext,
           );
         },
         format: PdfPageFormat(

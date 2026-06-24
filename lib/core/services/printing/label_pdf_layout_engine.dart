@@ -30,6 +30,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     required Set<int> disabledSlots,
     bool printFromBottom = false,
     PdfPageFormat? physicalFormat,
+    PrintCoordinateContext? coordinateContext,
   }) async {
     // 1. Pre-cache all network/asset/file images on the main thread
     final imageCache = await _preCacheImages(template);
@@ -53,6 +54,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       regularFontBytes: regularFontBytes,
       boldFontBytes: boldFontBytes,
       physicalFormat: physicalFormat,
+      coordinateContext: coordinateContext ?? const PrintCoordinateContext.identity(),
     );
 
     if (useIsolate) {
@@ -184,18 +186,33 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
           final isActive = activePositions.contains(absIndex);
 
           if (isActive) {
-            // Calculate physical grid position in mm
+            // Resolve any coordinate transformation for this sticker slot.
+            // The identity transform (default) produces zero offset and 1.0
+            // scale — output is byte-equivalent to pre-1A behavior.
+            final transform = input.coordinateContext.resolveFor(
+              row: r,
+              column: c,
+              absoluteSlotIndex: absIndex,
+            );
+
+            // Calculate physical grid position in mm.
+            // Driver shift (shiftX/shiftY) is kept additive and independent
+            // from the coordinate context — see Phase 0 analysis, section 3.2.
+            final slotWidth = sticker.widthMm * transform.scaleX;
+            final slotHeight = sticker.heightMm * transform.scaleY;
+
             final slotX =
                 sheetConfig.marginLeft +
                 c * (sticker.widthMm + sheetConfig.columnGap) +
-                shiftX;
+                shiftX +
+                (sticker.widthMm * transform.anchorX * (1.0 - transform.scaleX)) +
+                transform.offsetX;
             final slotY =
                 sheetConfig.marginTop +
                 r * (sticker.heightMm + sheetConfig.rowGap) +
-                shiftY;
-
-            final slotWidth = sticker.widthMm;
-            final slotHeight = sticker.heightMm;
+                shiftY +
+                (sticker.heightMm * transform.anchorY * (1.0 - transform.scaleY)) +
+                transform.offsetY;
 
             pageSlots.add(
               pw.Positioned(
@@ -405,6 +422,7 @@ class _PdfJobInput {
     required this.printFromBottom,
     required this.regularFontBytes,
     required this.boldFontBytes,
+    required this.coordinateContext,
     this.physicalFormat,
   });
 
@@ -437,6 +455,12 @@ class _PdfJobInput {
 
   /// Bold font bytes.
   final Uint8List boldFontBytes;
+
+  /// Coordinate transformations to apply during PDF slot layout.
+  ///
+  /// The identity context (default) produces output byte-equivalent to
+  /// the pre-1A behavior.
+  final PrintCoordinateContext coordinateContext;
 
   /// Physical format returned by GDI / printer driver.
   final PdfPageFormat? physicalFormat;

@@ -61,7 +61,7 @@ class _AppState extends State<App> {
         ),
         RepositoryProvider<PrintService>.value(value: locator.printService),
         RepositoryProvider<PrinterDiscoveryService>.value(
-          value: locator.printService as PrinterDiscoveryService,
+          value: locator.printerDiscoveryService,
         ),
         RepositoryProvider<PrintJobIdGenerator>.value(
           value: locator.printJobIdGenerator,

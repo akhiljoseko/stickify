@@ -40,6 +40,7 @@ class AppServiceLocator {
     required this.variantPrintStatsRepository,
     required this.searchRepository,
     required this.printService,
+    required this.printerDiscoveryService,
     required this.filePickerService,
     required this.printJobIdGenerator,
     required this.featureAccessService,
@@ -86,13 +87,25 @@ class AppServiceLocator {
     );
 
     const layoutEngine = LabelPdfLayoutEngine();
-    final printService = Platform.isWindows
-        ? WindowsPrintService(
-            layoutEngine: layoutEngine,
-            paperValidator: WindowsPaperValidator(),
-            devModeManager: WindowsDevModeManager(),
-          ) as PrintService
-        : const PdfPrintService(layoutEngine: layoutEngine) as PrintService;
+
+    // Use typed local variables so both PrintService and PrinterDiscoveryService
+    // can be stored without a runtime cast. The knowledge that each concrete
+    // service implements both interfaces is encapsulated here in the factory.
+    final PrintService printService;
+    final PrinterDiscoveryService printerDiscoveryService;
+    if (Platform.isWindows) {
+      final svc = WindowsPrintService(
+        layoutEngine: layoutEngine,
+        paperValidator: WindowsPaperValidator(),
+        devModeManager: WindowsDevModeManager(),
+      );
+      printService = svc;
+      printerDiscoveryService = svc;
+    } else {
+      const svc = PdfPrintService(layoutEngine: LabelPdfLayoutEngine());
+      printService = svc;
+      printerDiscoveryService = svc;
+    }
 
     final filePickerService = ImagePickerServiceImpl(ImagePicker());
     const printJobIdGenerator = TimestampPrintJobIdGenerator();
@@ -132,6 +145,7 @@ class AppServiceLocator {
       variantPrintStatsRepository: variantPrintStatsRepository,
       searchRepository: searchRepository,
       printService: printService,
+      printerDiscoveryService: printerDiscoveryService,
       filePickerService: filePickerService,
       printJobIdGenerator: printJobIdGenerator,
       featureAccessService: featureAccessService,
@@ -164,6 +178,12 @@ class AppServiceLocator {
 
   /// The printing service.
   final PrintService printService;
+
+  /// The printer discovery service.
+  ///
+  /// Points to the same concrete instance as [printService] but is typed
+  /// independently — no runtime cast required at the DI registration site.
+  final PrinterDiscoveryService printerDiscoveryService;
 
   /// The file picking service.
   final FilePickerService filePickerService;

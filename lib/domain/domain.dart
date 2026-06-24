@@ -63,5 +63,6 @@ export 'services/print_job_id_generator.dart';
 export 'services/print_service.dart';
 export 'services/printer_calibration_coordinate_resolver.dart';
 export 'services/printer_discovery_service.dart';
+export 'services/printer_profile_matcher.dart';
 export 'services/remote_database_service.dart';
 export 'services/sync_queue.dart';

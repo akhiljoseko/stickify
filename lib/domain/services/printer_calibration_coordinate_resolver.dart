@@ -1,3 +1,6 @@
+// The named parameters must be public for callers in other libraries, but the
+// internal fields are kept private to preserve encapsulation, requiring initializer lists.
+// ignore_for_file: prefer_initializing_formals
 import 'package:stickify/core/error/app_error.dart';
 import 'package:stickify/core/error/result.dart';
 import 'package:stickify/domain/entities/print_coordinate_context.dart';
@@ -7,12 +10,22 @@ import 'package:stickify/domain/services/calibration_transform_composer.dart';
 
 /// Resolves printer tray calibration rules into a [PrintCoordinateContext] for sheet rendering.
 class PrinterCalibrationCoordinateResolver {
+  /// Creates a [PrinterCalibrationCoordinateResolver] with its required dependency services.
+  const PrinterCalibrationCoordinateResolver({
+    required CalibrationRuleMatcher ruleMatcher,
+    required CalibrationTransformComposer transformComposer,
+  })  : _ruleMatcher = ruleMatcher,
+        _transformComposer = transformComposer;
+
+  final CalibrationRuleMatcher _ruleMatcher;
+  final CalibrationTransformComposer _transformComposer;
+
   /// Resolves the calibration rules from the [request] context.
   ///
   /// Assumes input domain objects are structurally valid.
   /// Returns a [Result] containing the resolved [PrintCoordinateContext], or a
   /// [ValidationError] if the request targets an unsupported paper configuration.
-  static Result<PrintCoordinateContext, ValidationError> resolve(
+  Result<PrintCoordinateContext, ValidationError> resolve(
     CalibrationRequest request,
   ) {
     // 1. Verify paper configuration support
@@ -43,7 +56,7 @@ class PrinterCalibrationCoordinateResolver {
       final column = absoluteIndex % totalColumns;
 
       final matchingRules = request.tray.calibration.calibrationRules
-          .where((rule) => CalibrationRuleMatcher.matches(
+          .where((rule) => _ruleMatcher.matches(
                 rule: rule,
                 row: row,
                 column: column,
@@ -53,7 +66,7 @@ class PrinterCalibrationCoordinateResolver {
               ))
           .toList();
 
-      final composedTransform = CalibrationTransformComposer.compose(matchingRules);
+      final composedTransform = _transformComposer.compose(matchingRules);
 
       // Memory Optimization: only store non-identity transformations
       if (!composedTransform.isIdentity) {

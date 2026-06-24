@@ -24,6 +24,7 @@ export 'entities/optimization_preferences.dart';
 export 'entities/paginated_result.dart';
 export 'entities/paper_configuration_reference.dart';
 export 'entities/print_coordinate_context.dart';
+export 'entities/print_execution_configuration.dart';
 export 'entities/print_job.dart';
 export 'entities/printer_calibration.dart';
 export 'entities/printer_capabilities.dart';

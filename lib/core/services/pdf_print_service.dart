@@ -1,7 +1,10 @@
-
+// The named parameters must be public for callers in other libraries, but the
+// internal fields are kept private to preserve encapsulation, requiring initializer lists.
+// ignore_for_file: prefer_initializing_formals
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:stickify/core/core.dart';
+import 'package:stickify/core/services/printing/print_calibration_context_resolver.dart';
 import 'package:stickify/core/services/printing/print_pre_flight_validator.dart';
 import 'package:stickify/domain/domain.dart';
 
@@ -13,11 +16,15 @@ import 'package:stickify/domain/domain.dart';
 class PdfPrintService implements PrintService, PrinterDiscoveryService {
   /// Instantiates a new [PdfPrintService].
   const PdfPrintService({
-    required this._layoutEngine,
-    this._preFlightValidator = const PrintPreFlightValidator(),
-  });
+    required LabelLayoutEngine layoutEngine,
+    required PrintCalibrationContextResolver calibrationResolver,
+    PrintPreFlightValidator preFlightValidator = const PrintPreFlightValidator(),
+  })  : _layoutEngine = layoutEngine,
+        _calibrationResolver = calibrationResolver,
+        _preFlightValidator = preFlightValidator;
 
   final LabelLayoutEngine _layoutEngine;
+  final PrintCalibrationContextResolver _calibrationResolver;
   final PrintPreFlightValidator _preFlightValidator;
 
   @override
@@ -37,6 +44,7 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,
+    PrintExecutionConfiguration? executionConfiguration,
   }) async {
     try {
       // 1. Pre-print validation (delegated to PrintPreFlightValidator)
@@ -51,10 +59,17 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
 
       final sheetConfig = template.sheetConfig!;
 
-      // 2. Generate PDF bytes using the layout engine.
-      // The identity PrintCoordinateContext is passed here — no calibration or
-      // optimization is applied in Phase 1A. Future phases will resolve and
-      // pass a printer-profile-specific context.
+      // 2. Resolve coordinate context using the print calibration context resolver helper.
+      final calibrationResult = _calibrationResolver.resolve(
+        executionConfiguration: executionConfiguration,
+        sheetConfig: sheetConfig,
+      );
+      if (calibrationResult case Failure(error: final err)) {
+        return Result.failure(err);
+      }
+      final coordinateContext = (calibrationResult as Success<PrintCoordinateContext, AppError>).value;
+
+      // 3. Generate PDF bytes using the layout engine.
       final pdfBytes = await _layoutEngine.buildPdfBytes(
         product: product,
         variant: variant,
@@ -62,7 +77,7 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
         quantity: quantity,
         disabledSlots: disabledSlots,
         printFromBottom: printFromBottom,
-        coordinateContext: const PrintCoordinateContext.identity(),
+        coordinateContext: coordinateContext,
       );
 
       final targetFormat = PdfPageFormat(
@@ -71,7 +86,7 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
         marginAll: 0,
       );
 
-      // 3. Dispatch to printing framework
+      // 4. Dispatch to printing framework
       await Printing.layoutPdf(
         name: '${product.name}_${variant.name}_labels',
         onLayout: (format) async => pdfBytes,

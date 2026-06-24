@@ -18,5 +18,6 @@ abstract interface class PrintService {
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,
+    PrintExecutionConfiguration? executionConfiguration,
   });
 }

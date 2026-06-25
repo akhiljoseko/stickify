@@ -35,10 +35,10 @@ class CalibrationSheetPdfGenerator {
           const bandWidth = 12.0 * PdfPageFormat.mm;
           const bandColor = 0xFFE0E0E0;
           canvas
-            ..setFillColor(PdfColor.fromInt(bandColor))
-            ..drawRect(0, 0, widthPt, bandWidth)          // top band
+            ..setFillColor(const PdfColor.fromInt(bandColor))
+            ..drawRect(0, 0, widthPt, bandWidth) // top band
             ..drawRect(0, heightPt - bandWidth, widthPt, bandWidth) // bottom
-            ..drawRect(0, 0, bandWidth, heightPt)         // left band
+            ..drawRect(0, 0, bandWidth, heightPt) // left band
             ..drawRect(widthPt - bandWidth, 0, bandWidth, heightPt) // right
             ..fillPath();
 

@@ -182,6 +182,26 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
     }
   }
 
+  /// Saves the profile without emitting `saved`
+  /// status, so the page does not pop. Instead transitions back to `idle`.
+  /// Used when saving is needed before navigating to calibration.
+  Future<Result<PrinterProfile, AppError>> saveQuietly() async {
+    final profile = _buildProfile();
+    final result = await printerProfileRepository.saveProfile(profile);
+    switch (result) {
+      case Failure(:final error):
+        return Result.failure(error);
+      case Success():
+        emit(
+          state.copyWith(
+            status: PrinterConfigurationStatus.idle,
+            existingProfile: profile,
+          ),
+        );
+        return Result.success(profile);
+    }
+  }
+
   PrinterProfile _buildProfile() {
     final now = DateTime.now();
     final existing = state.existingProfile;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/discovered_printer.dart';
 
 class PrinterSelectionSheet extends StatelessWidget {
@@ -13,12 +14,8 @@ class PrinterSelectionSheet extends StatelessWidget {
     required BuildContext context,
     required List<DiscoveredPrinter> printers,
   }) {
-    return showModalBottomSheet<DiscoveredPrinter>(
+    return showAdaptiveSheet<DiscoveredPrinter>(
       context: context,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-      ),
       builder: (_) => PrinterSelectionSheet(printers: printers),
     );
   }

@@ -771,19 +771,36 @@ class _PrinterConfigurationView extends StatelessWidget {
     context.read<PrinterConfigurationCubit>().removeTray(index);
   }
 
-  void _calibrateTray(
+  Future<void> _calibrateTray(
     BuildContext context,
     PrinterTrayProfile tray,
     int index,
-  ) {
-    final state = context.read<PrinterConfigurationCubit>().state;
-    final profile = state.existingProfile;
+  ) async {
+    final cubit = context.read<PrinterConfigurationCubit>();
+    final state = cubit.state;
+    var profile = state.existingProfile;
+
+    // Auto-save if the profile hasn't been saved yet
     if (profile == null) {
-      context.read<NotificationService>().showWarning(
-        'Save the profile first before calibrating a tray.',
-      );
-      return;
+      final saveResult = await cubit.saveQuietly();
+      switch (saveResult) {
+        case Failure(:final error):
+          if (!context.mounted) return;
+          await BlockingErrorDialog.show(
+            context,
+            title: 'Save Required',
+            message:
+                'The printer profile must be saved before calibrating. ${error.message}',
+            onRetry: () => unawaited(_calibrateTray(context, tray, index)),
+            onClose: () {},
+          );
+          return;
+        case Success(value: final savedProfile):
+          profile = savedProfile;
+      }
     }
+
+    if (!context.mounted) return;
 
     if (tray.supportedPaperConfigurations.isEmpty) {
       context.read<NotificationService>().showWarning(
@@ -793,7 +810,7 @@ class _PrinterConfigurationView extends StatelessWidget {
     }
 
     unawaited(
-      CalibrationWizardRoute(
+        CalibrationWizardRoute(
         profileId: profile.id,
         trayId: tray.trayIdentifier,
         paperConfigurationId: tray.supportedPaperConfigurations.first.id,

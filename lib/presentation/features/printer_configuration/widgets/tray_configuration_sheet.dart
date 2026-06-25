@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 
 class TrayConfigurationSheet extends StatefulWidget {
@@ -13,13 +14,9 @@ class TrayConfigurationSheet extends StatefulWidget {
     required BuildContext context,
     PrinterTrayProfile? existingTray,
   }) {
-    return showModalBottomSheet<PrinterTrayProfile>(
+    return showAdaptiveSheet<PrinterTrayProfile>(
       context: context,
-      useSafeArea: true,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-      ),
       builder: (_) => TrayConfigurationSheet(existingTray: existingTray),
     );
   }

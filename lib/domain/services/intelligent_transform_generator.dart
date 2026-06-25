@@ -24,7 +24,8 @@ class IntelligentTransformGenerator {
     if (sheetConfig == null || stickerConfig == null) {
       return OptimizationStrategy(
         level: OptimizationLevel.noModification,
-        description: 'No template configuration. Identity transformations applied.',
+        description:
+            'No template configuration. Identity transformations applied.',
         transforms: const {},
       );
     }
@@ -45,7 +46,10 @@ class IntelligentTransformGenerator {
 
     // 1. Level 1 — No Modification
     if (!analysisResult.hasConflicts) {
-      Log.debug('TransformGenerator: Level 1 — no conflicts, identity transform.', tag: 'PrintPipeline');
+      Log.debug(
+        'TransformGenerator: Level 1 — no conflicts, identity transform.',
+        tag: 'PrintPipeline',
+      );
       return OptimizationStrategy(
         level: OptimizationLevel.noModification,
         description: 'No conflicts detected. Identity transformations applied.',
@@ -55,8 +59,10 @@ class IntelligentTransformGenerator {
 
     // Determine coordinate rotation
     final templateIsPortrait = sheetConfig.pageWidth < sheetConfig.pageHeight;
-    final printerSupportsPortrait = printer.capabilities.supportsPortraitCustomPaper;
-    final printerSupportsLandscape = printer.capabilities.supportsLandscapeCustomPaper;
+    final printerSupportsPortrait =
+        printer.capabilities.supportsPortraitCustomPaper;
+    final printerSupportsLandscape =
+        printer.capabilities.supportsLandscapeCustomPaper;
     final bool isRotated90;
     if (templateIsPortrait) {
       isRotated90 = !printerSupportsPortrait && printerSupportsLandscape;
@@ -65,8 +71,12 @@ class IntelligentTransformGenerator {
     }
 
     // Page dimensions in printer coordinate space
-    final printerWidth = isRotated90 ? sheetConfig.pageHeight : sheetConfig.pageWidth;
-    final printerHeight = isRotated90 ? sheetConfig.pageWidth : sheetConfig.pageHeight;
+    final printerWidth = isRotated90
+        ? sheetConfig.pageHeight
+        : sheetConfig.pageWidth;
+    final printerHeight = isRotated90
+        ? sheetConfig.pageWidth
+        : sheetConfig.pageHeight;
 
     // Printer margins
     final printerMarginLeft = tray.nonPrintableMarginLeft;
@@ -81,10 +91,18 @@ class IntelligentTransformGenerator {
     final double stickerMaxY;
 
     if (stickerConfig.printableArea.isNotEmpty) {
-      stickerMinX = stickerConfig.printableArea.map((p) => p.x).reduce(math.min);
-      stickerMaxX = stickerConfig.printableArea.map((p) => p.x).reduce(math.max);
-      stickerMinY = stickerConfig.printableArea.map((p) => p.y).reduce(math.min);
-      stickerMaxY = stickerConfig.printableArea.map((p) => p.y).reduce(math.max);
+      stickerMinX = stickerConfig.printableArea
+          .map((p) => p.x)
+          .reduce(math.min);
+      stickerMaxX = stickerConfig.printableArea
+          .map((p) => p.x)
+          .reduce(math.max);
+      stickerMinY = stickerConfig.printableArea
+          .map((p) => p.y)
+          .reduce(math.min);
+      stickerMaxY = stickerConfig.printableArea
+          .map((p) => p.y)
+          .reduce(math.max);
     } else {
       stickerMinX = 0.0;
       stickerMaxX = stickerConfig.widthMm;
@@ -97,21 +115,32 @@ class IntelligentTransformGenerator {
 
     // Helper to project a slot index to its boundaries
     Map<String, double> getBounds(int r, int c) {
-      final stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
-      final stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
+      final stickerX =
+          sheetConfig.marginLeft +
+          c * (stickerConfig.widthMm + sheetConfig.columnGap);
+      final stickerY =
+          sheetConfig.marginTop +
+          r * (stickerConfig.heightMm + sheetConfig.rowGap);
 
-      final transform = calibrationContext?.resolveFor(
+      final transform =
+          calibrationContext?.resolveFor(
             row: r,
             column: c,
             absoluteSlotIndex: r * totalColumns + c,
           ) ??
           const PrintStickerTransform.identity();
 
-      final calStickerX = stickerX +
-          (stickerConfig.widthMm * transform.anchorX * (1.0 - transform.scaleX)) +
+      final calStickerX =
+          stickerX +
+          (stickerConfig.widthMm *
+              transform.anchorX *
+              (1.0 - transform.scaleX)) +
           transform.offsetX;
-      final calStickerY = stickerY +
-          (stickerConfig.heightMm * transform.anchorY * (1.0 - transform.scaleY)) +
+      final calStickerY =
+          stickerY +
+          (stickerConfig.heightMm *
+              transform.anchorY *
+              (1.0 - transform.scaleY)) +
           transform.offsetY;
 
       final left = calStickerX + (stickerMinX * transform.scaleX);
@@ -137,10 +166,18 @@ class IntelligentTransformGenerator {
     }
 
     // Identify conflicts from the analysis result
-    final leftConflict = analysisResult.conflicts.firstWhereOrNull((c) => c.affectedEdge == EdgeGroup.left);
-    final rightConflict = analysisResult.conflicts.firstWhereOrNull((c) => c.affectedEdge == EdgeGroup.right);
-    final topConflict = analysisResult.conflicts.firstWhereOrNull((c) => c.affectedEdge == EdgeGroup.top);
-    final bottomConflict = analysisResult.conflicts.firstWhereOrNull((c) => c.affectedEdge == EdgeGroup.bottom);
+    final leftConflict = analysisResult.conflicts.firstWhereOrNull(
+      (c) => c.affectedEdge == EdgeGroup.left,
+    );
+    final rightConflict = analysisResult.conflicts.firstWhereOrNull(
+      (c) => c.affectedEdge == EdgeGroup.right,
+    );
+    final topConflict = analysisResult.conflicts.firstWhereOrNull(
+      (c) => c.affectedEdge == EdgeGroup.top,
+    );
+    final bottomConflict = analysisResult.conflicts.firstWhereOrNull(
+      (c) => c.affectedEdge == EdgeGroup.bottom,
+    );
 
     Log.debug(
       'TransformGenerator: conflicts — left=${leftConflict?.overlapMm}mm, '
@@ -154,6 +191,16 @@ class IntelligentTransformGenerator {
       '(min=($stickerMinX,$stickerMinY), max=($stickerMaxX,$stickerMaxY)).',
       tag: 'PrintPipeline',
     );
+
+    // Returns the four adjacent sticker positions (if they exist)
+    List<({int r, int c})> getNeighbors(int row, int col) {
+      final neighbors = <({int r, int c})>[];
+      if (col > 0) neighbors.add((r: row, c: col - 1));
+      if (col < totalColumns - 1) neighbors.add((r: row, c: col + 1));
+      if (row > 0) neighbors.add((r: row - 1, c: col));
+      if (row < totalRows - 1) neighbors.add((r: row + 1, c: col));
+      return neighbors;
+    }
 
     // 2. Level 2 — Global Translation
     if (preferences.allowTranslation) {
@@ -200,7 +247,8 @@ class IntelligentTransformGenerator {
           }
           return OptimizationStrategy(
             level: OptimizationLevel.globalTransform,
-            description: 'Global translation applied: dx = ${candidateOffsetX.toStringAsFixed(2)} mm, dy = ${candidateOffsetY.toStringAsFixed(2)} mm.',
+            description:
+                'Global translation applied: dx = ${candidateOffsetX.toStringAsFixed(2)} mm, dy = ${candidateOffsetY.toStringAsFixed(2)} mm.',
             transforms: transforms,
           );
         }
@@ -233,7 +281,8 @@ class IntelligentTransformGenerator {
           final r = absIndex ~/ totalColumns;
           final c = absIndex % totalColumns;
           final bounds = getBounds(r, c);
-          if (bounds['right']! + leftGroupShift > printerWidth - printerMarginRight) {
+          if (bounds['right']! + leftGroupShift >
+              printerWidth - printerMarginRight) {
             leftSafe = false;
             break;
           }
@@ -263,7 +312,8 @@ class IntelligentTransformGenerator {
           final r = absIndex ~/ totalColumns;
           final c = absIndex % totalColumns;
           final bounds = getBounds(r, c);
-          if (bounds['bottom']! + topGroupShift > printerHeight - printerMarginBottom) {
+          if (bounds['bottom']! + topGroupShift >
+              printerHeight - printerMarginBottom) {
             topSafe = false;
             break;
           }
@@ -291,10 +341,15 @@ class IntelligentTransformGenerator {
         for (var c = 0; c < totalColumns; c++) {
           final absIndex = r * totalColumns + c;
 
-          final inLeft = leftConflict?.affectedStickerIndices.contains(absIndex) ?? false;
-          final inRight = rightConflict?.affectedStickerIndices.contains(absIndex) ?? false;
-          final inTop = topConflict?.affectedStickerIndices.contains(absIndex) ?? false;
-          final inBottom = bottomConflict?.affectedStickerIndices.contains(absIndex) ?? false;
+          final inLeft =
+              leftConflict?.affectedStickerIndices.contains(absIndex) ?? false;
+          final inRight =
+              rightConflict?.affectedStickerIndices.contains(absIndex) ?? false;
+          final inTop =
+              topConflict?.affectedStickerIndices.contains(absIndex) ?? false;
+          final inBottom =
+              bottomConflict?.affectedStickerIndices.contains(absIndex) ??
+              false;
 
           final dx = (inLeft && !unresolvedLeft)
               ? leftGroupShift
@@ -316,7 +371,10 @@ class IntelligentTransformGenerator {
       }
 
       // If all conflicting groups were resolved by translation
-      if (!unresolvedLeft && !unresolvedRight && !unresolvedTop && !unresolvedBottom) {
+      if (!unresolvedLeft &&
+          !unresolvedRight &&
+          !unresolvedTop &&
+          !unresolvedBottom) {
         return OptimizationStrategy(
           level: OptimizationLevel.edgeGroupTranslation,
           description: 'Edge group translation applied to resolve conflicts.',
@@ -329,19 +387,23 @@ class IntelligentTransformGenerator {
     if (!preferences.allowScaling) {
       return OptimizationStrategy(
         level: OptimizationLevel.unsupported,
-        description: 'Scaling is disabled by preferences. Cannot resolve conflicts.',
+        description:
+            'Scaling is disabled by preferences. Cannot resolve conflicts.',
         transforms: const {},
       );
     }
 
     // 4a — Compute available space (guard: escalate to Level 6 if <= 0)
-    final availablePrinterWidth = printerWidth - printerMarginLeft - printerMarginRight;
-    final availablePrinterHeight = printerHeight - printerMarginTop - printerMarginBottom;
+    final availablePrinterWidth =
+        printerWidth - printerMarginLeft - printerMarginRight;
+    final availablePrinterHeight =
+        printerHeight - printerMarginTop - printerMarginBottom;
 
     if (availablePrinterWidth <= 0 || availablePrinterHeight <= 0) {
       return OptimizationStrategy(
         level: OptimizationLevel.unsupported,
-        description: 'Available print region width or height is zero or negative due to margins.',
+        description:
+            'Available print region width or height is zero or negative due to margins.',
         transforms: const {},
       );
     }
@@ -357,20 +419,34 @@ class IntelligentTransformGenerator {
       tag: 'PrintPipeline',
     );
 
-    final calScaleX = calibrationContext?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0).scaleX ?? 1.0;
-    final calScaleY = calibrationContext?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0).scaleY ?? 1.0;
+    final calScaleX =
+        calibrationContext
+            ?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0)
+            .scaleX ??
+        1.0;
+    final calScaleY =
+        calibrationContext
+            ?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0)
+            .scaleY ??
+        1.0;
 
-    final totalContentWidth = sheetConfig.marginLeft +
+    final totalContentWidth =
+        sheetConfig.marginLeft +
         totalColumns * stickerConfig.widthMm +
         (totalColumns - 1) * sheetConfig.columnGap +
         sheetConfig.marginRight;
-    final totalContentHeight = sheetConfig.marginTop +
+    final totalContentHeight =
+        sheetConfig.marginTop +
         totalRows * stickerConfig.heightMm +
         (totalRows - 1) * sheetConfig.rowGap +
         sheetConfig.marginBottom;
 
-    final scaleX = requiresScaleX ? (availablePrinterWidth / totalContentWidth) / calScaleX : 1.0;
-    final scaleY = requiresScaleY ? (availablePrinterHeight / totalContentHeight) / calScaleY : 1.0;
+    final scaleX = requiresScaleX
+        ? (availablePrinterWidth / totalContentWidth) / calScaleX
+        : 1.0;
+    final scaleY = requiresScaleY
+        ? (availablePrinterHeight / totalContentHeight) / calScaleY
+        : 1.0;
 
     Log.debug(
       'TransformGenerator: Level 4 scale calculation — '
@@ -382,8 +458,10 @@ class IntelligentTransformGenerator {
       'computedScaleX=${scaleX.toStringAsFixed(5)}, computedScaleY=${scaleY.toStringAsFixed(5)}.',
       tag: 'PrintPipeline',
     );
-    final anchorX = (printerMarginLeft + availablePrinterWidth / 2) / printerWidth;
-    final anchorY = (printerMarginTop + availablePrinterHeight / 2) / printerHeight;
+    final anchorX =
+        (printerMarginLeft + availablePrinterWidth / 2) / printerWidth;
+    final anchorY =
+        (printerMarginTop + availablePrinterHeight / 2) / printerHeight;
 
     // 4f — Gate check: scale vs minimumAcceptableScale
     final composedScaleX = availablePrinterWidth / totalContentWidth;
@@ -396,7 +474,8 @@ class IntelligentTransformGenerator {
       );
       return OptimizationStrategy(
         level: OptimizationLevel.unsupported,
-        description: 'Template/printer combination unsupported: required X-axis compression '
+        description:
+            'Template/printer combination unsupported: required X-axis compression '
             '(scaleX = ${composedScaleX.toStringAsFixed(2)}) falls below the minimum '
             'acceptable scale (${preferences.minimumAcceptableScale}). Sticker '
             'printable region width ${printableWidth.toStringAsFixed(1)} mm cannot be adequately '
@@ -415,7 +494,8 @@ class IntelligentTransformGenerator {
       );
       return OptimizationStrategy(
         level: OptimizationLevel.unsupported,
-        description: 'Template/printer combination unsupported: required Y-axis compression '
+        description:
+            'Template/printer combination unsupported: required Y-axis compression '
             '(scaleY = ${composedScaleY.toStringAsFixed(2)}) falls below the minimum '
             'acceptable scale (${preferences.minimumAcceptableScale}). Sticker '
             'printable region height ${printableHeight.toStringAsFixed(1)} mm cannot be adequately '
@@ -432,13 +512,21 @@ class IntelligentTransformGenerator {
       for (var c = 0; c < totalColumns; c++) {
         final absIndex = r * totalColumns + c;
 
-        final inLeft = leftConflict?.affectedStickerIndices.contains(absIndex) ?? false;
-        final inRight = rightConflict?.affectedStickerIndices.contains(absIndex) ?? false;
-        final inTop = topConflict?.affectedStickerIndices.contains(absIndex) ?? false;
-        final inBottom = bottomConflict?.affectedStickerIndices.contains(absIndex) ?? false;
+        final inLeft =
+            leftConflict?.affectedStickerIndices.contains(absIndex) ?? false;
+        final inRight =
+            rightConflict?.affectedStickerIndices.contains(absIndex) ?? false;
+        final inTop =
+            topConflict?.affectedStickerIndices.contains(absIndex) ?? false;
+        final inBottom =
+            bottomConflict?.affectedStickerIndices.contains(absIndex) ?? false;
 
-        final sX = (inLeft && unresolvedLeft) || (inRight && unresolvedRight) ? scaleX : 1.0;
-        final sY = (inTop && unresolvedTop) || (inBottom && unresolvedBottom) ? scaleY : 1.0;
+        final sX = (inLeft && unresolvedLeft) || (inRight && unresolvedRight)
+            ? scaleX
+            : 1.0;
+        final sY = (inTop && unresolvedTop) || (inBottom && unresolvedBottom)
+            ? scaleY
+            : 1.0;
 
         final aX = sX != 1.0 ? anchorX : 0.5;
         final aY = sY != 1.0 ? anchorY : 0.5;
@@ -453,7 +541,10 @@ class IntelligentTransformGenerator {
         final level3Transform = transforms[absIndex];
 
         if (level3Transform != null) {
-          finalTransforms[absIndex] = composer.composeTwo(level3Transform, level4Transform);
+          finalTransforms[absIndex] = composer.composeTwo(
+            level3Transform,
+            level4Transform,
+          );
         } else if (!level4Transform.isIdentity) {
           finalTransforms[absIndex] = level4Transform;
         }
@@ -466,15 +557,29 @@ class IntelligentTransformGenerator {
     // are individually corrected (not all stickers).
     final stillConflicting = <int>{};
 
-    Map<String, double> projectBounds(int r, int c, PrintStickerTransform transform) {
-      final stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
-      final stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
+    Map<String, double> projectBounds(
+      int r,
+      int c,
+      PrintStickerTransform transform,
+    ) {
+      final stickerX =
+          sheetConfig.marginLeft +
+          c * (stickerConfig.widthMm + sheetConfig.columnGap);
+      final stickerY =
+          sheetConfig.marginTop +
+          r * (stickerConfig.heightMm + sheetConfig.rowGap);
 
-      final calStickerX = stickerX +
-          (stickerConfig.widthMm * transform.anchorX * (1.0 - transform.scaleX)) +
+      final calStickerX =
+          stickerX +
+          (stickerConfig.widthMm *
+              transform.anchorX *
+              (1.0 - transform.scaleX)) +
           transform.offsetX;
-      final calStickerY = stickerY +
-          (stickerConfig.heightMm * transform.anchorY * (1.0 - transform.scaleY)) +
+      final calStickerY =
+          stickerY +
+          (stickerConfig.heightMm *
+              transform.anchorY *
+              (1.0 - transform.scaleY)) +
           transform.offsetY;
 
       final left = calStickerX + (stickerMinX * transform.scaleX);
@@ -496,7 +601,8 @@ class IntelligentTransformGenerator {
     for (var r = 0; r < totalRows; r++) {
       for (var c = 0; c < totalColumns; c++) {
         final absIndex = r * totalColumns + c;
-        final calTransform = calibrationContext?.resolveFor(
+        final calTransform =
+            calibrationContext?.resolveFor(
               row: r,
               column: c,
               absoluteSlotIndex: absIndex,
@@ -504,7 +610,10 @@ class IntelligentTransformGenerator {
             const PrintStickerTransform.identity();
         final optimizationTransform =
             finalTransforms[absIndex] ?? const PrintStickerTransform.identity();
-        final fullTransform = composer.composeTwo(calTransform, optimizationTransform);
+        final fullTransform = composer.composeTwo(
+          calTransform,
+          optimizationTransform,
+        );
         final bounds = projectBounds(r, c, fullTransform);
 
         if (bounds['left']! < printerMarginLeft ||
@@ -524,12 +633,29 @@ class IntelligentTransformGenerator {
       );
 
       var level6Escalation = false;
-      final level5Transforms = Map<int, PrintStickerTransform>.from(finalTransforms);
+      final level5Transforms = Map<int, PrintStickerTransform>.from(
+        finalTransforms,
+      );
+
+      Map<String, double> getFullBounds(int r, int c) {
+        final ct =
+            calibrationContext?.resolveFor(
+              row: r,
+              column: c,
+              absoluteSlotIndex: r * totalColumns + c,
+            ) ??
+            const PrintStickerTransform.identity();
+        final ot =
+            finalTransforms[r * totalColumns + c] ??
+            const PrintStickerTransform.identity();
+        return projectBounds(r, c, composer.composeTwo(ct, ot));
+      }
 
       for (final absIndex in stillConflicting) {
         final r = absIndex ~/ totalColumns;
         final c = absIndex % totalColumns;
-        final calTransform = calibrationContext?.resolveFor(
+        final calTransform =
+            calibrationContext?.resolveFor(
               row: r,
               column: c,
               absoluteSlotIndex: absIndex,
@@ -537,7 +663,10 @@ class IntelligentTransformGenerator {
             const PrintStickerTransform.identity();
         final existingOptimization =
             finalTransforms[absIndex] ?? const PrintStickerTransform.identity();
-        final existingFull = composer.composeTwo(calTransform, existingOptimization);
+        final existingFull = composer.composeTwo(
+          calTransform,
+          existingOptimization,
+        );
         final bounds = projectBounds(r, c, existingFull);
 
         // 5a — Try per-sticker translation
@@ -558,11 +687,38 @@ class IntelligentTransformGenerator {
         final withOffset = composer.composeTwo(existingFull, offsetTransform);
         final offsetBounds = projectBounds(r, c, withOffset);
 
-        if (offsetBounds['left']! >= printerMarginLeft &&
+        // Check that offset doesn't cause overlap with adjacent stickers
+        var offsetCausesOverlap = false;
+        if (dx != 0 || dy != 0) {
+          for (final neighbor in getNeighbors(r, c)) {
+            final nb = getFullBounds(neighbor.r, neighbor.c);
+            final hOverlap =
+                offsetBounds['left']! < nb['right']! &&
+                offsetBounds['right']! > nb['left']!;
+            final vOverlap =
+                offsetBounds['top']! < nb['bottom']! &&
+                offsetBounds['bottom']! > nb['top']!;
+            if (hOverlap && vOverlap) {
+              offsetCausesOverlap = true;
+              Log.debug(
+                '  Sticker $absIndex: offset (dx=$dx, dy=$dy) would overlap '
+                'neighbor (${neighbor.r},${neighbor.c}). Falling back to scaling.',
+                tag: 'PrintPipeline',
+              );
+              break;
+            }
+          }
+        }
+
+        if (!offsetCausesOverlap &&
+            offsetBounds['left']! >= printerMarginLeft &&
             offsetBounds['right']! <= (printerWidth - printerMarginRight) &&
             offsetBounds['top']! >= printerMarginTop &&
             offsetBounds['bottom']! <= (printerHeight - printerMarginBottom)) {
-          final correctionTransform = composer.composeTwo(existingOptimization, offsetTransform);
+          final correctionTransform = composer.composeTwo(
+            existingOptimization,
+            offsetTransform,
+          );
           final optimizationTransformWithCorrection =
               correctionTransform.isIdentity ? null : correctionTransform;
           if (optimizationTransformWithCorrection != null) {
@@ -579,17 +735,23 @@ class IntelligentTransformGenerator {
         // 5b — Offset didn't work, try per-sticker scaling
         final currentPrintWidth = bounds['right']! - bounds['left']!;
         final currentPrintHeight = bounds['bottom']! - bounds['top']!;
-        final availableW = printerWidth - printerMarginRight - printerMarginLeft;
-        final availableH = printerHeight - printerMarginBottom - printerMarginTop;
+        final availableW =
+            printerWidth - printerMarginRight - printerMarginLeft;
+        final availableH =
+            printerHeight - printerMarginBottom - printerMarginTop;
 
         final sX = currentPrintWidth > 0 ? availableW / currentPrintWidth : 1.0;
-        final sY = currentPrintHeight > 0 ? availableH / currentPrintHeight : 1.0;
+        final sY = currentPrintHeight > 0
+            ? availableH / currentPrintHeight
+            : 1.0;
 
-        final appliedSX = (bounds['left']! < printerMarginLeft ||
+        final appliedSX =
+            (bounds['left']! < printerMarginLeft ||
                 bounds['right']! > (printerWidth - printerMarginRight))
             ? sX
             : 1.0;
-        final appliedSY = (bounds['top']! < printerMarginTop ||
+        final appliedSY =
+            (bounds['top']! < printerMarginTop ||
                 bounds['bottom']! > (printerHeight - printerMarginBottom))
             ? sY
             : 1.0;
@@ -619,7 +781,10 @@ class IntelligentTransformGenerator {
             scaleBounds['right']! <= (printerWidth - printerMarginRight) &&
             scaleBounds['top']! >= printerMarginTop &&
             scaleBounds['bottom']! <= (printerHeight - printerMarginBottom)) {
-          final correction = composer.composeTwo(existingOptimization, scaleTransform);
+          final correction = composer.composeTwo(
+            existingOptimization,
+            scaleTransform,
+          );
           level5Transforms[absIndex] = correction;
           Log.debug(
             '  Sticker $absIndex: individual scale (sx=${appliedSX.toStringAsFixed(3)}, '
@@ -640,7 +805,8 @@ class IntelligentTransformGenerator {
       if (level6Escalation) {
         return OptimizationStrategy(
           level: OptimizationLevel.unsupported,
-          description: 'Individual sticker optimization failed: '
+          description:
+              'Individual sticker optimization failed: '
               'required correction below minimum acceptable threshold.',
           transforms: const {},
         );

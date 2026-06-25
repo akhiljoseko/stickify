@@ -29,16 +29,25 @@ class PrinterManagementCubit extends Cubit<PrinterManagementState> {
   /// Loads available system printers and saved profiles, matches them, and performs
   /// compatibility validation checks.
   Future<void> loadPrintersAndProfiles() async {
+    Log.info('Loading printers and profiles...', tag: 'PrinterMgmt');
     emit(state.copyWith(status: PrinterManagementStatus.loading));
 
     try {
       // Step 1: Load Runtime OS Printers
       final discoveredPrinters = await printerDiscoveryService.getDiscoveredPrinters();
+      Log.info(
+        'Discovered ${discoveredPrinters.length} system printer(s).',
+        tag: 'PrinterMgmt',
+      );
 
       // Step 2: Load Saved Profiles
       final profilesResult = await printerProfileRepository.getAllProfiles();
       switch (profilesResult) {
         case Failure(:final error):
+          Log.error(
+            'Failed to load printer profiles: ${error.message}',
+            tag: 'PrinterMgmt',
+          );
           emit(
             state.copyWith(
               status: PrinterManagementStatus.failure,
@@ -48,10 +57,23 @@ class PrinterManagementCubit extends Cubit<PrinterManagementState> {
           return;
 
         case Success(value: final profiles):
+          Log.info(
+            'Loaded ${profiles.length} saved printer profile(s).',
+            tag: 'PrinterMgmt',
+          );
+
           // Step 3: Match Profiles
           final matches = printerProfileMatcher.matchProfiles(
             profiles: profiles,
             discoveredPrinters: discoveredPrinters,
+          );
+
+          Log.info(
+            'Profile matching complete: '
+            '${matches.where((m) => m.status == PrinterProfileMatchStatus.matched).length} exact match(es), '
+            '${matches.where((m) => m.status == PrinterProfileMatchStatus.compatible).length} compatible, '
+            '${matches.where((m) => m.status == PrinterProfileMatchStatus.missing).length} missing.',
+            tag: 'PrinterMgmt',
           );
 
           // Steps 4 & 5: Run Compatibility checks for matched/compatible profiles
@@ -81,6 +103,10 @@ class PrinterManagementCubit extends Cubit<PrinterManagementState> {
           );
       }
     } catch (e) {
+      Log.error(
+        'Unexpected error loading printers: $e',
+        tag: 'PrinterMgmt',
+      );
       emit(
         state.copyWith(
           status: PrinterManagementStatus.failure,

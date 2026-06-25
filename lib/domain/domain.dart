@@ -7,7 +7,13 @@
 /// ```
 library;
 
+export 'entities/calibration_generation_request.dart';
+export 'entities/calibration_generation_result.dart';
+export 'entities/calibration_measurement.dart';
+export 'entities/calibration_measurement_point.dart';
 export 'entities/calibration_rule.dart';
+export 'entities/calibration_session.dart';
+export 'entities/calibration_sheet_template.dart';
 export 'entities/discovered_printer.dart';
 export 'entities/editor/barcode_element_blueprint.dart';
 export 'entities/editor/element_blueprint.dart';

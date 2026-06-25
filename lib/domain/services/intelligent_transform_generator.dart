@@ -453,12 +453,211 @@ class IntelligentTransformGenerator {
         final level3Transform = transforms[absIndex];
 
         if (level3Transform != null) {
-          // 4e — Compose Level 3 + Level 4 transforms
           finalTransforms[absIndex] = composer.composeTwo(level3Transform, level4Transform);
         } else if (!level4Transform.isIdentity) {
           finalTransforms[absIndex] = level4Transform;
         }
       }
+    }
+
+    // 5. Level 5 — Individual Sticker Optimization
+    // Check each sticker after Level 3+4 composition for remaining margin conflicts.
+    // Only stickers whose composed transform still leaves them outside margins
+    // are individually corrected (not all stickers).
+    final stillConflicting = <int>{};
+
+    Map<String, double> projectBounds(int r, int c, PrintStickerTransform transform) {
+      final stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
+      final stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
+
+      final calStickerX = stickerX +
+          (stickerConfig.widthMm * transform.anchorX * (1.0 - transform.scaleX)) +
+          transform.offsetX;
+      final calStickerY = stickerY +
+          (stickerConfig.heightMm * transform.anchorY * (1.0 - transform.scaleY)) +
+          transform.offsetY;
+
+      final left = calStickerX + (stickerMinX * transform.scaleX);
+      final right = calStickerX + (stickerMaxX * transform.scaleX);
+      final top = calStickerY + (stickerMinY * transform.scaleY);
+      final bottom = calStickerY + (stickerMaxY * transform.scaleY);
+
+      if (isRotated90) {
+        return {
+          'left': sheetConfig.pageHeight - bottom,
+          'right': sheetConfig.pageHeight - top,
+          'top': left,
+          'bottom': right,
+        };
+      }
+      return {'left': left, 'right': right, 'top': top, 'bottom': bottom};
+    }
+
+    for (var r = 0; r < totalRows; r++) {
+      for (var c = 0; c < totalColumns; c++) {
+        final absIndex = r * totalColumns + c;
+        final calTransform = calibrationContext?.resolveFor(
+              row: r,
+              column: c,
+              absoluteSlotIndex: absIndex,
+            ) ??
+            const PrintStickerTransform.identity();
+        final optimizationTransform =
+            finalTransforms[absIndex] ?? const PrintStickerTransform.identity();
+        final fullTransform = composer.composeTwo(calTransform, optimizationTransform);
+        final bounds = projectBounds(r, c, fullTransform);
+
+        if (bounds['left']! < printerMarginLeft ||
+            bounds['right']! > (printerWidth - printerMarginRight) ||
+            bounds['top']! < printerMarginTop ||
+            bounds['bottom']! > (printerHeight - printerMarginBottom)) {
+          stillConflicting.add(absIndex);
+        }
+      }
+    }
+
+    if (stillConflicting.isNotEmpty) {
+      Log.debug(
+        'TransformGenerator: Level 5 — ${stillConflicting.length} sticker(s) still '
+        'conflict after Level 4. Applying individual corrections...',
+        tag: 'PrintPipeline',
+      );
+
+      var level6Escalation = false;
+      final level5Transforms = Map<int, PrintStickerTransform>.from(finalTransforms);
+
+      for (final absIndex in stillConflicting) {
+        final r = absIndex ~/ totalColumns;
+        final c = absIndex % totalColumns;
+        final calTransform = calibrationContext?.resolveFor(
+              row: r,
+              column: c,
+              absoluteSlotIndex: absIndex,
+            ) ??
+            const PrintStickerTransform.identity();
+        final existingOptimization =
+            finalTransforms[absIndex] ?? const PrintStickerTransform.identity();
+        final existingFull = composer.composeTwo(calTransform, existingOptimization);
+        final bounds = projectBounds(r, c, existingFull);
+
+        // 5a — Try per-sticker translation
+        double dx = 0;
+        double dy = 0;
+        if (bounds['left']! < printerMarginLeft) {
+          dx = printerMarginLeft - bounds['left']!;
+        } else if (bounds['right']! > (printerWidth - printerMarginRight)) {
+          dx = (printerWidth - printerMarginRight) - bounds['right']!;
+        }
+        if (bounds['top']! < printerMarginTop) {
+          dy = printerMarginTop - bounds['top']!;
+        } else if (bounds['bottom']! > (printerHeight - printerMarginBottom)) {
+          dy = (printerHeight - printerMarginBottom) - bounds['bottom']!;
+        }
+
+        final offsetTransform = PrintStickerTransform(offsetX: dx, offsetY: dy);
+        final withOffset = composer.composeTwo(existingFull, offsetTransform);
+        final offsetBounds = projectBounds(r, c, withOffset);
+
+        if (offsetBounds['left']! >= printerMarginLeft &&
+            offsetBounds['right']! <= (printerWidth - printerMarginRight) &&
+            offsetBounds['top']! >= printerMarginTop &&
+            offsetBounds['bottom']! <= (printerHeight - printerMarginBottom)) {
+          final correctionTransform = composer.composeTwo(existingOptimization, offsetTransform);
+          final optimizationTransformWithCorrection =
+              correctionTransform.isIdentity ? null : correctionTransform;
+          if (optimizationTransformWithCorrection != null) {
+            level5Transforms[absIndex] = correctionTransform;
+          }
+          Log.debug(
+            '  Sticker $absIndex: individual offset (dx=${dx.toStringAsFixed(2)}, '
+            'dy=${dy.toStringAsFixed(2)}) resolved remaining conflict.',
+            tag: 'PrintPipeline',
+          );
+          continue;
+        }
+
+        // 5b — Offset didn't work, try per-sticker scaling
+        final currentPrintWidth = bounds['right']! - bounds['left']!;
+        final currentPrintHeight = bounds['bottom']! - bounds['top']!;
+        final availableW = printerWidth - printerMarginRight - printerMarginLeft;
+        final availableH = printerHeight - printerMarginBottom - printerMarginTop;
+
+        final sX = currentPrintWidth > 0 ? availableW / currentPrintWidth : 1.0;
+        final sY = currentPrintHeight > 0 ? availableH / currentPrintHeight : 1.0;
+
+        final appliedSX = (bounds['left']! < printerMarginLeft ||
+                bounds['right']! > (printerWidth - printerMarginRight))
+            ? sX
+            : 1.0;
+        final appliedSY = (bounds['top']! < printerMarginTop ||
+                bounds['bottom']! > (printerHeight - printerMarginBottom))
+            ? sY
+            : 1.0;
+
+        if (appliedSX < preferences.minimumAcceptableScale ||
+            appliedSY < preferences.minimumAcceptableScale) {
+          Log.warning(
+            '  Sticker $absIndex: individual scale (sx=${appliedSX.toStringAsFixed(3)}, '
+            'sy=${appliedSY.toStringAsFixed(3)}) below minimum '
+            '${preferences.minimumAcceptableScale}. Escalating to Level 6.',
+            tag: 'PrintPipeline',
+          );
+          level6Escalation = true;
+          break;
+        }
+
+        final scaleTransform = PrintStickerTransform(
+          scaleX: appliedSX,
+          scaleY: appliedSY,
+          anchorX: (printerMarginLeft + availableW / 2) / printerWidth,
+          anchorY: (printerMarginTop + availableH / 2) / printerHeight,
+        );
+        final withScale = composer.composeTwo(existingFull, scaleTransform);
+        final scaleBounds = projectBounds(r, c, withScale);
+
+        if (scaleBounds['left']! >= printerMarginLeft &&
+            scaleBounds['right']! <= (printerWidth - printerMarginRight) &&
+            scaleBounds['top']! >= printerMarginTop &&
+            scaleBounds['bottom']! <= (printerHeight - printerMarginBottom)) {
+          final correction = composer.composeTwo(existingOptimization, scaleTransform);
+          level5Transforms[absIndex] = correction;
+          Log.debug(
+            '  Sticker $absIndex: individual scale (sx=${appliedSX.toStringAsFixed(3)}, '
+            'sy=${appliedSY.toStringAsFixed(3)}) resolved remaining conflict.',
+            tag: 'PrintPipeline',
+          );
+        } else {
+          Log.warning(
+            '  Sticker $absIndex: individual scale (sx=${appliedSX.toStringAsFixed(3)}, '
+            'sy=${appliedSY.toStringAsFixed(3)}) still leaves conflicts. Escalating to Level 6.',
+            tag: 'PrintPipeline',
+          );
+          level6Escalation = true;
+          break;
+        }
+      }
+
+      if (level6Escalation) {
+        return OptimizationStrategy(
+          level: OptimizationLevel.unsupported,
+          description: 'Individual sticker optimization failed: '
+              'required correction below minimum acceptable threshold.',
+          transforms: const {},
+        );
+      }
+
+      Log.info(
+        'TransformGenerator: Level 5 — individual corrections applied for '
+        '${stillConflicting.length} sticker(s).',
+        tag: 'PrintPipeline',
+      );
+
+      return OptimizationStrategy(
+        level: OptimizationLevel.individualSticker,
+        description:
+            'Individual sticker optimization applied for ${stillConflicting.length} unresolved sticker(s).',
+        transforms: level5Transforms,
+      );
     }
 
     return OptimizationStrategy(

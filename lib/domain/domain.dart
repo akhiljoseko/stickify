@@ -59,6 +59,7 @@ export 'repositories/template_repository.dart';
 export 'repositories/variant_print_stats_repository.dart';
 export 'services/auth_service.dart';
 export 'services/calibration_request.dart';
+export 'services/calibration_rule_generator.dart';
 export 'services/calibration_rule_matcher.dart';
 export 'services/calibration_transform_composer.dart';
 export 'services/feature_access_service.dart';

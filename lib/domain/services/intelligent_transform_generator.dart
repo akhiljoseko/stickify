@@ -57,7 +57,12 @@ class IntelligentTransformGenerator {
     final templateIsPortrait = sheetConfig.pageWidth < sheetConfig.pageHeight;
     final printerSupportsPortrait = printer.capabilities.supportsPortraitCustomPaper;
     final printerSupportsLandscape = printer.capabilities.supportsLandscapeCustomPaper;
-    final isRotated90 = templateIsPortrait && !printerSupportsPortrait && printerSupportsLandscape;
+    final bool isRotated90;
+    if (templateIsPortrait) {
+      isRotated90 = !printerSupportsPortrait && printerSupportsLandscape;
+    } else {
+      isRotated90 = !printerSupportsLandscape && printerSupportsPortrait;
+    }
 
     // Page dimensions in printer coordinate space
     final printerWidth = isRotated90 ? sheetConfig.pageHeight : sheetConfig.pageWidth;

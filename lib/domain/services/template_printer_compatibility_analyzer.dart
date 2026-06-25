@@ -45,29 +45,20 @@ class TemplatePrinterCompatibilityAnalyzer {
       if (printerSupportsPortrait) {
         isRotated90 = false;
       } else if (printerSupportsLandscape) {
+        // Portrait template must be rotated 90° to print on landscape-only printer
         isRotated90 = true;
       } else {
-        // Fallback to identity but report unsupported if capabilities are completely empty
         isRotated90 = false;
       }
     } else {
       if (printerSupportsLandscape) {
         isRotated90 = false;
+      } else if (printerSupportsPortrait) {
+        // Landscape template must be rotated -90° to print on portrait-only printer.
+        // The axis swap and mirroring is identical to the portrait→landscape case.
+        isRotated90 = true;
       } else {
-        // Landscape template on a portrait-only printer is unsupported
-        return CompatibilityAnalysisResult(
-          conflicts: [
-            PrintRegionConflict(
-              affectedEdge: EdgeGroup.left,
-              overlapMm: 999, // arbitrary indicator of failure
-              affectedStickerIndices: List.generate(
-                sheetConfig.columns * sheetConfig.rows,
-                (i) => i,
-              ),
-            ),
-          ],
-          recommendedOptimizationLevel: OptimizationLevel.unsupported,
-        );
+        isRotated90 = false;
       }
     }
 

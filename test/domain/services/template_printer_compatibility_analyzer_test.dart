@@ -205,7 +205,7 @@ void main() {
       expect(result.conflicts.any((c) => c.affectedEdge == EdgeGroup.left), isTrue);
     });
 
-    test('Unsupported mapping (landscape template on portrait-only printer)', () {
+    test('Rotated mapping (landscape template on portrait-only printer)', () {
       final printer = PrinterProfile(
         id: 'p1',
         displayName: 'Portrait Only Printer',
@@ -214,7 +214,7 @@ void main() {
         capabilities: const PrinterCapabilities(
           supportsCustomPaperSize: true,
           supportsPortraitCustomPaper: true,
-          supportsLandscapeCustomPaper: false, // Cannot support landscape template
+          supportsLandscapeCustomPaper: false,
           supportsManualFeed: false,
           supportsBorderlessPrinting: false,
           supportsTraySelection: false,
@@ -236,8 +236,12 @@ void main() {
         tray: tray,
       );
 
-      expect(result.hasConflicts, isTrue);
-      expect(result.recommendedOptimizationLevel, equals(OptimizationLevel.unsupported));
+      // Landscape template on portrait-only printer is now handled via rotation
+      // instead of being rejected as unsupported. The rotation swaps axes so
+      // coordinates are correctly projected into printer space. No conflicts
+      // expected here since the tray has 0mm margins by default.
+      expect(result.hasConflicts, isFalse);
+      expect(result.recommendedOptimizationLevel, equals(OptimizationLevel.noModification));
     });
   });
 }

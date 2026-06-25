@@ -9,7 +9,6 @@ class OptimizationPreferences extends Equatable {
   const OptimizationPreferences({
     required this.allowScaling,
     required this.allowTranslation,
-    required this.preferShrinkOverShift,
     required this.allowStickerSpecificAdjustment,
     this.minimumAcceptableScale = 0.7,
   }) : assert(
@@ -23,9 +22,6 @@ class OptimizationPreferences extends Equatable {
   /// Whether the layout engine is allowed to apply translation shifts to stickers.
   final bool allowTranslation;
 
-  /// If clipping occurs, whether to prefer scaling down (shrinking) over shifting.
-  final bool preferShrinkOverShift;
-
   /// Whether the calibration engine can apply transformations to specific slot indexes.
   final bool allowStickerSpecificAdjustment;
 
@@ -36,14 +32,12 @@ class OptimizationPreferences extends Equatable {
   OptimizationPreferences copyWith({
     bool? allowScaling,
     bool? allowTranslation,
-    bool? preferShrinkOverShift,
     bool? allowStickerSpecificAdjustment,
     double? minimumAcceptableScale,
   }) {
     return OptimizationPreferences(
       allowScaling: allowScaling ?? this.allowScaling,
       allowTranslation: allowTranslation ?? this.allowTranslation,
-      preferShrinkOverShift: preferShrinkOverShift ?? this.preferShrinkOverShift,
       allowStickerSpecificAdjustment:
           allowStickerSpecificAdjustment ?? this.allowStickerSpecificAdjustment,
       minimumAcceptableScale:
@@ -55,7 +49,6 @@ class OptimizationPreferences extends Equatable {
   List<Object?> get props => [
         allowScaling,
         allowTranslation,
-        preferShrinkOverShift,
         allowStickerSpecificAdjustment,
         minimumAcceptableScale,
       ];
@@ -65,7 +58,6 @@ class OptimizationPreferences extends Equatable {
       'OptimizationPreferences('
       'allowScaling: $allowScaling, '
       'allowTranslation: $allowTranslation, '
-      'preferShrinkOverShift: $preferShrinkOverShift, '
       'allowStickerSpecificAdjustment: $allowStickerSpecificAdjustment, '
       'minimumAcceptableScale: $minimumAcceptableScale)';
 }

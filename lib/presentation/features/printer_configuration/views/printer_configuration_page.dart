@@ -432,14 +432,6 @@ class _PrinterConfigurationView extends StatelessWidget {
             ),
             _buildToggle(
               context,
-              label: 'Prefer Shrink Over Shift',
-              value: state.preferShrinkOverShift,
-              onChanged: (v) => context
-                  .read<PrinterConfigurationCubit>()
-                  .setPreferShrinkOverShift(v),
-            ),
-            _buildToggle(
-              context,
               label: 'Allow Sticker-Specific Adjustment',
               value: state.allowStickerSpecificAdjustment,
               onChanged: (v) => context

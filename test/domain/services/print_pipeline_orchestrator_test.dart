@@ -81,7 +81,6 @@ void main() {
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
           allowTranslation: true,
-          preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
         ),
         trays: [defaultTray],
@@ -175,7 +174,6 @@ void main() {
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
           allowTranslation: true,
-          preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
         ),
         trays: [trayWithCalibration],
@@ -244,7 +242,6 @@ void main() {
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
           allowTranslation: true,
-          preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
         ),
         trays: [trayWithCalibration],

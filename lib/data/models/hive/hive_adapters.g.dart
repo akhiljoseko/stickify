@@ -742,7 +742,6 @@ class OptimizationPreferencesHiveModelAdapter
     return OptimizationPreferencesHiveModel(
       allowScaling: fields[0] as bool,
       allowTranslation: fields[1] as bool,
-      preferShrinkOverShift: fields[2] as bool,
       allowStickerSpecificAdjustment: fields[3] as bool,
       minimumAcceptableScale: fields[4] == null
           ? 0.7
@@ -753,13 +752,11 @@ class OptimizationPreferencesHiveModelAdapter
   @override
   void write(BinaryWriter writer, OptimizationPreferencesHiveModel obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.allowScaling)
       ..writeByte(1)
       ..write(obj.allowTranslation)
-      ..writeByte(2)
-      ..write(obj.preferShrinkOverShift)
       ..writeByte(3)
       ..write(obj.allowStickerSpecificAdjustment)
       ..writeByte(4)

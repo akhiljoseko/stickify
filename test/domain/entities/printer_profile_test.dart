@@ -250,7 +250,6 @@ void main() {
     const testPreferences = OptimizationPreferences(
       allowScaling: true,
       allowTranslation: true,
-      preferShrinkOverShift: false,
       allowStickerSpecificAdjustment: true,
     );
     final testTray = PrinterTrayProfile(

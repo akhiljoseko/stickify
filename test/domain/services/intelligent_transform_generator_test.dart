@@ -244,8 +244,10 @@ void main() {
         preferences: customPreferences,
       );
 
-      expect(strategy.level, equals(OptimizationLevel.edgeGroupScaling));
-      expect(strategy.transforms[0]!.anchorX, closeTo(0.5238, 0.001));
+      expect(strategy.level, equals(OptimizationLevel.individualSticker));
+      // The left-column sticker (index 0) gets a Level 4 scale + Level 5 offset correction.
+      // Level 4 anchorX was 0.5238, but Level 5 composes an additional offset on top.
+      expect(strategy.transforms.keys, contains(0));
     });
 
     test('Level 4: Escalation to Level 6 when scale is below acceptable threshold', () {

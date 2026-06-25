@@ -266,7 +266,7 @@ class _TrayConfigurationSheetState extends State<TrayConfigurationSheet> {
   }) {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      value: value,
+      initialValue: value,
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),

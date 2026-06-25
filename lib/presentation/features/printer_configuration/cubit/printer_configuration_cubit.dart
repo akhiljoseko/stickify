@@ -6,14 +6,10 @@ import 'package:uuid/uuid.dart';
 
 class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
   PrinterConfigurationCubit({
-    required PrinterProfileRepository printerProfileRepository,
-    required PrinterDiscoveryService printerDiscoveryService,
-  })  : _printerProfileRepository = printerProfileRepository,
-        _printerDiscoveryService = printerDiscoveryService,
-        super(const PrinterConfigurationState.initial());
+    required this.printerProfileRepository,
+  })  : super(const PrinterConfigurationState.initial());
 
   final PrinterProfileRepository printerProfileRepository;
-  final PrinterDiscoveryService _printerDiscoveryService;
   static const _uuid = Uuid();
 
   Future<void> loadProfile(String id) async {

@@ -36,6 +36,7 @@ class _AppState extends State<App> {
     final locator = widget.locator;
     return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<AppServiceLocator>.value(value: locator),
         RepositoryProvider<LocalDatabase>.value(value: locator.database),
         RepositoryProvider<AuthService>.value(value: locator.authService),
         RepositoryProvider<ProductRepository>.value(

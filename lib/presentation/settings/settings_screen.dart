@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/auth/auth.dart';
 
 /// Settings screen — the designated place for the Logout action.
@@ -76,6 +77,18 @@ class SettingsScreen extends StatelessWidget {
             // ),
 
             const SizedBox(height: 32),
+
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.print_outlined, color: colorScheme.primary),
+                title: const Text('Printer Management'),
+                subtitle: const Text('Configure and calibrate label printers'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => const PrinterManagementRoute().go(context),
+              ),
+            ),
+
+            const SizedBox(height: 16),
 
             // ── Logout Section ─────────────────────────────────────────────
             // Separated at the bottom for clear visual hierarchy.

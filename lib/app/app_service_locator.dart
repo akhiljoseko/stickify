@@ -32,6 +32,7 @@ import 'package:stickify/data/services/hive_sync_queue.dart';
 import 'package:stickify/data/services/local_file_storage_service.dart';
 import 'package:stickify/data/services/unimplemented_file_storage_service.dart';
 import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/features/printer_management/cubit/printer_management_cubit.dart';
 
 /// Centralized Dependency Injection container and service locator.
 class AppServiceLocator {
@@ -231,6 +232,23 @@ class AppServiceLocator {
   final FileStorageService fileStorageService;
 
   final StreamSubscription<AppUser?> _authSubscription;
+
+  /// The printer profile matcher.
+  final PrinterProfileMatcher printerProfileMatcher = PrinterProfileMatcher();
+
+  /// The printer profile compatibility analyzer.
+  final PrinterProfileCompatibilityAnalyzer printerProfileCompatibilityAnalyzer =
+      PrinterProfileCompatibilityAnalyzer();
+
+  /// Factory method to construct [PrinterManagementCubit].
+  PrinterManagementCubit createPrinterManagementCubit() {
+    return PrinterManagementCubit(
+      printerDiscoveryService: printerDiscoveryService,
+      printerProfileRepository: printerProfileRepository,
+      printerProfileMatcher: printerProfileMatcher,
+      printerProfileCompatibilityAnalyzer: printerProfileCompatibilityAnalyzer,
+    );
+  }
 
   /// Clean up subscriptions and release resources.
   void dispose() {

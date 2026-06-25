@@ -526,10 +526,26 @@ mixin $PrinterManagementRoute on GoRouteData {
 
 mixin $PrinterConfigurationRoute on GoRouteData {
   static PrinterConfigurationRoute _fromState(GoRouterState state) =>
-      const PrinterConfigurationRoute();
+      PrinterConfigurationRoute(
+        systemPrinterName: state.uri.queryParameters['system-printer-name'],
+        manufacturer: state.uri.queryParameters['manufacturer'],
+        model: state.uri.queryParameters['model'],
+        driverName: state.uri.queryParameters['driver-name'],
+      );
+
+  PrinterConfigurationRoute get _self => this as PrinterConfigurationRoute;
 
   @override
-  String get location => GoRouteData.$location('/settings/printers/new');
+  String get location => GoRouteData.$location(
+    '/settings/printers/new',
+    queryParams: {
+      if (_self.systemPrinterName != null)
+        'system-printer-name': _self.systemPrinterName,
+      if (_self.manufacturer != null) 'manufacturer': _self.manufacturer,
+      if (_self.model != null) 'model': _self.model,
+      if (_self.driverName != null) 'driver-name': _self.driverName,
+    },
+  );
 
   @override
   void go(BuildContext context) => context.go(location);

@@ -13,18 +13,36 @@ import 'package:stickify/presentation/features/printer_configuration/widgets/tra
 class PrinterConfigurationPage extends StatelessWidget {
   const PrinterConfigurationPage({
     this.profileId,
+    this.systemPrinterName,
+    this.manufacturer,
+    this.model,
+    this.driverName,
     super.key,
   });
 
   final String? profileId;
+  final String? systemPrinterName;
+  final String? manufacturer;
+  final String? model;
+  final String? driverName;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
-        final cubit = context.read<AppServiceLocator>().createPrinterConfigurationCubit();
+        final cubit = context
+            .read<AppServiceLocator>()
+            .createPrinterConfigurationCubit();
         if (profileId != null) {
           cubit.loadProfile(profileId!);
+        }
+        if (systemPrinterName != null && systemPrinterName!.isNotEmpty) {
+          cubit
+            ..setSystemPrinterName(systemPrinterName!)
+            ..setDisplayName(systemPrinterName!)
+            ..setManufacturer(manufacturer ?? '')
+            ..setModel(model ?? '')
+            ..setDriverName(driverName ?? '');
         }
         return cubit;
       },
@@ -65,9 +83,9 @@ class _PrinterConfigurationView extends StatelessWidget {
                 onPressed: state.status == PrinterConfigurationStatus.saving
                     ? null
                     : () => context
-                        .read<PrinterConfigurationCubit>()
-                        .save()
-                        .then((_) {}),
+                          .read<PrinterConfigurationCubit>()
+                          .save()
+                          .then((_) {}),
                 child: state.status == PrinterConfigurationStatus.saving
                     ? const SizedBox(
                         width: 18,
@@ -95,13 +113,12 @@ class _PrinterConfigurationView extends StatelessWidget {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton.icon(
-                    onPressed:
-                        state.status == PrinterConfigurationStatus.saving
-                            ? null
-                            : () => context
-                                .read<PrinterConfigurationCubit>()
-                                .save()
-                                .then((_) {}),
+                    onPressed: state.status == PrinterConfigurationStatus.saving
+                        ? null
+                        : () => context
+                              .read<PrinterConfigurationCubit>()
+                              .save()
+                              .then((_) {}),
                     icon: state.status == PrinterConfigurationStatus.saving
                         ? const SizedBox(
                             width: 18,
@@ -133,7 +150,10 @@ class _PrinterConfigurationView extends StatelessWidget {
     );
   }
 
-  Widget _buildBasicInfo(BuildContext context, PrinterConfigurationState state) {
+  Widget _buildBasicInfo(
+    BuildContext context,
+    PrinterConfigurationState state,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
@@ -208,7 +228,9 @@ class _PrinterConfigurationView extends StatelessWidget {
                 border: OutlineInputBorder(),
               ),
               controller: TextEditingController(text: state.displayName)
-                ..selection = TextSelection.collapsed(offset: state.displayName.length),
+                ..selection = TextSelection.collapsed(
+                  offset: state.displayName.length,
+                ),
               onChanged: (value) => context
                   .read<PrinterConfigurationCubit>()
                   .setDisplayName(value),
@@ -253,7 +275,9 @@ class _PrinterConfigurationView extends StatelessWidget {
   }
 
   Widget _buildCapabilities(
-      BuildContext context, PrinterConfigurationState state) {
+    BuildContext context,
+    PrinterConfigurationState state,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textScheme = theme.textTheme;
@@ -439,7 +463,9 @@ class _PrinterConfigurationView extends StatelessWidget {
   }
 
   Widget _buildOptimizationPrefs(
-      BuildContext context, PrinterConfigurationState state) {
+    BuildContext context,
+    PrinterConfigurationState state,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textScheme = theme.textTheme;
@@ -475,9 +501,8 @@ class _PrinterConfigurationView extends StatelessWidget {
               context,
               label: 'Allow Scaling',
               value: state.allowScaling,
-              onChanged: (v) => context
-                  .read<PrinterConfigurationCubit>()
-                  .setAllowScaling(v),
+              onChanged: (v) =>
+                  context.read<PrinterConfigurationCubit>().setAllowScaling(v),
             ),
             _buildToggle(
               context,
@@ -512,14 +537,16 @@ class _PrinterConfigurationView extends StatelessWidget {
                 suffixText: '%',
                 isDense: true,
               ),
-              controller: TextEditingController(
-                text: (state.minimumAcceptableScale * 100)
-                    .toStringAsFixed(0),
-              )..selection = TextSelection.collapsed(
-                  offset: (state.minimumAcceptableScale * 100)
-                      .toStringAsFixed(0)
-                      .length,
-                ),
+              controller:
+                  TextEditingController(
+                      text: (state.minimumAcceptableScale * 100)
+                          .toStringAsFixed(0),
+                    )
+                    ..selection = TextSelection.collapsed(
+                      offset: (state.minimumAcceptableScale * 100)
+                          .toStringAsFixed(0)
+                          .length,
+                    ),
               onChanged: (v) {
                 final parsed = double.tryParse(v);
                 if (parsed != null) {
@@ -536,7 +563,9 @@ class _PrinterConfigurationView extends StatelessWidget {
   }
 
   Widget _buildTrayConfigurations(
-      BuildContext context, PrinterConfigurationState state) {
+    BuildContext context,
+    PrinterConfigurationState state,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textScheme = theme.textTheme;
@@ -608,7 +637,8 @@ class _PrinterConfigurationView extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textScheme = theme.textTheme;
 
-    final isCalibrated = tray.calibration.enabled &&
+    final isCalibrated =
+        tray.calibration.enabled &&
         tray.calibration.calibrationRules.isNotEmpty;
 
     return Padding(
@@ -719,7 +749,7 @@ class _PrinterConfigurationView extends StatelessWidget {
 
   Future<void> _addTray(BuildContext context) async {
     final tray = await TrayConfigurationSheet.show(context: context);
-    if (tray != null) {
+    if (tray != null && context.mounted) {
       context.read<PrinterConfigurationCubit>().addTray(tray);
     }
   }
@@ -733,7 +763,7 @@ class _PrinterConfigurationView extends StatelessWidget {
       context: context,
       existingTray: tray,
     );
-    if (updated != null) {
+    if (updated != null && context.mounted) {
       context.read<PrinterConfigurationCubit>().updateTray(index, updated);
     }
   }

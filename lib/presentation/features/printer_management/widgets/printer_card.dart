@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/features/printer_management/cubit/printer_management_cubit.dart';
 import 'package:stickify/presentation/features/printer_management/widgets/compatibility_indicator.dart';
 import 'package:stickify/presentation/features/printer_management/widgets/printer_status_badge.dart';
 
@@ -173,6 +175,16 @@ class PrinterCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton.icon(
+                    onPressed: () => _confirmDelete(context, profile),
+                    icon: const Icon(Icons.delete_outline, size: 16),
+                    label: const Text('Delete'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.error,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  TextButton.icon(
                     onPressed: () => PrinterConfigurationEditRoute(
                       profileId: profile.id,
                     ).push<void>(context),
@@ -230,6 +242,35 @@ class PrinterCard extends StatelessWidget {
           color: color,
           fontWeight: FontWeight.bold,
         ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, PrinterProfile profile) {
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Printer Profile'),
+        content: Text(
+          'Are you sure you want to delete "${profile.displayName}"? '
+          'This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop(true);
+              context.read<PrinterManagementCubit>().deleteProfile(profile.id);
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }

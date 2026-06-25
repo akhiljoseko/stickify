@@ -171,7 +171,12 @@ Future<void> _addPrinterProfile(BuildContext context) async {
   );
 
   if (selected != null && context.mounted) {
-    final saved = await const PrinterConfigurationRoute().push<bool>(context);
+    final saved = await PrinterConfigurationRoute(
+      systemPrinterName: selected.systemPrinterName,
+      manufacturer: selected.manufacturer,
+      model: selected.model,
+      driverName: selected.driverName,
+    ).push<bool>(context);
     if (saved == true && context.mounted) {
       await context.read<PrinterManagementCubit>().loadPrintersAndProfiles();
     }

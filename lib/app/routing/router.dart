@@ -421,13 +421,35 @@ class PrinterManagementRoute extends GoRouteData with $PrinterManagementRoute {
 @immutable
 class PrinterConfigurationRoute extends GoRouteData
     with $PrinterConfigurationRoute {
-  const PrinterConfigurationRoute();
+  const PrinterConfigurationRoute({
+    this.systemPrinterName,
+    this.manufacturer,
+    this.model,
+    this.driverName,
+  });
 
   static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
 
+  /// The system printer name to pre-populate.
+  final String? systemPrinterName;
+
+  /// The manufacturer to pre-populate.
+  final String? manufacturer;
+
+  /// The model to pre-populate.
+  final String? model;
+
+  /// The driver name to pre-populate.
+  final String? driverName;
+
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const PrinterConfigurationPage();
+    return PrinterConfigurationPage(
+      systemPrinterName: systemPrinterName,
+      manufacturer: manufacturer,
+      model: model,
+      driverName: driverName,
+    );
   }
 }
 

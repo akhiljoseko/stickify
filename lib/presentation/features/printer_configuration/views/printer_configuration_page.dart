@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/app_service_locator.dart';
@@ -747,7 +748,13 @@ class _PrinterConfigurationView extends StatelessWidget {
   }
 
   Future<void> _addTray(BuildContext context) async {
-    final tray = await TrayConfigurationSheet.show(context: context);
+    final templates = await _fetchTemplates(context);
+    if (!context.mounted) return;
+
+    final tray = await TrayConfigurationSheet.show(
+      context: context,
+      availableTemplates: templates,
+    );
     if (tray != null && context.mounted) {
       context.read<PrinterConfigurationCubit>().addTray(tray);
     }
@@ -758,12 +765,32 @@ class _PrinterConfigurationView extends StatelessWidget {
     PrinterTrayProfile tray,
     int index,
   ) async {
+    final templates = await _fetchTemplates(context);
+    if (!context.mounted) return;
+
+    final selectedIds = tray.supportedPaperConfigurations
+        .map((ref) => ref.id)
+        .toSet();
+
     final updated = await TrayConfigurationSheet.show(
       context: context,
       existingTray: tray,
+      availableTemplates: templates,
+      selectedTemplateIds: selectedIds,
     );
     if (updated != null && context.mounted) {
       context.read<PrinterConfigurationCubit>().updateTray(index, updated);
+    }
+  }
+
+  Future<List<LabelTemplate>> _fetchTemplates(BuildContext context) async {
+    final locator = context.read<AppServiceLocator>();
+    final result = await locator.templateRepository.fetchTemplates();
+    switch (result) {
+      case Success(value: final templates):
+        return templates;
+      case Failure():
+        return const [];
     }
   }
 
@@ -802,18 +829,33 @@ class _PrinterConfigurationView extends StatelessWidget {
 
     if (!context.mounted) return;
 
-    if (tray.supportedPaperConfigurations.isEmpty) {
-      context.read<NotificationService>().showWarning(
-        'Add a paper configuration to the tray before calibrating.',
+    // Refresh the tray reference from the saved profile in case the
+    // closure-captured tray variable has stale supportedPaperConfigurations
+    final effectiveTray = profile.trays.firstWhereOrNull(
+      (t) => t.trayIdentifier == tray.trayIdentifier,
+    ) ?? tray;
+
+    if (effectiveTray.supportedPaperConfigurations.isEmpty) {
+      if (!context.mounted) return;
+      await BlockingErrorDialog.show(
+        context,
+        title: 'Cannot Calibrate',
+        message:
+            'This tray has no supported templates assigned. '
+            'Edit the tray and select at least one template that this tray '
+            'will print before calibrating.',
+        onClose: () {},
       );
       return;
     }
 
+    if (!context.mounted) return;
     unawaited(
-        CalibrationWizardRoute(
+      CalibrationWizardRoute(
         profileId: profile.id,
-        trayId: tray.trayIdentifier,
-        paperConfigurationId: tray.supportedPaperConfigurations.first.id,
+        trayId: effectiveTray.trayIdentifier,
+        paperConfigurationId:
+            effectiveTray.supportedPaperConfigurations.first.id,
       ).push<void>(context),
     );
   }

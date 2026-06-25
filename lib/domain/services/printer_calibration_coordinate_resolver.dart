@@ -1,8 +1,7 @@
 // The named parameters must be public for callers in other libraries, but the
 // internal fields are kept private to preserve encapsulation, requiring initializer lists.
 // ignore_for_file: prefer_initializing_formals
-import 'package:stickify/core/error/app_error.dart';
-import 'package:stickify/core/error/result.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/print_coordinate_context.dart';
 import 'package:stickify/domain/services/calibration_request.dart';
 import 'package:stickify/domain/services/calibration_rule_matcher.dart';
@@ -29,9 +28,21 @@ class PrinterCalibrationCoordinateResolver {
     CalibrationRequest request,
   ) {
     // 1. Verify paper configuration support
-    final isSupported = request.tray.supportedPaperConfigurations
-        .any((config) => config.id == request.paperConfigId);
+    final supportedIds = request.tray.supportedPaperConfigurations.map((c) => c.id).toList();
+    final isSupported = supportedIds.any((id) => id == request.paperConfigId);
+    Log.debug(
+      'CalibrationResolver: tray="${request.tray.trayIdentifier}", '
+      'paperConfigId="${request.paperConfigId}", '
+      'supportedPaperConfigs=[${supportedIds.join(", ")}], '
+      'isSupported=$isSupported.',
+      tag: 'PrintPipeline',
+    );
     if (!isSupported) {
+      Log.warning(
+        'CalibrationResolver: paper config "${request.paperConfigId}" not in tray\'s '
+        'supported list [${supportedIds.join(", ")}]. Returning failure.',
+        tag: 'PrintPipeline',
+      );
       return const Result.failure(
         ValidationError(
           message: 'The selected paper configuration is not supported by the tray.',
@@ -40,7 +51,16 @@ class PrinterCalibrationCoordinateResolver {
     }
 
     // 2. Active calibration check
+    Log.debug(
+      'CalibrationResolver: calibration enabled=${request.tray.calibration.enabled}, '
+      'rules count=${request.tray.calibration.calibrationRules.length}.',
+      tag: 'PrintPipeline',
+    );
     if (!request.tray.calibration.enabled) {
+      Log.debug(
+        'CalibrationResolver: calibration disabled, returning identity context.',
+        tag: 'PrintPipeline',
+      );
       return const Result.success(PrintCoordinateContext.identity());
     }
 
@@ -68,11 +88,28 @@ class PrinterCalibrationCoordinateResolver {
 
       final composedTransform = _transformComposer.compose(matchingRules);
 
+      Log.debug(
+        'CalibrationResolver: slot $absoluteIndex (r=$row,c=$column): '
+        '${matchingRules.length} rules matched, '
+        'composed=(${composedTransform.offsetX.toStringAsFixed(3)}, '
+        '${composedTransform.offsetY.toStringAsFixed(3)}, '
+        '${composedTransform.scaleX.toStringAsFixed(5)}, '
+        '${composedTransform.scaleY.toStringAsFixed(5)}), '
+        'isIdentity=${composedTransform.isIdentity}.',
+        tag: 'PrintPipeline',
+      );
+
       // Memory Optimization: only store non-identity transformations
       if (!composedTransform.isIdentity) {
         stickerTransforms[absoluteIndex] = composedTransform;
       }
     }
+
+    Log.debug(
+      'CalibrationResolver: returning context with ${stickerTransforms.length} '
+      'non-identity transform(s) out of $totalSlots slots.',
+      tag: 'PrintPipeline',
+    );
 
     return Result.success(
       PrintCoordinateContext(

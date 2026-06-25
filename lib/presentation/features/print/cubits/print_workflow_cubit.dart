@@ -129,6 +129,17 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                   (p) => p.printerIdentity.systemPrinterName == defaultPrinter.name,
                 );
 
+                if (matchedProfile != null) {
+                  Log.debug(
+                    'PrintWorkflow: matched profile "${matchedProfile.displayName}" '
+                    '(id: ${matchedProfile.id}) for default printer "${defaultPrinter.name}". '
+                    'Trays: ${matchedProfile.trays.length}. '
+                    'Profile trays calibration: '
+                    '${matchedProfile.trays.map((t) => "${t.trayIdentifier}(enabled=${t.calibration.enabled}, rules=${t.calibration.calibrationRules.length})").join(", ")}.',
+                    tag: 'PrintPipeline',
+                  );
+                }
+
                 if (matchedProfile != null && selected != null && selected.sheetConfig != null) {
                   matchedTray = matchedProfile.trays.firstWhereOrNull(
                     (t) => t.supportedPaperConfigurations.any((ref) => ref.id == selected!.id),
@@ -233,6 +244,17 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         matchedProfile = profiles.firstWhereOrNull(
           (p) => p.printerIdentity.systemPrinterName == printer.name,
         );
+
+        if (matchedProfile != null) {
+          Log.debug(
+            'PrintWorkflow(_updatePrinterAndTrayProfile): matched '
+            '"${matchedProfile.displayName}" for printer "${printer.name}". '
+            'Trays: ${matchedProfile.trays.length}. '
+            'Calibration status: '
+            '${matchedProfile.trays.map((t) => "${t.trayIdentifier}(enabled=${t.calibration.enabled}, rules=${t.calibration.calibrationRules.length})").join(", ")}.',
+            tag: 'PrintPipeline',
+          );
+        }
 
         if (matchedProfile != null && template != null && template.sheetConfig != null) {
           matchedTray = matchedProfile.trays.firstWhereOrNull(

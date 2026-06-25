@@ -47,8 +47,8 @@ class IntelligentTransformGenerator {
     final isRotated90 = templateIsPortrait && !printerSupportsPortrait && printerSupportsLandscape;
 
     // Page dimensions in printer coordinate space
-    final double printerWidth = isRotated90 ? sheetConfig.pageHeight : sheetConfig.pageWidth;
-    final double printerHeight = isRotated90 ? sheetConfig.pageWidth : sheetConfig.pageHeight;
+    final printerWidth = isRotated90 ? sheetConfig.pageHeight : sheetConfig.pageWidth;
+    final printerHeight = isRotated90 ? sheetConfig.pageWidth : sheetConfig.pageHeight;
 
     // Printer margins
     final printerMarginLeft = printer.capabilities.nonPrintableMarginLeft;
@@ -75,12 +75,12 @@ class IntelligentTransformGenerator {
     }
 
     final printableWidth = stickerMaxX - stickerMinX;
-    final double printableHeight = stickerMaxY - stickerMinY;
+    final printableHeight = stickerMaxY - stickerMinY;
 
     // Helper to project a slot index to its boundaries
     Map<String, double> getBounds(int r, int c) {
-      final double stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
-      final double stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
+      final stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
+      final stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
 
       final transform = calibrationContext?.resolveFor(
             row: r,
@@ -89,17 +89,17 @@ class IntelligentTransformGenerator {
           ) ??
           const PrintStickerTransform.identity();
 
-      final double calStickerX = stickerX +
+      final calStickerX = stickerX +
           (stickerConfig.widthMm * transform.anchorX * (1.0 - transform.scaleX)) +
           transform.offsetX;
-      final double calStickerY = stickerY +
+      final calStickerY = stickerY +
           (stickerConfig.heightMm * transform.anchorY * (1.0 - transform.scaleY)) +
           transform.offsetY;
 
-      final double left = calStickerX + (stickerMinX * transform.scaleX);
-      final double right = calStickerX + (stickerMaxX * transform.scaleX);
-      final double top = calStickerY + (stickerMinY * transform.scaleY);
-      final double bottom = calStickerY + (stickerMaxY * transform.scaleY);
+      final left = calStickerX + (stickerMinX * transform.scaleX);
+      final right = calStickerX + (stickerMaxX * transform.scaleX);
+      final top = calStickerY + (stickerMinY * transform.scaleY);
+      final bottom = calStickerY + (stickerMaxY * transform.scaleY);
 
       if (isRotated90) {
         return {
@@ -126,15 +126,15 @@ class IntelligentTransformGenerator {
 
     // 2. Level 2 — Global Translation
     if (preferences.allowTranslation) {
-      final bool hasLeftAndRight = leftConflict != null && rightConflict != null;
-      final bool hasTopAndBottom = topConflict != null && bottomConflict != null;
+      final hasLeftAndRight = leftConflict != null && rightConflict != null;
+      final hasTopAndBottom = topConflict != null && bottomConflict != null;
 
       if (!hasLeftAndRight && !hasTopAndBottom) {
-        final double candidateOffsetX = leftConflict != null
+        final candidateOffsetX = leftConflict != null
             ? leftConflict.overlapMm
             : (rightConflict != null ? -rightConflict.overlapMm : 0.0);
 
-        final double candidateOffsetY = topConflict != null
+        final candidateOffsetY = topConflict != null
             ? topConflict.overlapMm
             : (bottomConflict != null ? -bottomConflict.overlapMm : 0.0);
 
@@ -165,10 +165,6 @@ class IntelligentTransformGenerator {
             transforms[i] = PrintStickerTransform(
               offsetX: candidateOffsetX,
               offsetY: candidateOffsetY,
-              scaleX: 1.0,
-              scaleY: 1.0,
-              anchorX: 0.5,
-              anchorY: 0.5,
             );
           }
           return OptimizationStrategy(
@@ -193,10 +189,10 @@ class IntelligentTransformGenerator {
     var unresolvedTop = hasTop;
     var unresolvedBottom = hasBottom;
 
-    final double leftGroupShift = hasLeft ? leftConflict.overlapMm : 0.0;
-    final double rightGroupShift = hasRight ? -rightConflict.overlapMm : 0.0;
-    final double topGroupShift = hasTop ? topConflict.overlapMm : 0.0;
-    final double bottomGroupShift = hasBottom ? -bottomConflict.overlapMm : 0.0;
+    final leftGroupShift = hasLeft ? leftConflict.overlapMm : 0.0;
+    final rightGroupShift = hasRight ? -rightConflict.overlapMm : 0.0;
+    final topGroupShift = hasTop ? topConflict.overlapMm : 0.0;
+    final bottomGroupShift = hasBottom ? -bottomConflict.overlapMm : 0.0;
 
     if (preferences.allowTranslation) {
       // Simulate left group translation
@@ -269,11 +265,11 @@ class IntelligentTransformGenerator {
           final inTop = topConflict?.affectedStickerIndices.contains(absIndex) ?? false;
           final inBottom = bottomConflict?.affectedStickerIndices.contains(absIndex) ?? false;
 
-          final double dx = (inLeft && !unresolvedLeft)
+          final dx = (inLeft && !unresolvedLeft)
               ? leftGroupShift
               : ((inRight && !unresolvedRight) ? rightGroupShift : 0.0);
 
-          final double dy = (inTop && !unresolvedTop)
+          final dy = (inTop && !unresolvedTop)
               ? topGroupShift
               : ((inBottom && !unresolvedBottom) ? bottomGroupShift : 0.0);
 
@@ -281,10 +277,8 @@ class IntelligentTransformGenerator {
             transforms[absIndex] = PrintStickerTransform(
               offsetX: dx,
               offsetY: dy,
-              scaleX: 1.0,
-              scaleY: 1.0,
-              anchorX: 0.0,
-              anchorY: 0.0,
+              anchorX: 0,
+              anchorY: 0,
             );
           }
         }
@@ -310,8 +304,8 @@ class IntelligentTransformGenerator {
     }
 
     // 4a — Compute available space (guard: escalate to Level 6 if <= 0)
-    final double availablePrinterWidth = printerWidth - printerMarginLeft - printerMarginRight;
-    final double availablePrinterHeight = printerHeight - printerMarginTop - printerMarginBottom;
+    final availablePrinterWidth = printerWidth - printerMarginLeft - printerMarginRight;
+    final availablePrinterHeight = printerHeight - printerMarginTop - printerMarginBottom;
 
     if (availablePrinterWidth <= 0 || availablePrinterHeight <= 0) {
       return OptimizationStrategy(
@@ -322,21 +316,21 @@ class IntelligentTransformGenerator {
     }
 
     // 4b — Compute scale values
-    final bool requiresScaleX = unresolvedLeft || unresolvedRight;
-    final bool requiresScaleY = unresolvedTop || unresolvedBottom;
+    final requiresScaleX = unresolvedLeft || unresolvedRight;
+    final requiresScaleY = unresolvedTop || unresolvedBottom;
 
-    final double calScaleX = calibrationContext?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0).scaleX ?? 1.0;
-    final double calScaleY = calibrationContext?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0).scaleY ?? 1.0;
+    final calScaleX = calibrationContext?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0).scaleX ?? 1.0;
+    final calScaleY = calibrationContext?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0).scaleY ?? 1.0;
 
-    final double scaleX = requiresScaleX ? (availablePrinterWidth / printableWidth) / calScaleX : 1.0;
-    final double scaleY = requiresScaleY ? (availablePrinterHeight / printableHeight) / calScaleY : 1.0;
+    final scaleX = requiresScaleX ? (availablePrinterWidth / printableWidth) / calScaleX : 1.0;
+    final scaleY = requiresScaleY ? (availablePrinterHeight / printableHeight) / calScaleY : 1.0;
 
     // 4c — Compute scaling anchor
-    final double anchorX = (printerMarginLeft + availablePrinterWidth / 2) / printerWidth;
-    final double anchorY = (printerMarginTop + availablePrinterHeight / 2) / printerHeight;
+    final anchorX = (printerMarginLeft + availablePrinterWidth / 2) / printerWidth;
+    final anchorY = (printerMarginTop + availablePrinterHeight / 2) / printerHeight;
 
     // 4f — Gate check: scale vs minimumAcceptableScale
-    final double composedScaleX = availablePrinterWidth / printableWidth;
+    final composedScaleX = availablePrinterWidth / printableWidth;
     if (requiresScaleX && composedScaleX < preferences.minimumAcceptableScale) {
       return OptimizationStrategy(
         level: OptimizationLevel.unsupported,
@@ -349,7 +343,7 @@ class IntelligentTransformGenerator {
       );
     }
 
-    final double composedScaleY = availablePrinterHeight / printableHeight;
+    final composedScaleY = availablePrinterHeight / printableHeight;
     if (requiresScaleY && composedScaleY < preferences.minimumAcceptableScale) {
       return OptimizationStrategy(
         level: OptimizationLevel.unsupported,
@@ -363,7 +357,7 @@ class IntelligentTransformGenerator {
     }
 
     // 4d — Build per-sticker transforms
-    final composer = const CalibrationTransformComposer();
+    const composer = CalibrationTransformComposer();
     final finalTransforms = <int, PrintStickerTransform>{};
 
     for (var r = 0; r < totalRows; r++) {
@@ -375,15 +369,13 @@ class IntelligentTransformGenerator {
         final inTop = topConflict?.affectedStickerIndices.contains(absIndex) ?? false;
         final inBottom = bottomConflict?.affectedStickerIndices.contains(absIndex) ?? false;
 
-        final double sX = (inLeft && unresolvedLeft) || (inRight && unresolvedRight) ? scaleX : 1.0;
-        final double sY = (inTop && unresolvedTop) || (inBottom && unresolvedBottom) ? scaleY : 1.0;
+        final sX = (inLeft && unresolvedLeft) || (inRight && unresolvedRight) ? scaleX : 1.0;
+        final sY = (inTop && unresolvedTop) || (inBottom && unresolvedBottom) ? scaleY : 1.0;
 
-        final double aX = sX != 1.0 ? anchorX : 0.5;
-        final double aY = sY != 1.0 ? anchorY : 0.5;
+        final aX = sX != 1.0 ? anchorX : 0.5;
+        final aY = sY != 1.0 ? anchorY : 0.5;
 
         final level4Transform = PrintStickerTransform(
-          offsetX: 0.0,
-          offsetY: 0.0,
           scaleX: sX,
           scaleY: sY,
           anchorX: aX,

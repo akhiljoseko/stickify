@@ -4,17 +4,17 @@ import 'package:stickify/domain/domain.dart';
 void main() {
   group('OptimizationStrategy', () {
     test('supports Equatable value equality', () {
-      final transform = const PrintStickerTransform(offsetX: 1.0, offsetY: 0.0);
+      const transform = PrintStickerTransform(offsetX: 1);
       final strategy1 = OptimizationStrategy(
         level: OptimizationLevel.globalTransform,
         description: 'Global translation',
-        transforms: {0: transform},
+        transforms: const {0: transform},
       );
 
       final strategy2 = OptimizationStrategy(
         level: OptimizationLevel.globalTransform,
         description: 'Global translation',
-        transforms: {0: transform},
+        transforms: const {0: transform},
       );
 
       final strategy3 = OptimizationStrategy(
@@ -28,11 +28,11 @@ void main() {
     });
 
     test('stores transforms map as unmodifiable', () {
-      final transform = const PrintStickerTransform(offsetX: 1.0, offsetY: 0.0);
+      const transform = PrintStickerTransform(offsetX: 1);
       final strategy = OptimizationStrategy(
         level: OptimizationLevel.globalTransform,
         description: 'Global translation',
-        transforms: {0: transform},
+        transforms: const {0: transform},
       );
 
       expect(() => strategy.transforms[1] = transform, throwsUnsupportedError);

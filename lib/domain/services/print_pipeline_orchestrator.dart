@@ -16,14 +16,11 @@ import 'package:stickify/domain/services/template_printer_compatibility_analyzer
 class PrintPipelineOrchestrator {
   /// Creates a [PrintPipelineOrchestrator] with the required services.
   const PrintPipelineOrchestrator({
-    required PrinterCalibrationCoordinateResolver calibrationResolver,
-    required TemplatePrinterCompatibilityAnalyzer compatibilityAnalyzer,
-    required IntelligentTransformGenerator transformGenerator,
-    required CalibrationTransformComposer transformComposer,
-  })  : _calibrationResolver = calibrationResolver,
-        _compatibilityAnalyzer = compatibilityAnalyzer,
-        _transformGenerator = transformGenerator,
-        _transformComposer = transformComposer;
+    required this._calibrationResolver,
+    required this._compatibilityAnalyzer,
+    required this._transformGenerator,
+    required this._transformComposer,
+  });
 
   final PrinterCalibrationCoordinateResolver _calibrationResolver;
   final TemplatePrinterCompatibilityAnalyzer _compatibilityAnalyzer;

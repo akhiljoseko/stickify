@@ -1,5 +1,4 @@
 // The Domain Service pattern defines clean single-purpose service boundaries.
-// ignore_for_file: one_member_abstracts
 
 import 'dart:typed_data';
 import 'package:stickify/core/core.dart';

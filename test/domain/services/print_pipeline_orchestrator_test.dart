@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
-import 'package:stickify/domain/services/print_pipeline_orchestrator.dart';
 
 void main() {
   group('PrintPipelineOrchestrator Tests', () {
@@ -84,7 +83,6 @@ void main() {
           allowTranslation: true,
           preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
-          minimumAcceptableScale: 0.7,
         ),
         trays: [defaultTray],
         createdAt: DateTime(2026),
@@ -106,8 +104,8 @@ void main() {
             CalibrationRule(
               target: CalibrationTarget.sheet(),
               transformation: PrintStickerTransform(
-                offsetX: 1.0,
-                offsetY: 2.0,
+                offsetX: 1,
+                offsetY: 2,
               ),
             ),
           ],
@@ -146,8 +144,7 @@ void main() {
             CalibrationRule(
               target: CalibrationTarget.sheet(),
               transformation: PrintStickerTransform(
-                offsetX: -1.0, // calibration shifts left by 1mm
-                offsetY: 0.0,
+                offsetX: -1, // calibration shifts left by 1mm
               ),
             ),
           ],
@@ -177,7 +174,6 @@ void main() {
           allowTranslation: true,
           preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
-          minimumAcceptableScale: 0.7,
         ),
         trays: [trayWithCalibration],
         createdAt: DateTime(2026),
@@ -217,8 +213,7 @@ void main() {
             CalibrationRule(
               target: CalibrationTarget.sheet(),
               transformation: PrintStickerTransform(
-                offsetX: 3.0, // shifts right by 3mm
-                offsetY: 0.0,
+                offsetX: 3, // shifts right by 3mm
               ),
             ),
           ],
@@ -248,7 +243,6 @@ void main() {
           allowTranslation: true,
           preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
-          minimumAcceptableScale: 0.7,
         ),
         trays: [trayWithCalibration],
         createdAt: DateTime(2026),

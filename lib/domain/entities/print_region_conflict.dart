@@ -5,7 +5,7 @@ import 'package:stickify/domain/entities/calibration_rule.dart';
 /// the physical printer capabilities (margins).
 class PrintRegionConflict extends Equatable {
   /// Creates a [PrintRegionConflict] instance.
-  PrintRegionConflict({
+  const PrintRegionConflict({
     required this.affectedEdge,
     required this.overlapMm,
     required this.affectedStickerIndices,

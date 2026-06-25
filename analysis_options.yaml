@@ -5,7 +5,7 @@ analyzer:
   errors:
     discarded_futures: ignore
     lines_longer_than_80_chars: ignore
-    one_member_abstracts: ignore 
+    one_member_abstracts: ignore
   exclude:
     - lib/l10n/gen/*
     - build/**
@@ -13,3 +13,8 @@ linter:
   rules:
     public_member_api_docs: false
     avoid_catches_without_on_clauses: false
+
+bloc:
+  rules:
+    avoid_public_fields: false
+    prefer_void_public_cubit_methods: false

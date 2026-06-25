@@ -29,10 +29,10 @@ class CalibrationRuleGenerator {
     final averageDeltaY = totalDeltaY / measurements.length;
 
     // 2. Compute scale deviation per axis.
-    double scaleX = 1.0;
+    double scaleX = 1;
     final horizontalPairs = <double>[];
-    for (int i = 0; i < measurements.length; i++) {
-      for (int j = i + 1; j < measurements.length; j++) {
+    for (var i = 0; i < measurements.length; i++) {
+      for (var j = i + 1; j < measurements.length; j++) {
         final m1 = measurements[i];
         final m2 = measurements[j];
         if (m1.point.expectedX != m2.point.expectedX) {
@@ -46,10 +46,10 @@ class CalibrationRuleGenerator {
       scaleX = horizontalPairs.reduce((a, b) => a + b) / horizontalPairs.length;
     }
 
-    double scaleY = 1.0;
+    double scaleY = 1;
     final verticalPairs = <double>[];
-    for (int i = 0; i < measurements.length; i++) {
-      for (int j = i + 1; j < measurements.length; j++) {
+    for (var i = 0; i < measurements.length; i++) {
+      for (var j = i + 1; j < measurements.length; j++) {
         final m1 = measurements[i];
         final m2 = measurements[j];
         if (m1.point.expectedY != m2.point.expectedY) {
@@ -71,8 +71,6 @@ class CalibrationRuleGenerator {
         offsetY: -averageDeltaY,
         scaleX: scaleX,
         scaleY: scaleY,
-        anchorX: 0.5,
-        anchorY: 0.5,
       ),
     );
 

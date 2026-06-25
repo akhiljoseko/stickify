@@ -35,8 +35,10 @@ class TemplatePrinterCompatibilityAnalyzer {
 
     // Step 1 — Resolve media orientation mapping.
     final templateIsPortrait = sheetConfig.pageWidth < sheetConfig.pageHeight;
-    final printerSupportsPortrait = printer.capabilities.supportsPortraitCustomPaper;
-    final printerSupportsLandscape = printer.capabilities.supportsLandscapeCustomPaper;
+    final printerSupportsPortrait =
+        printer.capabilities.supportsPortraitCustomPaper;
+    final printerSupportsLandscape =
+        printer.capabilities.supportsLandscapeCustomPaper;
 
     final bool isRotated90;
     if (templateIsPortrait) {
@@ -57,7 +59,7 @@ class TemplatePrinterCompatibilityAnalyzer {
           conflicts: [
             PrintRegionConflict(
               affectedEdge: EdgeGroup.left,
-              overlapMm: 999.0, // arbitrary indicator of failure
+              overlapMm: 999, // arbitrary indicator of failure
               affectedStickerIndices: List.generate(
                 sheetConfig.columns * sheetConfig.rows,
                 (i) => i,
@@ -70,8 +72,12 @@ class TemplatePrinterCompatibilityAnalyzer {
     }
 
     // Page dimensions in printer coordinate space
-    final double printerWidth = isRotated90 ? sheetConfig.pageHeight : sheetConfig.pageWidth;
-    final double printerHeight = isRotated90 ? sheetConfig.pageWidth : sheetConfig.pageHeight;
+    final printerWidth = isRotated90
+        ? sheetConfig.pageHeight
+        : sheetConfig.pageWidth;
+    final printerHeight = isRotated90
+        ? sheetConfig.pageWidth
+        : sheetConfig.pageHeight;
 
     // Step 3 — Retrieve printer non-printable margins
     final printerMarginLeft = printer.capabilities.nonPrintableMarginLeft;
@@ -85,10 +91,10 @@ class TemplatePrinterCompatibilityAnalyzer {
     final topStickers = <int>[];
     final bottomStickers = <int>[];
 
-    double maxLeftOverlap = 0.0;
-    double maxRightOverlap = 0.0;
-    double maxTopOverlap = 0.0;
-    double maxBottomOverlap = 0.0;
+    double maxLeftOverlap = 0;
+    double maxRightOverlap = 0;
+    double maxTopOverlap = 0;
+    double maxBottomOverlap = 0;
 
     final totalColumns = sheetConfig.columns;
     final totalRows = sheetConfig.rows;
@@ -100,10 +106,18 @@ class TemplatePrinterCompatibilityAnalyzer {
     final double stickerMaxY;
 
     if (stickerConfig.printableArea.isNotEmpty) {
-      stickerMinX = stickerConfig.printableArea.map((p) => p.x).reduce(math.min);
-      stickerMaxX = stickerConfig.printableArea.map((p) => p.x).reduce(math.max);
-      stickerMinY = stickerConfig.printableArea.map((p) => p.y).reduce(math.min);
-      stickerMaxY = stickerConfig.printableArea.map((p) => p.y).reduce(math.max);
+      stickerMinX = stickerConfig.printableArea
+          .map((p) => p.x)
+          .reduce(math.min);
+      stickerMaxX = stickerConfig.printableArea
+          .map((p) => p.x)
+          .reduce(math.max);
+      stickerMinY = stickerConfig.printableArea
+          .map((p) => p.y)
+          .reduce(math.min);
+      stickerMaxY = stickerConfig.printableArea
+          .map((p) => p.y)
+          .reduce(math.max);
     } else {
       stickerMinX = 0.0;
       stickerMaxX = stickerConfig.widthMm;
@@ -111,8 +125,8 @@ class TemplatePrinterCompatibilityAnalyzer {
       stickerMaxY = stickerConfig.heightMm;
     }
 
-    final double printableWidth = stickerMaxX - stickerMinX;
-    final double printableHeight = stickerMaxY - stickerMinY;
+    final printableWidth = stickerMaxX - stickerMinX;
+    final printableHeight = stickerMaxY - stickerMinY;
 
     for (var r = 0; r < totalRows; r++) {
       for (var c = 0; c < totalColumns; c++) {
@@ -143,7 +157,10 @@ class TemplatePrinterCompatibilityAnalyzer {
         }
         if (pRight > (printerWidth - printerMarginRight)) {
           rightStickers.add(absIndex);
-          maxRightOverlap = math.max(maxRightOverlap, pRight - (printerWidth - printerMarginRight));
+          maxRightOverlap = math.max(
+            maxRightOverlap,
+            pRight - (printerWidth - printerMarginRight),
+          );
         }
         if (pTop < printerMarginTop) {
           topStickers.add(absIndex);
@@ -151,39 +168,50 @@ class TemplatePrinterCompatibilityAnalyzer {
         }
         if (pBottom > (printerHeight - printerMarginBottom)) {
           bottomStickers.add(absIndex);
-          maxBottomOverlap = math.max(maxBottomOverlap, pBottom - (printerHeight - printerMarginBottom));
+          maxBottomOverlap = math.max(
+            maxBottomOverlap,
+            pBottom - (printerHeight - printerMarginBottom),
+          );
         }
       }
     }
 
     final conflicts = <PrintRegionConflict>[];
     if (leftStickers.isNotEmpty) {
-      conflicts.add(PrintRegionConflict(
-        affectedEdge: EdgeGroup.left,
-        overlapMm: maxLeftOverlap,
-        affectedStickerIndices: leftStickers,
-      ));
+      conflicts.add(
+        PrintRegionConflict(
+          affectedEdge: EdgeGroup.left,
+          overlapMm: maxLeftOverlap,
+          affectedStickerIndices: leftStickers,
+        ),
+      );
     }
     if (rightStickers.isNotEmpty) {
-      conflicts.add(PrintRegionConflict(
-        affectedEdge: EdgeGroup.right,
-        overlapMm: maxRightOverlap,
-        affectedStickerIndices: rightStickers,
-      ));
+      conflicts.add(
+        PrintRegionConflict(
+          affectedEdge: EdgeGroup.right,
+          overlapMm: maxRightOverlap,
+          affectedStickerIndices: rightStickers,
+        ),
+      );
     }
     if (topStickers.isNotEmpty) {
-      conflicts.add(PrintRegionConflict(
-        affectedEdge: EdgeGroup.top,
-        overlapMm: maxTopOverlap,
-        affectedStickerIndices: topStickers,
-      ));
+      conflicts.add(
+        PrintRegionConflict(
+          affectedEdge: EdgeGroup.top,
+          overlapMm: maxTopOverlap,
+          affectedStickerIndices: topStickers,
+        ),
+      );
     }
     if (bottomStickers.isNotEmpty) {
-      conflicts.add(PrintRegionConflict(
-        affectedEdge: EdgeGroup.bottom,
-        overlapMm: maxBottomOverlap,
-        affectedStickerIndices: bottomStickers,
-      ));
+      conflicts.add(
+        PrintRegionConflict(
+          affectedEdge: EdgeGroup.bottom,
+          overlapMm: maxBottomOverlap,
+          affectedStickerIndices: bottomStickers,
+        ),
+      );
     }
 
     if (conflicts.isEmpty) {
@@ -195,15 +223,19 @@ class TemplatePrinterCompatibilityAnalyzer {
 
     // Step 5 — Determine recommendedOptimizationLevel.
     // Level 2: Try global translation
-    final bool hasLeft = leftStickers.isNotEmpty;
-    final bool hasRight = rightStickers.isNotEmpty;
-    final bool hasTop = topStickers.isNotEmpty;
-    final bool hasBottom = bottomStickers.isNotEmpty;
+    final hasLeft = leftStickers.isNotEmpty;
+    final hasRight = rightStickers.isNotEmpty;
+    final hasTop = topStickers.isNotEmpty;
+    final hasBottom = bottomStickers.isNotEmpty;
 
     if (!(hasLeft && hasRight) && !(hasTop && hasBottom)) {
       // Simulate global shift
-      final double shiftX = hasLeft ? maxLeftOverlap : (hasRight ? -maxRightOverlap : 0.0);
-      final double shiftY = hasTop ? maxTopOverlap : (hasBottom ? -maxBottomOverlap : 0.0);
+      final shiftX = hasLeft
+          ? maxLeftOverlap
+          : (hasRight ? -maxRightOverlap : 0.0);
+      final shiftY = hasTop
+          ? maxTopOverlap
+          : (hasBottom ? -maxBottomOverlap : 0.0);
 
       var globalShiftSucceeds = true;
 
@@ -247,8 +279,10 @@ class TemplatePrinterCompatibilityAnalyzer {
     }
 
     // Level 3: Edge Group Translation
-    final availableWidth = printerWidth - printerMarginLeft - printerMarginRight;
-    final availableHeight = printerHeight - printerMarginTop - printerMarginBottom;
+    final availableWidth =
+        printerWidth - printerMarginLeft - printerMarginRight;
+    final availableHeight =
+        printerHeight - printerMarginTop - printerMarginBottom;
 
     if (availableWidth <= 0 || availableHeight <= 0) {
       return CompatibilityAnalysisResult(
@@ -261,15 +295,17 @@ class TemplatePrinterCompatibilityAnalyzer {
     for (var r = 0; r < totalRows; r++) {
       for (var c = 0; c < totalColumns; c++) {
         final absIndex = r * totalColumns + c;
-        final transform = calibrationContext?.resolveFor(
+        final transform =
+            calibrationContext?.resolveFor(
               row: r,
               column: c,
               absoluteSlotIndex: absIndex,
             ) ??
             const PrintStickerTransform.identity();
-        final double calPrintableWidth = printableWidth * transform.scaleX;
-        final double calPrintableHeight = printableHeight * transform.scaleY;
-        if (calPrintableWidth > availableWidth || calPrintableHeight > availableHeight) {
+        final calPrintableWidth = printableWidth * transform.scaleX;
+        final calPrintableHeight = printableHeight * transform.scaleY;
+        if (calPrintableWidth > availableWidth ||
+            calPrintableHeight > availableHeight) {
           return CompatibilityAnalysisResult(
             conflicts: conflicts,
             recommendedOptimizationLevel: OptimizationLevel.unsupported,
@@ -296,7 +332,8 @@ class TemplatePrinterCompatibilityAnalyzer {
           isRotated90: isRotated90,
           calibrationContext: calibrationContext,
         );
-        if (borders.right + requiredShiftX > printerWidth - printerMarginRight) {
+        if (borders.right + requiredShiftX >
+            printerWidth - printerMarginRight) {
           leftGroupSafe = false;
           break;
         }
@@ -346,7 +383,8 @@ class TemplatePrinterCompatibilityAnalyzer {
           isRotated90: isRotated90,
           calibrationContext: calibrationContext,
         );
-        if (borders.bottom + requiredShiftY > printerHeight - printerMarginBottom) {
+        if (borders.bottom + requiredShiftY >
+            printerHeight - printerMarginBottom) {
           topGroupSafe = false;
           break;
         }
@@ -422,27 +460,36 @@ class TemplatePrinterCompatibilityAnalyzer {
     required bool isRotated90,
     PrintCoordinateContext? calibrationContext,
   }) {
-    final double stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
-    final double stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
+    final stickerX =
+        sheetConfig.marginLeft +
+        c * (stickerConfig.widthMm + sheetConfig.columnGap);
+    final stickerY =
+        sheetConfig.marginTop +
+        r * (stickerConfig.heightMm + sheetConfig.rowGap);
 
-    final transform = calibrationContext?.resolveFor(
+    final transform =
+        calibrationContext?.resolveFor(
           row: r,
           column: c,
           absoluteSlotIndex: r * sheetConfig.columns + c,
         ) ??
         const PrintStickerTransform.identity();
 
-    final double calStickerX = stickerX +
+    final calStickerX =
+        stickerX +
         (stickerConfig.widthMm * transform.anchorX * (1.0 - transform.scaleX)) +
         transform.offsetX;
-    final double calStickerY = stickerY +
-        (stickerConfig.heightMm * transform.anchorY * (1.0 - transform.scaleY)) +
+    final calStickerY =
+        stickerY +
+        (stickerConfig.heightMm *
+            transform.anchorY *
+            (1.0 - transform.scaleY)) +
         transform.offsetY;
 
-    final double left = calStickerX + (stickerMinX * transform.scaleX);
-    final double right = calStickerX + (stickerMaxX * transform.scaleX);
-    final double top = calStickerY + (stickerMinY * transform.scaleY);
-    final double bottom = calStickerY + (stickerMaxY * transform.scaleY);
+    final left = calStickerX + (stickerMinX * transform.scaleX);
+    final right = calStickerX + (stickerMaxX * transform.scaleX);
+    final top = calStickerY + (stickerMinY * transform.scaleY);
+    final bottom = calStickerY + (stickerMaxY * transform.scaleY);
 
     if (isRotated90) {
       return _StickerBorders(

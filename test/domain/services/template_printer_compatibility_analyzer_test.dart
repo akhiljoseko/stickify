@@ -80,10 +80,6 @@ void main() {
           supportsManualFeed: false,
           supportsBorderlessPrinting: true,
           supportsTraySelection: false,
-          nonPrintableMarginLeft: 0,
-          nonPrintableMarginRight: 0,
-          nonPrintableMarginTop: 0,
-          nonPrintableMarginBottom: 0,
         ),
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
@@ -120,9 +116,6 @@ void main() {
           supportsBorderlessPrinting: false,
           supportsTraySelection: false,
           nonPrintableMarginLeft: 12, // template has 10mm left margin, so it overflows by 2mm
-          nonPrintableMarginRight: 0,
-          nonPrintableMarginTop: 0,
-          nonPrintableMarginBottom: 0,
         ),
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
@@ -165,9 +158,6 @@ void main() {
           supportsBorderlessPrinting: false,
           supportsTraySelection: false,
           nonPrintableMarginLeft: 15, // margins in printer coordinates
-          nonPrintableMarginRight: 0,
-          nonPrintableMarginTop: 0,
-          nonPrintableMarginBottom: 0,
         ),
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,

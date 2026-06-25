@@ -1,8 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
-import 'package:stickify/domain/domain.dart';
-import 'package:stickify/domain/services/calibration_rule_generator.dart';
 import 'package:stickify/core/services/printing/calibration_sheet_pdf_generator.dart';
+import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/printer_management/cubit/calibration_session_state.dart';
 
 /// Cubit responsible for managing the calibration session wizard state machine.
@@ -46,16 +45,21 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     final result = await profileRepository.getProfileById(profileId);
     switch (result) {
       case Failure(:final error):
-        emit(state.copyWith(
-          status: CalibrationSessionStatus.error,
-          errorMessage: () => 'Failed to load printer profile: ${error.message}',
-        ));
+        emit(
+          state.copyWith(
+            status: CalibrationSessionStatus.error,
+            errorMessage: () =>
+                'Failed to load printer profile: ${error.message}',
+          ),
+        );
       case Success(value: final profile):
         if (profile == null) {
-          emit(state.copyWith(
-            status: CalibrationSessionStatus.error,
-            errorMessage: () => 'Printer profile not found.',
-          ));
+          emit(
+            state.copyWith(
+              status: CalibrationSessionStatus.error,
+              errorMessage: () => 'Printer profile not found.',
+            ),
+          );
           return;
         }
 
@@ -65,10 +69,13 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
             (t) => t.trayIdentifier == trayId,
           );
         } catch (_) {
-          emit(state.copyWith(
-            status: CalibrationSessionStatus.error,
-            errorMessage: () => 'Selected tray "$trayId" not found in profile.',
-          ));
+          emit(
+            state.copyWith(
+              status: CalibrationSessionStatus.error,
+              errorMessage: () =>
+                  'Selected tray "$trayId" not found in profile.',
+            ),
+          );
           return;
         }
 
@@ -76,8 +83,6 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
         final template = CalibrationSheetTemplate(
           id: 'standard_calibration',
           name: 'Standard Calibration Sheet',
-          pageWidth: 210.0,
-          pageHeight: 297.0,
           points: [
             CalibrationMeasurementPoint(
               id: 'p1',
@@ -106,26 +111,30 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
           ],
         );
 
-        emit(state.copyWith(
-          status: CalibrationSessionStatus.templateSelected,
-          selectedTemplate: template,
-          measurements: const [],
-          generatedRules: const [],
-          errorMessage: () => null,
-          printerProfile: profile,
-          trayProfile: tray,
-        ));
+        emit(
+          state.copyWith(
+            status: CalibrationSessionStatus.templateSelected,
+            selectedTemplate: template,
+            measurements: const [],
+            generatedRules: const [],
+            errorMessage: () => null,
+            printerProfile: profile,
+            trayProfile: tray,
+          ),
+        );
     }
   }
 
   /// Sets or overrides the active calibration sheet template.
   void selectTemplate(CalibrationSheetTemplate template) {
-    emit(state.copyWith(
-      status: CalibrationSessionStatus.templateSelected,
-      selectedTemplate: template,
-      measurements: const [],
-      generatedRules: const [],
-    ));
+    emit(
+      state.copyWith(
+        status: CalibrationSessionStatus.templateSelected,
+        selectedTemplate: template,
+        measurements: const [],
+        generatedRules: const [],
+      ),
+    );
   }
 
   /// Generates the calibration sheet PDF and prints it.
@@ -135,10 +144,12 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     final tray = state.trayProfile;
 
     if (template == null || profile == null || tray == null) {
-      emit(state.copyWith(
-        status: CalibrationSessionStatus.error,
-        errorMessage: () => 'Calibration wizard is not fully initialized.',
-      ));
+      emit(
+        state.copyWith(
+          status: CalibrationSessionStatus.error,
+          errorMessage: () => 'Calibration wizard is not fully initialized.',
+        ),
+      );
       return;
     }
 
@@ -164,27 +175,33 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
 
       switch (printResult) {
         case Failure(:final error):
-          emit(state.copyWith(
-            status: CalibrationSessionStatus.error,
-            errorMessage: () => 'Failed to spool print job: ${error.message}',
-          ));
+          emit(
+            state.copyWith(
+              status: CalibrationSessionStatus.error,
+              errorMessage: () => 'Failed to spool print job: ${error.message}',
+            ),
+          );
         case Success():
           emit(state.copyWith(status: CalibrationSessionStatus.sheetPrinted));
       }
     } catch (e) {
-      emit(state.copyWith(
-        status: CalibrationSessionStatus.error,
-        errorMessage: () => 'Spooling failed with unexpected error: $e',
-      ));
+      emit(
+        state.copyWith(
+          status: CalibrationSessionStatus.error,
+          errorMessage: () => 'Spooling failed with unexpected error: $e',
+        ),
+      );
     }
   }
 
   /// Clears the current error state and resets back to template selection.
   void retry() {
-    emit(state.copyWith(
-      status: CalibrationSessionStatus.templateSelected,
-      errorMessage: () => null,
-    ));
+    emit(
+      state.copyWith(
+        status: CalibrationSessionStatus.templateSelected,
+        errorMessage: () => null,
+      ),
+    );
   }
 
   /// Adds a measurement entered by the technician, transitioning completion status automatically.
@@ -192,20 +209,23 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     final template = state.selectedTemplate;
     if (template == null) return;
 
-    final updated = List<CalibrationMeasurement>.from(state.measurements);
-    updated.removeWhere((m) => m.point.id == measurement.point.id);
-    updated.add(measurement);
+    final updated = List<CalibrationMeasurement>.from(state.measurements)
+      ..removeWhere((m) => m.point.id == measurement.point.id)
+      ..add(measurement);
 
     final measuredPointIds = updated.map((m) => m.point.id).toSet();
-    final isComplete = updated.length == template.points.length &&
+    final isComplete =
+        updated.length == template.points.length &&
         measuredPointIds.length == template.points.length;
 
-    emit(state.copyWith(
-      status: isComplete
-          ? CalibrationSessionStatus.measurementsComplete
-          : CalibrationSessionStatus.measurementsInProgress,
-      measurements: updated,
-    ));
+    emit(
+      state.copyWith(
+        status: isComplete
+            ? CalibrationSessionStatus.measurementsComplete
+            : CalibrationSessionStatus.measurementsInProgress,
+        measurements: updated,
+      ),
+    );
   }
 
   /// Generates the offset and scale correction rules from the completed measurements.
@@ -228,10 +248,12 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     final request = CalibrationGenerationRequest(session: session);
     final result = ruleGenerator.generate(request);
 
-    emit(state.copyWith(
-      status: CalibrationSessionStatus.rulesGenerated,
-      generatedRules: result.generatedRules,
-    ));
+    emit(
+      state.copyWith(
+        status: CalibrationSessionStatus.rulesGenerated,
+        generatedRules: result.generatedRules,
+      ),
+    );
   }
 
   /// Persists the generated calibration rules to the printer profile repository.
@@ -272,15 +294,20 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     final result = await profileRepository.saveProfile(updatedProfile);
     switch (result) {
       case Failure(:final error):
-        emit(state.copyWith(
-          status: CalibrationSessionStatus.error,
-          errorMessage: () => 'Failed to save calibration profile: ${error.message}',
-        ));
+        emit(
+          state.copyWith(
+            status: CalibrationSessionStatus.error,
+            errorMessage: () =>
+                'Failed to save calibration profile: ${error.message}',
+          ),
+        );
       case Success():
-        emit(state.copyWith(
-          status: CalibrationSessionStatus.saved,
-          printerProfile: updatedProfile,
-        ));
+        emit(
+          state.copyWith(
+            status: CalibrationSessionStatus.saved,
+            printerProfile: updatedProfile,
+          ),
+        );
     }
   }
 }

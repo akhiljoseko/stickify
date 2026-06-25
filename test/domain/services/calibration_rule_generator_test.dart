@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stickify/domain/domain.dart';
-import 'package:stickify/domain/services/calibration_rule_generator.dart';
 
 void main() {
   group('CalibrationRuleGenerator', () {
@@ -221,8 +220,8 @@ void main() {
         paperConfigurationId: 'paper_1',
         sheetTemplate: sheetTemplate,
         measurements: [
-          CalibrationMeasurement(point: point1, actualX: 9.8, actualY: 14.0),
-          CalibrationMeasurement(point: point2, actualX: 107.8, actualY: 14.0),
+          CalibrationMeasurement(point: point1, actualX: 9.8, actualY: 14),
+          CalibrationMeasurement(point: point2, actualX: 107.8, actualY: 14),
         ],
       );
 
@@ -255,8 +254,8 @@ void main() {
         paperConfigurationId: 'paper_1',
         sheetTemplate: sheetTemplate,
         measurements: [
-          CalibrationMeasurement(point: point1, actualX: 10.0, actualY: 14.55),
-          CalibrationMeasurement(point: point2, actualX: 10.0, actualY: 111.55),
+          CalibrationMeasurement(point: point1, actualX: 10, actualY: 14.55),
+          CalibrationMeasurement(point: point2, actualX: 10, actualY: 111.55),
         ],
       );
 

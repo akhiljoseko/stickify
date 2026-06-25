@@ -4,19 +4,19 @@ import 'package:stickify/domain/domain.dart';
 void main() {
   group('CompatibilityAnalysisResult', () {
     test('supports Equatable value equality', () {
-      final conflict = PrintRegionConflict(
+      const conflict = PrintRegionConflict(
         affectedEdge: EdgeGroup.left,
         overlapMm: 2.5,
-        affectedStickerIndices: const [0],
+        affectedStickerIndices: [0],
       );
 
       final result1 = CompatibilityAnalysisResult(
-        conflicts: [conflict],
+        conflicts: const [conflict],
         recommendedOptimizationLevel: OptimizationLevel.edgeGroupTranslation,
       );
 
       final result2 = CompatibilityAnalysisResult(
-        conflicts: [conflict],
+        conflicts: const [conflict],
         recommendedOptimizationLevel: OptimizationLevel.edgeGroupTranslation,
       );
 
@@ -30,14 +30,14 @@ void main() {
     });
 
     test('stores conflicts list as unmodifiable', () {
-      final conflict = PrintRegionConflict(
+      const conflict = PrintRegionConflict(
         affectedEdge: EdgeGroup.left,
         overlapMm: 2.5,
-        affectedStickerIndices: const [0],
+        affectedStickerIndices: [0],
       );
 
       final result = CompatibilityAnalysisResult(
-        conflicts: [conflict],
+        conflicts: const [conflict],
         recommendedOptimizationLevel: OptimizationLevel.edgeGroupTranslation,
       );
 
@@ -46,11 +46,11 @@ void main() {
 
     test('computes hasConflicts correctly', () {
       final resultWithConflicts = CompatibilityAnalysisResult(
-        conflicts: [
+        conflicts: const [
           PrintRegionConflict(
             affectedEdge: EdgeGroup.left,
             overlapMm: 2.5,
-            affectedStickerIndices: const [0],
+            affectedStickerIndices: [0],
           ),
         ],
         recommendedOptimizationLevel: OptimizationLevel.edgeGroupTranslation,

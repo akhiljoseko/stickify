@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:collection/collection.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Pure domain service that generates sticker layout optimization strategies
@@ -31,8 +32,19 @@ class IntelligentTransformGenerator {
     final totalRows = sheetConfig.rows;
     final totalStickers = totalColumns * totalRows;
 
+    Log.debug(
+      'TransformGenerator: input template="${template.name}", '
+      'conflicts=${analysisResult.conflicts.length}, '
+      'sheet=${sheetConfig.pageWidth}×${sheetConfig.pageHeight}mm, '
+      'grid=${totalColumns}×${totalRows}, '
+      'sticker=${stickerConfig.widthMm}×${stickerConfig.heightMm}mm, '
+      'margins sheet=(${sheetConfig.marginLeft},${sheetConfig.marginTop},${sheetConfig.marginRight},${sheetConfig.marginBottom})',
+      tag: 'PrintPipeline',
+    );
+
     // 1. Level 1 — No Modification
     if (!analysisResult.hasConflicts) {
+      Log.debug('TransformGenerator: Level 1 — no conflicts, identity transform.', tag: 'PrintPipeline');
       return OptimizationStrategy(
         level: OptimizationLevel.noModification,
         description: 'No conflicts detected. Identity transformations applied.',
@@ -123,6 +135,19 @@ class IntelligentTransformGenerator {
     final rightConflict = analysisResult.conflicts.firstWhereOrNull((c) => c.affectedEdge == EdgeGroup.right);
     final topConflict = analysisResult.conflicts.firstWhereOrNull((c) => c.affectedEdge == EdgeGroup.top);
     final bottomConflict = analysisResult.conflicts.firstWhereOrNull((c) => c.affectedEdge == EdgeGroup.bottom);
+
+    Log.debug(
+      'TransformGenerator: conflicts — left=${leftConflict?.overlapMm}mm, '
+      'right=${rightConflict?.overlapMm}mm, '
+      'top=${topConflict?.overlapMm}mm, '
+      'bottom=${bottomConflict?.overlapMm}mm. '
+      'Printer margins: L=${printerMarginLeft} R=${printerMarginRight} T=${printerMarginTop} B=${printerMarginBottom}. '
+      'Printer space: ${printerWidth}×${printerHeight}mm. '
+      'Rotation: ${isRotated90 ? "90°" : "none"}. '
+      'Sticker printable area: ${printableWidth}×${printableHeight}mm '
+      '(min=(${stickerMinX},${stickerMinY}), max=(${stickerMaxX},${stickerMaxY})).',
+      tag: 'PrintPipeline',
+    );
 
     // 2. Level 2 — Global Translation
     if (preferences.allowTranslation) {
@@ -319,19 +344,50 @@ class IntelligentTransformGenerator {
     final requiresScaleX = unresolvedLeft || unresolvedRight;
     final requiresScaleY = unresolvedTop || unresolvedBottom;
 
+    Log.debug(
+      'TransformGenerator: Level 4 — unresolved: left=$unresolvedLeft right=$unresolvedRight '
+      'top=$unresolvedTop bottom=$unresolvedBottom. '
+      'requiresScaleX=$requiresScaleX requiresScaleY=$requiresScaleY.',
+      tag: 'PrintPipeline',
+    );
+
     final calScaleX = calibrationContext?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0).scaleX ?? 1.0;
     final calScaleY = calibrationContext?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0).scaleY ?? 1.0;
 
-    final scaleX = requiresScaleX ? (availablePrinterWidth / printableWidth) / calScaleX : 1.0;
-    final scaleY = requiresScaleY ? (availablePrinterHeight / printableHeight) / calScaleY : 1.0;
+    final totalContentWidth = sheetConfig.marginLeft +
+        totalColumns * stickerConfig.widthMm +
+        (totalColumns - 1) * sheetConfig.columnGap +
+        sheetConfig.marginRight;
+    final totalContentHeight = sheetConfig.marginTop +
+        totalRows * stickerConfig.heightMm +
+        (totalRows - 1) * sheetConfig.rowGap +
+        sheetConfig.marginBottom;
 
-    // 4c — Compute scaling anchor
+    final scaleX = requiresScaleX ? (availablePrinterWidth / totalContentWidth) / calScaleX : 1.0;
+    final scaleY = requiresScaleY ? (availablePrinterHeight / totalContentHeight) / calScaleY : 1.0;
+
+    Log.debug(
+      'TransformGenerator: Level 4 scale calculation — '
+      'totalContentWidth=${totalContentWidth.toStringAsFixed(1)}mm, '
+      'totalContentHeight=${totalContentHeight.toStringAsFixed(1)}mm, '
+      'availablePrinterWidth=${availablePrinterWidth.toStringAsFixed(1)}mm, '
+      'availablePrinterHeight=${availablePrinterHeight.toStringAsFixed(1)}mm, '
+      'calScaleX=${calScaleX.toStringAsFixed(5)}, calScaleY=${calScaleY.toStringAsFixed(5)}, '
+      'computedScaleX=${scaleX.toStringAsFixed(5)}, computedScaleY=${scaleY.toStringAsFixed(5)}.',
+      tag: 'PrintPipeline',
+    );
     final anchorX = (printerMarginLeft + availablePrinterWidth / 2) / printerWidth;
     final anchorY = (printerMarginTop + availablePrinterHeight / 2) / printerHeight;
 
     // 4f — Gate check: scale vs minimumAcceptableScale
-    final composedScaleX = availablePrinterWidth / printableWidth;
+    final composedScaleX = availablePrinterWidth / totalContentWidth;
     if (requiresScaleX && composedScaleX < preferences.minimumAcceptableScale) {
+      Log.warning(
+        'TransformGenerator: Level 6 — X-axis unsupported. '
+        'composedScaleX=$composedScaleX < minAcceptable=${preferences.minimumAcceptableScale}. '
+        'availWidth=$availablePrinterWidth / totalContentWidth=$totalContentWidth.',
+        tag: 'PrintPipeline',
+      );
       return OptimizationStrategy(
         level: OptimizationLevel.unsupported,
         description: 'Template/printer combination unsupported: required X-axis compression '
@@ -343,8 +399,14 @@ class IntelligentTransformGenerator {
       );
     }
 
-    final composedScaleY = availablePrinterHeight / printableHeight;
+    final composedScaleY = availablePrinterHeight / totalContentHeight;
     if (requiresScaleY && composedScaleY < preferences.minimumAcceptableScale) {
+      Log.warning(
+        'TransformGenerator: Level 6 — Y-axis unsupported. '
+        'composedScaleY=$composedScaleY < minAcceptable=${preferences.minimumAcceptableScale}. '
+        'availHeight=$availablePrinterHeight / totalContentHeight=$totalContentHeight.',
+        tag: 'PrintPipeline',
+      );
       return OptimizationStrategy(
         level: OptimizationLevel.unsupported,
         description: 'Template/printer combination unsupported: required Y-axis compression '

@@ -238,6 +238,25 @@ $settings.PaperSizes | ForEach-Object {
 } | ConvertTo-Json
 ''';
 
+  /// PowerShell script that lists all installed printers with their status,
+  /// driver name, manufacturer, and driver version as a JSON array.
+  static const String listPrinters = r'''
+$drivers = Get-PrinterDriver | Group-Object -Property Name -AsHashTable -AsString
+Get-Printer | ForEach-Object {
+    $drv = $drivers[$_.DriverName]
+    if ($drv -is [array]) {
+        $drv = $drv[0]
+    }
+    [PSCustomObject]@{
+        Name = $_.Name
+        PrinterStatus = $_.PrinterStatus.ToString()
+        DriverName = $_.DriverName
+        Manufacturer = if ($drv) { $drv.Manufacturer } else { "" }
+        DriverVersion = if ($drv) { $drv.DriverVersion.ToString() } else { "" }
+    }
+} | ConvertTo-Json
+''';
+
   /// PowerShell script that scans HKCU:\Printers\DevModeBackup and restores any leftover
   /// settings, then invalidates the caches, cleaning up the registry.
   static const String healRegistry = r'''

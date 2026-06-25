@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/app_service_locator.dart';
+import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/presentation/features/printer_management/cubit/printer_management_cubit.dart';
 import 'package:stickify/presentation/features/printer_management/cubit/printer_management_state.dart';
 import 'package:stickify/presentation/features/printer_management/widgets/empty_printer_state.dart';
 import 'package:stickify/presentation/features/printer_management/widgets/printer_card.dart';
+import 'package:stickify/presentation/features/printer_management/widgets/printer_selection_sheet.dart';
 
 /// Entry page for the Printer Management UI.
 /// Orchestrates the Cubit lifecycle using dependency injection and handles states.
@@ -101,13 +103,7 @@ class PrinterManagementView extends StatelessWidget {
                   message: 'Add a printer profile to begin configuring label formats.',
                   icon: Icons.print_disabled_outlined,
                   actionText: 'Add Printer Profile',
-                  onAction: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Adding printer profiles from UI is coming soon.'),
-                      ),
-                    );
-                  },
+                  onAction: () => _addPrinterProfile(context),
                 );
               }
 
@@ -164,5 +160,23 @@ class PrinterManagementView extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+Future<void> _addPrinterProfile(BuildContext context) async {
+  final locator = context.read<AppServiceLocator>();
+  final printers = await locator.printerDiscoveryService.getDiscoveredPrinters();
+  if (!context.mounted) return;
+
+  final selected = await PrinterSelectionSheet.show(
+    context: context,
+    printers: printers,
+  );
+
+  if (selected != null && context.mounted) {
+    final saved = await const PrinterConfigurationRoute().push<bool>(context);
+    if (saved == true && context.mounted) {
+      context.read<PrinterManagementCubit>().loadPrintersAndProfiles();
+    }
   }
 }

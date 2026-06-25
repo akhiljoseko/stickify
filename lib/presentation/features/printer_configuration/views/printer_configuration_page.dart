@@ -850,13 +850,25 @@ class _PrinterConfigurationView extends StatelessWidget {
     }
 
     if (!context.mounted) return;
-    unawaited(
-      CalibrationWizardRoute(
-        profileId: profile.id,
-        trayId: effectiveTray.trayIdentifier,
-        paperConfigurationId:
-            effectiveTray.supportedPaperConfigurations.first.id,
-      ).push<void>(context),
-    );
+    final calibrated = await CalibrationWizardRoute(
+      profileId: profile.id,
+      trayId: effectiveTray.trayIdentifier,
+      paperConfigurationId:
+          effectiveTray.supportedPaperConfigurations.first.id,
+    ).push<bool>(context);
+
+    // If calibration was saved, reload the profile from the repository so the
+    // form state has the latest calibration data (prevents stale overwrite).
+    if (calibrated == true && context.mounted) {
+      final reload = await cubit.printerProfileRepository.getProfileById(profile.id);
+      switch (reload) {
+        case Success(value: final updatedProfile):
+          if (updatedProfile != null && context.mounted) {
+            cubit.loadFromProfile(updatedProfile);
+          }
+        case Failure():
+          break;
+      }
+    }
   }
 }

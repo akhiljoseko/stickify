@@ -6,6 +6,7 @@ import 'package:stickify/presentation/features/dashboard/presentation/dashboard_
 import 'package:stickify/presentation/features/print/presentation/print_setup_entry.dart';
 import 'package:stickify/presentation/features/print/presentation/template_selection_page.dart';
 import 'package:stickify/presentation/features/print_history/presentation/print_history_screen.dart';
+import 'package:stickify/presentation/features/printer_management/views/calibration_wizard_page.dart';
 import 'package:stickify/presentation/features/printer_management/views/printer_management_page.dart';
 import 'package:stickify/presentation/features/product/presentation/product_management_entry.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/label_editor_screen.dart';
@@ -226,7 +227,14 @@ class PrintSetupRoute extends GoRouteData with $PrintSetupRoute {
         TypedGoRoute<SettingsRoute>(
           path: '/settings',
           routes: [
-            TypedGoRoute<PrinterManagementRoute>(path: 'printers'),
+            TypedGoRoute<PrinterManagementRoute>(
+              path: 'printers',
+              routes: [
+                TypedGoRoute<CalibrationWizardRoute>(
+                  path: ':profileId/calibrate/:trayId',
+                ),
+              ],
+            ),
           ],
         ),
       ],
@@ -399,6 +407,38 @@ class PrinterManagementRoute extends GoRouteData with $PrinterManagementRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return const PrinterManagementPage();
+  }
+}
+
+/// Route data for the Printer Calibration Wizard.
+@immutable
+class CalibrationWizardRoute extends GoRouteData with $CalibrationWizardRoute {
+  /// Creates a [CalibrationWizardRoute] instance.
+  const CalibrationWizardRoute({
+    required this.profileId,
+    required this.trayId,
+    required this.paperConfigurationId,
+  });
+
+  /// Navigates using the root navigator.
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  /// The ID of the printer profile.
+  final String profileId;
+
+  /// The ID of the tray profile.
+  final String trayId;
+
+  /// The ID of the paper configuration.
+  final String paperConfigurationId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return CalibrationWizardPage(
+      profileId: profileId,
+      trayId: trayId,
+      paperConfigurationId: paperConfigurationId,
+    );
   }
 }
 

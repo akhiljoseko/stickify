@@ -7,8 +7,8 @@ This living document tracks the progress of the implementation plan across Phase
 | Phase | Description | Status |
 |-------|-------------|--------|
 | **Phase 3A.2** | Calibration Rule Generation Service | ✅ Complete |
-| **Phase 3B**   | Calibration Wizard UI Foundation   | 🔄 In Progress |
-| **Phase 4**    | Compatibility Analysis Engine      | 🗓️ Not Started |
+| **Phase 3B**   | Calibration Wizard UI Foundation   | ✅ Complete |
+| **Phase 4**    | Compatibility Analysis Engine      | 🔄 In Progress |
 | **Phase 5**    | Intelligent Transformation Engine | 🗓️ Not Started |
 | **Phase 6**    | Runtime Integration               | 🗓️ Not Started |
 
@@ -36,15 +36,15 @@ This living document tracks the progress of the implementation plan across Phase
   - `feat(presentation): add calibration session cubit and state`
   - `feat(presentation): add calibration wizard UI screens`
   - `feat(routing): add calibration wizard route`
-- [ ] Create `lib/core/services/printing/calibration_sheet_pdf_generator.dart` using PDF rendering primitives
-- [ ] Create `lib/presentation/features/printer_management/cubit/calibration_session_cubit.dart` state machine
-- [ ] Create `lib/presentation/features/printer_management/cubit/calibration_session_state.dart`
-- [ ] Create `lib/presentation/features/printer_management/views/calibration_wizard_page.dart` multi-step UI
-- [ ] Create `lib/presentation/features/printer_management/widgets/measurement_entry_form.dart`
-- [ ] Update `lib/app/routing/router.dart` (register `/settings/printers/:profileId/calibrate/:trayId`)
-- [ ] Update `lib/app/app_service_locator.dart` (wire dependencies)
-- [ ] Create `test/presentation/features/printer_management/cubit/calibration_session_cubit_test.dart`
-- [ ] Create `test/presentation/features/printer_management/views/calibration_wizard_page_test.dart`
+- [x] Create `lib/core/services/printing/calibration_sheet_pdf_generator.dart` using PDF rendering primitives
+- [x] Create `lib/presentation/features/printer_management/cubit/calibration_session_cubit.dart` state machine
+- [x] Create `lib/presentation/features/printer_management/cubit/calibration_session_state.dart`
+- [x] Create `lib/presentation/features/printer_management/views/calibration_wizard_page.dart` multi-step UI
+- [x] Create `lib/presentation/features/printer_management/widgets/measurement_entry_form.dart`
+- [x] Update `lib/app/routing/router.dart` (register `/settings/printers/:profileId/calibrate/:trayId`)
+- [x] Update `lib/app/app_service_locator.dart` (wire dependencies)
+- [x] Create `test/presentation/features/printer_management/cubit/calibration_session_cubit_test.dart`
+- [x] Create `test/presentation/features/printer_management/views/calibration_wizard_page_test.dart`
 
 ### Phase 4 — Compatibility Analysis Engine
 * **Goal**: Determine whether a template's sticker printable regions conflict with the printer's physical limitations.

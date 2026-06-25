@@ -285,6 +285,14 @@ RouteBase get $appShellRouteData => StatefulShellRouteData.$route(
             GoRouteData.$route(
               path: 'printers',
               factory: $PrinterManagementRoute._fromState,
+              routes: [
+                GoRouteData.$route(
+                  path: ':profileId/calibrate/:trayId',
+                  parentNavigatorKey:
+                      CalibrationWizardRoute.$parentNavigatorKey,
+                  factory: $CalibrationWizardRoute._fromState,
+                ),
+              ],
             ),
           ],
         ),
@@ -489,6 +497,37 @@ mixin $PrinterManagementRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/settings/printers');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $CalibrationWizardRoute on GoRouteData {
+  static CalibrationWizardRoute _fromState(GoRouterState state) =>
+      CalibrationWizardRoute(
+        profileId: state.pathParameters['profileId']!,
+        trayId: state.pathParameters['trayId']!,
+        paperConfigurationId:
+            state.uri.queryParameters['paper-configuration-id']!,
+      );
+
+  CalibrationWizardRoute get _self => this as CalibrationWizardRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/settings/printers/${Uri.encodeComponent(_self.profileId)}/calibrate/${Uri.encodeComponent(_self.trayId)}',
+    queryParams: {'paper-configuration-id': _self.paperConfigurationId},
+  );
 
   @override
   void go(BuildContext context) => context.go(location);

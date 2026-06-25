@@ -21,10 +21,66 @@ void main() {
         id: 'temp_1',
         name: 'Template 1',
         points: [point1, point2],
+        pageWidth: 210,
+        pageHeight: 297,
       );
       expect(template.id, 'temp_1');
       expect(template.name, 'Template 1');
       expect(template.points, [point1, point2]);
+      expect(template.pageWidth, 210);
+      expect(template.pageHeight, 297);
+    });
+
+    test('has default page dimensions when omitted', () {
+      final template = CalibrationSheetTemplate(
+        id: 'temp_1',
+        name: 'Template 1',
+        points: [point1, point2],
+      );
+      expect(template.pageWidth, 210.0);
+      expect(template.pageHeight, 297.0);
+    });
+
+    test('throws AssertionError when pageWidth is non-positive', () {
+      expect(
+        () => CalibrationSheetTemplate(
+          id: 'temp_1',
+          name: 'Template 1',
+          points: [point1],
+          pageWidth: 0,
+        ),
+        throwsAssertionError,
+      );
+      expect(
+        () => CalibrationSheetTemplate(
+          id: 'temp_1',
+          name: 'Template 1',
+          points: [point1],
+          pageWidth: -5,
+        ),
+        throwsAssertionError,
+      );
+    });
+
+    test('throws AssertionError when pageHeight is non-positive', () {
+      expect(
+        () => CalibrationSheetTemplate(
+          id: 'temp_1',
+          name: 'Template 1',
+          points: [point1],
+          pageHeight: 0,
+        ),
+        throwsAssertionError,
+      );
+      expect(
+        () => CalibrationSheetTemplate(
+          id: 'temp_1',
+          name: 'Template 1',
+          points: [point1],
+          pageHeight: -100,
+        ),
+        throwsAssertionError,
+      );
     });
 
     test('throws AssertionError when id is empty', () {

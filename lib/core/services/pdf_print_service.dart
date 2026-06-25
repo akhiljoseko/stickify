@@ -1,6 +1,7 @@
 // The named parameters must be public for callers in other libraries, but the
 // internal fields are kept private to preserve encapsulation, requiring initializer lists.
 // ignore_for_file: prefer_initializing_formals
+import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:stickify/core/core.dart';
@@ -105,6 +106,41 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
       return Result.failure(
         UnexpectedError(
           message: 'Failed to compile and print PDF document.',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<void, AppError>> printRawPdf({
+    required Uint8List pdfBytes,
+    required PrinterDevice printer,
+    required double widthMm,
+    required double heightMm,
+    required String docName,
+  }) async {
+    try {
+      final targetFormat = PdfPageFormat(
+        widthMm * PdfPageFormat.mm,
+        heightMm * PdfPageFormat.mm,
+        marginAll: 0,
+      );
+
+      await Printing.layoutPdf(
+        name: docName,
+        onLayout: (format) async => pdfBytes,
+        format: targetFormat,
+        dynamicLayout: false,
+        forceCustomPrintPaper: true,
+      );
+
+      return const Result.success(null);
+    } catch (e, s) {
+      return Result.failure(
+        UnexpectedError(
+          message: 'Failed to print raw PDF document.',
           originalError: e,
           stackTrace: s,
         ),

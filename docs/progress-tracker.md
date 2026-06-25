@@ -9,8 +9,8 @@ This living document tracks the progress of the implementation plan across Phase
 | **Phase 3A.2** | Calibration Rule Generation Service | ✅ Complete |
 | **Phase 3B**   | Calibration Wizard UI Foundation   | ✅ Complete |
 | **Phase 4**    | Compatibility Analysis Engine      | ✅ Complete |
-| **Phase 5**    | Intelligent Transformation Engine | 🔄 In Progress |
-| **Phase 6**    | Runtime Integration               | 🗓️ Not Started |
+| **Phase 5**    | Intelligent Transformation Engine | ✅ Complete |
+| **Phase 6**    | Runtime Integration               | 🔄 In Progress |
 
 ---
 
@@ -66,13 +66,13 @@ This living document tracks the progress of the implementation plan across Phase
   - `feat(domain): add optimization strategy resolver`
   - `feat(domain): add intelligent transform generator service`
   - `test(domain): add transform generator tests`
-- [ ] Modify `lib/domain/entities/optimization_preferences.dart` to add `minimumAcceptableScale` (default `0.7`)
-- [ ] Update Hive and Firestore serialization for `OptimizationPreferences` (ensure backward compatibility)
-- [ ] Create `lib/domain/entities/optimization_strategy.dart`
-- [ ] Create `lib/domain/services/intelligent_transform_generator.dart` with Levels 1-4, minimum scale check escalation to Level 6
-- [ ] Update `lib/domain/domain.dart` to export optimization engine elements
-- [ ] Create `test/domain/entities/optimization_strategy_test.dart`
-- [ ] Create `test/domain/services/intelligent_transform_generator_test.dart` (covering all 13 test cases specified in the plan)
+- [x] Modify `lib/domain/entities/optimization_preferences.dart` to add `minimumAcceptableScale` (default `0.7`)
+- [x] Update Hive and Firestore serialization for `OptimizationPreferences` (ensure backward compatibility)
+- [x] Create `lib/domain/entities/optimization_strategy.dart`
+- [x] Create `lib/domain/services/intelligent_transform_generator.dart` with Levels 1-4, minimum scale check escalation to Level 6
+- [x] Update `lib/domain/domain.dart` to export optimization engine elements
+- [x] Create `test/domain/entities/optimization_strategy_test.dart`
+- [x] Create `test/domain/services/intelligent_transform_generator_test.dart` (covering all 13 test cases specified in the plan)
 
 ### Phase 6 — Runtime Integration
 * **Goal**: Wire everything together for the operator workflow: automatic calibration + optimization in the print flow.

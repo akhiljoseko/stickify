@@ -92,6 +92,27 @@ class CalibrationTransformComposer {
     );
   }
 
+  /// Composes two [PrintStickerTransform] instances.
+  ///
+  /// Translation offsets are additive. Scaling factors are multiplied.
+  /// The anchor of the second transform takes precedence if it applies scaling.
+  PrintStickerTransform composeTwo(PrintStickerTransform first, PrintStickerTransform second) {
+    final scaleX = first.scaleX * second.scaleX;
+    final scaleY = first.scaleY * second.scaleY;
+
+    final anchorX = second.scaleX != 1.0 ? second.anchorX : first.anchorX;
+    final anchorY = second.scaleY != 1.0 ? second.anchorY : first.anchorY;
+
+    return PrintStickerTransform(
+      offsetX: first.offsetX + second.offsetX,
+      offsetY: first.offsetY + second.offsetY,
+      scaleX: scaleX,
+      scaleY: scaleY,
+      anchorX: anchorX,
+      anchorY: anchorY,
+    );
+  }
+
   int _getSpecificity(TargetType type) {
     switch (type) {
       case TargetType.sticker:

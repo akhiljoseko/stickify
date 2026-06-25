@@ -28,7 +28,8 @@ class CalibrationWizardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => context.read<AppServiceLocator>().createCalibrationSessionCubit(
+      create: (context) =>
+          context.read<AppServiceLocator>().createCalibrationSessionCubit(
             profileId: profileId,
             trayId: trayId,
             paperConfigurationId: paperConfigurationId,
@@ -52,9 +53,6 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Printer Calibration Wizard'),
@@ -73,8 +71,12 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state.status == CalibrationSessionStatus.error && _activeStep == 0) {
-            return _buildErrorScreen(context, state.errorMessage ?? 'An error occurred.');
+          if (state.status == CalibrationSessionStatus.error &&
+              _activeStep == 0) {
+            return _buildErrorScreen(
+              context,
+              state.errorMessage ?? 'An error occurred.',
+            );
           }
 
           return Column(
@@ -82,7 +84,7 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
               _buildStepIndicator(context),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(24),
                   child: _buildStepContent(context, state),
                 ),
               ),
@@ -98,8 +100,8 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -124,7 +126,9 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
           radius: 12,
           backgroundColor: isDone
               ? Colors.green
-              : (isActive ? theme.colorScheme.primary : theme.colorScheme.outline),
+              : (isActive
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outline),
           child: isDone
               ? const Icon(Icons.check, size: 14, color: Colors.white)
               : Text(
@@ -132,12 +136,14 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
                   style: const TextStyle(fontSize: 11, color: Colors.white),
                 ),
         ),
-        const SizedBox(width: 8.0),
+        const SizedBox(width: 8),
         Text(
           title,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            color: isActive ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+            color: isActive
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -149,11 +155,14 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
       width: 40,
       height: 1,
       color: Colors.grey[400],
-      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
     );
   }
 
-  Widget _buildStepContent(BuildContext context, CalibrationSessionState state) {
+  Widget _buildStepContent(
+    BuildContext context,
+    CalibrationSessionState state,
+  ) {
     switch (_activeStep) {
       case 0:
         return _buildPrintStep(context, state);
@@ -174,13 +183,14 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
       child: Container(
         constraints: const BoxConstraints(maxWidth: 600),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Icon(Icons.print_outlined, size: 72, color: Colors.blue),
             const SizedBox(height: 24),
             Text(
               'Print Calibration Sheet',
-              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
             Text(
@@ -196,11 +206,16 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
               const Text('Sending job to printer...'),
             ] else ...[
               ElevatedButton.icon(
-                onPressed: () => context.read<CalibrationSessionCubit>().printCalibrationSheet(),
+                onPressed: () => context
+                    .read<CalibrationSessionCubit>()
+                    .printCalibrationSheet(),
                 icon: const Icon(Icons.print),
                 label: const Text('Print Calibration Sheet'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                 ),
               ),
               if (state.status == CalibrationSessionStatus.sheetPrinted) ...[
@@ -221,7 +236,10 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
     );
   }
 
-  Widget _buildMeasurementsStep(BuildContext context, CalibrationSessionState state) {
+  Widget _buildMeasurementsStep(
+    BuildContext context,
+    CalibrationSessionState state,
+  ) {
     final template = state.selectedTemplate;
     if (template == null) return const SizedBox.shrink();
 
@@ -235,7 +253,9 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
           children: [
             Text(
               'Enter Physical Measurements',
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -259,8 +279,12 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
                 actualY: measurement.actualY,
                 onChanged: (x, y) {
                   context.read<CalibrationSessionCubit>().addMeasurement(
-                        CalibrationMeasurement(point: point, actualX: x, actualY: y),
-                      );
+                    CalibrationMeasurement(
+                      point: point,
+                      actualX: x,
+                      actualY: y,
+                    ),
+                  );
                 },
               );
             }),
@@ -285,13 +309,18 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
       child: Container(
         constraints: const BoxConstraints(maxWidth: 600),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(Icons.assessment_outlined, size: 72, color: Colors.green),
+            const Icon(
+              Icons.assessment_outlined,
+              size: 72,
+              color: Colors.green,
+            ),
             const SizedBox(height: 24),
             Text(
               'Review Calibration Rules',
-              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
             const Text(
@@ -301,16 +330,28 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
             const SizedBox(height: 24),
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    _buildResultRow('X Offset Adjustment', '${transform.offsetX > 0 ? '+' : ''}${transform.offsetX.toStringAsFixed(2)} mm'),
+                    _buildResultRow(
+                      'X Offset Adjustment',
+                      '${transform.offsetX > 0 ? '+' : ''}${transform.offsetX.toStringAsFixed(2)} mm',
+                    ),
                     const Divider(),
-                    _buildResultRow('Y Offset Adjustment', '${transform.offsetY > 0 ? '+' : ''}${transform.offsetY.toStringAsFixed(2)} mm'),
+                    _buildResultRow(
+                      'Y Offset Adjustment',
+                      '${transform.offsetY > 0 ? '+' : ''}${transform.offsetY.toStringAsFixed(2)} mm',
+                    ),
                     const Divider(),
-                    _buildResultRow('Horizontal Scaling', '${(transform.scaleX * 100).toStringAsFixed(1)}%'),
+                    _buildResultRow(
+                      'Horizontal Scaling',
+                      '${(transform.scaleX * 100).toStringAsFixed(1)}%',
+                    ),
                     const Divider(),
-                    _buildResultRow('Vertical Scaling', '${(transform.scaleY * 100).toStringAsFixed(1)}%'),
+                    _buildResultRow(
+                      'Vertical Scaling',
+                      '${(transform.scaleY * 100).toStringAsFixed(1)}%',
+                    ),
                   ],
                 ),
               ),
@@ -328,7 +369,8 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => context.read<CalibrationSessionCubit>().saveCalibration(),
+                onPressed: () =>
+                    context.read<CalibrationSessionCubit>().saveCalibration(),
                 child: const Text('Try Saving Again'),
               ),
             ],
@@ -340,12 +382,15 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
 
   Widget _buildResultRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
         ],
       ),
     );
@@ -355,7 +400,7 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
     final theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -363,13 +408,16 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
             const SizedBox(height: 24),
             Text(
               'An Error Occurred',
-              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () => context.read<CalibrationSessionCubit>().loadSession(),
+              onPressed: () =>
+                  context.read<CalibrationSessionCubit>().loadSession(),
               child: const Text('Retry Loading Session'),
             ),
           ],
@@ -378,14 +426,17 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
     );
   }
 
-  Widget _buildNavigationButtons(BuildContext context, CalibrationSessionState state) {
+  Widget _buildNavigationButtons(
+    BuildContext context,
+    CalibrationSessionState state,
+  ) {
     final canGoNext = _canGoNext(state);
 
     return Container(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: Colors.grey[300]!)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

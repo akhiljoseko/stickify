@@ -28,9 +28,9 @@ class MeasurementEntryForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -40,14 +40,14 @@ class MeasurementEntryForm extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            const SizedBox(height: 4.0),
+            const SizedBox(height: 4),
             Text(
               'Expected Position: X = ${point.expectedX.toStringAsFixed(1)} mm, Y = ${point.expectedY.toStringAsFixed(1)} mm',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.grey[600],
                   ),
             ),
-            const SizedBox(height: 12.0),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -58,7 +58,7 @@ class MeasurementEntryForm extends StatelessWidget {
                     onChanged: (val) => onChanged(val, actualY),
                   ),
                 ),
-                const SizedBox(width: 16.0),
+                const SizedBox(width: 16),
                 Expanded(
                   child: SetupNumberField(
                     key: ValueKey('actual_y_${point.id}'),

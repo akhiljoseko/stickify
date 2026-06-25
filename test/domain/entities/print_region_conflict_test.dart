@@ -4,22 +4,22 @@ import 'package:stickify/domain/domain.dart';
 void main() {
   group('PrintRegionConflict', () {
     test('supports Equatable value equality', () {
-      final conflict1 = PrintRegionConflict(
+      const conflict1 = PrintRegionConflict(
         affectedEdge: EdgeGroup.left,
         overlapMm: 2.5,
-        affectedStickerIndices: const [0, 1],
+        affectedStickerIndices: [0, 1],
       );
 
-      final conflict2 = PrintRegionConflict(
+      const conflict2 = PrintRegionConflict(
         affectedEdge: EdgeGroup.left,
         overlapMm: 2.5,
-        affectedStickerIndices: const [0, 1],
+        affectedStickerIndices: [0, 1],
       );
 
-      final conflict3 = PrintRegionConflict(
+      const conflict3 = PrintRegionConflict(
         affectedEdge: EdgeGroup.right,
-        overlapMm: 1.0,
-        affectedStickerIndices: const [2],
+        overlapMm: 1,
+        affectedStickerIndices: [2],
       );
 
       expect(conflict1, equals(conflict2));
@@ -39,7 +39,7 @@ void main() {
       expect(
         () => PrintRegionConflict(
           affectedEdge: EdgeGroup.left,
-          overlapMm: -1.0,
+          overlapMm: -1,
           affectedStickerIndices: const [0],
         ),
         throwsAssertionError,

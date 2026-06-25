@@ -12,31 +12,19 @@ import 'package:stickify/presentation/features/print/cubits/print_workflow_state
 class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   /// Creates a [PrintWorkflowCubit] with the necessary repositories and services.
   PrintWorkflowCubit({
-    required ProductRepository productRepository,
-    required TemplateRepository templateRepository,
-    required PrintJobRepository printJobRepository,
-    required VariantPrintStatsRepository variantPrintStatsRepository,
-    required PrintService printService,
-    required PrinterDiscoveryService printerDiscoveryService,
-    required PrintJobIdGenerator printJobIdGenerator,
-    required LocalDatabase localDatabase,
-    required PrinterProfileRepository printerProfileRepository,
-    required PrinterCalibrationCoordinateResolver calibrationResolver,
-    required TemplatePrinterCompatibilityAnalyzer compatibilityAnalyzer,
-    required PrintPipelineOrchestrator printPipelineOrchestrator,
-  })  : _productRepository = productRepository,
-        _templateRepository = templateRepository,
-        _printJobRepository = printJobRepository,
-        _variantPrintStatsRepository = variantPrintStatsRepository,
-        _printService = printService,
-        _printerDiscoveryService = printerDiscoveryService,
-        _printJobIdGenerator = printJobIdGenerator,
-        _localDatabase = localDatabase,
-        _printerProfileRepository = printerProfileRepository,
-        _calibrationResolver = calibrationResolver,
-        _compatibilityAnalyzer = compatibilityAnalyzer,
-        _printPipelineOrchestrator = printPipelineOrchestrator,
-        super(const PrintWorkflowInitial());
+    required this._productRepository,
+    required this._templateRepository,
+    required this._printJobRepository,
+    required this._variantPrintStatsRepository,
+    required this._printService,
+    required this._printerDiscoveryService,
+    required this._printJobIdGenerator,
+    required this._localDatabase,
+    required this._printerProfileRepository,
+    required this._calibrationResolver,
+    required this._compatibilityAnalyzer,
+    required this._printPipelineOrchestrator,
+  })  : super(const PrintWorkflowInitial());
 
   /// Repository providing product catalog records.
   final ProductRepository _productRepository;

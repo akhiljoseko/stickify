@@ -21,8 +21,6 @@ void main() {
         id: 'temp_1',
         name: 'Template 1',
         points: [point1, point2],
-        pageWidth: 210,
-        pageHeight: 297,
       );
       expect(template.id, 'temp_1');
       expect(template.name, 'Template 1');

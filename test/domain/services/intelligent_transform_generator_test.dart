@@ -116,7 +116,7 @@ void main() {
     });
 
     test('Level 2: Skip to Level 3 on left and right conflict simultaneously', () {
-      final singleColumnTemplate = const LabelTemplate(
+      const singleColumnTemplate = LabelTemplate(
         id: 'single_col_tpl',
         name: 'Single Column Template',
         sheetConfig: SheetConfig(
@@ -171,7 +171,7 @@ void main() {
     });
 
     test('Level 3: Single left-group translation resolves conflicts without shifting other column', () {
-      final customTemplate = const LabelTemplate(
+      const customTemplate = LabelTemplate(
         id: 'c',
         name: 'c',
         sheetConfig: SheetConfig(
@@ -240,7 +240,7 @@ void main() {
       // Required scale = 50 / 90 = 0.555.
       // minimumAcceptableScale is 0.7.
       // 0.555 < 0.7, so it escalates to Unsupported!
-      final printer = makePrinter(marginLeft: 80, marginRight: 80, marginTop: 10, marginBottom: 10, minScale: 0.7);
+      final printer = makePrinter(marginLeft: 80, marginRight: 80, marginTop: 10, marginBottom: 10);
       final analysis = analyzer.analyze(template: template, printer: printer, tray: tray);
 
       final strategy = generator.generate(

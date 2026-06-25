@@ -8,14 +8,12 @@ import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/core/presentation/notifications/notification_service.dart';
 import 'package:stickify/core/services/pdf_print_service.dart';
 import 'package:stickify/core/services/print_job/timestamp_print_job_id_generator.dart';
+import 'package:stickify/core/services/printing/calibration_sheet_pdf_generator.dart';
 import 'package:stickify/core/services/printing/label_pdf_layout_engine.dart';
 import 'package:stickify/core/services/printing/print_calibration_context_resolver.dart';
-import 'package:stickify/core/services/printing/calibration_sheet_pdf_generator.dart';
 import 'package:stickify/core/services/printing/windows/windows_devmode_manager.dart';
 import 'package:stickify/core/services/printing/windows/windows_paper_validator.dart';
 import 'package:stickify/core/services/printing/windows/windows_print_service.dart';
-import 'package:stickify/domain/services/calibration_rule_generator.dart';
-import 'package:stickify/presentation/features/printer_management/cubit/calibration_session_cubit.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
@@ -35,6 +33,7 @@ import 'package:stickify/data/services/hive_sync_queue.dart';
 import 'package:stickify/data/services/local_file_storage_service.dart';
 import 'package:stickify/data/services/unimplemented_file_storage_service.dart';
 import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/features/printer_management/cubit/calibration_session_cubit.dart';
 import 'package:stickify/presentation/features/printer_management/cubit/printer_management_cubit.dart';
 
 /// Centralized Dependency Injection container and service locator.
@@ -116,7 +115,7 @@ class AppServiceLocator {
 
     const templatePrinterCompatibilityAnalyzer = TemplatePrinterCompatibilityAnalyzer();
     const intelligentTransformGenerator = IntelligentTransformGenerator();
-    final printPipelineOrchestrator = PrintPipelineOrchestrator(
+    const printPipelineOrchestrator = PrintPipelineOrchestrator(
       calibrationResolver: resolver,
       compatibilityAnalyzer: templatePrinterCompatibilityAnalyzer,
       transformGenerator: intelligentTransformGenerator,

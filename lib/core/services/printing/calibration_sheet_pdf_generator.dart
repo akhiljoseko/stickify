@@ -25,29 +25,42 @@ class CalibrationSheetPdfGenerator {
     doc.addPage(
       pw.Page(
         pageFormat: pageFormat,
-        build: (pw.Context context) {
+        build: (context) {
           final canvas = context.canvas;
 
           // 1. Draw Page/Sheet boundary outlines (5mm margin from edges)
           const margin = 5.0 * PdfPageFormat.mm;
-          canvas.setStrokeColor(PdfColors.grey400);
-          canvas.setLineWidth(0.5);
-          canvas.drawRect(margin, margin, widthPt - 2 * margin, heightPt - 2 * margin);
-          canvas.strokePath();
+          canvas
+            ..setStrokeColor(PdfColors.grey400)
+            ..setLineWidth(0.5)
+            ..drawRect(
+              margin,
+              margin,
+              widthPt - 2 * margin,
+              heightPt - 2 * margin,
+            )
+            ..strokePath();
 
           // 2. Draw Registration Marks at four corners (10mm offset, 8mm line length)
           const regOffset = 10.0 * PdfPageFormat.mm;
           const regLen = 8.0 * PdfPageFormat.mm;
-          canvas.setStrokeColor(PdfColors.black);
-          canvas.setLineWidth(1.0);
+          canvas
+            ..setStrokeColor(PdfColors.black)
+            ..setLineWidth(1);
 
           void drawRegMark(double cx, double cy) {
-            canvas.drawEllipse(cx, cy, 3.0 * PdfPageFormat.mm, 3.0 * PdfPageFormat.mm);
-            canvas.moveTo(cx - regLen, cy);
-            canvas.lineTo(cx + regLen, cy);
-            canvas.moveTo(cx, cy - regLen);
-            canvas.lineTo(cx, cy + regLen);
-            canvas.strokePath();
+            canvas
+              ..drawEllipse(
+                cx,
+                cy,
+                3.0 * PdfPageFormat.mm,
+                3.0 * PdfPageFormat.mm,
+              )
+              ..moveTo(cx - regLen, cy)
+              ..lineTo(cx + regLen, cy)
+              ..moveTo(cx, cy - regLen)
+              ..lineTo(cx, cy + regLen)
+              ..strokePath();
           }
 
           // Top-Left (Origin at bottom-left in PDF canvas, so top is heightPt)
@@ -60,8 +73,9 @@ class CalibrationSheetPdfGenerator {
           drawRegMark(widthPt - regOffset, regOffset);
 
           // 3. Draw Ruler Scale along Top and Left edges
-          canvas.setStrokeColor(PdfColors.black);
-          canvas.setLineWidth(0.5);
+          canvas
+            ..setStrokeColor(PdfColors.black)
+            ..setLineWidth(0.5);
 
           // Top Edge Ruler
           final topY = heightPt;
@@ -70,9 +84,10 @@ class CalibrationSheetPdfGenerator {
             final isMajor = x % 10 == 0;
             final tickLen = (isMajor ? 6.0 : 3.0) * PdfPageFormat.mm;
 
-            canvas.moveTo(xPt, topY);
-            canvas.lineTo(xPt, topY - tickLen);
-            canvas.strokePath();
+            canvas
+              ..moveTo(xPt, topY)
+              ..lineTo(xPt, topY - tickLen)
+              ..strokePath();
           }
 
           // Left Edge Ruler (measured from top down)
@@ -81,9 +96,10 @@ class CalibrationSheetPdfGenerator {
             final isMajor = y % 10 == 0;
             final tickLen = (isMajor ? 6.0 : 3.0) * PdfPageFormat.mm;
 
-            canvas.moveTo(0, yPt);
-            canvas.lineTo(tickLen, yPt);
-            canvas.strokePath();
+            canvas
+              ..moveTo(0, yPt)
+              ..lineTo(tickLen, yPt)
+              ..strokePath();
           }
 
           // 4. Draw Target Crosshairs at each calibration point
@@ -92,14 +108,20 @@ class CalibrationSheetPdfGenerator {
             final cy = heightPt - (point.expectedY * PdfPageFormat.mm);
             const crossLen = 6.0 * PdfPageFormat.mm;
 
-            canvas.setStrokeColor(PdfColors.red);
-            canvas.setLineWidth(0.75);
-            canvas.moveTo(cx - crossLen, cy);
-            canvas.lineTo(cx + crossLen, cy);
-            canvas.moveTo(cx, cy - crossLen);
-            canvas.lineTo(cx, cy + crossLen);
-            canvas.drawEllipse(cx, cy, 1.5 * PdfPageFormat.mm, 1.5 * PdfPageFormat.mm);
-            canvas.strokePath();
+            canvas
+              ..setStrokeColor(PdfColors.red)
+              ..setLineWidth(0.75)
+              ..moveTo(cx - crossLen, cy)
+              ..lineTo(cx + crossLen, cy)
+              ..moveTo(cx, cy - crossLen)
+              ..lineTo(cx, cy + crossLen)
+              ..drawEllipse(
+                cx,
+                cy,
+                1.5 * PdfPageFormat.mm,
+                1.5 * PdfPageFormat.mm,
+              )
+              ..strokePath();
           }
 
           // 5. Text elements (Ruler numbers, point labels, metadata footer)
@@ -112,10 +134,13 @@ class CalibrationSheetPdfGenerator {
                 if (xPt > widthPt - 15) return pw.Container();
                 return pw.Positioned(
                   left: xPt - 5,
-                  top: 8.0,
+                  top: 8,
                   child: pw.Text(
                     '$x',
-                    style: const pw.TextStyle(fontSize: 6, color: PdfColors.black),
+                    style: const pw.TextStyle(
+                      fontSize: 6,
+                      color: PdfColors.black,
+                    ),
                   ),
                 );
               }),
@@ -126,11 +151,14 @@ class CalibrationSheetPdfGenerator {
                 final yPt = y * PdfPageFormat.mm;
                 if (yPt > heightPt - 15) return pw.Container();
                 return pw.Positioned(
-                  left: 8.0,
+                  left: 8,
                   top: yPt - 4,
                   child: pw.Text(
                     '$y',
-                    style: const pw.TextStyle(fontSize: 6, color: PdfColors.black),
+                    style: const pw.TextStyle(
+                      fontSize: 6,
+                      color: PdfColors.black,
+                    ),
                   ),
                 );
               }),
@@ -155,13 +183,16 @@ class CalibrationSheetPdfGenerator {
 
               // Footer Metadata
               pw.Positioned(
-                bottom: 12.0,
+                bottom: 12,
                 left: 0,
                 right: 0,
                 child: pw.Center(
                   child: pw.Text(
                     'Printer: $printerName  |  Tray: $trayName  |  Sheet: ${template.name}  |  Generated: ${time.toIso8601String()}',
-                    style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700),
+                    style: const pw.TextStyle(
+                      fontSize: 7,
+                      color: PdfColors.grey700,
+                    ),
                   ),
                 ),
               ),

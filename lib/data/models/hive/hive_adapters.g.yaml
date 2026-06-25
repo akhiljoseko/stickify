@@ -259,7 +259,7 @@ types:
         index: 2
   OptimizationPreferencesHiveModel:
     typeId: 13
-    nextIndex: 4
+    nextIndex: 5
     fields:
       allowScaling:
         index: 0
@@ -269,6 +269,8 @@ types:
         index: 2
       allowStickerSpecificAdjustment:
         index: 3
+      minimumAcceptableScale:
+        index: 4
   PaperConfigurationReferenceHiveModel:
     typeId: 14
     nextIndex: 2
@@ -305,7 +307,7 @@ types:
         index: 2
   PrinterCapabilitiesHiveModel:
     typeId: 17
-    nextIndex: 6
+    nextIndex: 10
     fields:
       supportsCustomPaperSize:
         index: 0
@@ -319,6 +321,14 @@ types:
         index: 4
       supportsTraySelection:
         index: 5
+      nonPrintableMarginLeft:
+        index: 6
+      nonPrintableMarginRight:
+        index: 7
+      nonPrintableMarginTop:
+        index: 8
+      nonPrintableMarginBottom:
+        index: 9
   PrinterIdentityHiveModel:
     typeId: 18
     nextIndex: 5

@@ -23,10 +23,6 @@ class PrinterConfigurationState extends Equatable {
     this.supportsManualFeed = true,
     this.supportsBorderlessPrinting = false,
     this.supportsTraySelection = true,
-    this.nonPrintableMarginLeft = 0.0,
-    this.nonPrintableMarginRight = 0.0,
-    this.nonPrintableMarginTop = 0.0,
-    this.nonPrintableMarginBottom = 0.0,
     this.allowScaling = true,
     this.allowTranslation = true,
     this.preferShrinkOverShift = true,
@@ -53,10 +49,6 @@ class PrinterConfigurationState extends Equatable {
   final bool supportsManualFeed;
   final bool supportsBorderlessPrinting;
   final bool supportsTraySelection;
-  final double nonPrintableMarginLeft;
-  final double nonPrintableMarginRight;
-  final double nonPrintableMarginTop;
-  final double nonPrintableMarginBottom;
   final bool allowScaling;
   final bool allowTranslation;
   final bool preferShrinkOverShift;
@@ -82,10 +74,6 @@ class PrinterConfigurationState extends Equatable {
     bool? supportsManualFeed,
     bool? supportsBorderlessPrinting,
     bool? supportsTraySelection,
-    double? nonPrintableMarginLeft,
-    double? nonPrintableMarginRight,
-    double? nonPrintableMarginTop,
-    double? nonPrintableMarginBottom,
     bool? allowScaling,
     bool? allowTranslation,
     bool? preferShrinkOverShift,
@@ -114,14 +102,6 @@ class PrinterConfigurationState extends Equatable {
           supportsBorderlessPrinting ?? this.supportsBorderlessPrinting,
       supportsTraySelection:
           supportsTraySelection ?? this.supportsTraySelection,
-      nonPrintableMarginLeft:
-          nonPrintableMarginLeft ?? this.nonPrintableMarginLeft,
-      nonPrintableMarginRight:
-          nonPrintableMarginRight ?? this.nonPrintableMarginRight,
-      nonPrintableMarginTop:
-          nonPrintableMarginTop ?? this.nonPrintableMarginTop,
-      nonPrintableMarginBottom:
-          nonPrintableMarginBottom ?? this.nonPrintableMarginBottom,
       allowScaling: allowScaling ?? this.allowScaling,
       allowTranslation: allowTranslation ?? this.allowTranslation,
       preferShrinkOverShift:
@@ -151,10 +131,6 @@ class PrinterConfigurationState extends Equatable {
         supportsManualFeed,
         supportsBorderlessPrinting,
         supportsTraySelection,
-        nonPrintableMarginLeft,
-        nonPrintableMarginRight,
-        nonPrintableMarginTop,
-        nonPrintableMarginBottom,
         allowScaling,
         allowTranslation,
         preferShrinkOverShift,

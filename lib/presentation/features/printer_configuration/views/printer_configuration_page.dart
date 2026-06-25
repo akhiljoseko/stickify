@@ -358,65 +358,7 @@ class _PrinterConfigurationView extends StatelessWidget {
                   .read<PrinterConfigurationCubit>()
                   .setSupportsTraySelection(v),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Non-Printable Margins (mm)',
-              style: textScheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildMarginField(
-                    context,
-                    label: 'Top',
-                    value: state.nonPrintableMarginTop,
-                    onChanged: (v) => context
-                        .read<PrinterConfigurationCubit>()
-                        .setNonPrintableMarginTop(v),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildMarginField(
-                    context,
-                    label: 'Bottom',
-                    value: state.nonPrintableMarginBottom,
-                    onChanged: (v) => context
-                        .read<PrinterConfigurationCubit>()
-                        .setNonPrintableMarginBottom(v),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildMarginField(
-                    context,
-                    label: 'Left',
-                    value: state.nonPrintableMarginLeft,
-                    onChanged: (v) => context
-                        .read<PrinterConfigurationCubit>()
-                        .setNonPrintableMarginLeft(v),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildMarginField(
-                    context,
-                    label: 'Right',
-                    value: state.nonPrintableMarginRight,
-                    onChanged: (v) => context
-                        .read<PrinterConfigurationCubit>()
-                        .setNonPrintableMarginRight(v),
-                  ),
-                ),
-              ],
-            ),
+
           ],
         ),
       ),
@@ -435,31 +377,6 @@ class _PrinterConfigurationView extends StatelessWidget {
       value: value,
       onChanged: onChanged,
       dense: true,
-    );
-  }
-
-  Widget _buildMarginField(
-    BuildContext context, {
-    required String label,
-    required double value,
-    required ValueChanged<double> onChanged,
-  }) {
-    return TextField(
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        suffixText: 'mm',
-        isDense: true,
-      ),
-      controller: TextEditingController(text: value.toStringAsFixed(1))
-        ..selection = TextSelection.collapsed(
-          offset: value.toStringAsFixed(1).length,
-        ),
-      onChanged: (v) {
-        final parsed = double.tryParse(v);
-        if (parsed != null) onChanged(parsed);
-      },
     );
   }
 

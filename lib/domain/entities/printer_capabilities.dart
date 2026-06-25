@@ -12,10 +12,6 @@ class PrinterCapabilities extends Equatable {
     required this.supportsManualFeed,
     required this.supportsBorderlessPrinting,
     required this.supportsTraySelection,
-    this.nonPrintableMarginLeft = 0.0,
-    this.nonPrintableMarginRight = 0.0,
-    this.nonPrintableMarginTop = 0.0,
-    this.nonPrintableMarginBottom = 0.0,
   });
 
   /// Whether the printer driver accepts user-defined paper sizes.
@@ -36,18 +32,6 @@ class PrinterCapabilities extends Equatable {
   /// Whether the driver supports explicit paper tray selection.
   final bool supportsTraySelection;
 
-  /// The left hardware non-printable margin in millimeters.
-  final double nonPrintableMarginLeft;
-
-  /// The right hardware non-printable margin in millimeters.
-  final double nonPrintableMarginRight;
-
-  /// The top hardware non-printable margin in millimeters.
-  final double nonPrintableMarginTop;
-
-  /// The bottom hardware non-printable margin in millimeters.
-  final double nonPrintableMarginBottom;
-
   @override
   List<Object?> get props => [
         supportsCustomPaperSize,
@@ -56,10 +40,6 @@ class PrinterCapabilities extends Equatable {
         supportsManualFeed,
         supportsBorderlessPrinting,
         supportsTraySelection,
-        nonPrintableMarginLeft,
-        nonPrintableMarginRight,
-        nonPrintableMarginTop,
-        nonPrintableMarginBottom,
       ];
 
   @override
@@ -70,9 +50,5 @@ class PrinterCapabilities extends Equatable {
       'supportsLandscapeCustomPaper: $supportsLandscapeCustomPaper, '
       'supportsManualFeed: $supportsManualFeed, '
       'supportsBorderlessPrinting: $supportsBorderlessPrinting, '
-      'supportsTraySelection: $supportsTraySelection, '
-      'nonPrintableMarginLeft: $nonPrintableMarginLeft, '
-      'nonPrintableMarginRight: $nonPrintableMarginRight, '
-      'nonPrintableMarginTop: $nonPrintableMarginTop, '
-      'nonPrintableMarginBottom: $nonPrintableMarginBottom)';
+      'supportsTraySelection: $supportsTraySelection)';
 }

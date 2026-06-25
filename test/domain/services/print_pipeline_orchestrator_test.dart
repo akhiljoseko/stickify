@@ -58,6 +58,10 @@ void main() {
           enabled: false,
           calibrationRules: const [],
         ),
+        nonPrintableMarginLeft: 5,
+        nonPrintableMarginRight: 5,
+        nonPrintableMarginTop: 5,
+        nonPrintableMarginBottom: 5,
       );
 
       // Printer capabilities with some margins
@@ -73,10 +77,6 @@ void main() {
           supportsManualFeed: false,
           supportsBorderlessPrinting: false,
           supportsTraySelection: true,
-          nonPrintableMarginLeft: 5,
-          nonPrintableMarginRight: 5,
-          nonPrintableMarginTop: 5,
-          nonPrintableMarginBottom: 5,
         ),
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
@@ -110,6 +110,10 @@ void main() {
             ),
           ],
         ),
+        nonPrintableMarginLeft: 5,
+        nonPrintableMarginRight: 5,
+        nonPrintableMarginTop: 5,
+        nonPrintableMarginBottom: 5,
       );
 
       final result = orchestrator.resolve(
@@ -132,6 +136,7 @@ void main() {
 
     test('Calibration + optimization composition', () {
       // Calibration shifts left by 1 mm (which would make left = 9 mm, creating 3 mm overlap conflict on left)
+      // Shift margin to 12 mm to force a left-margin conflict (template margin is 10 mm)
       trayWithCalibration = PrinterTrayProfile(
         trayIdentifier: 'tray_1',
         displayName: 'Tray 1',
@@ -149,9 +154,11 @@ void main() {
             ),
           ],
         ),
+        nonPrintableMarginLeft: 12, // 10mm starts, so 2mm overlap conflict on left
+        nonPrintableMarginRight: 5,
+        nonPrintableMarginTop: 5,
+        nonPrintableMarginBottom: 5,
       );
-
-      // Shift margin to 12 mm to force a left-margin conflict (template margin is 10 mm)
       final printerWithConflict = PrinterProfile(
         id: 'p1',
         displayName: 'High Margin Printer',
@@ -164,10 +171,6 @@ void main() {
           supportsManualFeed: false,
           supportsBorderlessPrinting: false,
           supportsTraySelection: true,
-          nonPrintableMarginLeft: 12, // 10mm starts, so 2mm overlap conflict on left
-          nonPrintableMarginRight: 5,
-          nonPrintableMarginTop: 5,
-          nonPrintableMarginBottom: 5,
         ),
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
@@ -218,6 +221,10 @@ void main() {
             ),
           ],
         ),
+        nonPrintableMarginLeft: 12, // Template starts at 10mm, so would conflict by 2mm
+        nonPrintableMarginRight: 5,
+        nonPrintableMarginTop: 5,
+        nonPrintableMarginBottom: 5,
       );
 
       // High left margin at 12 mm
@@ -233,10 +240,6 @@ void main() {
           supportsManualFeed: false,
           supportsBorderlessPrinting: false,
           supportsTraySelection: true,
-          nonPrintableMarginLeft: 12, // Template starts at 10mm, so would conflict by 2mm
-          nonPrintableMarginRight: 5,
-          nonPrintableMarginTop: 5,
-          nonPrintableMarginBottom: 5,
         ),
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,

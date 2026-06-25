@@ -109,6 +109,7 @@ class PrintPipelineOrchestrator {
         analysisResult: compatibilityResult,
         template: template,
         printer: printer,
+        tray: tray,
         preferences: printer.optimizationPreferences,
         calibrationContext: calibrationContext,
       );

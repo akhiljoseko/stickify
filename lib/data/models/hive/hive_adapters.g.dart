@@ -924,25 +924,13 @@ class PrinterCapabilitiesHiveModelAdapter
       supportsManualFeed: fields[3] as bool,
       supportsBorderlessPrinting: fields[4] as bool,
       supportsTraySelection: fields[5] as bool,
-      nonPrintableMarginLeft: fields[6] == null
-          ? 0.0
-          : (fields[6] as num).toDouble(),
-      nonPrintableMarginRight: fields[7] == null
-          ? 0.0
-          : (fields[7] as num).toDouble(),
-      nonPrintableMarginTop: fields[8] == null
-          ? 0.0
-          : (fields[8] as num).toDouble(),
-      nonPrintableMarginBottom: fields[9] == null
-          ? 0.0
-          : (fields[9] as num).toDouble(),
     );
   }
 
   @override
   void write(BinaryWriter writer, PrinterCapabilitiesHiveModel obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.supportsCustomPaperSize)
       ..writeByte(1)
@@ -954,15 +942,7 @@ class PrinterCapabilitiesHiveModelAdapter
       ..writeByte(4)
       ..write(obj.supportsBorderlessPrinting)
       ..writeByte(5)
-      ..write(obj.supportsTraySelection)
-      ..writeByte(6)
-      ..write(obj.nonPrintableMarginLeft)
-      ..writeByte(7)
-      ..write(obj.nonPrintableMarginRight)
-      ..writeByte(8)
-      ..write(obj.nonPrintableMarginTop)
-      ..writeByte(9)
-      ..write(obj.nonPrintableMarginBottom);
+      ..write(obj.supportsTraySelection);
   }
 
   @override
@@ -1102,13 +1082,25 @@ class PrinterTrayProfileHiveModelAdapter
       supportedPaperConfigurations: (fields[2] as List)
           .cast<PaperConfigurationReferenceHiveModel>(),
       calibration: fields[3] as PrinterCalibrationHiveModel,
+      nonPrintableMarginLeft: fields[4] == null
+          ? 0.0
+          : (fields[4] as num).toDouble(),
+      nonPrintableMarginRight: fields[5] == null
+          ? 0.0
+          : (fields[5] as num).toDouble(),
+      nonPrintableMarginTop: fields[6] == null
+          ? 0.0
+          : (fields[6] as num).toDouble(),
+      nonPrintableMarginBottom: fields[7] == null
+          ? 0.0
+          : (fields[7] as num).toDouble(),
     );
   }
 
   @override
   void write(BinaryWriter writer, PrinterTrayProfileHiveModel obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.trayIdentifier)
       ..writeByte(1)
@@ -1116,7 +1108,15 @@ class PrinterTrayProfileHiveModelAdapter
       ..writeByte(2)
       ..write(obj.supportedPaperConfigurations)
       ..writeByte(3)
-      ..write(obj.calibration);
+      ..write(obj.calibration)
+      ..writeByte(4)
+      ..write(obj.nonPrintableMarginLeft)
+      ..writeByte(5)
+      ..write(obj.nonPrintableMarginRight)
+      ..writeByte(6)
+      ..write(obj.nonPrintableMarginTop)
+      ..writeByte(7)
+      ..write(obj.nonPrintableMarginBottom);
   }
 
   @override

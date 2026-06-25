@@ -80,10 +80,10 @@ class TemplatePrinterCompatibilityAnalyzer {
         : sheetConfig.pageHeight;
 
     // Step 3 — Retrieve printer non-printable margins
-    final printerMarginLeft = printer.capabilities.nonPrintableMarginLeft;
-    final printerMarginRight = printer.capabilities.nonPrintableMarginRight;
-    final printerMarginTop = printer.capabilities.nonPrintableMarginTop;
-    final printerMarginBottom = printer.capabilities.nonPrintableMarginBottom;
+    final printerMarginLeft = tray.nonPrintableMarginLeft;
+    final printerMarginRight = tray.nonPrintableMarginRight;
+    final printerMarginTop = tray.nonPrintableMarginTop;
+    final printerMarginBottom = tray.nonPrintableMarginBottom;
 
     // Step 2 & 4 — Project sticker printable regions and detect conflicts
     final leftStickers = <int>[];

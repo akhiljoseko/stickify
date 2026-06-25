@@ -72,22 +72,6 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
     emit(state.copyWith(supportsTraySelection: value));
   }
 
-  void setNonPrintableMarginLeft(double value) {
-    emit(state.copyWith(nonPrintableMarginLeft: value));
-  }
-
-  void setNonPrintableMarginRight(double value) {
-    emit(state.copyWith(nonPrintableMarginRight: value));
-  }
-
-  void setNonPrintableMarginTop(double value) {
-    emit(state.copyWith(nonPrintableMarginTop: value));
-  }
-
-  void setNonPrintableMarginBottom(double value) {
-    emit(state.copyWith(nonPrintableMarginBottom: value));
-  }
-
   void setAllowScaling(bool value) {
     emit(state.copyWith(allowScaling: value));
   }
@@ -144,10 +128,6 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
         supportsBorderlessPrinting:
             profile.capabilities.supportsBorderlessPrinting,
         supportsTraySelection: profile.capabilities.supportsTraySelection,
-        nonPrintableMarginLeft: profile.capabilities.nonPrintableMarginLeft,
-        nonPrintableMarginRight: profile.capabilities.nonPrintableMarginRight,
-        nonPrintableMarginTop: profile.capabilities.nonPrintableMarginTop,
-        nonPrintableMarginBottom: profile.capabilities.nonPrintableMarginBottom,
         allowScaling: profile.optimizationPreferences.allowScaling,
         allowTranslation: profile.optimizationPreferences.allowTranslation,
         preferShrinkOverShift:
@@ -253,10 +233,6 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
         supportsManualFeed: state.supportsManualFeed,
         supportsBorderlessPrinting: state.supportsBorderlessPrinting,
         supportsTraySelection: state.supportsTraySelection,
-        nonPrintableMarginLeft: state.nonPrintableMarginLeft,
-        nonPrintableMarginRight: state.nonPrintableMarginRight,
-        nonPrintableMarginTop: state.nonPrintableMarginTop,
-        nonPrintableMarginBottom: state.nonPrintableMarginBottom,
       ),
       optimizationPreferences: OptimizationPreferences(
         allowScaling: state.allowScaling,

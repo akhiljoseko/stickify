@@ -28,18 +28,19 @@ class CalibrationSheetPdfGenerator {
         build: (context) {
           final canvas = context.canvas;
 
-          // 1. Draw Page/Sheet boundary outlines (5mm margin from edges)
-          const margin = 5.0 * PdfPageFormat.mm;
+          // 1. Draw 12mm wide coloured bands at each paper edge as a visual
+          //    reference for the non-printable margin zone. Most printers cannot
+          //    place toner/ink within this region. The red calibration crosshairs
+          //    at 20mm offset are unaffected.
+          const bandWidth = 12.0 * PdfPageFormat.mm;
+          const bandColor = 0xFFE0E0E0;
           canvas
-            ..setStrokeColor(PdfColors.grey400)
-            ..setLineWidth(0.5)
-            ..drawRect(
-              margin,
-              margin,
-              widthPt - 2 * margin,
-              heightPt - 2 * margin,
-            )
-            ..strokePath();
+            ..setFillColor(PdfColor.fromInt(bandColor))
+            ..drawRect(0, 0, widthPt, bandWidth)          // top band
+            ..drawRect(0, heightPt - bandWidth, widthPt, bandWidth) // bottom
+            ..drawRect(0, 0, bandWidth, heightPt)         // left band
+            ..drawRect(widthPt - bandWidth, 0, bandWidth, heightPt) // right
+            ..fillPath();
 
           // 2. Draw Registration Marks at four corners (10mm offset, 8mm line length)
           const regOffset = 10.0 * PdfPageFormat.mm;

@@ -103,6 +103,16 @@ void main() {
     });
 
     test('Identity mapping, left edge conflict, global shift resolves it', () {
+      final trayWithMargin = PrinterTrayProfile(
+        trayIdentifier: 'tray_1',
+        displayName: 'Tray 1',
+        supportedPaperConfigurations: const [],
+        calibration: PrinterCalibration(
+          enabled: false,
+          calibrationRules: const [],
+        ),
+        nonPrintableMarginLeft: 12, // template has 10mm left margin, so it overflows by 2mm
+      );
       final printer = PrinterProfile(
         id: 'p1',
         displayName: 'Left Margin Printer',
@@ -115,7 +125,6 @@ void main() {
           supportsManualFeed: false,
           supportsBorderlessPrinting: false,
           supportsTraySelection: false,
-          nonPrintableMarginLeft: 12, // template has 10mm left margin, so it overflows by 2mm
         ),
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
@@ -131,7 +140,7 @@ void main() {
       final result = analyzer.analyze(
         template: templatePortrait,
         printer: printer,
-        tray: tray,
+        tray: trayWithMargin,
       );
 
       expect(result.hasConflicts, isTrue);
@@ -145,6 +154,16 @@ void main() {
 
     test('90 degree rotation mapping, conflict correctly detected in rotated space', () {
       // Portrait template on Landscape-only printer
+      final trayWithMargin = PrinterTrayProfile(
+        trayIdentifier: 'tray_1',
+        displayName: 'Tray 1',
+        supportedPaperConfigurations: const [],
+        calibration: PrinterCalibration(
+          enabled: false,
+          calibrationRules: const [],
+        ),
+        nonPrintableMarginLeft: 15, // margins in printer coordinates
+      );
       final printer = PrinterProfile(
         id: 'p1',
         displayName: 'Landscape Only Printer',
@@ -157,7 +176,6 @@ void main() {
           supportsManualFeed: false,
           supportsBorderlessPrinting: false,
           supportsTraySelection: false,
-          nonPrintableMarginLeft: 15, // margins in printer coordinates
         ),
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
@@ -173,7 +191,7 @@ void main() {
       final result = analyzer.analyze(
         template: templatePortrait,
         printer: printer,
-        tray: tray,
+        tray: trayWithMargin,
       );
 
       // In rotated space, the template's Top-Left (which was safe at 10mm margins) is rotated.

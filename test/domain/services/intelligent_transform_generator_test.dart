@@ -51,6 +51,19 @@ void main() {
       required double marginBottom,
       double minScale = 0.7,
     }) {
+      tray = PrinterTrayProfile(
+        trayIdentifier: 'tray_1',
+        displayName: 'Tray 1',
+        supportedPaperConfigurations: const [],
+        calibration: PrinterCalibration(
+          enabled: false,
+          calibrationRules: const [],
+        ),
+        nonPrintableMarginLeft: marginLeft,
+        nonPrintableMarginRight: marginRight,
+        nonPrintableMarginTop: marginTop,
+        nonPrintableMarginBottom: marginBottom,
+      );
       return PrinterProfile(
         id: 'p1',
         displayName: 'Test Printer',
@@ -63,10 +76,6 @@ void main() {
           supportsManualFeed: false,
           supportsBorderlessPrinting: false,
           supportsTraySelection: false,
-          nonPrintableMarginLeft: marginLeft,
-          nonPrintableMarginRight: marginRight,
-          nonPrintableMarginTop: marginTop,
-          nonPrintableMarginBottom: marginBottom,
         ),
         optimizationPreferences: OptimizationPreferences(
           allowScaling: true,
@@ -89,6 +98,7 @@ void main() {
         analysisResult: analysis,
         template: template,
         printer: printer,
+        tray: tray,
         preferences: printer.optimizationPreferences,
       );
 
@@ -104,6 +114,7 @@ void main() {
         analysisResult: analysis,
         template: template,
         printer: printer,
+        tray: tray,
         preferences: printer.optimizationPreferences,
       );
 
@@ -146,6 +157,7 @@ void main() {
         analysisResult: analysis,
         template: singleColumnTemplate,
         printer: printer,
+        tray: tray,
         preferences: printer.optimizationPreferences,
       );
 
@@ -164,6 +176,7 @@ void main() {
         analysisResult: analysis,
         template: template,
         printer: printer,
+        tray: tray,
         preferences: printer.optimizationPreferences,
       );
 
@@ -205,6 +218,7 @@ void main() {
         analysisResult: analysis,
         template: customTemplate,
         printer: printer,
+        tray: tray,
         preferences: printer.optimizationPreferences,
       );
 
@@ -227,6 +241,7 @@ void main() {
         analysisResult: analysis,
         template: template,
         printer: printer,
+        tray: tray,
         preferences: customPreferences,
       );
 
@@ -247,6 +262,7 @@ void main() {
         analysisResult: analysis,
         template: template,
         printer: printer,
+        tray: tray,
         preferences: printer.optimizationPreferences,
       );
 

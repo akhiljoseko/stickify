@@ -340,6 +340,10 @@ class _TrayConfigurationSheetState extends State<TrayConfigurationSheet> {
         enabled: false,
         calibrationRules: const [],
       ),
+      nonPrintableMarginLeft: double.tryParse(_marginLeftController.text) ?? 0.0,
+      nonPrintableMarginRight: double.tryParse(_marginRightController.text) ?? 0.0,
+      nonPrintableMarginTop: double.tryParse(_marginTopController.text) ?? 0.0,
+      nonPrintableMarginBottom: double.tryParse(_marginBottomController.text) ?? 0.0,
     );
 
     Navigator.of(context).pop(tray);

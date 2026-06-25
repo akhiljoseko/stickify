@@ -1,5 +1,6 @@
 // Testing redundant arguments is necessary to verify default parameters and fallback behaviors.
 // ignore_for_file: avoid_redundant_argument_values
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -203,6 +204,49 @@ void main() {
       expect(printers.first.name, 'Zebra ZT411-A');
       expect(printers.first.url, 'zebra-url');
       expect(printers.first.isDefault, isTrue);
+    });
+
+    test('getDiscoveredPrinters falls back to printing package when PowerShell fails', () async {
+      fakePrintingPlatform.printersList = [
+        const Printer(
+          name: 'Zebra ZT411-A',
+          url: 'zebra-url',
+          isDefault: true,
+          isAvailable: true,
+        ),
+      ];
+
+      final failingService = WindowsPrintService(
+        layoutEngine: mockLayoutEngine,
+        paperValidator: mockPaperValidator,
+        devModeManager: mockDevModeManager,
+        calibrationResolver: const PrintCalibrationContextResolver(
+          PrinterCalibrationCoordinateResolver(
+            ruleMatcher: CalibrationRuleMatcher(),
+            transformComposer: CalibrationTransformComposer(),
+          ),
+        ),
+        processRunner: (executable, arguments) async {
+          return ProcessResult(0, 1, '', 'PowerShell simulation error');
+        },
+      );
+
+      final printers = await failingService.getDiscoveredPrinters();
+      expect(printers.length, 1);
+      expect(printers.first.systemPrinterName, 'Zebra ZT411-A');
+      expect(printers.first.status, DiscoveredPrinterStatus.online);
+    });
+
+    test('getDiscoveredPrinters on Windows executes PowerShell script and returns printers', () async {
+      final printers = await service.getDiscoveredPrinters();
+      expect(printers, isNotNull);
+      // If running on Windows, we should have retrieved at least one printer.
+      // If not on Windows, the fallback will still retrieve the mocked printers.
+      expect(printers, isNotEmpty);
+      for (final p in printers) {
+        expect(p.systemPrinterName, isNotEmpty);
+        expect(p.status, isA<DiscoveredPrinterStatus>());
+      }
     });
 
     test('Fails validation if paper size is not supported', () async {

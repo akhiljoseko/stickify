@@ -1,12 +1,15 @@
 // The named parameters must be public for callers in other libraries, but the
 // internal fields are kept private to preserve encapsulation, requiring initializer lists.
 // ignore_for_file: prefer_initializing_formals
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/printing/print_calibration_context_resolver.dart';
 import 'package:stickify/core/services/printing/print_pre_flight_validator.dart';
+import 'package:stickify/core/services/printing/windows/powershell_scripts.dart';
 import 'package:stickify/core/services/printing/windows/windows_devmode_manager.dart';
 import 'package:stickify/domain/domain.dart';
 
@@ -15,19 +18,23 @@ import 'package:stickify/domain/domain.dart';
 /// Interacts with the Windows registry to temporarily override device page settings
 /// to guarantee accurate alignment for custom sheet label printing.
 class WindowsPrintService implements PrintService, PrinterDiscoveryService {
-  /// Instantiates a new [WindowsPrintService].
   WindowsPrintService({
     required LabelLayoutEngine layoutEngine,
     required PaperValidationEngine paperValidator,
     required WindowsDevModeManager devModeManager,
     required PrintCalibrationContextResolver calibrationResolver,
     PrintPreFlightValidator? preFlightValidator,
-  })  : _layoutEngine = layoutEngine,
-        _paperValidator = paperValidator,
-        _devModeManager = devModeManager,
-        _calibrationResolver = calibrationResolver,
-        _preFlightValidator =
-            preFlightValidator ?? const PrintPreFlightValidator() {
+    Future<ProcessResult> Function(
+      String executable,
+      List<String> arguments,
+    )? processRunner,
+  }) : _layoutEngine = layoutEngine,
+       _paperValidator = paperValidator,
+       _devModeManager = devModeManager,
+       _calibrationResolver = calibrationResolver,
+       _preFlightValidator =
+           preFlightValidator ?? const PrintPreFlightValidator(),
+       _processRunner = processRunner ?? Process.run {
     _devModeManager.healOnStartup();
   }
 
@@ -36,18 +43,123 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
   final WindowsDevModeManager _devModeManager;
   final PrintCalibrationContextResolver _calibrationResolver;
   final PrintPreFlightValidator _preFlightValidator;
+  final Future<ProcessResult> Function(
+    String executable,
+    List<String> arguments,
+  ) _processRunner;
 
   @override
   Future<List<PrinterDevice>> getAvailablePrinters() async {
     final list = await Printing.listPrinters();
     return list
-        .map((p) => PrinterDevice(name: p.name, url: p.url, isDefault: p.isDefault))
+        .map(
+          (p) =>
+              PrinterDevice(name: p.name, url: p.url, isDefault: p.isDefault),
+        )
         .toList();
   }
 
   @override
-  Future<List<DiscoveredPrinter>> getDiscoveredPrinters() {
-    throw UnimplementedError('getDiscoveredPrinters is not implemented in WindowsPrintService');
+  Future<List<DiscoveredPrinter>> getDiscoveredPrinters() async {
+    if (!Platform.isWindows) {
+      return _fallbackToPrintingPackage();
+    }
+
+    File? scriptFile;
+    try {
+      final tempDir = Directory.systemTemp;
+      scriptFile = File(
+        '${tempDir.path}/list_printers_${DateTime.now().millisecondsSinceEpoch}.ps1',
+      );
+      await scriptFile.writeAsString(PowershellScripts.listPrinters);
+
+      final result = await _processRunner('powershell', [
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-File',
+        scriptFile.path,
+      ]);
+
+      if (result.exitCode != 0) {
+        return _fallbackToPrintingPackage();
+      }
+
+      final decoded = jsonDecode(result.stdout.toString());
+      final discoveredList = <DiscoveredPrinter>[];
+
+      if (decoded is List) {
+        for (final item in decoded) {
+          if (item is Map<String, dynamic>) {
+            discoveredList.add(_parseDiscoveredPrinter(item));
+          }
+        }
+      } else if (decoded is Map<String, dynamic>) {
+        discoveredList.add(_parseDiscoveredPrinter(decoded));
+      }
+
+      return List<DiscoveredPrinter>.unmodifiable(discoveredList);
+    } catch (_) {
+      return _fallbackToPrintingPackage();
+    } finally {
+      if (scriptFile != null && scriptFile.existsSync()) {
+        try {
+          await scriptFile.delete();
+        } catch (_) {}
+      }
+    }
+  }
+
+  Future<List<DiscoveredPrinter>> _fallbackToPrintingPackage() async {
+    try {
+      final list = await Printing.listPrinters();
+      final mapped = list.map((p) {
+        return DiscoveredPrinter(
+          systemPrinterName: p.name,
+          status: p.isAvailable
+              ? DiscoveredPrinterStatus.online
+              : DiscoveredPrinterStatus.offline,
+          model: p.model ?? '',
+        );
+      }).toList();
+      return List<DiscoveredPrinter>.unmodifiable(mapped);
+    } catch (_) {
+      return List<DiscoveredPrinter>.unmodifiable(const []);
+    }
+  }
+
+  DiscoveredPrinter _parseDiscoveredPrinter(Map<String, dynamic> json) {
+    final name = json['Name'] as String? ?? 'Unknown Printer';
+    final statusStr = json['PrinterStatus'] as String?;
+    final driverName = json['DriverName'] as String? ?? '';
+    final manufacturer = json['Manufacturer'] as String? ?? '';
+    final driverVersion = json['DriverVersion'] as String? ?? '';
+
+    return DiscoveredPrinter(
+      systemPrinterName: name.isNotEmpty ? name : 'Unknown Printer',
+      status: _mapPrinterStatus(statusStr),
+      manufacturer: manufacturer,
+      model: driverName,
+      driverName: driverName,
+      driverVersion: driverVersion,
+    );
+  }
+
+  DiscoveredPrinterStatus _mapPrinterStatus(String? statusStr) {
+    if (statusStr == null) return DiscoveredPrinterStatus.unknown;
+    final lower = statusStr.toLowerCase();
+    if (lower == 'normal' || lower == 'paused') {
+      return DiscoveredPrinterStatus.online;
+    } else if (lower.contains('offline')) {
+      return DiscoveredPrinterStatus.offline;
+    } else if (lower == 'error' || lower == 'unavailable') {
+      return DiscoveredPrinterStatus.unavailable;
+    } else {
+      if (lower.contains('error') || lower.contains('unavailable')) {
+        return DiscoveredPrinterStatus.unavailable;
+      }
+      return DiscoveredPrinterStatus.online;
+    }
   }
 
   @override
@@ -76,12 +188,15 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
       final sheetConfig = template.sheetConfig!;
 
       // 2. Validate custom paper form support
-      final paperSupported =
-          await _paperValidator.isPaperSizeSupported(printer, sheetConfig);
+      final paperSupported = await _paperValidator.isPaperSizeSupported(
+        printer,
+        sheetConfig,
+      );
       if (!paperSupported) {
         return Result.failure(
           ValidationError(
-            message: 'Selected printer "${printer.name}" does not support the required paper form size '
+            message:
+                'Selected printer "${printer.name}" does not support the required paper form size '
                 '(${sheetConfig.pageWidth} x ${sheetConfig.pageHeight} mm). '
                 'Please register this custom paper size in Windows Print Server Properties.',
           ),
@@ -100,7 +215,8 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
       } catch (_) {
         return Result.failure(
           UnexpectedError(
-            message: 'Selected printer "${printer.name}" was not found in available system printers.',
+            message:
+                'Selected printer "${printer.name}" was not found in available system printers.',
           ),
         );
       }
@@ -113,7 +229,9 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
       if (calibrationResult case Failure(error: final err)) {
         return Result.failure(err);
       }
-      final coordinateContext = (calibrationResult as Success<PrintCoordinateContext, AppError>).value;
+      final coordinateContext =
+          (calibrationResult as Success<PrintCoordinateContext, AppError>)
+              .value;
 
       // 6. Direct print without system dialog using overridden printer settings.
       final success = await Printing.directPrintPdf(
@@ -140,7 +258,10 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
 
       if (!success) {
         return const Result.failure(
-          UnexpectedError(message: 'Windows print spooler rejected the physical layout print job.'),
+          UnexpectedError(
+            message:
+                'Windows print spooler rejected the physical layout print job.',
+          ),
         );
       }
 
@@ -184,11 +305,15 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
         rowGap: 0,
       );
 
-      final paperSupported = await _paperValidator.isPaperSizeSupported(printer, sheetConfig);
+      final paperSupported = await _paperValidator.isPaperSizeSupported(
+        printer,
+        sheetConfig,
+      );
       if (!paperSupported) {
         return Result.failure(
           ValidationError(
-            message: 'Selected printer "${printer.name}" does not support the required paper form size '
+            message:
+                'Selected printer "${printer.name}" does not support the required paper form size '
                 '($widthMm x $heightMm mm). '
                 'Please register this custom paper size in Windows Print Server Properties.',
           ),
@@ -204,7 +329,8 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
       } catch (_) {
         return Result.failure(
           UnexpectedError(
-            message: 'Selected printer "${printer.name}" was not found in available system printers.',
+            message:
+                'Selected printer "${printer.name}" was not found in available system printers.',
           ),
         );
       }
@@ -222,7 +348,10 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
 
       if (!success) {
         return const Result.failure(
-          UnexpectedError(message: 'Windows print spooler rejected the calibration print job.'),
+          UnexpectedError(
+            message:
+                'Windows print spooler rejected the calibration print job.',
+          ),
         );
       }
 

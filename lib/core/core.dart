@@ -15,6 +15,7 @@ export 'environment/app_experience.dart';
 export 'error/app_error.dart';
 export 'error/result.dart';
 export 'presentation/notifications/notifications.dart';
+export 'presentation/shared/adaptive_sheet.dart';
 export 'presentation/shared/blocking_error_dialog.dart';
 export 'presentation/shared/empty_view.dart';
 export 'presentation/shared/error_view.dart';

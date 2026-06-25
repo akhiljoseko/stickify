@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/printer_management/widgets/compatibility_indicator.dart';
 import 'package:stickify/presentation/features/printer_management/widgets/printer_status_badge.dart';
@@ -164,6 +165,30 @@ class PrinterCard extends StatelessWidget {
               const SizedBox(height: 8),
               ...compatibility!.issues.map((issue) => _buildIssueRow(context, issue)),
             ],
+
+            // Actions Row — hidden when missing since profile cannot be edited
+            if (!isMissing) ...[
+              const Divider(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => PrinterConfigurationEditRoute(
+                      profileId: profile.id,
+                    ).push<void>(context),
+                    icon: const Icon(Icons.edit, size: 16),
+                    label: const Text('Edit Profile'),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                  ),
+                  if (profile.trays.isNotEmpty) ...[
+                    const SizedBox(width: 4),
+                    _buildCalibrateMenu(context, profile),
+                  ],
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -204,6 +229,62 @@ class PrinterCard extends StatelessWidget {
         style: textStyle?.copyWith(
           color: color,
           fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCalibrateMenu(BuildContext context, PrinterProfile profile) {
+    return PopupMenuButton<String>(
+      onSelected: (trayId) {
+        final tray = profile.trays.firstWhere((t) => t.trayIdentifier == trayId);
+        if (tray.supportedPaperConfigurations.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Add a paper configuration to the tray before calibrating.'),
+            ),
+          );
+          return;
+        }
+        CalibrationWizardRoute(
+          profileId: profile.id,
+          trayId: trayId,
+          paperConfigurationId: tray.supportedPaperConfigurations.first.id,
+        ).push<void>(context);
+      },
+      itemBuilder: (context) => profile.trays.map((tray) {
+        final isCalibrated = tray.calibration.enabled &&
+            tray.calibration.calibrationRules.isNotEmpty;
+        return PopupMenuItem<String>(
+          value: tray.trayIdentifier,
+          child: Row(
+            children: [
+              Icon(
+                isCalibrated ? Icons.tune : Icons.tune_outlined,
+                size: 18,
+                color: isCalibrated
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isCalibrated
+                      ? 'Recalibrate ${tray.displayName}'
+                      : 'Calibrate ${tray.displayName}',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+      child: TextButton.icon(
+        onPressed: null,
+        icon: const Icon(Icons.tune, size: 16),
+        label: const Text('Calibrate'),
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
       ),
     );

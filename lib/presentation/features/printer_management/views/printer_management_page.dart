@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/app_service_locator.dart';
 import 'package:stickify/app/routing/router.dart';
+import 'package:stickify/core/core.dart';
 import 'package:stickify/presentation/features/printer_management/cubit/printer_management_cubit.dart';
 import 'package:stickify/presentation/features/printer_management/cubit/printer_management_state.dart';
 import 'package:stickify/presentation/features/printer_management/widgets/empty_printer_state.dart';
@@ -115,43 +116,56 @@ class PrinterManagementView extends StatelessWidget {
                 );
               }
 
-              return SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Printers',
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
+              return Stack(
+                children: [
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Printers',
+                            style: textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Reconcile physical hardware with configured label templates.',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: state.matches.length,
+                              itemBuilder: (context, index) {
+                                final match = state.matches[index];
+                                final compatibility = state.compatibilityResults[match.profile.id];
+                                return PrinterCard(
+                                  matchResult: match,
+                                  compatibility: compatibility,
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Reconcile physical hardware with configured label templates.',
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: state.matches.length,
-                          itemBuilder: (context, index) {
-                            final match = state.matches[index];
-                            final compatibility = state.compatibilityResults[match.profile.id];
-                            return PrinterCard(
-                              matchResult: match,
-                              compatibility: compatibility,
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  Positioned(
+                    right: 24,
+                    bottom: 24,
+                    child: FloatingActionButton.extended(
+                      onPressed: () => unawaited(_addPrinterProfile(context)),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Printer Profile'),
+                    ),
+                  ),
+                ],
               );
           }
         },
@@ -162,23 +176,46 @@ class PrinterManagementView extends StatelessWidget {
 
 Future<void> _addPrinterProfile(BuildContext context) async {
   final locator = context.read<AppServiceLocator>();
-  final printers = await locator.printerDiscoveryService.getDiscoveredPrinters();
-  if (!context.mounted) return;
 
-  final selected = await PrinterSelectionSheet.show(
-    context: context,
-    printers: printers,
-  );
+  try {
+    final printers = await locator.printerDiscoveryService.getDiscoveredPrinters();
+    if (!context.mounted) return;
 
-  if (selected != null && context.mounted) {
-    final saved = await PrinterConfigurationRoute(
-      systemPrinterName: selected.systemPrinterName,
-      manufacturer: selected.manufacturer,
-      model: selected.model,
-      driverName: selected.driverName,
-    ).push<bool>(context);
-    if (saved == true && context.mounted) {
-      await context.read<PrinterManagementCubit>().loadPrintersAndProfiles();
+    if (printers.isEmpty) {
+      context.read<NotificationService>().showWarning(
+        'No printers discovered. Ensure a printer is connected and powered on.',
+      );
+      return;
     }
+
+    final selected = await PrinterSelectionSheet.show(
+      context: context,
+      printers: printers,
+    );
+
+    if (selected != null && context.mounted) {
+      final saved = await PrinterConfigurationRoute(
+        systemPrinterName: selected.systemPrinterName,
+        manufacturer: selected.manufacturer,
+        model: selected.model,
+        driverName: selected.driverName,
+      ).push<bool>(context);
+
+      if (saved == true && context.mounted) {
+        context.read<NotificationService>().showSuccess(
+          'Printer profile "${selected.systemPrinterName}" created successfully.',
+        );
+        await context.read<PrinterManagementCubit>().loadPrintersAndProfiles();
+      }
+    }
+  } catch (e) {
+    if (!context.mounted) return;
+    await BlockingErrorDialog.show(
+      context,
+      title: 'Failed to Add Printer',
+      message: 'An unexpected error occurred while discovering printers: $e',
+      onRetry: () => unawaited(_addPrinterProfile(context)),
+      onClose: () {},
+    );
   }
 }

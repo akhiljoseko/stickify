@@ -14,6 +14,7 @@ class IntelligentTransformGenerator {
     required LabelTemplate template,
     required PrinterProfile printer,
     required OptimizationPreferences preferences,
+    PrintCoordinateContext? calibrationContext,
   }) {
     final sheetConfig = template.sheetConfig;
     final stickerConfig = template.stickerConfig;
@@ -81,10 +82,24 @@ class IntelligentTransformGenerator {
       final double stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
       final double stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
 
-      final double left = stickerX + stickerMinX;
-      final double right = stickerX + stickerMaxX;
-      final double top = stickerY + stickerMinY;
-      final double bottom = stickerY + stickerMaxY;
+      final transform = calibrationContext?.resolveFor(
+            row: r,
+            column: c,
+            absoluteSlotIndex: r * totalColumns + c,
+          ) ??
+          const PrintStickerTransform.identity();
+
+      final double calStickerX = stickerX +
+          (stickerConfig.widthMm * transform.anchorX * (1.0 - transform.scaleX)) +
+          transform.offsetX;
+      final double calStickerY = stickerY +
+          (stickerConfig.heightMm * transform.anchorY * (1.0 - transform.scaleY)) +
+          transform.offsetY;
+
+      final double left = calStickerX + (stickerMinX * transform.scaleX);
+      final double right = calStickerX + (stickerMaxX * transform.scaleX);
+      final double top = calStickerY + (stickerMinY * transform.scaleY);
+      final double bottom = calStickerY + (stickerMaxY * transform.scaleY);
 
       if (isRotated90) {
         return {
@@ -310,19 +325,23 @@ class IntelligentTransformGenerator {
     final bool requiresScaleX = unresolvedLeft || unresolvedRight;
     final bool requiresScaleY = unresolvedTop || unresolvedBottom;
 
-    final double scaleX = requiresScaleX ? availablePrinterWidth / printableWidth : 1.0;
-    final double scaleY = requiresScaleY ? availablePrinterHeight / printableHeight : 1.0;
+    final double calScaleX = calibrationContext?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0).scaleX ?? 1.0;
+    final double calScaleY = calibrationContext?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0).scaleY ?? 1.0;
+
+    final double scaleX = requiresScaleX ? (availablePrinterWidth / printableWidth) / calScaleX : 1.0;
+    final double scaleY = requiresScaleY ? (availablePrinterHeight / printableHeight) / calScaleY : 1.0;
 
     // 4c — Compute scaling anchor
     final double anchorX = (printerMarginLeft + availablePrinterWidth / 2) / printerWidth;
     final double anchorY = (printerMarginTop + availablePrinterHeight / 2) / printerHeight;
 
     // 4f — Gate check: scale vs minimumAcceptableScale
-    if (requiresScaleX && scaleX < preferences.minimumAcceptableScale) {
+    final double composedScaleX = availablePrinterWidth / printableWidth;
+    if (requiresScaleX && composedScaleX < preferences.minimumAcceptableScale) {
       return OptimizationStrategy(
         level: OptimizationLevel.unsupported,
         description: 'Template/printer combination unsupported: required X-axis compression '
-            '(scaleX = ${scaleX.toStringAsFixed(2)}) falls below the minimum '
+            '(scaleX = ${composedScaleX.toStringAsFixed(2)}) falls below the minimum '
             'acceptable scale (${preferences.minimumAcceptableScale}). Sticker '
             'printable region width ${printableWidth.toStringAsFixed(1)} mm cannot be adequately '
             'reproduced in available printer width ${availablePrinterWidth.toStringAsFixed(1)} mm.',
@@ -330,11 +349,12 @@ class IntelligentTransformGenerator {
       );
     }
 
-    if (requiresScaleY && scaleY < preferences.minimumAcceptableScale) {
+    final double composedScaleY = availablePrinterHeight / printableHeight;
+    if (requiresScaleY && composedScaleY < preferences.minimumAcceptableScale) {
       return OptimizationStrategy(
         level: OptimizationLevel.unsupported,
         description: 'Template/printer combination unsupported: required Y-axis compression '
-            '(scaleY = ${scaleY.toStringAsFixed(2)}) falls below the minimum '
+            '(scaleY = ${composedScaleY.toStringAsFixed(2)}) falls below the minimum '
             'acceptable scale (${preferences.minimumAcceptableScale}). Sticker '
             'printable region height ${printableHeight.toStringAsFixed(1)} mm cannot be adequately '
             'reproduced in available printer height ${availablePrinterHeight.toStringAsFixed(1)} mm.',

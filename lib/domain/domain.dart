@@ -73,6 +73,7 @@ export 'services/label_layout_engine.dart';
 export 'services/local_database.dart';
 export 'services/paper_validation_engine.dart';
 export 'services/print_job_id_generator.dart';
+export 'services/print_pipeline_orchestrator.dart';
 export 'services/print_service.dart';
 export 'services/printer_calibration_coordinate_resolver.dart';
 export 'services/printer_discovery_service.dart';

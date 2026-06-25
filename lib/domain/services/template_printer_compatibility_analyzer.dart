@@ -3,6 +3,7 @@ import 'package:stickify/domain/entities/calibration_rule.dart';
 import 'package:stickify/domain/entities/compatibility_analysis_result.dart';
 import 'package:stickify/domain/entities/label_template.dart';
 import 'package:stickify/domain/entities/optimization_level.dart';
+import 'package:stickify/domain/entities/print_coordinate_context.dart';
 import 'package:stickify/domain/entities/print_region_conflict.dart';
 import 'package:stickify/domain/entities/printer_profile.dart';
 import 'package:stickify/domain/entities/printer_tray_profile.dart';
@@ -20,6 +21,7 @@ class TemplatePrinterCompatibilityAnalyzer {
     required LabelTemplate template,
     required PrinterProfile printer,
     required PrinterTrayProfile tray,
+    PrintCoordinateContext? calibrationContext,
   }) {
     final sheetConfig = template.sheetConfig;
     final stickerConfig = template.stickerConfig;
@@ -116,32 +118,23 @@ class TemplatePrinterCompatibilityAnalyzer {
       for (var c = 0; c < totalColumns; c++) {
         final absIndex = r * totalColumns + c;
 
-        // Position of the sticker on the sheet in template coordinate space
-        final double stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
-        final double stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
+        final borders = _getStickerBorders(
+          r: r,
+          c: c,
+          sheetConfig: sheetConfig,
+          stickerConfig: stickerConfig,
+          stickerMinX: stickerMinX,
+          stickerMaxX: stickerMaxX,
+          stickerMinY: stickerMinY,
+          stickerMaxY: stickerMaxY,
+          isRotated90: isRotated90,
+          calibrationContext: calibrationContext,
+        );
 
-        final double left = stickerX + stickerMinX;
-        final double right = stickerX + stickerMaxX;
-        final double top = stickerY + stickerMinY;
-        final double bottom = stickerY + stickerMaxY;
-
-        // Project to printer coordinate space
-        final double pLeft;
-        final double pRight;
-        final double pTop;
-        final double pBottom;
-
-        if (isRotated90) {
-          pLeft = sheetConfig.pageHeight - bottom;
-          pRight = sheetConfig.pageHeight - top;
-          pTop = left;
-          pBottom = right;
-        } else {
-          pLeft = left;
-          pRight = right;
-          pTop = top;
-          pBottom = bottom;
-        }
+        final pLeft = borders.left;
+        final pRight = borders.right;
+        final pTop = borders.top;
+        final pBottom = borders.bottom;
 
         // Detect conflicts against printer margins
         if (pLeft < printerMarginLeft) {
@@ -216,23 +209,23 @@ class TemplatePrinterCompatibilityAnalyzer {
 
       for (var r = 0; r < totalRows; r++) {
         for (var c = 0; c < totalColumns; c++) {
-          final double stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
-          final double stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
+          final borders = _getStickerBorders(
+            r: r,
+            c: c,
+            sheetConfig: sheetConfig,
+            stickerConfig: stickerConfig,
+            stickerMinX: stickerMinX,
+            stickerMaxX: stickerMaxX,
+            stickerMinY: stickerMinY,
+            stickerMaxY: stickerMaxY,
+            isRotated90: isRotated90,
+            calibrationContext: calibrationContext,
+          );
 
-          final double left = stickerX + stickerMinX;
-          final double right = stickerX + stickerMaxX;
-          final double top = stickerY + stickerMinY;
-          final double bottom = stickerY + stickerMaxY;
-
-          final double pLeft = isRotated90 ? sheetConfig.pageHeight - bottom : left;
-          final double pRight = isRotated90 ? sheetConfig.pageHeight - top : right;
-          final double pTop = isRotated90 ? left : top;
-          final double pBottom = isRotated90 ? right : bottom;
-
-          final simLeft = pLeft + shiftX;
-          final simRight = pRight + shiftX;
-          final simTop = pTop + shiftY;
-          final simBottom = pBottom + shiftY;
+          final simLeft = borders.left + shiftX;
+          final simRight = borders.right + shiftX;
+          final simTop = borders.top + shiftY;
+          final simBottom = borders.bottom + shiftY;
 
           if (simLeft < printerMarginLeft ||
               simRight > (printerWidth - printerMarginRight) ||
@@ -254,10 +247,6 @@ class TemplatePrinterCompatibilityAnalyzer {
     }
 
     // Level 3: Edge Group Translation
-    // Since columns/rows are shifted independently, check if shifting resolved groups succeeds.
-    // A group fails Level 3 translation if a sticker belongs to a conflicting edge and the translation required
-    // would push it into the opposite margin. Since the opposite edge of the same sticker is within the same column/row,
-    // this is equivalent to checking if the sticker's own width (or height) is greater than the available width (or height) between the left and right (or top and bottom) margins.
     final availableWidth = printerWidth - printerMarginLeft - printerMarginRight;
     final availableHeight = printerHeight - printerMarginTop - printerMarginBottom;
 
@@ -268,39 +257,26 @@ class TemplatePrinterCompatibilityAnalyzer {
       );
     }
 
-    // Check if any sticker's printable region width/height exceeds available space.
-    if (printableWidth > availableWidth || printableHeight > availableHeight) {
-      return CompatibilityAnalysisResult(
-        conflicts: conflicts,
-        recommendedOptimizationLevel: OptimizationLevel.unsupported,
-      );
+    // Check if any sticker's printable region width/height (post-calibration) exceeds available space.
+    for (var r = 0; r < totalRows; r++) {
+      for (var c = 0; c < totalColumns; c++) {
+        final absIndex = r * totalColumns + c;
+        final transform = calibrationContext?.resolveFor(
+              row: r,
+              column: c,
+              absoluteSlotIndex: absIndex,
+            ) ??
+            const PrintStickerTransform.identity();
+        final double calPrintableWidth = printableWidth * transform.scaleX;
+        final double calPrintableHeight = printableHeight * transform.scaleY;
+        if (calPrintableWidth > availableWidth || calPrintableHeight > availableHeight) {
+          return CompatibilityAnalysisResult(
+            conflicts: conflicts,
+            recommendedOptimizationLevel: OptimizationLevel.unsupported,
+          );
+        }
+      }
     }
-
-    // Level 3 translation checks:
-    // For a group to fail Level 3 translation, translating it must create a conflict on the opposite edge.
-    // For example, if a sticker is in the left group (conflicts left), and shifting it right by (leftMargin - pLeft)
-    // causes its right edge (pRight + shift) to exceed (printerWidth - rightMargin).
-    // This is mathematically: (leftMargin - pLeft) + pRight > printerWidth - rightMargin
-    // which simplifies to: pRight - pLeft > printerWidth - leftMargin - rightMargin
-    // which is: printableWidth > availableWidth.
-    // Since we already checked `printableWidth > availableWidth` and `printableHeight > availableHeight`,
-    // is it possible that Level 3 succeeds?
-    // Wait! Let's check: if we shift only a single group, does it cause conflicts for other stickers?
-    // Since each group is shifted independently, group members are shifted by the worst-offending overlap.
-    // For the Left Group, all stickers with `pLeft < leftMargin` are shifted right by `requiredShiftX = max(leftMargin - pLeft)`.
-    // If we shift them, we must check if any shifted sticker now conflicts on the right:
-    // `pRight + requiredShiftX > printerWidth - rightMargin`.
-    // Since `requiredShiftX = leftMargin - min(pLeft)`, the condition becomes:
-    // `pRight + leftMargin - min(pLeft) > printerWidth - rightMargin`, or:
-    // `pRight - min(pLeft) > printerWidth - leftMargin - rightMargin`.
-    // This is possible if different stickers in the same column have different left/right margins, but since all stickers have the same width/layout,
-    // normally it's identical.
-    // Let's implement the exact simulation of Level 3 translation:
-    // 1. Identify left, right, top, bottom group stickers.
-    // 2. Compute group shifts.
-    // 3. For each group, check if its translation is safe.
-    // If all conflicting groups are safe under Level 3, then recommend `edgeGroupTranslation`.
-    // Else, proceed to Level 4 (scaling).
 
     var leftGroupSafe = true;
     if (hasLeft) {
@@ -308,10 +284,19 @@ class TemplatePrinterCompatibilityAnalyzer {
       for (final absIndex in leftStickers) {
         final r = absIndex ~/ totalColumns;
         final c = absIndex % totalColumns;
-        final double stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
-        final double right = stickerX + stickerMaxX;
-        final double pRight = isRotated90 ? sheetConfig.pageHeight - (stickerYFor(r, sheetConfig, stickerConfig) + stickerMinY) : right;
-        if (pRight + requiredShiftX > printerWidth - printerMarginRight) {
+        final borders = _getStickerBorders(
+          r: r,
+          c: c,
+          sheetConfig: sheetConfig,
+          stickerConfig: stickerConfig,
+          stickerMinX: stickerMinX,
+          stickerMaxX: stickerMaxX,
+          stickerMinY: stickerMinY,
+          stickerMaxY: stickerMaxY,
+          isRotated90: isRotated90,
+          calibrationContext: calibrationContext,
+        );
+        if (borders.right + requiredShiftX > printerWidth - printerMarginRight) {
           leftGroupSafe = false;
           break;
         }
@@ -324,10 +309,19 @@ class TemplatePrinterCompatibilityAnalyzer {
       for (final absIndex in rightStickers) {
         final r = absIndex ~/ totalColumns;
         final c = absIndex % totalColumns;
-        final double stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
-        final double left = stickerX + stickerMinX;
-        final double pLeft = isRotated90 ? sheetConfig.pageHeight - (stickerYFor(r, sheetConfig, stickerConfig) + stickerMaxY) : left;
-        if (pLeft + requiredShiftX < printerMarginLeft) {
+        final borders = _getStickerBorders(
+          r: r,
+          c: c,
+          sheetConfig: sheetConfig,
+          stickerConfig: stickerConfig,
+          stickerMinX: stickerMinX,
+          stickerMaxX: stickerMaxX,
+          stickerMinY: stickerMinY,
+          stickerMaxY: stickerMaxY,
+          isRotated90: isRotated90,
+          calibrationContext: calibrationContext,
+        );
+        if (borders.left + requiredShiftX < printerMarginLeft) {
           rightGroupSafe = false;
           break;
         }
@@ -340,10 +334,19 @@ class TemplatePrinterCompatibilityAnalyzer {
       for (final absIndex in topStickers) {
         final r = absIndex ~/ totalColumns;
         final c = absIndex % totalColumns;
-        final double stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
-        final double bottom = stickerY + stickerMaxY;
-        final double pBottom = isRotated90 ? (stickerXFor(c, sheetConfig, stickerConfig) + stickerMaxX) : bottom;
-        if (pBottom + requiredShiftY > printerHeight - printerMarginBottom) {
+        final borders = _getStickerBorders(
+          r: r,
+          c: c,
+          sheetConfig: sheetConfig,
+          stickerConfig: stickerConfig,
+          stickerMinX: stickerMinX,
+          stickerMaxX: stickerMaxX,
+          stickerMinY: stickerMinY,
+          stickerMaxY: stickerMaxY,
+          isRotated90: isRotated90,
+          calibrationContext: calibrationContext,
+        );
+        if (borders.bottom + requiredShiftY > printerHeight - printerMarginBottom) {
           topGroupSafe = false;
           break;
         }
@@ -356,10 +359,19 @@ class TemplatePrinterCompatibilityAnalyzer {
       for (final absIndex in bottomStickers) {
         final r = absIndex ~/ totalColumns;
         final c = absIndex % totalColumns;
-        final double stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
-        final double top = stickerY + stickerMinY;
-        final double pTop = isRotated90 ? (stickerXFor(c, sheetConfig, stickerConfig) + stickerMinX) : top;
-        if (pTop + requiredShiftY < printerMarginTop) {
+        final borders = _getStickerBorders(
+          r: r,
+          c: c,
+          sheetConfig: sheetConfig,
+          stickerConfig: stickerConfig,
+          stickerMinX: stickerMinX,
+          stickerMaxX: stickerMaxX,
+          stickerMinY: stickerMinY,
+          stickerMaxY: stickerMaxY,
+          isRotated90: isRotated90,
+          calibrationContext: calibrationContext,
+        );
+        if (borders.top + requiredShiftY < printerMarginTop) {
           bottomGroupSafe = false;
           break;
         }
@@ -398,12 +410,68 @@ class TemplatePrinterCompatibilityAnalyzer {
     );
   }
 
-  // Helpers to get coordinate parts for cross-axis calculations in rotated coordinates
-  double stickerXFor(int c, SheetConfig sheetConfig, StickerConfig stickerConfig) {
-    return sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
-  }
+  _StickerBorders _getStickerBorders({
+    required int r,
+    required int c,
+    required SheetConfig sheetConfig,
+    required StickerConfig stickerConfig,
+    required double stickerMinX,
+    required double stickerMaxX,
+    required double stickerMinY,
+    required double stickerMaxY,
+    required bool isRotated90,
+    PrintCoordinateContext? calibrationContext,
+  }) {
+    final double stickerX = sheetConfig.marginLeft + c * (stickerConfig.widthMm + sheetConfig.columnGap);
+    final double stickerY = sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
 
-  double stickerYFor(int r, SheetConfig sheetConfig, StickerConfig stickerConfig) {
-    return sheetConfig.marginTop + r * (stickerConfig.heightMm + sheetConfig.rowGap);
+    final transform = calibrationContext?.resolveFor(
+          row: r,
+          column: c,
+          absoluteSlotIndex: r * sheetConfig.columns + c,
+        ) ??
+        const PrintStickerTransform.identity();
+
+    final double calStickerX = stickerX +
+        (stickerConfig.widthMm * transform.anchorX * (1.0 - transform.scaleX)) +
+        transform.offsetX;
+    final double calStickerY = stickerY +
+        (stickerConfig.heightMm * transform.anchorY * (1.0 - transform.scaleY)) +
+        transform.offsetY;
+
+    final double left = calStickerX + (stickerMinX * transform.scaleX);
+    final double right = calStickerX + (stickerMaxX * transform.scaleX);
+    final double top = calStickerY + (stickerMinY * transform.scaleY);
+    final double bottom = calStickerY + (stickerMaxY * transform.scaleY);
+
+    if (isRotated90) {
+      return _StickerBorders(
+        left: sheetConfig.pageHeight - bottom,
+        right: sheetConfig.pageHeight - top,
+        top: left,
+        bottom: right,
+      );
+    } else {
+      return _StickerBorders(
+        left: left,
+        right: right,
+        top: top,
+        bottom: bottom,
+      );
+    }
   }
+}
+
+class _StickerBorders {
+  const _StickerBorders({
+    required this.left,
+    required this.right,
+    required this.top,
+    required this.bottom,
+  });
+
+  final double left;
+  final double right;
+  final double top;
+  final double bottom;
 }

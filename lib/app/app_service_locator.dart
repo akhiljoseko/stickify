@@ -55,6 +55,9 @@ class AppServiceLocator {
     required this.featureAccessService,
     required this.notificationService,
     required this.fileStorageService,
+    required this.printerCalibrationCoordinateResolver,
+    required this.templatePrinterCompatibilityAnalyzer,
+    required this.printPipelineOrchestrator,
     required this._authSubscription,
   });
 
@@ -110,6 +113,15 @@ class AppServiceLocator {
       transformComposer: composer,
     );
     const calibrationResolver = PrintCalibrationContextResolver(resolver);
+
+    const templatePrinterCompatibilityAnalyzer = TemplatePrinterCompatibilityAnalyzer();
+    const intelligentTransformGenerator = IntelligentTransformGenerator();
+    final printPipelineOrchestrator = PrintPipelineOrchestrator(
+      calibrationResolver: resolver,
+      compatibilityAnalyzer: templatePrinterCompatibilityAnalyzer,
+      transformGenerator: intelligentTransformGenerator,
+      transformComposer: composer,
+    );
 
     // Use typed local variables so both PrintService and PrinterDiscoveryService
     // can be stored without a runtime cast. The knowledge that each concrete
@@ -182,6 +194,9 @@ class AppServiceLocator {
       featureAccessService: featureAccessService,
       notificationService: notificationService,
       fileStorageService: fileStorageService,
+      printerCalibrationCoordinateResolver: resolver,
+      templatePrinterCompatibilityAnalyzer: templatePrinterCompatibilityAnalyzer,
+      printPipelineOrchestrator: printPipelineOrchestrator,
       authSubscription: authSubscription,
     );
   }
@@ -235,6 +250,15 @@ class AppServiceLocator {
   final FileStorageService fileStorageService;
 
   final StreamSubscription<AppUser?> _authSubscription;
+
+  /// The resolver for printer calibration coordinates.
+  final PrinterCalibrationCoordinateResolver printerCalibrationCoordinateResolver;
+
+  /// The analyzer for template/printer compatibility.
+  final TemplatePrinterCompatibilityAnalyzer templatePrinterCompatibilityAnalyzer;
+
+  /// The orchestrator for print pipeline.
+  final PrintPipelineOrchestrator printPipelineOrchestrator;
 
   /// The printer profile matcher.
   final PrinterProfileMatcher printerProfileMatcher = PrinterProfileMatcher();

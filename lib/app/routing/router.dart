@@ -6,6 +6,7 @@ import 'package:stickify/presentation/features/dashboard/presentation/dashboard_
 import 'package:stickify/presentation/features/print/presentation/print_setup_entry.dart';
 import 'package:stickify/presentation/features/print/presentation/template_selection_page.dart';
 import 'package:stickify/presentation/features/print_history/presentation/print_history_screen.dart';
+import 'package:stickify/presentation/features/printer_management/views/printer_management_page.dart';
 import 'package:stickify/presentation/features/product/presentation/product_management_entry.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/label_editor_screen.dart';
 import 'package:stickify/presentation/features/template_editor/preview/preview_screen.dart';
@@ -222,7 +223,12 @@ class PrintSetupRoute extends GoRouteData with $PrintSetupRoute {
     // Branch 3 — Settings
     TypedStatefulShellBranch<SettingsBranchData>(
       routes: [
-        TypedGoRoute<SettingsRoute>(path: '/settings'),
+        TypedGoRoute<SettingsRoute>(
+          path: '/settings',
+          routes: [
+            TypedGoRoute<PrinterManagementRoute>(path: 'printers'),
+          ],
+        ),
       ],
     ),
   ],
@@ -382,6 +388,17 @@ class SettingsRoute extends GoRouteData with $SettingsRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return const SettingsScreen();
+  }
+}
+
+/// Route data for the Printer Management screen.
+@immutable
+class PrinterManagementRoute extends GoRouteData with $PrinterManagementRoute {
+  const PrinterManagementRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const PrinterManagementPage();
   }
 }
 

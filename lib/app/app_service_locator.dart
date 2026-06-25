@@ -10,9 +10,12 @@ import 'package:stickify/core/services/pdf_print_service.dart';
 import 'package:stickify/core/services/print_job/timestamp_print_job_id_generator.dart';
 import 'package:stickify/core/services/printing/label_pdf_layout_engine.dart';
 import 'package:stickify/core/services/printing/print_calibration_context_resolver.dart';
+import 'package:stickify/core/services/printing/calibration_sheet_pdf_generator.dart';
 import 'package:stickify/core/services/printing/windows/windows_devmode_manager.dart';
 import 'package:stickify/core/services/printing/windows/windows_paper_validator.dart';
 import 'package:stickify/core/services/printing/windows/windows_print_service.dart';
+import 'package:stickify/domain/services/calibration_rule_generator.dart';
+import 'package:stickify/presentation/features/printer_management/cubit/calibration_session_cubit.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
@@ -240,6 +243,13 @@ class AppServiceLocator {
   final PrinterProfileCompatibilityAnalyzer printerProfileCompatibilityAnalyzer =
       PrinterProfileCompatibilityAnalyzer();
 
+  /// The calibration rule generator.
+  final CalibrationRuleGenerator calibrationRuleGenerator = const CalibrationRuleGenerator();
+
+  /// The calibration sheet PDF generator.
+  final CalibrationSheetPdfGenerator calibrationSheetPdfGenerator =
+      const CalibrationSheetPdfGenerator();
+
   /// Factory method to construct [PrinterManagementCubit].
   PrinterManagementCubit createPrinterManagementCubit() {
     return PrinterManagementCubit(
@@ -247,6 +257,23 @@ class AppServiceLocator {
       printerProfileRepository: printerProfileRepository,
       printerProfileMatcher: printerProfileMatcher,
       printerProfileCompatibilityAnalyzer: printerProfileCompatibilityAnalyzer,
+    );
+  }
+
+  /// Factory method to construct [CalibrationSessionCubit].
+  CalibrationSessionCubit createCalibrationSessionCubit({
+    required String profileId,
+    required String trayId,
+    required String paperConfigurationId,
+  }) {
+    return CalibrationSessionCubit(
+      profileId: profileId,
+      trayId: trayId,
+      paperConfigurationId: paperConfigurationId,
+      ruleGenerator: calibrationRuleGenerator,
+      pdfGenerator: calibrationSheetPdfGenerator,
+      profileRepository: printerProfileRepository,
+      printService: printService,
     );
   }
 

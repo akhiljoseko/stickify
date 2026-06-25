@@ -1,6 +1,7 @@
 // The named parameters must be public for callers in other libraries, but the
 // internal fields are kept private to preserve encapsulation, requiring initializer lists.
 // ignore_for_file: prefer_initializing_formals
+import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:stickify/core/core.dart';
@@ -154,6 +155,87 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
       );
     } finally {
       // 7. Restore DEVMODE settings
+      if (backupToken != null) {
+        await _devModeManager.restoreSettings(printer, backupToken);
+      }
+    }
+  }
+
+  @override
+  Future<Result<void, AppError>> printRawPdf({
+    required Uint8List pdfBytes,
+    required PrinterDevice printer,
+    required double widthMm,
+    required double heightMm,
+    required String docName,
+  }) async {
+    String? backupToken;
+    try {
+      final sheetConfig = SheetConfig(
+        pageWidth: widthMm,
+        pageHeight: heightMm,
+        marginTop: 0,
+        marginBottom: 0,
+        marginLeft: 0,
+        marginRight: 0,
+        columns: 1,
+        rows: 1,
+        columnGap: 0,
+        rowGap: 0,
+      );
+
+      final paperSupported = await _paperValidator.isPaperSizeSupported(printer, sheetConfig);
+      if (!paperSupported) {
+        return Result.failure(
+          ValidationError(
+            message: 'Selected printer "${printer.name}" does not support the required paper form size '
+                '($widthMm x $heightMm mm). '
+                'Please register this custom paper size in Windows Print Server Properties.',
+          ),
+        );
+      }
+
+      backupToken = await _devModeManager.applySettings(printer, sheetConfig);
+
+      final printers = await Printing.listPrinters();
+      final Printer resolvedPrinter;
+      try {
+        resolvedPrinter = printers.firstWhere((p) => p.name == printer.name);
+      } catch (_) {
+        return Result.failure(
+          UnexpectedError(
+            message: 'Selected printer "${printer.name}" was not found in available system printers.',
+          ),
+        );
+      }
+
+      final success = await Printing.directPrintPdf(
+        printer: resolvedPrinter,
+        onLayout: (format) async => pdfBytes,
+        format: PdfPageFormat(
+          widthMm * PdfPageFormat.mm,
+          heightMm * PdfPageFormat.mm,
+          marginAll: 0,
+        ),
+        usePrinterSettings: true,
+      );
+
+      if (!success) {
+        return const Result.failure(
+          UnexpectedError(message: 'Windows print spooler rejected the calibration print job.'),
+        );
+      }
+
+      return const Result.success(null);
+    } catch (e, s) {
+      return Result.failure(
+        UnexpectedError(
+          message: 'Failed to print calibration PDF on Windows.',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    } finally {
       if (backupToken != null) {
         await _devModeManager.restoreSettings(printer, backupToken);
       }

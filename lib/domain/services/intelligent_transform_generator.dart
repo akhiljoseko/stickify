@@ -37,7 +37,7 @@ class IntelligentTransformGenerator {
       'TransformGenerator: input template="${template.name}", '
       'conflicts=${analysisResult.conflicts.length}, '
       'sheet=${sheetConfig.pageWidth}×${sheetConfig.pageHeight}mm, '
-      'grid=${totalColumns}×${totalRows}, '
+      'grid=$totalColumns×$totalRows, '
       'sticker=${stickerConfig.widthMm}×${stickerConfig.heightMm}mm, '
       'margins sheet=(${sheetConfig.marginLeft},${sheetConfig.marginTop},${sheetConfig.marginRight},${sheetConfig.marginBottom})',
       tag: 'PrintPipeline',
@@ -142,11 +142,11 @@ class IntelligentTransformGenerator {
       'right=${rightConflict?.overlapMm}mm, '
       'top=${topConflict?.overlapMm}mm, '
       'bottom=${bottomConflict?.overlapMm}mm. '
-      'Printer margins: L=${printerMarginLeft} R=${printerMarginRight} T=${printerMarginTop} B=${printerMarginBottom}. '
-      'Printer space: ${printerWidth}×${printerHeight}mm. '
+      'Printer margins: L=$printerMarginLeft R=$printerMarginRight T=$printerMarginTop B=$printerMarginBottom. '
+      'Printer space: $printerWidth×${printerHeight}mm. '
       'Rotation: ${isRotated90 ? "90°" : "none"}. '
-      'Sticker printable area: ${printableWidth}×${printableHeight}mm '
-      '(min=(${stickerMinX},${stickerMinY}), max=(${stickerMaxX},${stickerMaxY})).',
+      'Sticker printable area: $printableWidth×${printableHeight}mm '
+      '(min=($stickerMinX,$stickerMinY), max=($stickerMaxX,$stickerMaxY)).',
       tag: 'PrintPipeline',
     );
 

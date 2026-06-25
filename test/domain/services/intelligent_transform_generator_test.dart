@@ -69,7 +69,7 @@ void main() {
         displayName: 'Test Printer',
         status: PrinterProfileStatus.active,
         printerIdentity: const PrinterIdentity(systemPrinterName: 'p1'),
-        capabilities: PrinterCapabilities(
+        capabilities: const PrinterCapabilities(
           supportsCustomPaperSize: true,
           supportsPortraitCustomPaper: true,
           supportsLandscapeCustomPaper: false,

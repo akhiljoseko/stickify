@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/app_service_locator.dart';
@@ -36,9 +38,7 @@ class _PrinterConfigurationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return BlocConsumer<PrinterConfigurationCubit, PrinterConfigurationState>(
       listener: (context, state) {
@@ -763,10 +763,12 @@ class _PrinterConfigurationView extends StatelessWidget {
       return;
     }
 
-    CalibrationWizardRoute(
-      profileId: profile.id,
-      trayId: tray.trayIdentifier,
-      paperConfigurationId: tray.supportedPaperConfigurations.first.id,
-    ).push(context);
+    unawaited(
+      CalibrationWizardRoute(
+        profileId: profile.id,
+        trayId: tray.trayIdentifier,
+        paperConfigurationId: tray.supportedPaperConfigurations.first.id,
+      ).push<void>(context),
+    );
   }
 }

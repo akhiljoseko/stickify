@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/app_service_locator.dart';
@@ -8,10 +10,7 @@ import 'package:stickify/presentation/features/printer_management/widgets/empty_
 import 'package:stickify/presentation/features/printer_management/widgets/printer_card.dart';
 import 'package:stickify/presentation/features/printer_management/widgets/printer_selection_sheet.dart';
 
-/// Entry page for the Printer Management UI.
-/// Orchestrates the Cubit lifecycle using dependency injection and handles states.
 class PrinterManagementPage extends StatelessWidget {
-  /// Creates a [PrinterManagementPage] instance.
   const PrinterManagementPage({super.key});
 
   @override
@@ -24,9 +23,7 @@ class PrinterManagementPage extends StatelessWidget {
   }
 }
 
-/// The actual presentation view for Printer Management.
 class PrinterManagementView extends StatelessWidget {
-  /// Creates a [PrinterManagementView] instance.
   const PrinterManagementView({super.key});
 
   @override
@@ -103,7 +100,7 @@ class PrinterManagementView extends StatelessWidget {
                   message: 'Add a printer profile to begin configuring label formats.',
                   icon: Icons.print_disabled_outlined,
                   actionText: 'Add Printer Profile',
-                  onAction: () => _addPrinterProfile(context),
+                  onAction: () => unawaited(_addPrinterProfile(context)),
                 );
               }
 
@@ -176,7 +173,7 @@ Future<void> _addPrinterProfile(BuildContext context) async {
   if (selected != null && context.mounted) {
     final saved = await const PrinterConfigurationRoute().push<bool>(context);
     if (saved == true && context.mounted) {
-      context.read<PrinterManagementCubit>().loadPrintersAndProfiles();
+      await context.read<PrinterManagementCubit>().loadPrintersAndProfiles();
     }
   }
 }

@@ -103,7 +103,7 @@ class PrinterSelectionSheet extends StatelessWidget {
                       controller: scrollController,
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       itemCount: printers.length,
-                      separatorBuilder: (_, __) => const Divider(
+                      separatorBuilder: (_, _) => const Divider(
                         height: 1,
                         indent: 16,
                         endIndent: 16,

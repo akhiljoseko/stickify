@@ -278,7 +278,6 @@ class AppServiceLocator {
   PrinterConfigurationCubit createPrinterConfigurationCubit() {
     return PrinterConfigurationCubit(
       printerProfileRepository: printerProfileRepository,
-      printerDiscoveryService: printerDiscoveryService,
     );
   }
 

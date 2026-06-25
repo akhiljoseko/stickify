@@ -12,9 +12,21 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
         _printerDiscoveryService = printerDiscoveryService,
         super(const PrinterConfigurationState.initial());
 
-  final PrinterProfileRepository _printerProfileRepository;
+  final PrinterProfileRepository printerProfileRepository;
   final PrinterDiscoveryService _printerDiscoveryService;
   static const _uuid = Uuid();
+
+  Future<void> loadProfile(String id) async {
+    final result = await printerProfileRepository.getProfileById(id);
+    switch (result) {
+      case Success(value: final profile):
+        if (profile != null) {
+          loadFromProfile(profile);
+        }
+      case Failure():
+        break;
+    }
+  }
 
   void setDisplayName(String value) {
     emit(state.copyWith(displayName: value));
@@ -158,7 +170,7 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
     emit(state.copyWith(status: PrinterConfigurationStatus.saving));
 
     final profile = _buildProfile();
-    final result = await _printerProfileRepository.saveProfile(profile);
+    final result = await printerProfileRepository.saveProfile(profile);
     switch (result) {
       case Failure(:final error):
         emit(

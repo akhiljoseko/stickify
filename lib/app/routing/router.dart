@@ -6,6 +6,7 @@ import 'package:stickify/presentation/features/dashboard/presentation/dashboard_
 import 'package:stickify/presentation/features/print/presentation/print_setup_entry.dart';
 import 'package:stickify/presentation/features/print/presentation/template_selection_page.dart';
 import 'package:stickify/presentation/features/print_history/presentation/print_history_screen.dart';
+import 'package:stickify/presentation/features/printer_configuration/views/printer_configuration_page.dart';
 import 'package:stickify/presentation/features/printer_management/views/calibration_wizard_page.dart';
 import 'package:stickify/presentation/features/printer_management/views/printer_management_page.dart';
 import 'package:stickify/presentation/features/product/presentation/product_management_entry.dart';
@@ -230,6 +231,12 @@ class PrintSetupRoute extends GoRouteData with $PrintSetupRoute {
             TypedGoRoute<PrinterManagementRoute>(
               path: 'printers',
               routes: [
+                TypedGoRoute<PrinterConfigurationRoute>(
+                  path: 'new',
+                ),
+                TypedGoRoute<PrinterConfigurationEditRoute>(
+                  path: ':profileId',
+                ),
                 TypedGoRoute<CalibrationWizardRoute>(
                   path: ':profileId/calibrate/:trayId',
                 ),
@@ -407,6 +414,36 @@ class PrinterManagementRoute extends GoRouteData with $PrinterManagementRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return const PrinterManagementPage();
+  }
+}
+
+/// Route data for creating a new printer configuration.
+@immutable
+class PrinterConfigurationRoute extends GoRouteData
+    with $PrinterConfigurationRoute {
+  const PrinterConfigurationRoute();
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const PrinterConfigurationPage();
+  }
+}
+
+/// Route data for editing an existing printer configuration.
+@immutable
+class PrinterConfigurationEditRoute extends GoRouteData
+    with $PrinterConfigurationEditRoute {
+  const PrinterConfigurationEditRoute({required this.profileId});
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  final String profileId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return PrinterConfigurationPage(profileId: profileId);
   }
 }
 

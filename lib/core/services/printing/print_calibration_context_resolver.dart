@@ -39,6 +39,10 @@ class PrintCalibrationContextResolver {
       );
     }
 
+    if (executionConfiguration.coordinateContext != null) {
+      return Result.success(executionConfiguration.coordinateContext!);
+    }
+
     final request = CalibrationRequest(
       tray: tray,
       paperConfigId: paperConfigurationId,

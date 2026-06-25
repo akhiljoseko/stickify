@@ -10,7 +10,7 @@ This living document tracks the progress of the implementation plan across Phase
 | **Phase 3B**   | Calibration Wizard UI Foundation   | ✅ Complete |
 | **Phase 4**    | Compatibility Analysis Engine      | ✅ Complete |
 | **Phase 5**    | Intelligent Transformation Engine | ✅ Complete |
-| **Phase 6**    | Runtime Integration               | 🔄 In Progress |
+| **Phase 6**    | Runtime Integration               | ✅ Complete |
 
 ---
 
@@ -81,18 +81,18 @@ This living document tracks the progress of the implementation plan across Phase
   - `refactor(presentation): integrate printer profile selection into print workflow`
   - `feat(presentation): integrate compatibility check into print workflow`
   - `test: add runtime integration tests`
-- [ ] Create `lib/domain/services/print_pipeline_orchestrator.dart` (composites calibration + optimization transforms)
-- [ ] Modify `lib/presentation/features/print/cubits/print_workflow_cubit.dart` (populate `PrintExecutionConfiguration`)
-- [ ] Modify `lib/presentation/features/print/cubits/print_workflow_state.dart`
-- [ ] Update `lib/app/app_service_locator.dart` (register orchestrator and analyzer, inject into cubit)
-- [ ] Create `test/domain/services/print_pipeline_orchestrator_test.dart`
-- [ ] Update `test/presentation/features/print/cubits/print_workflow_cubit_test.dart`
+- [x] Create `lib/domain/services/print_pipeline_orchestrator.dart` (composites calibration + optimization transforms)
+- [x] Modify `lib/presentation/features/print/cubits/print_workflow_cubit.dart` (populate `PrintExecutionConfiguration`)
+- [x] Modify `lib/presentation/features/print/cubits/print_workflow_state.dart`
+- [x] Update `lib/app/app_service_locator.dart` (register orchestrator and analyzer, inject into cubit)
+- [x] Create `test/domain/services/print_pipeline_orchestrator_test.dart`
+- [x] Update `test/presentation/features/print/presentation/print_workflow_test.dart`
 
 ---
 
 ## Verification Checklist
 
-- [ ] Static Analysis passes (`flutter analyze`)
-- [ ] BLoC Linter passes (`dart run bloc_tools:bloc lint .`)
-- [ ] Generated files updated (`dart run build_runner build`)
-- [ ] Full test suite passes (`very_good test --coverage --test-randomize-ordering-seed random`)
+- [x] Static Analysis passes (`flutter analyze`)
+- [x] BLoC Linter passes (`dart run bloc_tools:bloc lint .`)
+- [x] Generated files updated (`dart run build_runner build`)
+- [x] Full test suite passes (`very_good test --coverage --test-randomize-ordering-seed random`)

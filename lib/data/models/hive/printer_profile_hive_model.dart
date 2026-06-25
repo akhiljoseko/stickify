@@ -143,7 +143,6 @@ class OptimizationPreferencesHiveModel extends HiveObject {
   OptimizationPreferencesHiveModel({
     required this.allowScaling,
     required this.allowTranslation,
-    required this.preferShrinkOverShift,
     required this.allowStickerSpecificAdjustment,
     this.minimumAcceptableScale = 0.7,
   });
@@ -152,7 +151,6 @@ class OptimizationPreferencesHiveModel extends HiveObject {
     return OptimizationPreferencesHiveModel(
       allowScaling: pref.allowScaling,
       allowTranslation: pref.allowTranslation,
-      preferShrinkOverShift: pref.preferShrinkOverShift,
       allowStickerSpecificAdjustment: pref.allowStickerSpecificAdjustment,
       minimumAcceptableScale: pref.minimumAcceptableScale,
     );
@@ -160,7 +158,6 @@ class OptimizationPreferencesHiveModel extends HiveObject {
 
   final bool allowScaling;
   final bool allowTranslation;
-  final bool preferShrinkOverShift;
   final bool allowStickerSpecificAdjustment;
   final double minimumAcceptableScale;
 
@@ -168,7 +165,6 @@ class OptimizationPreferencesHiveModel extends HiveObject {
     return OptimizationPreferences(
       allowScaling: allowScaling,
       allowTranslation: allowTranslation,
-      preferShrinkOverShift: preferShrinkOverShift,
       allowStickerSpecificAdjustment: allowStickerSpecificAdjustment,
       minimumAcceptableScale: minimumAcceptableScale,
     );

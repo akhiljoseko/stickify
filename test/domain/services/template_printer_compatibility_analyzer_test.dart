@@ -84,7 +84,6 @@ void main() {
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
           allowTranslation: true,
-          preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
         ),
         trays: [tray],
@@ -129,7 +128,6 @@ void main() {
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
           allowTranslation: true,
-          preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
         ),
         trays: [tray],
@@ -180,7 +178,6 @@ void main() {
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
           allowTranslation: true,
-          preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
         ),
         trays: [tray],
@@ -222,7 +219,6 @@ void main() {
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
           allowTranslation: true,
-          preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
         ),
         trays: [tray],

@@ -80,7 +80,6 @@ void main() {
         optimizationPreferences: OptimizationPreferences(
           allowScaling: true,
           allowTranslation: true,
-          preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
           minimumAcceptableScale: minScale,
         ),

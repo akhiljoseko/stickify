@@ -223,7 +223,6 @@ class OptimizationPreferencesFirestoreModel {
   OptimizationPreferencesFirestoreModel({
     required this.allowScaling,
     required this.allowTranslation,
-    required this.preferShrinkOverShift,
     required this.allowStickerSpecificAdjustment,
     this.minimumAcceptableScale = 0.7,
   });
@@ -232,7 +231,6 @@ class OptimizationPreferencesFirestoreModel {
     return OptimizationPreferencesFirestoreModel(
       allowScaling: pref.allowScaling,
       allowTranslation: pref.allowTranslation,
-      preferShrinkOverShift: pref.preferShrinkOverShift,
       allowStickerSpecificAdjustment: pref.allowStickerSpecificAdjustment,
       minimumAcceptableScale: pref.minimumAcceptableScale,
     );
@@ -242,7 +240,6 @@ class OptimizationPreferencesFirestoreModel {
     return OptimizationPreferencesFirestoreModel(
       allowScaling: m['allowScaling'] as bool? ?? true,
       allowTranslation: m['allowTranslation'] as bool? ?? true,
-      preferShrinkOverShift: m['preferShrinkOverShift'] as bool? ?? false,
       allowStickerSpecificAdjustment: m['allowStickerSpecificAdjustment'] as bool? ?? true,
       minimumAcceptableScale: (m['minimumAcceptableScale'] as num? ?? 0.7).toDouble(),
     );
@@ -250,7 +247,6 @@ class OptimizationPreferencesFirestoreModel {
 
   final bool allowScaling;
   final bool allowTranslation;
-  final bool preferShrinkOverShift;
   final bool allowStickerSpecificAdjustment;
   final double minimumAcceptableScale;
 
@@ -258,7 +254,6 @@ class OptimizationPreferencesFirestoreModel {
     return {
       'allowScaling': allowScaling,
       'allowTranslation': allowTranslation,
-      'preferShrinkOverShift': preferShrinkOverShift,
       'allowStickerSpecificAdjustment': allowStickerSpecificAdjustment,
       'minimumAcceptableScale': minimumAcceptableScale,
     };
@@ -268,7 +263,6 @@ class OptimizationPreferencesFirestoreModel {
     return OptimizationPreferences(
       allowScaling: allowScaling,
       allowTranslation: allowTranslation,
-      preferShrinkOverShift: preferShrinkOverShift,
       allowStickerSpecificAdjustment: allowStickerSpecificAdjustment,
       minimumAcceptableScale: minimumAcceptableScale,
     );

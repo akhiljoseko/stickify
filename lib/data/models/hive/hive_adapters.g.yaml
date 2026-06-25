@@ -265,8 +265,6 @@ types:
         index: 0
       allowTranslation:
         index: 1
-      preferShrinkOverShift:
-        index: 2
       allowStickerSpecificAdjustment:
         index: 3
       minimumAcceptableScale:

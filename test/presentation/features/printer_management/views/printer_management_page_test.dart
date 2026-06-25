@@ -52,7 +52,6 @@ void main() {
         optimizationPreferences: const OptimizationPreferences(
           allowScaling: true,
           allowTranslation: true,
-          preferShrinkOverShift: false,
           allowStickerSpecificAdjustment: true,
         ),
         trays: [

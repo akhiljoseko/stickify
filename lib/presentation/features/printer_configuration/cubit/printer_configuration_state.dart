@@ -25,7 +25,6 @@ class PrinterConfigurationState extends Equatable {
     this.supportsTraySelection = true,
     this.allowScaling = true,
     this.allowTranslation = true,
-    this.preferShrinkOverShift = true,
     this.allowStickerSpecificAdjustment = true,
     this.minimumAcceptableScale = 0.7,
     this.trays = const [],
@@ -51,7 +50,6 @@ class PrinterConfigurationState extends Equatable {
   final bool supportsTraySelection;
   final bool allowScaling;
   final bool allowTranslation;
-  final bool preferShrinkOverShift;
   final bool allowStickerSpecificAdjustment;
   final double minimumAcceptableScale;
   final List<PrinterTrayProfile> trays;
@@ -76,7 +74,6 @@ class PrinterConfigurationState extends Equatable {
     bool? supportsTraySelection,
     bool? allowScaling,
     bool? allowTranslation,
-    bool? preferShrinkOverShift,
     bool? allowStickerSpecificAdjustment,
     double? minimumAcceptableScale,
     List<PrinterTrayProfile>? trays,
@@ -104,8 +101,6 @@ class PrinterConfigurationState extends Equatable {
           supportsTraySelection ?? this.supportsTraySelection,
       allowScaling: allowScaling ?? this.allowScaling,
       allowTranslation: allowTranslation ?? this.allowTranslation,
-      preferShrinkOverShift:
-          preferShrinkOverShift ?? this.preferShrinkOverShift,
       allowStickerSpecificAdjustment:
           allowStickerSpecificAdjustment ?? this.allowStickerSpecificAdjustment,
       minimumAcceptableScale:
@@ -133,7 +128,6 @@ class PrinterConfigurationState extends Equatable {
         supportsTraySelection,
         allowScaling,
         allowTranslation,
-        preferShrinkOverShift,
         allowStickerSpecificAdjustment,
         minimumAcceptableScale,
         trays,

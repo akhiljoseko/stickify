@@ -80,10 +80,6 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
     emit(state.copyWith(allowTranslation: value));
   }
 
-  void setPreferShrinkOverShift(bool value) {
-    emit(state.copyWith(preferShrinkOverShift: value));
-  }
-
   void setAllowStickerSpecificAdjustment(bool value) {
     emit(state.copyWith(allowStickerSpecificAdjustment: value));
   }
@@ -130,8 +126,6 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
         supportsTraySelection: profile.capabilities.supportsTraySelection,
         allowScaling: profile.optimizationPreferences.allowScaling,
         allowTranslation: profile.optimizationPreferences.allowTranslation,
-        preferShrinkOverShift:
-            profile.optimizationPreferences.preferShrinkOverShift,
         allowStickerSpecificAdjustment:
             profile.optimizationPreferences.allowStickerSpecificAdjustment,
         minimumAcceptableScale:
@@ -237,7 +231,6 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
       optimizationPreferences: OptimizationPreferences(
         allowScaling: state.allowScaling,
         allowTranslation: state.allowTranslation,
-        preferShrinkOverShift: state.preferShrinkOverShift,
         allowStickerSpecificAdjustment: state.allowStickerSpecificAdjustment,
         minimumAcceptableScale: state.minimumAcceptableScale,
       ),

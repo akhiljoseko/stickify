@@ -696,12 +696,11 @@ class _PrinterConfigurationView extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  _buildTrayAction(
+                    _buildTrayAction(
                     context,
                     icon: Icons.tune,
                     label: 'Calibrate',
                     onTap: () => _calibrateTray(context, tray, index),
-                    disabled: !isCalibrated,
                   ),
                   const SizedBox(width: 8),
                   _buildTrayAction(

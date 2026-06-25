@@ -3,6 +3,7 @@ include:
   - package:bloc_lint/recommended.yaml
 analyzer:
   errors:
+    avoid_positional_boolean_parameters: ignore
     discarded_futures: ignore
     lines_longer_than_80_chars: ignore
     one_member_abstracts: ignore

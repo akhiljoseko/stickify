@@ -26,6 +26,19 @@ class PrinterManagementCubit extends Cubit<PrinterManagementState> {
   /// The printer profile compatibility analyzer.
   final PrinterProfileCompatibilityAnalyzer printerProfileCompatibilityAnalyzer;
 
+  /// Deletes a printer profile by [id] and refreshes the list.
+  Future<void> deleteProfile(String id) async {
+    Log.info('Deleting printer profile "$id"...', tag: 'PrinterMgmt');
+    final result = await printerProfileRepository.deleteProfile(id);
+    switch (result) {
+      case Failure(:final error):
+        Log.error('Failed to delete profile "$id": ${error.message}', tag: 'PrinterMgmt');
+      case Success():
+        Log.info('Profile "$id" deleted.', tag: 'PrinterMgmt');
+    }
+    await loadPrintersAndProfiles();
+  }
+
   /// Loads available system printers and saved profiles, matches them, and performs
   /// compatibility validation checks.
   Future<void> loadPrintersAndProfiles() async {

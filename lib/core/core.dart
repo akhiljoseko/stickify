@@ -20,6 +20,7 @@ export 'presentation/shared/blocking_error_dialog.dart';
 export 'presentation/shared/empty_view.dart';
 export 'presentation/shared/error_view.dart';
 export 'presentation/shared/loading_view.dart';
+export 'services/logging/logger_service.dart';
 export 'utils/adaptive_value.dart';
 export 'utils/app_breakpoints.dart';
 export 'utils/currency_formatter.dart';

@@ -40,11 +40,20 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
 
   /// Loads the printer profile and tray, setting up the initial calibration template.
   Future<void> loadSession() async {
+    Log.info(
+      'Calibration session started for profile "$profileId", tray "$trayId", '
+      'paper config "$paperConfigurationId". Loading profile from repository.',
+      tag: 'Calibration',
+    );
     emit(state.copyWith(status: CalibrationSessionStatus.initial));
 
     final result = await profileRepository.getProfileById(profileId);
     switch (result) {
       case Failure(:final error):
+        Log.error(
+          'Failed to load printer profile "$profileId" for calibration: ${error.message}',
+          tag: 'Calibration',
+        );
         emit(
           state.copyWith(
             status: CalibrationSessionStatus.error,
@@ -54,6 +63,10 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
         );
       case Success(value: final profile):
         if (profile == null) {
+          Log.error(
+            'Calibration aborted: printer profile "$profileId" not found.',
+            tag: 'Calibration',
+          );
           emit(
             state.copyWith(
               status: CalibrationSessionStatus.error,
@@ -69,6 +82,12 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
             (t) => t.trayIdentifier == trayId,
           );
         } catch (_) {
+          Log.error(
+            'Calibration aborted: tray "$trayId" not found in profile '
+            '"${profile.displayName}". Available trays: '
+            '${profile.trays.map((t) => t.trayIdentifier).join(', ')}',
+            tag: 'Calibration',
+          );
           emit(
             state.copyWith(
               status: CalibrationSessionStatus.error,
@@ -78,6 +97,13 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
           );
           return;
         }
+
+        Log.info(
+          'Profile "${profile.displayName}" loaded with ${profile.trays.length} '
+          'tray(s). Tray "${tray.displayName}" selected for calibration. '
+          'Using standard 4-point calibration sheet template.',
+          tag: 'Calibration',
+        );
 
         // Standard default calibration sheet template with 4 corners for testing/verification.
         final template = CalibrationSheetTemplate(
@@ -127,6 +153,11 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
 
   /// Sets or overrides the active calibration sheet template.
   void selectTemplate(CalibrationSheetTemplate template) {
+    Log.info(
+      'Calibration template changed to "${template.name}" '
+      '(${template.points.length} measurement points).',
+      tag: 'Calibration',
+    );
     emit(
       state.copyWith(
         status: CalibrationSessionStatus.templateSelected,
@@ -144,6 +175,11 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     final tray = state.trayProfile;
 
     if (template == null || profile == null || tray == null) {
+      Log.error(
+        'Cannot print calibration sheet: wizard not fully initialized '
+        '(template=${template != null}, profile=${profile != null}, tray=${tray != null}).',
+        tag: 'Calibration',
+      );
       emit(
         state.copyWith(
           status: CalibrationSessionStatus.error,
@@ -153,6 +189,13 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
       return;
     }
 
+    Log.info(
+      'Generating calibration sheet PDF for profile "${profile.displayName}", '
+      'tray "${tray.displayName}", template "${template.name}" '
+      '(${template.pageWidth}×${template.pageHeight}mm).',
+      tag: 'Calibration',
+    );
+
     emit(state.copyWith(status: CalibrationSessionStatus.printingSheet));
 
     try {
@@ -160,6 +203,12 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
         template: template,
         printerName: profile.displayName,
         trayName: tray.displayName,
+      );
+
+      Log.info(
+        'Calibration sheet PDF generated (${pdfBytes.length} bytes). '
+        'Sending to printer "${profile.printerIdentity.systemPrinterName}".',
+        tag: 'Calibration',
       );
 
       final printResult = await printService.printRawPdf(
@@ -175,6 +224,10 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
 
       switch (printResult) {
         case Failure(:final error):
+          Log.error(
+            'Failed to print calibration sheet: ${error.message}',
+            tag: 'Calibration',
+          );
           emit(
             state.copyWith(
               status: CalibrationSessionStatus.error,
@@ -182,9 +235,18 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
             ),
           );
         case Success():
+          Log.info(
+            'Calibration sheet printed successfully. '
+            'Waiting for technician to enter measurements.',
+            tag: 'Calibration',
+          );
           emit(state.copyWith(status: CalibrationSessionStatus.sheetPrinted));
       }
     } catch (e) {
+      Log.error(
+        'Unexpected error while printing calibration sheet: $e',
+        tag: 'Calibration',
+      );
       emit(
         state.copyWith(
           status: CalibrationSessionStatus.error,
@@ -196,6 +258,10 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
 
   /// Clears the current error state and resets back to template selection.
   void retry() {
+    Log.info(
+      'User retry: clearing error state and returning to template selection.',
+      tag: 'Calibration',
+    );
     emit(
       state.copyWith(
         status: CalibrationSessionStatus.templateSelected,
@@ -218,6 +284,18 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
         updated.length == template.points.length &&
         measuredPointIds.length == template.points.length;
 
+    Log.info(
+      'Measurement for point "${measurement.point.label}" entered: '
+      'actualX=${measurement.actualX.toStringAsFixed(2)}mm, '
+      'actualY=${measurement.actualY.toStringAsFixed(2)}mm '
+      '(expectedX=${measurement.point.expectedX}mm, '
+      'expectedY=${measurement.point.expectedY}mm). '
+      'Delta: X=${measurement.deltaX.toStringAsFixed(2)}mm, '
+      'Y=${measurement.deltaY.toStringAsFixed(2)}mm. '
+      'Progress: ${updated.length}/${template.points.length} measurements complete.',
+      tag: 'Calibration',
+    );
+
     emit(
       state.copyWith(
         status: isComplete
@@ -234,7 +312,19 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     final profile = state.printerProfile;
     final tray = state.trayProfile;
 
-    if (template == null || profile == null || tray == null) return;
+    if (template == null || profile == null || tray == null) {
+      Log.warning(
+        'Cannot generate calibration rules: session state is incomplete.',
+        tag: 'Calibration',
+      );
+      return;
+    }
+
+    Log.info(
+      'All ${state.measurements.length} measurements collected. '
+      'Generating calibration correction rules...',
+      tag: 'Calibration',
+    );
 
     final session = CalibrationSession(
       id: 'sess_${DateTime.now().millisecondsSinceEpoch}',
@@ -247,6 +337,23 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
 
     final request = CalibrationGenerationRequest(session: session);
     final result = ruleGenerator.generate(request);
+
+    final rule = result.generatedRules.firstOrNull;
+    if (rule != null) {
+      Log.info(
+        'Calibration rule generated for sheet: '
+        'offsetX=${rule.transformation.offsetX.toStringAsFixed(3)}mm, '
+        'offsetY=${rule.transformation.offsetY.toStringAsFixed(3)}mm, '
+        'scaleX=${rule.transformation.scaleX.toStringAsFixed(5)}, '
+        'scaleY=${rule.transformation.scaleY.toStringAsFixed(5)}.',
+        tag: 'Calibration',
+      );
+    } else {
+      Log.info(
+        'No calibration rules generated (no measurements provided).',
+        tag: 'Calibration',
+      );
+    }
 
     emit(
       state.copyWith(
@@ -261,7 +368,20 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     final profile = state.printerProfile;
     final tray = state.trayProfile;
 
-    if (profile == null || tray == null) return;
+    if (profile == null || tray == null) {
+      Log.warning(
+        'Cannot save calibration: profile or tray is missing from state.',
+        tag: 'Calibration',
+      );
+      return;
+    }
+
+    Log.info(
+      'Saving calibration for profile "${profile.displayName}", '
+      'tray "${tray.displayName}". '
+      '${state.generatedRules.length} calibration rule(s) will be persisted.',
+      tag: 'Calibration',
+    );
 
     emit(state.copyWith(status: CalibrationSessionStatus.saving));
 
@@ -294,6 +414,10 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     final result = await profileRepository.saveProfile(updatedProfile);
     switch (result) {
       case Failure(:final error):
+        Log.error(
+          'Failed to save calibrated profile: ${error.message}',
+          tag: 'Calibration',
+        );
         emit(
           state.copyWith(
             status: CalibrationSessionStatus.error,
@@ -302,6 +426,12 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
           ),
         );
       case Success():
+        Log.info(
+          'Calibration successfully saved for profile "${profile.displayName}", '
+          'tray "${tray.displayName}". '
+          'Corrections will be applied automatically on next print job.',
+          tag: 'Calibration',
+        );
         emit(
           state.copyWith(
             status: CalibrationSessionStatus.saved,

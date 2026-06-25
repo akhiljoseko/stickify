@@ -163,12 +163,20 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
   }
 
   Future<Result<PrinterProfile, AppError>> save() async {
+    Log.info(
+      'Saving printer profile "${state.displayName}" (${state.isEditing ? "edit" : "new"}).',
+      tag: 'PrinterConfig',
+    );
     emit(state.copyWith(status: PrinterConfigurationStatus.saving));
 
     final profile = _buildProfile();
     final result = await printerProfileRepository.saveProfile(profile);
     switch (result) {
       case Failure(:final error):
+        Log.error(
+          'Failed to save printer profile "${profile.displayName}": ${error.message}',
+          tag: 'PrinterConfig',
+        );
         emit(
           state.copyWith(
             status: PrinterConfigurationStatus.error,
@@ -177,6 +185,11 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
         );
         return Result.failure(error);
       case Success():
+        Log.info(
+          'Printer profile "${profile.displayName}" (id: ${profile.id}) '
+          'saved successfully. ${profile.trays.length} tray(s) configured.',
+          tag: 'PrinterConfig',
+        );
         emit(state.copyWith(status: PrinterConfigurationStatus.saved));
         return Result.success(profile);
     }
@@ -186,12 +199,25 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
   /// status, so the page does not pop. Instead transitions back to `idle`.
   /// Used when saving is needed before navigating to calibration.
   Future<Result<PrinterProfile, AppError>> saveQuietly() async {
+    Log.info(
+      'Quietly saving printer profile "${state.displayName}" before calibration.',
+      tag: 'PrinterConfig',
+    );
     final profile = _buildProfile();
     final result = await printerProfileRepository.saveProfile(profile);
     switch (result) {
       case Failure(:final error):
+        Log.error(
+          'Quiet save failed for "${profile.displayName}": ${error.message}',
+          tag: 'PrinterConfig',
+        );
         return Result.failure(error);
       case Success():
+        Log.info(
+          'Quiet save succeeded for "${profile.displayName}" (id: ${profile.id}). '
+          'Proceeding to calibration.',
+          tag: 'PrinterConfig',
+        );
         emit(
           state.copyWith(
             status: PrinterConfigurationStatus.idle,

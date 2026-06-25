@@ -165,10 +165,6 @@ class PrinterCapabilitiesFirestoreModel {
     required this.supportsManualFeed,
     required this.supportsBorderlessPrinting,
     required this.supportsTraySelection,
-    this.nonPrintableMarginLeft = 0.0,
-    this.nonPrintableMarginRight = 0.0,
-    this.nonPrintableMarginTop = 0.0,
-    this.nonPrintableMarginBottom = 0.0,
   });
 
   factory PrinterCapabilitiesFirestoreModel.fromDomain(PrinterCapabilities cap) {
@@ -179,10 +175,6 @@ class PrinterCapabilitiesFirestoreModel {
       supportsManualFeed: cap.supportsManualFeed,
       supportsBorderlessPrinting: cap.supportsBorderlessPrinting,
       supportsTraySelection: cap.supportsTraySelection,
-      nonPrintableMarginLeft: cap.nonPrintableMarginLeft,
-      nonPrintableMarginRight: cap.nonPrintableMarginRight,
-      nonPrintableMarginTop: cap.nonPrintableMarginTop,
-      nonPrintableMarginBottom: cap.nonPrintableMarginBottom,
     );
   }
 
@@ -194,10 +186,6 @@ class PrinterCapabilitiesFirestoreModel {
       supportsManualFeed: m['supportsManualFeed'] as bool? ?? false,
       supportsBorderlessPrinting: m['supportsBorderlessPrinting'] as bool? ?? false,
       supportsTraySelection: m['supportsTraySelection'] as bool? ?? false,
-      nonPrintableMarginLeft: (m['nonPrintableMarginLeft'] as num? ?? 0.0).toDouble(),
-      nonPrintableMarginRight: (m['nonPrintableMarginRight'] as num? ?? 0.0).toDouble(),
-      nonPrintableMarginTop: (m['nonPrintableMarginTop'] as num? ?? 0.0).toDouble(),
-      nonPrintableMarginBottom: (m['nonPrintableMarginBottom'] as num? ?? 0.0).toDouble(),
     );
   }
 
@@ -207,10 +195,6 @@ class PrinterCapabilitiesFirestoreModel {
   final bool supportsManualFeed;
   final bool supportsBorderlessPrinting;
   final bool supportsTraySelection;
-  final double nonPrintableMarginLeft;
-  final double nonPrintableMarginRight;
-  final double nonPrintableMarginTop;
-  final double nonPrintableMarginBottom;
 
   Map<String, dynamic> toMap() {
     return {
@@ -220,10 +204,6 @@ class PrinterCapabilitiesFirestoreModel {
       'supportsManualFeed': supportsManualFeed,
       'supportsBorderlessPrinting': supportsBorderlessPrinting,
       'supportsTraySelection': supportsTraySelection,
-      'nonPrintableMarginLeft': nonPrintableMarginLeft,
-      'nonPrintableMarginRight': nonPrintableMarginRight,
-      'nonPrintableMarginTop': nonPrintableMarginTop,
-      'nonPrintableMarginBottom': nonPrintableMarginBottom,
     };
   }
 
@@ -235,10 +215,6 @@ class PrinterCapabilitiesFirestoreModel {
       supportsManualFeed: supportsManualFeed,
       supportsBorderlessPrinting: supportsBorderlessPrinting,
       supportsTraySelection: supportsTraySelection,
-      nonPrintableMarginLeft: nonPrintableMarginLeft,
-      nonPrintableMarginRight: nonPrintableMarginRight,
-      nonPrintableMarginTop: nonPrintableMarginTop,
-      nonPrintableMarginBottom: nonPrintableMarginBottom,
     );
   }
 }
@@ -305,6 +281,10 @@ class PrinterTrayProfileFirestoreModel {
     required this.displayName,
     required this.supportedPaperConfigurations,
     required this.calibration,
+    this.nonPrintableMarginLeft = 0.0,
+    this.nonPrintableMarginRight = 0.0,
+    this.nonPrintableMarginTop = 0.0,
+    this.nonPrintableMarginBottom = 0.0,
   });
 
   factory PrinterTrayProfileFirestoreModel.fromDomain(PrinterTrayProfile t) {
@@ -314,6 +294,10 @@ class PrinterTrayProfileFirestoreModel {
       supportedPaperConfigurations:
           t.supportedPaperConfigurations.map(PaperConfigurationReferenceFirestoreModel.fromDomain).toList(),
       calibration: PrinterCalibrationFirestoreModel.fromDomain(t.calibration),
+      nonPrintableMarginLeft: t.nonPrintableMarginLeft,
+      nonPrintableMarginRight: t.nonPrintableMarginRight,
+      nonPrintableMarginTop: t.nonPrintableMarginTop,
+      nonPrintableMarginBottom: t.nonPrintableMarginBottom,
     );
   }
 
@@ -327,6 +311,10 @@ class PrinterTrayProfileFirestoreModel {
       calibration: PrinterCalibrationFirestoreModel.fromMap(
         m['calibration'] as Map<String, dynamic>? ?? const {},
       ),
+      nonPrintableMarginLeft: (m['nonPrintableMarginLeft'] as num? ?? 0.0).toDouble(),
+      nonPrintableMarginRight: (m['nonPrintableMarginRight'] as num? ?? 0.0).toDouble(),
+      nonPrintableMarginTop: (m['nonPrintableMarginTop'] as num? ?? 0.0).toDouble(),
+      nonPrintableMarginBottom: (m['nonPrintableMarginBottom'] as num? ?? 0.0).toDouble(),
     );
   }
 
@@ -334,6 +322,10 @@ class PrinterTrayProfileFirestoreModel {
   final String displayName;
   final List<PaperConfigurationReferenceFirestoreModel> supportedPaperConfigurations;
   final PrinterCalibrationFirestoreModel calibration;
+  final double nonPrintableMarginLeft;
+  final double nonPrintableMarginRight;
+  final double nonPrintableMarginTop;
+  final double nonPrintableMarginBottom;
 
   Map<String, dynamic> toMap() {
     return {
@@ -341,6 +333,10 @@ class PrinterTrayProfileFirestoreModel {
       'displayName': displayName,
       'supportedPaperConfigurations': supportedPaperConfigurations.map((p) => p.toMap()).toList(),
       'calibration': calibration.toMap(),
+      'nonPrintableMarginLeft': nonPrintableMarginLeft,
+      'nonPrintableMarginRight': nonPrintableMarginRight,
+      'nonPrintableMarginTop': nonPrintableMarginTop,
+      'nonPrintableMarginBottom': nonPrintableMarginBottom,
     };
   }
 
@@ -350,6 +346,10 @@ class PrinterTrayProfileFirestoreModel {
       displayName: displayName,
       supportedPaperConfigurations: supportedPaperConfigurations.map((p) => p.toDomain()).toList(),
       calibration: calibration.toDomain(),
+      nonPrintableMarginLeft: nonPrintableMarginLeft,
+      nonPrintableMarginRight: nonPrintableMarginRight,
+      nonPrintableMarginTop: nonPrintableMarginTop,
+      nonPrintableMarginBottom: nonPrintableMarginBottom,
     );
   }
 }

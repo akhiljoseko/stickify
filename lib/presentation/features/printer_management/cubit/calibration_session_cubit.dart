@@ -393,6 +393,10 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
         enabled: state.generatedRules.isNotEmpty,
         calibrationRules: state.generatedRules,
       ),
+      nonPrintableMarginLeft: tray.nonPrintableMarginLeft,
+      nonPrintableMarginRight: tray.nonPrintableMarginRight,
+      nonPrintableMarginTop: tray.nonPrintableMarginTop,
+      nonPrintableMarginBottom: tray.nonPrintableMarginBottom,
     );
 
     final updatedTrays = profile.trays.map((t) {

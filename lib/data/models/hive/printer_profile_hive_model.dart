@@ -107,10 +107,6 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
     required this.supportsManualFeed,
     required this.supportsBorderlessPrinting,
     required this.supportsTraySelection,
-    this.nonPrintableMarginLeft = 0.0,
-    this.nonPrintableMarginRight = 0.0,
-    this.nonPrintableMarginTop = 0.0,
-    this.nonPrintableMarginBottom = 0.0,
   });
 
   factory PrinterCapabilitiesHiveModel.fromDomain(PrinterCapabilities cap) {
@@ -121,10 +117,6 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
       supportsManualFeed: cap.supportsManualFeed,
       supportsBorderlessPrinting: cap.supportsBorderlessPrinting,
       supportsTraySelection: cap.supportsTraySelection,
-      nonPrintableMarginLeft: cap.nonPrintableMarginLeft,
-      nonPrintableMarginRight: cap.nonPrintableMarginRight,
-      nonPrintableMarginTop: cap.nonPrintableMarginTop,
-      nonPrintableMarginBottom: cap.nonPrintableMarginBottom,
     );
   }
 
@@ -134,10 +126,6 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
   final bool supportsManualFeed;
   final bool supportsBorderlessPrinting;
   final bool supportsTraySelection;
-  final double nonPrintableMarginLeft;
-  final double nonPrintableMarginRight;
-  final double nonPrintableMarginTop;
-  final double nonPrintableMarginBottom;
 
   PrinterCapabilities toDomain() {
     return PrinterCapabilities(
@@ -147,10 +135,6 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
       supportsManualFeed: supportsManualFeed,
       supportsBorderlessPrinting: supportsBorderlessPrinting,
       supportsTraySelection: supportsTraySelection,
-      nonPrintableMarginLeft: nonPrintableMarginLeft,
-      nonPrintableMarginRight: nonPrintableMarginRight,
-      nonPrintableMarginTop: nonPrintableMarginTop,
-      nonPrintableMarginBottom: nonPrintableMarginBottom,
     );
   }
 }
@@ -197,6 +181,10 @@ class PrinterTrayProfileHiveModel extends HiveObject {
     required this.displayName,
     required this.supportedPaperConfigurations,
     required this.calibration,
+    this.nonPrintableMarginLeft = 0.0,
+    this.nonPrintableMarginRight = 0.0,
+    this.nonPrintableMarginTop = 0.0,
+    this.nonPrintableMarginBottom = 0.0,
   });
 
   factory PrinterTrayProfileHiveModel.fromDomain(PrinterTrayProfile t) {
@@ -206,6 +194,10 @@ class PrinterTrayProfileHiveModel extends HiveObject {
       supportedPaperConfigurations:
           t.supportedPaperConfigurations.map(PaperConfigurationReferenceHiveModel.fromDomain).toList(),
       calibration: PrinterCalibrationHiveModel.fromDomain(t.calibration),
+      nonPrintableMarginLeft: t.nonPrintableMarginLeft,
+      nonPrintableMarginRight: t.nonPrintableMarginRight,
+      nonPrintableMarginTop: t.nonPrintableMarginTop,
+      nonPrintableMarginBottom: t.nonPrintableMarginBottom,
     );
   }
 
@@ -213,6 +205,10 @@ class PrinterTrayProfileHiveModel extends HiveObject {
   final String displayName;
   final List<PaperConfigurationReferenceHiveModel> supportedPaperConfigurations;
   final PrinterCalibrationHiveModel calibration;
+  final double nonPrintableMarginLeft;
+  final double nonPrintableMarginRight;
+  final double nonPrintableMarginTop;
+  final double nonPrintableMarginBottom;
 
   PrinterTrayProfile toDomain() {
     return PrinterTrayProfile(
@@ -220,6 +216,10 @@ class PrinterTrayProfileHiveModel extends HiveObject {
       displayName: displayName,
       supportedPaperConfigurations: supportedPaperConfigurations.map((p) => p.toDomain()).toList(),
       calibration: calibration.toDomain(),
+      nonPrintableMarginLeft: nonPrintableMarginLeft,
+      nonPrintableMarginRight: nonPrintableMarginRight,
+      nonPrintableMarginTop: nonPrintableMarginTop,
+      nonPrintableMarginBottom: nonPrintableMarginBottom,
     );
   }
 }

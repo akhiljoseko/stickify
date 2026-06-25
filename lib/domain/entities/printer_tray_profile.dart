@@ -11,6 +11,10 @@ class PrinterTrayProfile extends Equatable {
     required this.displayName,
     required List<PaperConfigurationReference> supportedPaperConfigurations,
     required this.calibration,
+    this.nonPrintableMarginLeft = 0.0,
+    this.nonPrintableMarginRight = 0.0,
+    this.nonPrintableMarginTop = 0.0,
+    this.nonPrintableMarginBottom = 0.0,
   })  : supportedPaperConfigurations = List.unmodifiable(supportedPaperConfigurations),
         assert(
           trayIdentifier.isNotEmpty,
@@ -33,17 +37,35 @@ class PrinterTrayProfile extends Equatable {
   /// The tray-specific calibration rules.
   final PrinterCalibration calibration;
 
+  /// The left non-printable margin for this tray in millimeters.
+  final double nonPrintableMarginLeft;
+
+  /// The right non-printable margin for this tray in millimeters.
+  final double nonPrintableMarginRight;
+
+  /// The top non-printable margin for this tray in millimeters.
+  final double nonPrintableMarginTop;
+
+  /// The bottom non-printable margin for this tray in millimeters.
+  final double nonPrintableMarginBottom;
+
   @override
   List<Object?> get props => [
         trayIdentifier,
         displayName,
         supportedPaperConfigurations,
         calibration,
+        nonPrintableMarginLeft,
+        nonPrintableMarginRight,
+        nonPrintableMarginTop,
+        nonPrintableMarginBottom,
       ];
 
   @override
   String toString() =>
       'PrinterTrayProfile(trayIdentifier: $trayIdentifier, displayName: $displayName, '
       'supportedPaperCount: ${supportedPaperConfigurations.length}, '
-      'calibration: $calibration)';
+      'calibration: $calibration, '
+      'margins: L=$nonPrintableMarginLeft R=$nonPrintableMarginRight '
+      'T=$nonPrintableMarginTop B=$nonPrintableMarginBottom)';
 }

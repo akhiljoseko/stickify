@@ -321,14 +321,6 @@ types:
         index: 4
       supportsTraySelection:
         index: 5
-      nonPrintableMarginLeft:
-        index: 6
-      nonPrintableMarginRight:
-        index: 7
-      nonPrintableMarginTop:
-        index: 8
-      nonPrintableMarginBottom:
-        index: 9
   PrinterIdentityHiveModel:
     typeId: 18
     nextIndex: 5
@@ -369,7 +361,7 @@ types:
         index: 9
   PrinterTrayProfileHiveModel:
     typeId: 20
-    nextIndex: 4
+    nextIndex: 8
     fields:
       trayIdentifier:
         index: 0
@@ -379,3 +371,11 @@ types:
         index: 2
       calibration:
         index: 3
+      nonPrintableMarginLeft:
+        index: 4
+      nonPrintableMarginRight:
+        index: 5
+      nonPrintableMarginTop:
+        index: 6
+      nonPrintableMarginBottom:
+        index: 7

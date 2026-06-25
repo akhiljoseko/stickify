@@ -14,6 +14,7 @@ class IntelligentTransformGenerator {
     required CompatibilityAnalysisResult analysisResult,
     required LabelTemplate template,
     required PrinterProfile printer,
+    required PrinterTrayProfile tray,
     required OptimizationPreferences preferences,
     PrintCoordinateContext? calibrationContext,
   }) {
@@ -63,10 +64,10 @@ class IntelligentTransformGenerator {
     final printerHeight = isRotated90 ? sheetConfig.pageWidth : sheetConfig.pageHeight;
 
     // Printer margins
-    final printerMarginLeft = printer.capabilities.nonPrintableMarginLeft;
-    final printerMarginRight = printer.capabilities.nonPrintableMarginRight;
-    final printerMarginTop = printer.capabilities.nonPrintableMarginTop;
-    final printerMarginBottom = printer.capabilities.nonPrintableMarginBottom;
+    final printerMarginLeft = tray.nonPrintableMarginLeft;
+    final printerMarginRight = tray.nonPrintableMarginRight;
+    final printerMarginTop = tray.nonPrintableMarginTop;
+    final printerMarginBottom = tray.nonPrintableMarginBottom;
 
     // Bounding box of relative printable region
     final double stickerMinX;

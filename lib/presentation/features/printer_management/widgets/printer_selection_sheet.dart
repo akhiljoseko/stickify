@@ -4,31 +4,22 @@ import 'package:stickify/domain/entities/discovered_printer.dart';
 class PrinterSelectionSheet extends StatelessWidget {
   const PrinterSelectionSheet({
     required this.printers,
-    required this.onSelected,
     super.key,
   });
 
   final List<DiscoveredPrinter> printers;
-  final ValueChanged<DiscoveredPrinter> onSelected;
 
-  static Future<void> show({
+  static Future<DiscoveredPrinter?> show({
     required BuildContext context,
     required List<DiscoveredPrinter> printers,
-    required ValueChanged<DiscoveredPrinter> onSelected,
   }) {
-    return showModalBottomSheet(
+    return showModalBottomSheet<DiscoveredPrinter>(
       context: context,
       useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
-      builder: (_) => PrinterSelectionSheet(
-        printers: printers,
-        onSelected: (printer) {
-          Navigator.of(context).pop();
-          onSelected(printer);
-        },
-      ),
+      builder: (_) => PrinterSelectionSheet(printers: printers),
     );
   }
 
@@ -176,7 +167,8 @@ class PrinterSelectionSheet extends StatelessWidget {
                             ),
                           ),
                           onTap: isOnline
-                              ? () => onSelected(printer)
+                              ? () =>
+                                  Navigator.of(context).pop(printer)
                               : null,
                         );
                       },

@@ -63,7 +63,7 @@ class _CalibrationWizardViewState extends State<CalibrationWizardView> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Calibration saved successfully!')),
             );
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(true);
           }
         },
         builder: (context, state) {

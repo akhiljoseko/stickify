@@ -271,13 +271,211 @@ required.
 
 ---
 
+## Full System Flow: From Template Creation to Print
+
+This section describes how all the pieces fit together in a complete
+end-to-end workflow, from designing a label template to printing the
+finished labels.
+
+```
+  ┌─────────────────────────────────────────────────────────┐
+  │                    TECHNICIAN SETUP                      │
+  ├─────────────────────────────────────────────────────────┤
+  │                                                         │
+  │  1. Create Template                                      │
+  │     │                                                    │
+  │     ├── Configure Sheet (paper size, margins, grid)      │
+  │     ├── Configure Stickers (dimensions, printable area)  │
+  │     ├── Design Labels (text, barcode, image elements)    │
+  │     └── Save & Finalize                                  │
+  │                                                         │
+  │  2. Configure Printer Profile                            │
+  │     │                                                    │
+  │     ├── Select discovered printer                        │
+  │     ├── Set display name                                 │
+  │     ├── Configure capabilities & margins                  │
+  │     ├── Configure optimization preferences                │
+  │     ├── Add tray(s) with media type & margins            │
+  │     ├── (Optional) Calibrate per tray                    │
+  │     │     ├── Print calibration sheet                    │
+  │     │     ├── Measure physical offsets                    │
+  │     │     └── Save calibration rules                     │
+  │     └── Save profile                                     │
+  │                                                         │
+  │  3. (Optional) Test Print                                │
+  │     │                                                    │
+  │     └── Print a test label to verify alignment           │
+  │                                                         │
+  └─────────────────────────────────────────────────────────┘
+                               │
+                               ▼
+  ┌─────────────────────────────────────────────────────────┐
+  │                     OPERATOR WORKFLOW                    │
+  ├─────────────────────────────────────────────────────────┤
+  │                                                         │
+  │  1. Navigate to Print Workflow                          │
+  │     │                                                    │
+  │  2. Search & Select Product                              │
+  │     │                                                    │
+  │  3. Select Template                                      │
+  │     │   (auto-selects default if configured)             │
+  │     │                                                    │
+  │  4. Select Printer                                       │
+  │     │   (auto-matches available printers to profiles)    │
+  │     │                                                    │
+  │  5. Enter Quantity & Configure Sheet                     │
+  │     │   (toggle individual slots, rows, or print from    │
+  │     │    bottom for partially used sheets)               │
+  │     │                                                    │
+  │  6. Click Print                                          │
+  │                                                         │
+  └─────────────────────────────────────────────────────────┘
+                               │
+                               ▼
+  ┌─────────────────────────────────────────────────────────┐
+  │                  PRINT PIPELINE (AUTOMATIC)              │
+  ├─────────────────────────────────────────────────────────┤
+  │                                                         │
+  │  ┌─────────────┐                                        │
+  │  │  1. Load    │  Sheet geometry from template            │
+  │  │  Template   │  Sticker printable polygon               │
+  │  └─────┬───────┘                                         │
+  │        │                                                  │
+  │        ▼                                                  │
+  │  ┌─────────────┐                                        │
+  │  │  2. Media   │  If driver doesn't support orientation, │
+  │  │   Mapping   │  transpose coordinates (e.g. portrait → │
+  │  └─────┬───────┘  landscape)                              │
+  │        │                                                  │
+  │        ▼                                                  │
+  │  ┌─────────────┐                                        │
+  │  │  3. Printer │  Apply technician-measured mechanical    │
+  │  │ Calibration │  corrections (offset X/Y, scale X/Y)     │
+  │  └─────┬───────┘                                          │
+  │        │  CalibrationRuleMatcher → matches rules by        │
+  │        │  sheet, row, column, edge, or sticker index       │
+  │        │  CalibrationTransformComposer → composes          │
+  │        │  cumulative transforms                            │
+  │        ▼                                                  │
+  │  ┌─────────────────────┐                                 │
+  │  │  4. Compatibility   │  Project sticker printable        │
+  │  │    Analysis         │  regions with calibration applied │
+  │  └─────┬───────────────┘  Detect conflicts with margins    │
+  │        │                                                    │
+  │        ▼                                                    │
+  │  ┌─────────────────────┐                                   │
+  │  │  5. Transform       │  Generate minimum corrections:    │
+  │  │    Generation       │                                    │
+  │  │                     │  Level 1: No modification          │
+  │  │                     │  Level 2: Global translation       │
+  │  │                     │  Level 3: Edge group translation   │
+  │  │                     │  Level 4: Edge group scaling       │
+  │  │                     │  Level 5: Individual stickers      │
+  │  │                     │  Level 6: Unsupported (fail)       │
+  │  └─────┬───────────────┘                                    │
+  │        │                                                    │
+  │        ▼                                                    │
+  │  ┌─────────────┐                                          │
+  │  │  6. Compose │  Combine calibration + optimization        │
+  │  │  Transforms │  transforms via CalibrationTransformComposer│
+  │  └─────┬───────┘                                           │
+  │        │                                                    │
+  │        ▼                                                    │
+  │  ┌─────────────┐                                          │
+  │  │  7. PDF     │  Render each sticker with its composed     │
+  │  │  Rendering  │  transform (scale around anchor point,     │
+  │  └─────┬───────┘  translation)                              │
+  │        │  LabelPdfLayoutEngine:                              │
+  │        │  - Build page with sheet dimensions                │
+  │        │  - For each active sticker slot:                   │
+  │        │    - Apply coordinate transform                    │
+  │        │    - Render all blueprint elements                 │
+  │        │    - Clip to printable polygon                     │
+  │        │  - Return raw PDF bytes                            │
+  │        ▼                                                    │
+  │  ┌─────────────┐                                          │
+  │  │  8. Print   │  Send PDF to Windows print spooler         │
+  │  │  Service    │  - Apply DEVMODE settings                  │
+  │  │             │  - Request custom paper size               │
+  │  │             │  - Validate printer supports format         │
+  │  │             │  - Spool to physical printer                │
+  │  └─────────────┘                                           │
+  │                                                             │
+  │  9. Record Print Job in History                              │
+  │                                                             │
+  └─────────────────────────────────────────────────────────┘
+```
+
+### Key Services & Their Roles
+
+| Service | Role | Inputs | Output |
+|---------|------|--------|--------|
+| `CalibrationRuleMatcher` | Finds applicable calibration rules for each sticker slot | Tray calibration rules, slot position | Matched rules per slot |
+| `CalibrationTransformComposer` | Composes multiple rules into cumulative transforms | List of `CalibrationRule` | `PrintStickerTransform` per slot/row/column |
+| `PrinterCalibrationCoordinateResolver` | Orchestrates matching + composition; validates paper support | `CalibrationRequest` | `Result<PrintCoordinateContext>` |
+| `TemplatePrinterCompatibilityAnalyzer` | Detects margin conflicts after calibration | Template, profile, tray, calibration context | `CompatibilityAnalysisResult` with conflicts |
+| `IntelligentTransformGenerator` | Generates minimum correction strategy | Analysis result, preferences | `OptimizationStrategy` with transforms |
+| `PrintPipelineOrchestrator` | Sequenced pipeline: calibrate → analyze → optimize → compose | Template, profile, tray, paper config ID | `Result<PrintCoordinateContext>` |
+| `PrintPreFlightValidator` | Validates template geometry before printing | Template | Validation result |
+| `LabelPdfLayoutEngine` | Renders PDF with per-sticker transforms | Template, transforms, data | Raw PDF bytes |
+| `WindowsPrintService` | Sends PDF to physical printer via Win32 API (DEVMODE) | PDF, printer target, paper format | Print result |
+
+### Data Flow Summary
+
+```
+Template (physical truth)
+    ↓                  ↕
+Printer Profile (mechanical behavior)
+    ↓                  ↕
+Printer Tray (feed path + calibration)
+    ↓
+PrintPipelineOrchestrator.resolve()
+    ├── CalibrationResolver → PrintCoordinateContext (calibration)
+    ├── CompatibilityAnalyzer → CompatibilityAnalysisResult (conflicts)
+    ├── TransformGenerator → OptimizationStrategy (corrections)
+    └── TransformComposer → PrintCoordinateContext (composed)
+    ↓
+LabelPdfLayoutEngine.buildPdfBytes() → PDF bytes
+    ↓
+WindowsPrintService.printLabels() → Printer hardware
+    ↓
+PrintJob saved to history
+```
+
+### Key Architectural Principles
+
+1. **Templates describe physical truth** — They are never modified for
+   printer compensation. All corrections happen in the transform layer.
+
+2. **Printer profiles describe mechanical behavior** — They are independent
+   from templates and can be reused across any template.
+
+3. **Minimum correction** — The system always tries less invasive
+   corrections first (no change → translation → scaling → individual).
+
+4. **Technicians configure, operators only print** — The warehouse operator
+   selects template, printer, and quantity. All complexity is handled
+   automatically by the pipeline.
+
+---
+
 ## Related Documents
 
 - `docs/intelligent-printer-compatibility-and-calibration-engine-design.md`
-  — Full architectural design document
+  — Full architectural design document with detailed design decisions
+- `docs/printer-configuration-workflow.md` — This document (technician
+  workflow + full system flow)
 - `lib/domain/services/print_pipeline_orchestrator.dart` — Pipeline
   orchestration entry point
 - `lib/domain/services/template_printer_compatibility_analyzer.dart` —
-  Conflict detection service
+  Conflict detection service (524 lines)
 - `lib/domain/services/intelligent_transform_generator.dart` — Transform
-  optimization service
+  optimization service with 4-level hierarchy (402 lines)
+- `lib/domain/services/calibration_rule_matcher.dart` — Rule matching
+  engine
+- `lib/domain/services/calibration_transform_composer.dart` — Transform
+  composition engine
+- `lib/core/services/printing/label_pdf_layout_engine.dart` — PDF
+  rendering with per-sticker transforms (467 lines)
+- `lib/core/services/printing/windows/windows_print_service.dart` —
+  Windows print spooling with DEVMODE management (373 lines)

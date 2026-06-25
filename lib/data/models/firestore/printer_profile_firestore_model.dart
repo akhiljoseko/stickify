@@ -165,6 +165,10 @@ class PrinterCapabilitiesFirestoreModel {
     required this.supportsManualFeed,
     required this.supportsBorderlessPrinting,
     required this.supportsTraySelection,
+    this.nonPrintableMarginLeft = 0.0,
+    this.nonPrintableMarginRight = 0.0,
+    this.nonPrintableMarginTop = 0.0,
+    this.nonPrintableMarginBottom = 0.0,
   });
 
   factory PrinterCapabilitiesFirestoreModel.fromDomain(PrinterCapabilities cap) {
@@ -175,6 +179,10 @@ class PrinterCapabilitiesFirestoreModel {
       supportsManualFeed: cap.supportsManualFeed,
       supportsBorderlessPrinting: cap.supportsBorderlessPrinting,
       supportsTraySelection: cap.supportsTraySelection,
+      nonPrintableMarginLeft: cap.nonPrintableMarginLeft,
+      nonPrintableMarginRight: cap.nonPrintableMarginRight,
+      nonPrintableMarginTop: cap.nonPrintableMarginTop,
+      nonPrintableMarginBottom: cap.nonPrintableMarginBottom,
     );
   }
 
@@ -186,6 +194,10 @@ class PrinterCapabilitiesFirestoreModel {
       supportsManualFeed: m['supportsManualFeed'] as bool? ?? false,
       supportsBorderlessPrinting: m['supportsBorderlessPrinting'] as bool? ?? false,
       supportsTraySelection: m['supportsTraySelection'] as bool? ?? false,
+      nonPrintableMarginLeft: (m['nonPrintableMarginLeft'] as num? ?? 0.0).toDouble(),
+      nonPrintableMarginRight: (m['nonPrintableMarginRight'] as num? ?? 0.0).toDouble(),
+      nonPrintableMarginTop: (m['nonPrintableMarginTop'] as num? ?? 0.0).toDouble(),
+      nonPrintableMarginBottom: (m['nonPrintableMarginBottom'] as num? ?? 0.0).toDouble(),
     );
   }
 
@@ -195,6 +207,10 @@ class PrinterCapabilitiesFirestoreModel {
   final bool supportsManualFeed;
   final bool supportsBorderlessPrinting;
   final bool supportsTraySelection;
+  final double nonPrintableMarginLeft;
+  final double nonPrintableMarginRight;
+  final double nonPrintableMarginTop;
+  final double nonPrintableMarginBottom;
 
   Map<String, dynamic> toMap() {
     return {
@@ -204,6 +220,10 @@ class PrinterCapabilitiesFirestoreModel {
       'supportsManualFeed': supportsManualFeed,
       'supportsBorderlessPrinting': supportsBorderlessPrinting,
       'supportsTraySelection': supportsTraySelection,
+      'nonPrintableMarginLeft': nonPrintableMarginLeft,
+      'nonPrintableMarginRight': nonPrintableMarginRight,
+      'nonPrintableMarginTop': nonPrintableMarginTop,
+      'nonPrintableMarginBottom': nonPrintableMarginBottom,
     };
   }
 
@@ -215,6 +235,10 @@ class PrinterCapabilitiesFirestoreModel {
       supportsManualFeed: supportsManualFeed,
       supportsBorderlessPrinting: supportsBorderlessPrinting,
       supportsTraySelection: supportsTraySelection,
+      nonPrintableMarginLeft: nonPrintableMarginLeft,
+      nonPrintableMarginRight: nonPrintableMarginRight,
+      nonPrintableMarginTop: nonPrintableMarginTop,
+      nonPrintableMarginBottom: nonPrintableMarginBottom,
     );
   }
 }
@@ -225,6 +249,7 @@ class OptimizationPreferencesFirestoreModel {
     required this.allowTranslation,
     required this.preferShrinkOverShift,
     required this.allowStickerSpecificAdjustment,
+    this.minimumAcceptableScale = 0.7,
   });
 
   factory OptimizationPreferencesFirestoreModel.fromDomain(OptimizationPreferences pref) {
@@ -233,6 +258,7 @@ class OptimizationPreferencesFirestoreModel {
       allowTranslation: pref.allowTranslation,
       preferShrinkOverShift: pref.preferShrinkOverShift,
       allowStickerSpecificAdjustment: pref.allowStickerSpecificAdjustment,
+      minimumAcceptableScale: pref.minimumAcceptableScale,
     );
   }
 
@@ -242,6 +268,7 @@ class OptimizationPreferencesFirestoreModel {
       allowTranslation: m['allowTranslation'] as bool? ?? true,
       preferShrinkOverShift: m['preferShrinkOverShift'] as bool? ?? false,
       allowStickerSpecificAdjustment: m['allowStickerSpecificAdjustment'] as bool? ?? true,
+      minimumAcceptableScale: (m['minimumAcceptableScale'] as num? ?? 0.7).toDouble(),
     );
   }
 
@@ -249,6 +276,7 @@ class OptimizationPreferencesFirestoreModel {
   final bool allowTranslation;
   final bool preferShrinkOverShift;
   final bool allowStickerSpecificAdjustment;
+  final double minimumAcceptableScale;
 
   Map<String, dynamic> toMap() {
     return {
@@ -256,6 +284,7 @@ class OptimizationPreferencesFirestoreModel {
       'allowTranslation': allowTranslation,
       'preferShrinkOverShift': preferShrinkOverShift,
       'allowStickerSpecificAdjustment': allowStickerSpecificAdjustment,
+      'minimumAcceptableScale': minimumAcceptableScale,
     };
   }
 
@@ -265,6 +294,7 @@ class OptimizationPreferencesFirestoreModel {
       allowTranslation: allowTranslation,
       preferShrinkOverShift: preferShrinkOverShift,
       allowStickerSpecificAdjustment: allowStickerSpecificAdjustment,
+      minimumAcceptableScale: minimumAcceptableScale,
     );
   }
 }

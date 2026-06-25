@@ -8,8 +8,8 @@ This living document tracks the progress of the implementation plan across Phase
 |-------|-------------|--------|
 | **Phase 3A.2** | Calibration Rule Generation Service | ✅ Complete |
 | **Phase 3B**   | Calibration Wizard UI Foundation   | ✅ Complete |
-| **Phase 4**    | Compatibility Analysis Engine      | 🔄 In Progress |
-| **Phase 5**    | Intelligent Transformation Engine | 🗓️ Not Started |
+| **Phase 4**    | Compatibility Analysis Engine      | ✅ Complete |
+| **Phase 5**    | Intelligent Transformation Engine | 🔄 In Progress |
 | **Phase 6**    | Runtime Integration               | 🗓️ Not Started |
 
 ---
@@ -52,13 +52,13 @@ This living document tracks the progress of the implementation plan across Phase
   - `feat(domain): add printable region conflict detection entities`
   - `feat(domain): add compatibility analysis engine service`
   - `test(domain): add compatibility analysis engine tests`
-- [ ] Create `lib/domain/entities/print_region_conflict.dart`
-- [ ] Create `lib/domain/entities/compatibility_analysis_result.dart`
-- [ ] Create `lib/domain/services/template_printer_compatibility_analyzer.dart` (Step 1-5: Orientation mapping, projection, margin checks, level recommendation)
-- [ ] Update `lib/domain/domain.dart` to export new conflict-related items
-- [ ] Create `test/domain/entities/print_region_conflict_test.dart`
-- [ ] Create `test/domain/entities/compatibility_analysis_result_test.dart`
-- [ ] Create `test/domain/services/template_printer_compatibility_analyzer_test.dart` (covering identity, 90° rotation, unsupported mapping, left-edge conflicts)
+- [x] Create `lib/domain/entities/print_region_conflict.dart`
+- [x] Create `lib/domain/entities/compatibility_analysis_result.dart`
+- [x] Create `lib/domain/services/template_printer_compatibility_analyzer.dart` (Step 1-5: Orientation mapping, projection, margin checks, level recommendation)
+- [x] Update `lib/domain/domain.dart` to export new conflict-related items
+- [x] Create `test/domain/entities/print_region_conflict_test.dart`
+- [x] Create `test/domain/entities/compatibility_analysis_result_test.dart`
+- [x] Create `test/domain/services/template_printer_compatibility_analyzer_test.dart` (covering identity, 90° rotation, unsupported mapping, left-edge conflicts)
 
 ### Phase 5 — Intelligent Transformation Engine
 * **Goal**: Generate minimum correction transforms following the hierarchy (Level 1 to 4, escalation to Level 6).

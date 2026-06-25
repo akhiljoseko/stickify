@@ -107,6 +107,10 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
     required this.supportsManualFeed,
     required this.supportsBorderlessPrinting,
     required this.supportsTraySelection,
+    this.nonPrintableMarginLeft = 0.0,
+    this.nonPrintableMarginRight = 0.0,
+    this.nonPrintableMarginTop = 0.0,
+    this.nonPrintableMarginBottom = 0.0,
   });
 
   factory PrinterCapabilitiesHiveModel.fromDomain(PrinterCapabilities cap) {
@@ -117,6 +121,10 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
       supportsManualFeed: cap.supportsManualFeed,
       supportsBorderlessPrinting: cap.supportsBorderlessPrinting,
       supportsTraySelection: cap.supportsTraySelection,
+      nonPrintableMarginLeft: cap.nonPrintableMarginLeft,
+      nonPrintableMarginRight: cap.nonPrintableMarginRight,
+      nonPrintableMarginTop: cap.nonPrintableMarginTop,
+      nonPrintableMarginBottom: cap.nonPrintableMarginBottom,
     );
   }
 
@@ -126,6 +134,10 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
   final bool supportsManualFeed;
   final bool supportsBorderlessPrinting;
   final bool supportsTraySelection;
+  final double nonPrintableMarginLeft;
+  final double nonPrintableMarginRight;
+  final double nonPrintableMarginTop;
+  final double nonPrintableMarginBottom;
 
   PrinterCapabilities toDomain() {
     return PrinterCapabilities(
@@ -135,6 +147,10 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
       supportsManualFeed: supportsManualFeed,
       supportsBorderlessPrinting: supportsBorderlessPrinting,
       supportsTraySelection: supportsTraySelection,
+      nonPrintableMarginLeft: nonPrintableMarginLeft,
+      nonPrintableMarginRight: nonPrintableMarginRight,
+      nonPrintableMarginTop: nonPrintableMarginTop,
+      nonPrintableMarginBottom: nonPrintableMarginBottom,
     );
   }
 }
@@ -145,6 +161,7 @@ class OptimizationPreferencesHiveModel extends HiveObject {
     required this.allowTranslation,
     required this.preferShrinkOverShift,
     required this.allowStickerSpecificAdjustment,
+    this.minimumAcceptableScale = 0.7,
   });
 
   factory OptimizationPreferencesHiveModel.fromDomain(OptimizationPreferences pref) {
@@ -153,6 +170,7 @@ class OptimizationPreferencesHiveModel extends HiveObject {
       allowTranslation: pref.allowTranslation,
       preferShrinkOverShift: pref.preferShrinkOverShift,
       allowStickerSpecificAdjustment: pref.allowStickerSpecificAdjustment,
+      minimumAcceptableScale: pref.minimumAcceptableScale,
     );
   }
 
@@ -160,6 +178,7 @@ class OptimizationPreferencesHiveModel extends HiveObject {
   final bool allowTranslation;
   final bool preferShrinkOverShift;
   final bool allowStickerSpecificAdjustment;
+  final double minimumAcceptableScale;
 
   OptimizationPreferences toDomain() {
     return OptimizationPreferences(
@@ -167,6 +186,7 @@ class OptimizationPreferencesHiveModel extends HiveObject {
       allowTranslation: allowTranslation,
       preferShrinkOverShift: preferShrinkOverShift,
       allowStickerSpecificAdjustment: allowStickerSpecificAdjustment,
+      minimumAcceptableScale: minimumAcceptableScale,
     );
   }
 }

@@ -744,13 +744,16 @@ class OptimizationPreferencesHiveModelAdapter
       allowTranslation: fields[1] as bool,
       preferShrinkOverShift: fields[2] as bool,
       allowStickerSpecificAdjustment: fields[3] as bool,
+      minimumAcceptableScale: fields[4] == null
+          ? 0.7
+          : (fields[4] as num).toDouble(),
     );
   }
 
   @override
   void write(BinaryWriter writer, OptimizationPreferencesHiveModel obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.allowScaling)
       ..writeByte(1)
@@ -758,7 +761,9 @@ class OptimizationPreferencesHiveModelAdapter
       ..writeByte(2)
       ..write(obj.preferShrinkOverShift)
       ..writeByte(3)
-      ..write(obj.allowStickerSpecificAdjustment);
+      ..write(obj.allowStickerSpecificAdjustment)
+      ..writeByte(4)
+      ..write(obj.minimumAcceptableScale);
   }
 
   @override
@@ -919,13 +924,25 @@ class PrinterCapabilitiesHiveModelAdapter
       supportsManualFeed: fields[3] as bool,
       supportsBorderlessPrinting: fields[4] as bool,
       supportsTraySelection: fields[5] as bool,
+      nonPrintableMarginLeft: fields[6] == null
+          ? 0.0
+          : (fields[6] as num).toDouble(),
+      nonPrintableMarginRight: fields[7] == null
+          ? 0.0
+          : (fields[7] as num).toDouble(),
+      nonPrintableMarginTop: fields[8] == null
+          ? 0.0
+          : (fields[8] as num).toDouble(),
+      nonPrintableMarginBottom: fields[9] == null
+          ? 0.0
+          : (fields[9] as num).toDouble(),
     );
   }
 
   @override
   void write(BinaryWriter writer, PrinterCapabilitiesHiveModel obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.supportsCustomPaperSize)
       ..writeByte(1)
@@ -937,7 +954,15 @@ class PrinterCapabilitiesHiveModelAdapter
       ..writeByte(4)
       ..write(obj.supportsBorderlessPrinting)
       ..writeByte(5)
-      ..write(obj.supportsTraySelection);
+      ..write(obj.supportsTraySelection)
+      ..writeByte(6)
+      ..write(obj.nonPrintableMarginLeft)
+      ..writeByte(7)
+      ..write(obj.nonPrintableMarginRight)
+      ..writeByte(8)
+      ..write(obj.nonPrintableMarginTop)
+      ..writeByte(9)
+      ..write(obj.nonPrintableMarginBottom);
   }
 
   @override

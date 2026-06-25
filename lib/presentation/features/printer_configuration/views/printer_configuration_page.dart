@@ -19,30 +19,15 @@ class PrinterConfigurationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => context.read<AppServiceLocator>().createPrinterConfigurationCubit().._initialize(profileId),
+      create: (context) {
+        final cubit = context.read<AppServiceLocator>().createPrinterConfigurationCubit();
+        if (profileId != null) {
+          cubit.loadProfile(profileId!);
+        }
+        return cubit;
+      },
       child: const _PrinterConfigurationView(),
     );
-  }
-}
-
-extension on PrinterConfigurationCubit {
-  void _initialize(String? profileId) {
-    if (profileId != null) {
-      _loadExisting(profileId);
-    }
-  }
-
-  Future<void> _loadExisting(String id) async {
-    final repo = _printerProfileRepository;
-    final result = await repo.getProfileById(id);
-    switch (result) {
-      case Success(value: final profile):
-        if (profile != null) {
-          loadFromProfile(profile);
-        }
-      case Failure():
-        break;
-    }
   }
 }
 

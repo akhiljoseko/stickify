@@ -33,6 +33,7 @@ import 'package:stickify/data/services/hive_sync_queue.dart';
 import 'package:stickify/data/services/local_file_storage_service.dart';
 import 'package:stickify/data/services/unimplemented_file_storage_service.dart';
 import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/features/printer_configuration/cubit/printer_configuration_cubit.dart';
 import 'package:stickify/presentation/features/printer_management/cubit/calibration_session_cubit.dart';
 import 'package:stickify/presentation/features/printer_management/cubit/printer_management_cubit.dart';
 
@@ -272,6 +273,14 @@ class AppServiceLocator {
   /// The calibration sheet PDF generator.
   final CalibrationSheetPdfGenerator calibrationSheetPdfGenerator =
       const CalibrationSheetPdfGenerator();
+
+  /// Factory method to construct [PrinterConfigurationCubit].
+  PrinterConfigurationCubit createPrinterConfigurationCubit() {
+    return PrinterConfigurationCubit(
+      printerProfileRepository: printerProfileRepository,
+      printerDiscoveryService: printerDiscoveryService,
+    );
+  }
 
   /// Factory method to construct [PrinterManagementCubit].
   PrinterManagementCubit createPrinterManagementCubit() {

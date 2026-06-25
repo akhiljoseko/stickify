@@ -287,6 +287,18 @@ RouteBase get $appShellRouteData => StatefulShellRouteData.$route(
               factory: $PrinterManagementRoute._fromState,
               routes: [
                 GoRouteData.$route(
+                  path: 'new',
+                  parentNavigatorKey:
+                      PrinterConfigurationRoute.$parentNavigatorKey,
+                  factory: $PrinterConfigurationRoute._fromState,
+                ),
+                GoRouteData.$route(
+                  path: ':profileId',
+                  parentNavigatorKey:
+                      PrinterConfigurationEditRoute.$parentNavigatorKey,
+                  factory: $PrinterConfigurationEditRoute._fromState,
+                ),
+                GoRouteData.$route(
                   path: ':profileId/calibrate/:trayId',
                   parentNavigatorKey:
                       CalibrationWizardRoute.$parentNavigatorKey,
@@ -497,6 +509,55 @@ mixin $PrinterManagementRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/settings/printers');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $PrinterConfigurationRoute on GoRouteData {
+  static PrinterConfigurationRoute _fromState(GoRouterState state) =>
+      const PrinterConfigurationRoute();
+
+  @override
+  String get location => GoRouteData.$location('/settings/printers/new');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $PrinterConfigurationEditRoute on GoRouteData {
+  static PrinterConfigurationEditRoute _fromState(GoRouterState state) =>
+      PrinterConfigurationEditRoute(
+        profileId: state.pathParameters['profileId']!,
+      );
+
+  PrinterConfigurationEditRoute get _self =>
+      this as PrinterConfigurationEditRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/settings/printers/${Uri.encodeComponent(_self.profileId)}',
+  );
 
   @override
   void go(BuildContext context) => context.go(location);

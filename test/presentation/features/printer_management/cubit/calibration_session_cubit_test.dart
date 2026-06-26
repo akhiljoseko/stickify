@@ -17,8 +17,7 @@ class MockPrintService extends Mock implements PrintService {}
 class MockCalibrationSheetPdfGenerator extends Mock
     implements CalibrationSheetPdfGenerator {}
 
-class MockTemplateRepository extends Mock
-    implements TemplateRepository {}
+class MockTemplateRepository extends Mock implements TemplateRepository {}
 
 void main() {
   group('CalibrationSessionCubit', () {
@@ -95,7 +94,7 @@ void main() {
       ruleGenerator = const CalibrationRuleGenerator();
       templateRepository = MockTemplateRepository();
       when(() => templateRepository.fetchTemplates()).thenAnswer(
-        (_) async => Result.success([]),
+        (_) async => const Result.success([]),
       );
 
       tray = PrinterTrayProfile(

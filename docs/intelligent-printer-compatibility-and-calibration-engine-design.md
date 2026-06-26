@@ -9,7 +9,7 @@
 
 # 1. Background
 
-Stickify is a precision label printing application that prints dynamic information onto pre-printed label sheets.
+Label Grid is a precision label printing application that prints dynamic information onto pre-printed label sheets.
 
 The system supports:
 
@@ -449,7 +449,7 @@ Apply minimum required scaling to affected groups.
 
 ## Level 5: Individual Sticker Optimization
 
-Possible because Stickify generates PDF elements individually.
+Possible because Label Grid generates PDF elements individually.
 
 However, this is considered a last resort.
 
@@ -510,7 +510,7 @@ The printable polygon is therefore treated as the required printing area.
 
 # 11. PDF Generation Strategy
 
-The current architecture is advantageous because Stickify directly controls the PDF rendering.
+The current architecture is advantageous because Label Grid directly controls the PDF rendering.
 
 Each sticker can have its own transformation.
 
@@ -742,7 +742,7 @@ Operators only print.
 
 # Final Conclusion
 
-The final Stickify printing architecture is a **hybrid intelligent printing model**.
+The final Label Grid printing architecture is a **hybrid intelligent printing model**.
 
 It combines:
 

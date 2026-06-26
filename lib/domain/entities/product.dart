@@ -3,7 +3,7 @@ import 'package:stickify/domain/entities/ingredient.dart';
 import 'package:stickify/domain/entities/nutrition_facts.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 
-/// A pure business entity representing a product in the Stickify catalogue.
+/// A pure business entity representing a product in the Label Grid catalogue.
 class Product extends Equatable {
   const Product({
     required this.id,

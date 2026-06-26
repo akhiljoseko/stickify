@@ -1,7 +1,7 @@
 # Printer Configuration Workflow
 
 This document explains the end-to-end technician workflow for configuring
-printer profiles in Stickify, covering each step, why it is required, and
+printer profiles in Label Grid, covering each step, why it is required, and
 ideal use cases.
 
 ---

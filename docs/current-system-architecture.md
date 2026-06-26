@@ -1,13 +1,13 @@
-# Stickify — Current System Architecture & Precision Printing Engine
+# Label Grid — Current System Architecture & Precision Printing Engine
 
-This document provides a comprehensive, deep-dive architectural analysis of the **Stickify** application (also known as **Label Grid**). It details the current design, layout math, PDF rendering pipeline, and Windows registry-level print pipelines. It is designed to enable a team to extend the printing engine, introduce printer calibration profiles, support multi-printer routing, and implement sub-millimeter layout alignment.
+This document provides a comprehensive, deep-dive architectural analysis of the **Label Grid** application. It details the current design, layout math, PDF rendering pipeline, and Windows registry-level print pipelines. It is designed to enable a team to extend the printing engine, introduce printer calibration profiles, support multi-printer routing, and implement sub-millimeter layout alignment.
 
 ---
 
 ## 🏛️ 1. Project Overview
 
 ### Purpose of the Application
-Stickify is a desktop-first Flutter application (also supporting mobile and web platforms) designed for packaging logistics managers and warehouse operators to design, manage, and print adhesive sticker labels. It features a visual template designer, a product/variant catalog catalog, search interfaces, and a precision printing pipeline.
+Label Grid is a desktop-first Flutter application (also supporting mobile and web platforms) designed for packaging logistics managers and warehouse operators to design, manage, and print adhesive sticker labels. It features a visual template designer, a product/variant catalog catalog, search interfaces, and a precision printing pipeline.
 
 ### Main Business Workflows & User Journey
 1. **Cataloging**: Administrators define products and variant packaging specs (e.g. weight, volume, wholesale/retail pricing, ingredients, and nutrition facts).
@@ -17,7 +17,7 @@ Stickify is a desktop-first Flutter application (also supporting mobile and web 
 5. **Precision Printing**: The application compiles the custom layout into PDF pages and dispatches them via platform-specific print pipelines (native Windows `winspool.drv` registry overrides vs. standard system print dialogs).
 
 ### High-Level System Architecture
-Stickify follows **Clean Architecture** patterns, ensuring business rules are decoupled from UI and framework layers:
+Label Grid follows **Clean Architecture** patterns, ensuring business rules are decoupled from UI and framework layers:
 - **Domain Layer (`lib/domain/`)**: Contains pure business entities, repository interfaces, and core service contracts (no external framework code).
 - **Data Layer (`lib/data/`)**: Implements repositories and services, integrating local caching (Hive CE), cloud sync (Cloud Firestore), user authorization (Firebase Auth), and filesystem tasks.
 - **Core Layer (`lib/core/`)**: Includes platform-specific modules (Windows printing), PDF element strategies, common utility calculations, logging, and environment configurations.
@@ -96,7 +96,7 @@ Templates are defined in the domain entity [LabelTemplate](file:///g:/GitHub/sti
 - **Versioning & Lifecycles**: Checked out as draft templates in the template list. Modifications updates `updatedAt` timestamps. Marking `isFinalized = true` locks the template configuration, releasing it to the operator print setup page.
 
 ### Coordinate System & Scaling Formulas
-Stickify maintains a strict **millimeter-first layout engine** internally to guarantee that designs are completely resolution-independent.
+Label Grid maintains a strict **millimeter-first layout engine** internally to guarantee that designs are completely resolution-independent.
 - **Internal Units**: Physical millimeters (mm).
 - **Origin point (0,0)**: The top-left corner of the individual sticker.
 - **UI Screen Scaling**: Translated from physical millimeters to screen pixels by multiplying by the scale factor `AppDimensions.mmToPx = 4.0` and the user's `zoomLevel`.
@@ -129,7 +129,7 @@ Every design component inherits from [ElementBlueprint](file:///g:/GitHub/sticki
 
 ## 🔗 3. Data Binding / Variable Replacement
 
-Stickify binds real-time database fields into label templates at print time.
+Label Grid binds real-time database fields into label templates at print time.
 
 ### Placeholder Syntax & Data Sources
 - **Syntax**: Double-mustache curly braces, e.g., `{{product.name}}`, `{{variant.sku}}`.

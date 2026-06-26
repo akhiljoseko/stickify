@@ -1,12 +1,12 @@
 # Logging & Diagnostics Manual
 
-This manual documents the structure, configuration, usage, and diagnostic discovery of the logging framework implemented in Stickify.
+This manual documents the structure, configuration, usage, and diagnostic discovery of the logging framework implemented in Label Grid.
 
 ---
 
 ## 🏛️ Architecture & Design
 
-Stickify implements a modular, SOLID-compliant logging architecture that decouples log collection from output storage. 
+Label Grid implements a modular, SOLID-compliant logging architecture that decouples log collection from output storage. 
 
 ```mermaid
 classDiagram
@@ -99,7 +99,7 @@ Log.fatal('Failed to read essential system printer configurations', error: e);
 
 ## 💥 Global Crash & Exception Interception
 
-Stickify automatically intercepts and records crashes/errors at runtime:
+Label Grid automatically intercepts and records crashes/errors at runtime:
 1. **Flutter Framework Errors**: Handled via `FlutterError.onError`, redirecting framework layout errors and widget crashes to `Log.fatal`.
 2. **Uncaught Asynchronous Errors**: Handled via `PlatformDispatcher.instance.onError`, catching out-of-band asynchronous exceptions and routing them to `Log.fatal`.
 3. **State Management Exceptions**: Handled via `AppBlocObserver` in the presentation layer, logging all cubit/bloc transitions and exceptions as `Log.error`.

@@ -31,18 +31,32 @@
 │   ├── redirect: (context, state) → ...  ← guard logic       │
 │   └── routes: $appRoutes            ← generated list        │
 │                                                              │
-│   Public Routes (no shell)                                   │
-│   ├── /login         → LoginScreen                          │
-│   ├── /register      → RegisterScreen                       │
-│   └── /forgot-password → ForgotPasswordScreen               │
+│   Full-Screen Routes (no shell)                              │
+│   ├── /splash        → SplashScreen                          │
+│   ├── /login         → LoginScreen                           │
+│   ├── /register      → RegisterScreen                        │
+│   ├── /forgot-password → ForgotPasswordScreen                │
+│   ├── /print-history → PrintHistoryScreen                    │
+│   ├── /print/:productId/variants/:variantSku/templates       │
+│   │                  → TemplateSelectionPage                 │
+│   └── /print/:productId/variants/:variantSku/setup/:templateId│
+│                      → PrintSetupPage                        │
 │                                                              │
 │   Protected Shell (StatefulShellRoute)                       │
-│   └── AppShell (NavigationRail + content area)               │
-│       ├── Branch 0: /dashboard     → DashboardScreen        │
-│       ├── Branch 1: /products      → ProductManagementScreen│
-│       │              /products/:id → ProductDetailsScreen    │
-│       ├── Branch 2: /templates     → TemplateManagement     │
-│       └── Branch 3: /settings      → SettingsScreen         │
+│   └── AppShell (NavigationRail/Bar + content area)           │
+│       ├── Branch 0: /dashboard     → DashboardPage           │
+│       ├── Branch 1: /products      → ProductManagementScreen │
+│       ├── Branch 2: /templates     → TemplateManagementScreen│
+│       │              /new/sheets   → SheetConfigScreen       │
+│       │              /new/stickers → StickerSetupScreen      │
+│       │              /:id/editor   → LabelEditorScreen       │
+│       │              /:id/preview  → PreviewScreen           │
+│       ├── Branch 3: /printers      → PrinterManagementPage   │
+│       │              /new          → PrinterConfigurationPage│
+│       │              /:id          → PrinterConfigurationPage│
+│       │              /:id/calibrate/:trayId                  │
+│       │                            → CalibrationWizardPage   │
+│       └── Branch 4: /settings      → SettingsScreen          │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -150,10 +164,11 @@ This means:
 
 | Index | Branch Class | Root Path | Screen |
 |---|---|---|---|
-| 0 | `DashboardBranchData` | `/dashboard` | `DashboardScreen` |
+| 0 | `DashboardBranchData` | `/dashboard` | `DashboardPage` |
 | 1 | `ProductsBranchData` | `/products` | `ProductManagementScreen` |
 | 2 | `TemplatesBranchData` | `/templates` | `TemplateManagementScreen` |
-| 3 | `SettingsBranchData` | `/settings` | `SettingsScreen` |
+| 3 | `PrintersBranchData` | `/printers` | `PrinterManagementPage` |
+| 4 | `SettingsBranchData` | `/settings` | `SettingsScreen` |
 
 The `currentIndex` exposed by `StatefulNavigationShell` maps directly to these indices.
 

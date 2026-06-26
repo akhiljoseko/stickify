@@ -1,7 +1,7 @@
 import 'package:stickify/app/app.dart';
 import 'package:stickify/bootstrap.dart';
 
-/// Staging entry point of the Stickify application.
+/// Staging entry point of the Label Grid application.
 Future<void> main() async {
   await bootstrap((locator) => App(locator: locator));
 }

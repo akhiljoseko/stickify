@@ -1,6 +1,6 @@
 {
-    "name": "Stickify",
-    "short_name": "Stickify",
+    "name": "Label Grid",
+    "short_name": "Label Grid",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

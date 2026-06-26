@@ -1,4 +1,4 @@
-# Stickify — Agent Guide
+# Label Grid — Agent Guide
 
 Flutter app for creating/printing sticker labels (Very Good CLI scaffold).
 
@@ -7,7 +7,7 @@ Flutter app for creating/printing sticker labels (Very Good CLI scaffold).
 - **Clean Architecture**: `domain/` (entities + interfaces) → `data/` (impl) → `presentation/` (widgets)
 - **State**: BLoC (`flutter_bloc`). Auth is `AuthCubit`; other features use `Bloc`/`Cubit`.
 - **DI**: Manual `AppServiceLocator` (`lib/app/app_service_locator.dart`), no DI package.
-- **Routing**: `go_router` + `go_router_builder` codegen. 4-tab `StatefulShellRoute` (Dashboard, Products, Templates, Settings) + auth routes outside shell.
+- **Routing**: `go_router` + `go_router_builder` codegen. 5-tab `StatefulShellRoute` (Dashboard, Products, Templates, Printers, Settings) + auth routes outside shell.
 - **Offline-first**: Hive CE (local) → sync queue → Cloud Firestore (remote). Auth state wires remote repos.
 
 ## Entrypoints

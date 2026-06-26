@@ -27,6 +27,14 @@ class MeasurementEntryForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    final deltaX = actualX - point.expectedX;
+    final deltaY = actualY - point.expectedY;
+    final hasDelta = deltaX != 0 || deltaY != 0;
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       child: Padding(
@@ -35,18 +43,30 @@ class MeasurementEntryForm extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Target Point: ${point.label}',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              'Target: ${point.label}',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Expected Position: X = ${point.expectedX.toStringAsFixed(1)} mm, Y = ${point.expectedY.toStringAsFixed(1)} mm',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              'Expected: X = ${point.expectedX.toStringAsFixed(1)} mm, '
+              'Y = ${point.expectedY.toStringAsFixed(1)} mm',
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
+            if (hasDelta) ...[
+              const SizedBox(height: 2),
+              Text(
+                'Your delta: X = ${deltaX >= 0 ? "+" : ""}${deltaX.toStringAsFixed(1)} mm, '
+                'Y = ${deltaY >= 0 ? "+" : ""}${deltaY.toStringAsFixed(1)} mm',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             Row(
               children: [

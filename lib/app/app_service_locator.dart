@@ -305,6 +305,7 @@ class AppServiceLocator {
       pdfGenerator: calibrationSheetPdfGenerator,
       profileRepository: printerProfileRepository,
       printService: printService,
+      templateRepository: templateRepository,
     );
   }
 

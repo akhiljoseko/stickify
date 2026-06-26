@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:collection/collection.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/printing/calibration_sheet_pdf_generator.dart';
 import 'package:stickify/domain/domain.dart';
@@ -15,7 +16,9 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     required this.pdfGenerator,
     required this.profileRepository,
     required this.printService,
-  }) : super(const CalibrationSessionState.initial());
+    required TemplateRepository templateRepository,
+  })  : _templateRepository = templateRepository,
+        super(const CalibrationSessionState.initial());
 
   /// ID of the printer profile being calibrated.
   final String profileId;
@@ -38,11 +41,15 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
   /// The printing service.
   final PrintService printService;
 
+  /// The template repository (for fetching available templates).
+  final TemplateRepository _templateRepository;
+
   /// Loads the printer profile and tray, setting up the initial calibration template.
+  /// If the tray is new, transitions to tray details input. Otherwise skips to print.
   Future<void> loadSession() async {
     Log.info(
       'Calibration session started for profile "$profileId", tray "$trayId", '
-      'paper config "$paperConfigurationId". Loading profile from repository.',
+      'paper config "$paperConfigurationId".',
       tag: 'Calibration',
     );
     emit(state.copyWith(status: CalibrationSessionStatus.initial));
@@ -61,6 +68,7 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
                 'Failed to load printer profile: ${error.message}',
           ),
         );
+        return;
       case Success(value: final profile):
         if (profile == null) {
           Log.error(
@@ -98,15 +106,21 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
           return;
         }
 
+        // Fetch available templates for tray details step
+        final templatesResult = await _templateRepository.fetchTemplates();
+        List<LabelTemplate> templates = const [];
+        if (templatesResult is Success<List<LabelTemplate>, AppError>) {
+          templates = templatesResult.value;
+        }
+
         Log.info(
           'Profile "${profile.displayName}" loaded with ${profile.trays.length} '
-          'tray(s). Tray "${tray.displayName}" selected for calibration. '
-          'Using standard 4-point calibration sheet template.',
+          'tray(s). Tray "${tray.displayName}" selected for calibration.',
           tag: 'Calibration',
         );
 
-        // Standard default calibration sheet template with 4 corners for testing/verification.
-        final template = CalibrationSheetTemplate(
+        // Standard default calibration sheet template with 4 corners
+        final sheetTemplate = CalibrationSheetTemplate(
           id: 'standard_calibration',
           name: 'Standard Calibration Sheet',
           points: [
@@ -137,35 +151,83 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
           ],
         );
 
+        // Build selected template IDs from tray's existing configs
+        final selectedIds = tray.supportedPaperConfigurations
+            .map((ref) => ref.id)
+            .toSet();
+
         emit(
           state.copyWith(
             status: CalibrationSessionStatus.templateSelected,
-            selectedTemplate: template,
+            selectedTemplate: sheetTemplate,
             measurements: const [],
             generatedRules: const [],
             errorMessage: () => null,
             printerProfile: profile,
             trayProfile: tray,
+            trayDisplayName: tray.displayName,
+            trayIdentifier: tray.trayIdentifier,
+            availableTemplates: templates,
+            selectedTemplateIds: selectedIds,
+            nonPrintableMarginLeft: tray.nonPrintableMarginLeft,
+            nonPrintableMarginRight: tray.nonPrintableMarginRight,
+            nonPrintableMarginTop: tray.nonPrintableMarginTop,
+            nonPrintableMarginBottom: tray.nonPrintableMarginBottom,
+            isExistingTray: true,
           ),
         );
     }
   }
 
-  /// Sets or overrides the active calibration sheet template.
-  void selectTemplate(CalibrationSheetTemplate template) {
-    Log.info(
-      'Calibration template changed to "${template.name}" '
-      '(${template.points.length} measurement points).',
-      tag: 'Calibration',
-    );
-    emit(
-      state.copyWith(
-        status: CalibrationSessionStatus.templateSelected,
-        selectedTemplate: template,
-        measurements: const [],
-        generatedRules: const [],
-      ),
-    );
+  /// Sets tray display name (Step 1).
+  void setTrayDisplayName(String value) {
+    emit(state.copyWith(trayDisplayName: value));
+  }
+
+  /// Sets tray identifier (Step 1).
+  void setTrayIdentifier(String value) {
+    emit(state.copyWith(trayIdentifier: value));
+  }
+
+  /// Sets media type (Step 1).
+  void setMediaType(String value) {
+    emit(state.copyWith(mediaType: value));
+  }
+
+  /// Toggles a template selection (Step 1).
+  void toggleTemplate(String templateId) {
+    final updated = Set<String>.from(state.selectedTemplateIds);
+    if (updated.contains(templateId)) {
+      updated.remove(templateId);
+    } else {
+      updated.add(templateId);
+    }
+    emit(state.copyWith(selectedTemplateIds: updated));
+  }
+
+  /// Saves tray details and moves to print step (Step 1 → Step 2).
+  void saveTrayDetails() {
+    emit(state.copyWith(status: CalibrationSessionStatus.templateSelected));
+  }
+
+  /// Sets the left non-printable margin (Step 3).
+  void setMarginLeft(double value) {
+    emit(state.copyWith(nonPrintableMarginLeft: value));
+  }
+
+  /// Sets the right non-printable margin (Step 3).
+  void setMarginRight(double value) {
+    emit(state.copyWith(nonPrintableMarginRight: value));
+  }
+
+  /// Sets the top non-printable margin (Step 3).
+  void setMarginTop(double value) {
+    emit(state.copyWith(nonPrintableMarginTop: value));
+  }
+
+  /// Sets the bottom non-printable margin (Step 3).
+  void setMarginBottom(double value) {
+    emit(state.copyWith(nonPrintableMarginBottom: value));
   }
 
   /// Generates the calibration sheet PDF and prints it.
@@ -192,7 +254,7 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     Log.info(
       'Generating calibration sheet PDF for profile "${profile.displayName}", '
       'tray "${tray.displayName}", template "${template.name}" '
-      '(${template.pageWidth}×${template.pageHeight}mm).',
+      '(${template.pageWidth}x${template.pageHeight}mm).',
       tag: 'Calibration',
     );
 
@@ -237,7 +299,7 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
         case Success():
           Log.info(
             'Calibration sheet printed successfully. '
-            'Waiting for technician to enter measurements.',
+            'Waiting for technician to measure margins.',
             tag: 'Calibration',
           );
           emit(state.copyWith(status: CalibrationSessionStatus.sheetPrinted));
@@ -256,7 +318,39 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     }
   }
 
-  /// Clears the current error state and resets back to template selection.
+  /// Skips printing and moves to margin measurement step.
+  /// Margins keep existing values (if tray existed) or stay at 0 (new tray).
+  void skipPrint() {
+    Log.info(
+      'User skipped printing. Moving to margin measurement step.',
+      tag: 'Calibration',
+    );
+    emit(
+      state.copyWith(
+        status: CalibrationSessionStatus.measuringMargins,
+      ),
+    );
+  }
+
+  /// Moves from print step to margin measurement step after printing.
+  void proceedToMargins() {
+    emit(
+      state.copyWith(
+        status: CalibrationSessionStatus.measuringMargins,
+      ),
+    );
+  }
+
+  /// Saves margin measurements and moves to crosshair measurement.
+  void saveMargins() {
+    emit(
+      state.copyWith(
+        status: CalibrationSessionStatus.marginMeasurementDone,
+      ),
+    );
+  }
+
+  /// Clears the current error state.
   void retry() {
     Log.info(
       'User retry: clearing error state and returning to template selection.',
@@ -270,7 +364,7 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     );
   }
 
-  /// Adds a measurement entered by the technician, transitioning completion status automatically.
+  /// Adds a measurement entered by the technician.
   void addMeasurement(CalibrationMeasurement measurement) {
     final template = state.selectedTemplate;
     if (template == null) return;
@@ -306,7 +400,7 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     );
   }
 
-  /// Generates the offset and scale correction rules from the completed measurements.
+  /// Generates the offset and scale correction rules.
   void generateRules() {
     final template = state.selectedTemplate;
     final profile = state.printerProfile;
@@ -385,18 +479,31 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
 
     emit(state.copyWith(status: CalibrationSessionStatus.saving));
 
+    final supportedConfigs = state.availableTemplates
+        .where((t) => state.selectedTemplateIds.contains(t.id))
+        .map(
+          (t) => PaperConfigurationReference(id: t.id, displayName: t.name),
+        )
+        .toList();
+
     final updatedTray = PrinterTrayProfile(
-      trayIdentifier: tray.trayIdentifier,
-      displayName: tray.displayName,
-      supportedPaperConfigurations: tray.supportedPaperConfigurations,
+      trayIdentifier: state.trayIdentifier.isNotEmpty
+          ? state.trayIdentifier
+          : tray.trayIdentifier,
+      displayName: state.trayDisplayName.isNotEmpty
+          ? state.trayDisplayName
+          : tray.displayName,
+      supportedPaperConfigurations: supportedConfigs.isNotEmpty
+          ? supportedConfigs
+          : tray.supportedPaperConfigurations,
       calibration: PrinterCalibration(
         enabled: state.generatedRules.isNotEmpty,
         calibrationRules: state.generatedRules,
       ),
-      nonPrintableMarginLeft: tray.nonPrintableMarginLeft,
-      nonPrintableMarginRight: tray.nonPrintableMarginRight,
-      nonPrintableMarginTop: tray.nonPrintableMarginTop,
-      nonPrintableMarginBottom: tray.nonPrintableMarginBottom,
+      nonPrintableMarginLeft: state.nonPrintableMarginLeft,
+      nonPrintableMarginRight: state.nonPrintableMarginRight,
+      nonPrintableMarginTop: state.nonPrintableMarginTop,
+      nonPrintableMarginBottom: state.nonPrintableMarginBottom,
     );
 
     final updatedTrays = profile.trays.map((t) {

@@ -550,6 +550,10 @@ class _PrinterConfigurationView extends StatelessWidget {
     final isCalibrated =
         tray.calibration.enabled &&
         tray.calibration.calibrationRules.isNotEmpty;
+    final hasMargins = tray.nonPrintableMarginLeft != 0 ||
+        tray.nonPrintableMarginRight != 0 ||
+        tray.nonPrintableMarginTop != 0 ||
+        tray.nonPrintableMarginBottom != 0;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -596,23 +600,29 @@ class _PrinterConfigurationView extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Text(
                 'Identifier: ${tray.trayIdentifier}',
                 style: textScheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
+              if (hasMargins)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    'Margins: L=${tray.nonPrintableMarginLeft.toStringAsFixed(1)} '
+                    'R=${tray.nonPrintableMarginRight.toStringAsFixed(1)} '
+                    'T=${tray.nonPrintableMarginTop.toStringAsFixed(1)} '
+                    'B=${tray.nonPrintableMarginBottom.toStringAsFixed(1)} mm',
+                    style: textScheme.bodySmall?.copyWith(
+                      color: colorScheme.outline,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                    _buildTrayAction(
-                    context,
-                    icon: Icons.tune,
-                    label: 'Calibrate',
-                    onTap: () => _calibrateTray(context, tray, index),
-                  ),
-                  const SizedBox(width: 8),
                   _buildTrayAction(
                     context,
                     icon: Icons.edit,
@@ -622,8 +632,15 @@ class _PrinterConfigurationView extends StatelessWidget {
                   const SizedBox(width: 8),
                   _buildTrayAction(
                     context,
+                    icon: Icons.tune,
+                    label: 'Calibrate',
+                    onTap: () => _calibrateTray(context, tray, index),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildTrayAction(
+                    context,
                     icon: Icons.delete,
-                    label: 'Remove',
+                    label: 'Delete',
                     onTap: () => _removeTray(context, index),
                   ),
                 ],
@@ -703,8 +720,35 @@ class _PrinterConfigurationView extends StatelessWidget {
     }
   }
 
-  void _removeTray(BuildContext context, int index) {
-    context.read<PrinterConfigurationCubit>().removeTray(index);
+  Future<void> _removeTray(BuildContext context, int index) async {
+    final state = context.read<PrinterConfigurationCubit>().state;
+    final tray = state.trays[index];
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Tray'),
+        content: Text(
+          'Remove "${tray.displayName}" and all its calibration data? '
+          'This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      context.read<PrinterConfigurationCubit>().removeTray(index);
+    }
   }
 
   Future<void> _calibrateTray(

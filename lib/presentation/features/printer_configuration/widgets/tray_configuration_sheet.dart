@@ -38,10 +38,6 @@ class TrayConfigurationSheet extends StatefulWidget {
 class _TrayConfigurationSheetState extends State<TrayConfigurationSheet> {
   late final TextEditingController _trayNameController;
   late final TextEditingController _trayIdentifierController;
-  late final TextEditingController _marginTopController;
-  late final TextEditingController _marginBottomController;
-  late final TextEditingController _marginLeftController;
-  late final TextEditingController _marginRightController;
   late Set<String> _selectedTemplateIds;
 
   @override
@@ -53,10 +49,6 @@ class _TrayConfigurationSheetState extends State<TrayConfigurationSheet> {
     _trayIdentifierController = TextEditingController(
       text: widget.existingTray?.trayIdentifier ?? '',
     );
-    _marginTopController = TextEditingController(text: '0.0');
-    _marginBottomController = TextEditingController(text: '0.0');
-    _marginLeftController = TextEditingController(text: '0.0');
-    _marginRightController = TextEditingController(text: '0.0');
     _selectedTemplateIds = Set.from(widget.selectedTemplateIds);
   }
 
@@ -64,10 +56,6 @@ class _TrayConfigurationSheetState extends State<TrayConfigurationSheet> {
   void dispose() {
     _trayNameController.dispose();
     _trayIdentifierController.dispose();
-    _marginTopController.dispose();
-    _marginBottomController.dispose();
-    _marginLeftController.dispose();
-    _marginRightController.dispose();
     super.dispose();
   }
 
@@ -212,78 +200,7 @@ class _TrayConfigurationSheetState extends State<TrayConfigurationSheet> {
                         },
                       );
                     }),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Hardware Printable Area',
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Set the non-printable margin offsets for this tray.',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _marginTopController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Top (mm)',
-                            border: OutlineInputBorder(),
-                            suffixText: 'mm',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: _marginBottomController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Bottom (mm)',
-                            border: OutlineInputBorder(),
-                            suffixText: 'mm',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _marginLeftController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Left (mm)',
-                            border: OutlineInputBorder(),
-                            suffixText: 'mm',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: _marginRightController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Right (mm)',
-                            border: OutlineInputBorder(),
-                            suffixText: 'mm',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
               ),
             ),
             Padding(
@@ -332,18 +249,20 @@ class _TrayConfigurationSheetState extends State<TrayConfigurationSheet> {
         )
         .toList();
 
+    final existing = widget.existingTray;
     final tray = PrinterTrayProfile(
       trayIdentifier: identifier,
       displayName: name,
       supportedPaperConfigurations: supportedConfigs,
-      calibration: PrinterCalibration(
-        enabled: false,
-        calibrationRules: const [],
-      ),
-      nonPrintableMarginLeft: double.tryParse(_marginLeftController.text) ?? 0.0,
-      nonPrintableMarginRight: double.tryParse(_marginRightController.text) ?? 0.0,
-      nonPrintableMarginTop: double.tryParse(_marginTopController.text) ?? 0.0,
-      nonPrintableMarginBottom: double.tryParse(_marginBottomController.text) ?? 0.0,
+      calibration: existing?.calibration ??
+          PrinterCalibration(
+            enabled: false,
+            calibrationRules: const [],
+          ),
+      nonPrintableMarginLeft: existing?.nonPrintableMarginLeft ?? 0.0,
+      nonPrintableMarginRight: existing?.nonPrintableMarginRight ?? 0.0,
+      nonPrintableMarginTop: existing?.nonPrintableMarginTop ?? 0.0,
+      nonPrintableMarginBottom: existing?.nonPrintableMarginBottom ?? 0.0,
     );
 
     Navigator.of(context).pop(tray);

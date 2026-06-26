@@ -143,29 +143,64 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
     );
     emit(state.copyWith(status: PrinterConfigurationStatus.saving));
 
-    final profile = _buildProfile();
-    final result = await printerProfileRepository.saveProfile(profile);
-    switch (result) {
-      case Failure(:final error):
-        Log.error(
-          'Failed to save printer profile "${profile.displayName}": ${error.message}',
-          tag: 'PrinterConfig',
-        );
-        emit(
-          state.copyWith(
-            status: PrinterConfigurationStatus.error,
-            errorMessage: () => 'Failed to save: ${error.message}',
-          ),
-        );
-        return Result.failure(error);
-      case Success():
-        Log.info(
-          'Printer profile "${profile.displayName}" (id: ${profile.id}) '
-          'saved successfully. ${profile.trays.length} tray(s) configured.',
-          tag: 'PrinterConfig',
-        );
-        emit(state.copyWith(status: PrinterConfigurationStatus.saved));
-        return Result.success(profile);
+    // Validate: at least one tray required
+    if (state.trays.isEmpty) {
+      emit(
+        state.copyWith(
+          status: PrinterConfigurationStatus.error,
+          errorMessage: () => 'Add at least one tray before saving.',
+        ),
+      );
+      return Result.failure(
+        ValidationError(message: 'At least one tray is required.'),
+      );
+    }
+
+    try {
+      final profile = _buildProfile();
+      final result = await printerProfileRepository.saveProfile(profile);
+      switch (result) {
+        case Failure(:final error):
+          Log.error(
+            'Failed to save printer profile "${profile.displayName}": ${error.message}',
+            tag: 'PrinterConfig',
+          );
+          emit(
+            state.copyWith(
+              status: PrinterConfigurationStatus.error,
+              errorMessage: () => 'Failed to save: ${error.message}',
+            ),
+          );
+          return Result.failure(error);
+        case Success():
+          Log.info(
+            'Printer profile "${profile.displayName}" (id: ${profile.id}) '
+            'saved successfully. ${profile.trays.length} tray(s) configured.',
+            tag: 'PrinterConfig',
+          );
+          emit(state.copyWith(status: PrinterConfigurationStatus.saved));
+          return Result.success(profile);
+      }
+    } catch (e, stackTrace) {
+      Log.error(
+        'Unexpected error saving profile: $e',
+        tag: 'PrinterConfig',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      emit(
+        state.copyWith(
+          status: PrinterConfigurationStatus.error,
+          errorMessage: () => 'Unexpected error: $e',
+        ),
+      );
+      return Result.failure(
+        UnexpectedError(
+          message: 'Unexpected error saving profile.',
+          originalError: e,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
@@ -177,28 +212,52 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
       'Quietly saving printer profile "${state.displayName}" before calibration.',
       tag: 'PrinterConfig',
     );
-    final profile = _buildProfile();
-    final result = await printerProfileRepository.saveProfile(profile);
-    switch (result) {
-      case Failure(:final error):
-        Log.error(
-          'Quiet save failed for "${profile.displayName}": ${error.message}',
-          tag: 'PrinterConfig',
-        );
-        return Result.failure(error);
-      case Success():
-        Log.info(
-          'Quiet save succeeded for "${profile.displayName}" (id: ${profile.id}). '
-          'Proceeding to calibration.',
-          tag: 'PrinterConfig',
-        );
-        emit(
-          state.copyWith(
-            status: PrinterConfigurationStatus.idle,
-            existingProfile: profile,
-          ),
-        );
-        return Result.success(profile);
+
+    // Validate: at least one tray required
+    if (state.trays.isEmpty) {
+      return Result.failure(
+        ValidationError(message: 'At least one tray is required.'),
+      );
+    }
+
+    try {
+      final profile = _buildProfile();
+      final result = await printerProfileRepository.saveProfile(profile);
+      switch (result) {
+        case Failure(:final error):
+          Log.error(
+            'Quiet save failed for "${profile.displayName}": ${error.message}',
+            tag: 'PrinterConfig',
+          );
+          return Result.failure(error);
+        case Success():
+          Log.info(
+            'Quiet save succeeded for "${profile.displayName}" (id: ${profile.id}). '
+            'Proceeding to calibration.',
+            tag: 'PrinterConfig',
+          );
+          emit(
+            state.copyWith(
+              status: PrinterConfigurationStatus.idle,
+              existingProfile: profile,
+            ),
+          );
+          return Result.success(profile);
+      }
+    } catch (e, stackTrace) {
+      Log.error(
+        'Unexpected error during quiet save: $e',
+        tag: 'PrinterConfig',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return Result.failure(
+        UnexpectedError(
+          message: 'Unexpected error saving profile.',
+          originalError: e,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 

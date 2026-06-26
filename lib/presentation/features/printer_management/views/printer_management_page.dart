@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/app/app_service_locator.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/core/core.dart';
@@ -32,12 +33,21 @@ class PrinterManagementView extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final bp = ResponsiveBreakpoints.of(context);
+    final isDesktop = bp.breakpoint.name == AppBreakpoints.desktop ||
+        bp.breakpoint.name == AppBreakpoints.fourK;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Printer Management'),
+        title: const Text('Printers'),
         actions: [
+          if (!isDesktop)
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () => unawaited(_addPrinterProfile(context)),
+              tooltip: 'Add Printer Profile',
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => context.read<PrinterManagementCubit>().loadPrintersAndProfiles(),
@@ -116,60 +126,104 @@ class PrinterManagementView extends StatelessWidget {
                 );
               }
 
-              return Stack(
-                children: [
-                  SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Printers',
-                            style: textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
+              return SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row with title + add button (desktop)
+                    if (isDesktop)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${state.matches.length} Printer(s)',
+                                style: textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Reconcile physical hardware with configured label templates.',
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+                            ElevatedButton.icon(
+                              onPressed: () => unawaited(_addPrinterProfile(context)),
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('Add Printer Profile'),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 24),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: state.matches.length,
-                              itemBuilder: (context, index) {
-                                final match = state.matches[index];
-                                final compatibility = state.compatibilityResults[match.profile.id];
-                                return PrinterCard(
-                                  matchResult: match,
-                                  compatibility: compatibility,
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
+                      ),
+                    // Subtitle
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                      child: Text(
+                        'Configure printers, trays and calibration profiles.',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    right: 24,
-                    bottom: 24,
-                    child: FloatingActionButton.extended(
-                      onPressed: () => unawaited(_addPrinterProfile(context)),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Add Printer Profile'),
+                    const SizedBox(height: 16),
+                    // Grid (desktop) or List (mobile)
+                    Expanded(
+                      child: isDesktop
+                          ? _buildGridView(context, state)
+                          : _buildListView(context, state),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
           }
         },
       ),
+    );
+  }
+
+  Widget _buildListView(BuildContext context, PrinterManagementState state) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: state.matches.length,
+      itemBuilder: (context, index) {
+        final match = state.matches[index];
+        final compatibility = state.compatibilityResults[match.profile.id];
+        return PrinterCard(
+          matchResult: match,
+          compatibility: compatibility,
+        );
+      },
+    );
+  }
+
+  Widget _buildGridView(BuildContext context, PrinterManagementState state) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth > 900 ? 3 : 2;
+        final cardWidth = (constraints.maxWidth - (crossAxisCount + 1) * 16) / crossAxisCount;
+        // Estimated card height based on content
+        final childAspectRatio = cardWidth / 240;
+
+        return GridView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: childAspectRatio,
+          ),
+          itemCount: state.matches.length,
+          itemBuilder: (context, index) {
+            final match = state.matches[index];
+            final compatibility = state.compatibilityResults[match.profile.id];
+            return PrinterCard(
+              matchResult: match,
+              compatibility: compatibility,
+            );
+          },
+        );
+      },
     );
   }
 }

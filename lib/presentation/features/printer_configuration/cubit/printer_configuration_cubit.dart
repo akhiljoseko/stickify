@@ -151,7 +151,7 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
           errorMessage: () => 'Add at least one tray before saving.',
         ),
       );
-      return Result.failure(
+      return const Result.failure(
         ValidationError(message: 'At least one tray is required.'),
       );
     }
@@ -215,7 +215,7 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
 
     // Validate: at least one tray required
     if (state.trays.isEmpty) {
-      return Result.failure(
+      return const Result.failure(
         ValidationError(message: 'At least one tray is required.'),
       );
     }

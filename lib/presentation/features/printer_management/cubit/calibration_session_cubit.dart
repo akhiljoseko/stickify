@@ -1,5 +1,5 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/core/services/printing/calibration_sheet_pdf_generator.dart';
 import 'package:stickify/domain/domain.dart';
@@ -16,9 +16,8 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
     required this.pdfGenerator,
     required this.profileRepository,
     required this.printService,
-    required TemplateRepository templateRepository,
-  })  : _templateRepository = templateRepository,
-        super(const CalibrationSessionState.initial());
+    required this._templateRepository,
+  }) : super(const CalibrationSessionState.initial());
 
   /// ID of the printer profile being calibrated.
   final String profileId;
@@ -108,7 +107,7 @@ class CalibrationSessionCubit extends Cubit<CalibrationSessionState> {
 
         // Fetch available templates for tray details step
         final templatesResult = await _templateRepository.fetchTemplates();
-        List<LabelTemplate> templates = const [];
+        var templates = const <LabelTemplate>[];
         if (templatesResult is Success<List<LabelTemplate>, AppError>) {
           templates = templatesResult.value;
         }

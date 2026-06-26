@@ -81,7 +81,8 @@ class _PrinterConfigurationView extends StatelessWidget {
             title: Text(state.isEditing ? 'Edit Printer' : 'New Printer'),
             actions: [
               TextButton(
-                onPressed: state.status == PrinterConfigurationStatus.saving
+                onPressed: state.status == PrinterConfigurationStatus.saving ||
+                        state.trays.isEmpty
                     ? null
                     : () => context
                           .read<PrinterConfigurationCubit>()
@@ -114,7 +115,8 @@ class _PrinterConfigurationView extends StatelessWidget {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton.icon(
-                    onPressed: state.status == PrinterConfigurationStatus.saving
+                    onPressed: state.status == PrinterConfigurationStatus.saving ||
+                            state.trays.isEmpty
                         ? null
                         : () => context
                               .read<PrinterConfigurationCubit>()
@@ -523,6 +525,16 @@ class _PrinterConfigurationView extends StatelessWidget {
               final tray = entry.value;
               return _buildTrayCard(context, tray, index);
             }),
+            if (state.trays.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'Add at least one tray before saving.',
+                  style: textScheme.bodySmall?.copyWith(
+                    color: colorScheme.error,
+                  ),
+                ),
+              ),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,

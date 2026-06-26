@@ -53,7 +53,7 @@ class MobileRestrictedView extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Label design, sheet layout configuration, and sticker editing are restricted to desktop viewports to ensure high precision alignment. Please open Stickify on a desktop computer to design templates.',
+                'Label design, sheet layout configuration, and sticker editing are restricted to desktop viewports to ensure high precision alignment. Please open Label Grid on a desktop computer to design templates.',
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),

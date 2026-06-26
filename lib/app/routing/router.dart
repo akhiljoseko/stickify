@@ -222,27 +222,30 @@ class PrintSetupRoute extends GoRouteData with $PrintSetupRoute {
         ),
       ],
     ),
-    // Branch 3 — Settings
+    // Branch 3 — Printers
+    TypedStatefulShellBranch<PrintersBranchData>(
+      routes: [
+        TypedGoRoute<PrinterManagementRoute>(
+          path: '/printers',
+          routes: [
+            TypedGoRoute<PrinterConfigurationRoute>(
+              path: 'new',
+            ),
+            TypedGoRoute<PrinterConfigurationEditRoute>(
+              path: ':profileId',
+            ),
+            TypedGoRoute<CalibrationWizardRoute>(
+              path: ':profileId/calibrate/:trayId',
+            ),
+          ],
+        ),
+      ],
+    ),
+    // Branch 4 — Settings
     TypedStatefulShellBranch<SettingsBranchData>(
       routes: [
         TypedGoRoute<SettingsRoute>(
           path: '/settings',
-          routes: [
-            TypedGoRoute<PrinterManagementRoute>(
-              path: 'printers',
-              routes: [
-                TypedGoRoute<PrinterConfigurationRoute>(
-                  path: 'new',
-                ),
-                TypedGoRoute<PrinterConfigurationEditRoute>(
-                  path: ':profileId',
-                ),
-                TypedGoRoute<CalibrationWizardRoute>(
-                  path: ':profileId/calibrate/:trayId',
-                ),
-              ],
-            ),
-          ],
         ),
       ],
     ),
@@ -295,6 +298,11 @@ class TemplatesBranchData extends StatefulShellBranchData {
 /// Branch data for the Settings tab.
 class SettingsBranchData extends StatefulShellBranchData {
   const SettingsBranchData();
+}
+
+/// Branch data for the Printers tab.
+class PrintersBranchData extends StatefulShellBranchData {
+  const PrintersBranchData();
 }
 
 // ─────────────── Individual screen route data classes ───────────────────────

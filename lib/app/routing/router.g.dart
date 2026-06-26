@@ -279,34 +279,34 @@ RouteBase get $appShellRouteData => StatefulShellRouteData.$route(
     StatefulShellBranchData.$branch(
       routes: [
         GoRouteData.$route(
-          path: '/settings',
-          factory: $SettingsRoute._fromState,
+          path: '/printers',
+          factory: $PrinterManagementRoute._fromState,
           routes: [
             GoRouteData.$route(
-              path: 'printers',
-              factory: $PrinterManagementRoute._fromState,
-              routes: [
-                GoRouteData.$route(
-                  path: 'new',
-                  parentNavigatorKey:
-                      PrinterConfigurationRoute.$parentNavigatorKey,
-                  factory: $PrinterConfigurationRoute._fromState,
-                ),
-                GoRouteData.$route(
-                  path: ':profileId',
-                  parentNavigatorKey:
-                      PrinterConfigurationEditRoute.$parentNavigatorKey,
-                  factory: $PrinterConfigurationEditRoute._fromState,
-                ),
-                GoRouteData.$route(
-                  path: ':profileId/calibrate/:trayId',
-                  parentNavigatorKey:
-                      CalibrationWizardRoute.$parentNavigatorKey,
-                  factory: $CalibrationWizardRoute._fromState,
-                ),
-              ],
+              path: 'new',
+              parentNavigatorKey: PrinterConfigurationRoute.$parentNavigatorKey,
+              factory: $PrinterConfigurationRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: ':profileId',
+              parentNavigatorKey:
+                  PrinterConfigurationEditRoute.$parentNavigatorKey,
+              factory: $PrinterConfigurationEditRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: ':profileId/calibrate/:trayId',
+              parentNavigatorKey: CalibrationWizardRoute.$parentNavigatorKey,
+              factory: $CalibrationWizardRoute._fromState,
             ),
           ],
+        ),
+      ],
+    ),
+    StatefulShellBranchData.$branch(
+      routes: [
+        GoRouteData.$route(
+          path: '/settings',
+          factory: $SettingsRoute._fromState,
         ),
       ],
     ),
@@ -483,32 +483,12 @@ mixin $PreviewRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
-mixin $SettingsRoute on GoRouteData {
-  static SettingsRoute _fromState(GoRouterState state) => const SettingsRoute();
-
-  @override
-  String get location => GoRouteData.$location('/settings');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
 mixin $PrinterManagementRoute on GoRouteData {
   static PrinterManagementRoute _fromState(GoRouterState state) =>
       const PrinterManagementRoute();
 
   @override
-  String get location => GoRouteData.$location('/settings/printers');
+  String get location => GoRouteData.$location('/printers');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -537,7 +517,7 @@ mixin $PrinterConfigurationRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location(
-    '/settings/printers/new',
+    '/printers/new',
     queryParams: {
       if (_self.systemPrinterName != null)
         'system-printer-name': _self.systemPrinterName,
@@ -572,7 +552,7 @@ mixin $PrinterConfigurationEditRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location(
-    '/settings/printers/${Uri.encodeComponent(_self.profileId)}',
+    '/printers/${Uri.encodeComponent(_self.profileId)}',
   );
 
   @override
@@ -602,9 +582,29 @@ mixin $CalibrationWizardRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location(
-    '/settings/printers/${Uri.encodeComponent(_self.profileId)}/calibrate/${Uri.encodeComponent(_self.trayId)}',
+    '/printers/${Uri.encodeComponent(_self.profileId)}/calibrate/${Uri.encodeComponent(_self.trayId)}',
     queryParams: {'paper-configuration-id': _self.paperConfigurationId},
   );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $SettingsRoute on GoRouteData {
+  static SettingsRoute _fromState(GoRouterState state) => const SettingsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/settings');
 
   @override
   void go(BuildContext context) => context.go(location);

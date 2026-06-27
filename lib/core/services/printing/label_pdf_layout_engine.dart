@@ -299,7 +299,24 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
           theme: pageTheme,
           build: (context) {
             return pw.Stack(
-              children: pageSlots,
+              children: [
+                ...pageSlots,
+                // Diagnostic label (will appear in PDF preview)
+                pw.Positioned(
+                  left: 2 * PdfPageFormat.mm,
+                  bottom: 2 * PdfPageFormat.mm,
+                  child: pw.Text(
+                    'DBG: fmt=${(targetFormat.width / PdfPageFormat.mm).toStringAsFixed(0)}'
+                    'x${(targetFormat.height / PdfPageFormat.mm).toStringAsFixed(0)}mm '
+                    'rot=$isSpooledAsPortrait '
+                    'sx=${shiftX.toStringAsFixed(1)} sy=${shiftY.toStringAsFixed(1)}',
+                    style: const pw.TextStyle(
+                      fontSize: 6,
+                      color: PdfColors.grey400,
+                    ),
+                  ),
+                ),
+              ],
             );
           },
         ),

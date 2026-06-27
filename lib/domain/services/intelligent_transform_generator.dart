@@ -123,7 +123,7 @@ class IntelligentTransformGenerator {
           ) ??
           const PrintStickerTransform.identity();
       if (!isRotated90) return raw;
-      return PrintStickerTransform(
+      final swapped = PrintStickerTransform(
         offsetX: raw.offsetY,
         offsetY: raw.offsetX,
         scaleX: raw.scaleY,
@@ -131,6 +131,15 @@ class IntelligentTransformGenerator {
         anchorX: raw.anchorY,
         anchorY: raw.anchorX,
       );
+      Log.debug(
+        'calForSlot[rotated]: slot=$absIndex '
+        'raw=(${raw.offsetX.toStringAsFixed(3)},${raw.offsetY.toStringAsFixed(3)},'
+        '${raw.scaleX.toStringAsFixed(5)},${raw.scaleY.toStringAsFixed(5)}) → '
+        'swapped=(${swapped.offsetX.toStringAsFixed(3)},${swapped.offsetY.toStringAsFixed(3)},'
+        '${swapped.scaleX.toStringAsFixed(5)},${swapped.scaleY.toStringAsFixed(5)})',
+        tag: 'PrintPipeline',
+      );
+      return swapped;
     }
 
     // Helper to project a slot index to its boundaries

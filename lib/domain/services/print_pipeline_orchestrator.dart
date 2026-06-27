@@ -182,10 +182,16 @@ class PrintPipelineOrchestrator {
 
         Log.debug(
           '  Slot $stickerIndex (row=$row, col=$column): '
-          'calibration=(${rawCalibration.offsetX.toStringAsFixed(3)}, '
+          '${isRotated90 ? "rotated" : "normal"} '
+          'rawCal=(${rawCalibration.offsetX.toStringAsFixed(3)}, '
           '${rawCalibration.offsetY.toStringAsFixed(3)}, '
           '${rawCalibration.scaleX.toStringAsFixed(5)}, '
-          '${rawCalibration.scaleY.toStringAsFixed(5)}) ∘ '
+          '${rawCalibration.scaleY.toStringAsFixed(5)}) '
+          '${isRotated90 ? "→ effCal("
+              "${effectiveCalibration.offsetX.toStringAsFixed(3)}, "
+              "${effectiveCalibration.offsetY.toStringAsFixed(3)}, "
+              "${effectiveCalibration.scaleX.toStringAsFixed(5)}, "
+              "${effectiveCalibration.scaleY.toStringAsFixed(5)})" : ""} ∘ '
           'optimization=(${optimizationTransform.offsetX.toStringAsFixed(3)}, '
           '${optimizationTransform.offsetY.toStringAsFixed(3)}, '
           '${optimizationTransform.scaleX.toStringAsFixed(5)}, '

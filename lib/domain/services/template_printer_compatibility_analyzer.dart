@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/calibration_rule.dart';
 import 'package:stickify/domain/entities/compatibility_analysis_result.dart';
 import 'package:stickify/domain/entities/label_template.dart';
@@ -303,6 +304,12 @@ class TemplatePrinterCompatibilityAnalyzer {
                 anchorY: rawTransform.anchorX,
               )
             : rawTransform;
+        Log.debug(
+          'Analyzer capacity check[${isRotated90 ? "rotated" : "normal"}] '
+          'slot($r,$c): scaleX=${transform.scaleX.toStringAsFixed(5)}, '
+          'scaleY=${transform.scaleY.toStringAsFixed(5)}',
+          tag: 'PrintPipeline',
+        );
         final calPrintableWidth = printableWidth * transform.scaleX;
         final calPrintableHeight = printableHeight * transform.scaleY;
         if (calPrintableWidth > availableWidth ||
@@ -486,6 +493,19 @@ class TemplatePrinterCompatibilityAnalyzer {
             anchorY: rawTransform.anchorX,
           )
         : rawTransform;
+
+    Log.debug(
+      'Analyzer[${isRotated90 ? "rotated" : "normal"}] '
+      'slot(r=$r,c=$c): raw(${rawTransform.offsetX.toStringAsFixed(3)},'
+      '${rawTransform.offsetY.toStringAsFixed(3)},'
+      '${rawTransform.scaleX.toStringAsFixed(5)},'
+      '${rawTransform.scaleY.toStringAsFixed(5)})'
+      '${isRotated90 ? "→swp(${transform.offsetX.toStringAsFixed(3)},"
+          "${transform.offsetY.toStringAsFixed(3)},"
+          "${transform.scaleX.toStringAsFixed(5)},"
+          "${transform.scaleY.toStringAsFixed(5)})" : ""}',
+      tag: 'PrintPipeline',
+    );
 
     final calStickerX =
         stickerX +

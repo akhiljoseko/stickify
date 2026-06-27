@@ -167,11 +167,19 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
             marginAll: 0,
           );
 
-    const double shiftX = 0;
+    // Driver margins: when the PDF is spooled, the print driver may impose a top
+    // margin that shifts content down. For landscape templates printed directly
+    // (isSpooledAsPortrait=false), the shiftY from the driver's reported margin
+    // compensates. For rotated (spooled-as-portrait) jobs, the driver rotates the
+    // page 90°, making the template's X-axis the physical Y-axis. In that case
+    // the top margin becomes a left-margin in template space, so shiftX is the
+    // appropriate compensation.
+    double shiftX = 0;
     double shiftY = 0;
-    if (!isSpooledAsPortrait && physicalFormat != null && sheetConfig.pageWidth > sheetConfig.pageHeight) {
-      // Horizontal coordinate is already correctly aligned on landscape custom sheets,
-      // so shiftX remains 0.
+    if (isSpooledAsPortrait) {
+      shiftX = physicalFormat.marginTop / PdfPageFormat.mm;
+    } else if (physicalFormat != null &&
+        sheetConfig.pageWidth > sheetConfig.pageHeight) {
       shiftY = physicalFormat.marginTop / PdfPageFormat.mm;
     }
 
@@ -179,6 +187,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       'LayoutEngine: pageFormat=${(targetFormat.width / PdfPageFormat.mm).toStringAsFixed(1)}'
       'x${(targetFormat.height / PdfPageFormat.mm).toStringAsFixed(1)}mm '
       'isSpooledAsPortrait=$isSpooledAsPortrait '
+      'shiftX=${shiftX.toStringAsFixed(2)}mm shiftY=${shiftY.toStringAsFixed(2)}mm '
       'sticker=${sticker.widthMm}x${sticker.heightMm}mm',
       tag: 'PrintPipeline',
     );

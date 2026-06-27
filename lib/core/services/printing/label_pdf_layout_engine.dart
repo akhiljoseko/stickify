@@ -198,9 +198,6 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
             // Calculate physical grid position in mm.
             // Driver shift (shiftX/shiftY) is kept additive and independent
             // from the coordinate context — see Phase 0 analysis, section 3.2.
-            final slotWidth = sticker.widthMm * transform.scaleX;
-            final slotHeight = sticker.heightMm * transform.scaleY;
-
             final slotX =
                 sheetConfig.marginLeft +
                 c * (sticker.widthMm + sheetConfig.columnGap) +
@@ -219,14 +216,20 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
                 left: slotX * PdfPageFormat.mm,
                 top: slotY * PdfPageFormat.mm,
                 child: pw.SizedBox(
-                  width: slotWidth * PdfPageFormat.mm,
-                  height: slotHeight * PdfPageFormat.mm,
+                  // Keep at original sticker dimensions — the transform
+                  // (scale, clipping polygon) is applied inside the content
+                  // so they stay in the same coordinate space and the Sized Box
+                  // never clips elements that belong to this sticker.
+                  width: sticker.widthMm * PdfPageFormat.mm,
+                  height: sticker.heightMm * PdfPageFormat.mm,
                   child: _buildStickerContent(
                     template: input.template,
                     sticker: sticker,
                     product: input.product,
                     variant: input.variant,
                     imageCache: input.imageCache,
+                    scaleX: transform.scaleX,
+                    scaleY: transform.scaleY,
                   ),
                 ),
               ),
@@ -253,12 +256,17 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
   }
 
   /// Compile fresh widgets tree for a single sticker slot instance.
+  /// [scaleX] and [scaleY] are applied to element positions/sizes and the
+  /// clipping polygon so everything stays in the same coordinate space and
+  /// no spurious clipping occurs from a mismatched Sized Box.
   static pw.Widget _buildStickerContent({
     required LabelTemplate template,
     required StickerConfig sticker,
     required Product product,
     required ProductVariant variant,
     required Map<String, Uint8List> imageCache,
+    double scaleX = 1.0,
+    double scaleY = 1.0,
   }) {
     final elements = <pw.Widget>[];
 
@@ -281,15 +289,20 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
         imageCache,
       );
 
+      final scaledX = bp.x * scaleX;
+      final scaledY = bp.y * scaleY;
+      final scaledWidth = bp.width * scaleX;
+      final scaledHeight = bp.height * scaleY;
+
       elements.add(
         pw.Positioned(
-          left: bp.x * PdfPageFormat.mm,
-          top: bp.y * PdfPageFormat.mm,
+          left: scaledX * PdfPageFormat.mm,
+          top: scaledY * PdfPageFormat.mm,
           child: pw.Transform.rotate(
             angle: bp.rotation * (pi / 180),
             child: pw.SizedBox(
-              width: bp.width * PdfPageFormat.mm,
-              height: bp.height * PdfPageFormat.mm,
+              width: scaledWidth * PdfPageFormat.mm,
+              height: scaledHeight * PdfPageFormat.mm,
               child: childWidget,
             ),
           ),
@@ -301,20 +314,23 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       children: elements,
     );
 
-    // Apply polygon clipping if a custom shape is configured
+    // Apply polygon clipping if a custom shape is configured.
+    // The polygon vertices are also scaled to match the element positions.
     if (sticker.printableArea.length >= 3) {
       return pw.CustomPaint(
         painter: (canvas, size) {
           final vertices = sticker.printableArea;
           // Flip Y coordinate system for PDF Graphics (starts bottom-left)
           canvas.moveTo(
-            vertices[0].x * PdfPageFormat.mm,
-            (sticker.heightMm - vertices[0].y) * PdfPageFormat.mm,
+            vertices[0].x * scaleX * PdfPageFormat.mm,
+            (sticker.heightMm * scaleY - vertices[0].y * scaleY) *
+                PdfPageFormat.mm,
           );
           for (var i = 1; i < vertices.length; i++) {
             canvas.lineTo(
-              vertices[i].x * PdfPageFormat.mm,
-              (sticker.heightMm - vertices[i].y) * PdfPageFormat.mm,
+              vertices[i].x * scaleX * PdfPageFormat.mm,
+              (sticker.heightMm * scaleY - vertices[i].y * scaleY) *
+                  PdfPageFormat.mm,
             );
           }
           canvas

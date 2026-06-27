@@ -400,9 +400,9 @@ void main() {
         expect(translationNeutralCustomAnchor[1], closeTo(113.385, 0.01));
 
         // Case B: Scaling around top-left anchor (0, 0) with scale 0.8
-        // slotWidth = 40, slotHeight = 40
+        // The Sized Box stays at original 50×50mm; scale is applied inside.
         // slotX = 10 + 0 = 10, slotY = 10 + 0 = 10
-        // expected tx = 10mm = 28.346 pt, ty = 100 - 10 - 40 = 50mm = 141.732 pt
+        // expected tx = 10mm = 28.346 pt, ty = 100 - 10 - 50 = 40mm = 113.385 pt
         final translationTopLeft = await getSlotTranslation(
           const PrintCoordinateContext(
             globalTransform: PrintStickerTransform(
@@ -414,13 +414,13 @@ void main() {
           ),
         );
         expect(translationTopLeft[0], closeTo(28.346, 0.01));
-        expect(translationTopLeft[1], closeTo(141.732, 0.01));
+        expect(translationTopLeft[1], closeTo(113.385, 0.01));
 
         // Case C: Scaling around center anchor (0.5, 0.5) with scale 0.8
-        // slotWidth = 40, slotHeight = 40
+        // Sized Box stays at original 50×50mm; scale applied inside.
         // slotX = 10 + 0.5 * 50 * 0.2 = 15
         // slotY = 10 + 0.5 * 50 * 0.2 = 15
-        // expected tx = 15mm = 42.519 pt, ty = 100 - 15 - 40 = 45mm = 127.559 pt
+        // expected tx = 15mm = 42.519 pt, ty = 100 - 15 - 50 = 35mm = 99.208 pt
         final translationCenter = await getSlotTranslation(
           const PrintCoordinateContext(
             globalTransform: PrintStickerTransform(
@@ -430,13 +430,13 @@ void main() {
           ),
         );
         expect(translationCenter[0], closeTo(42.519, 0.01));
-        expect(translationCenter[1], closeTo(127.559, 0.01));
+        expect(translationCenter[1], closeTo(99.208, 0.01));
 
         // Case D: Scaling around bottom-right anchor (1, 1) with scale 0.8
-        // slotWidth = 40, slotHeight = 40
+        // Sized Box stays at original 50×50mm; scale applied inside.
         // slotX = 10 + 1.0 * 50 * 0.2 = 20
         // slotY = 10 + 1.0 * 50 * 0.2 = 20
-        // expected tx = 20mm = 56.692 pt, ty = 100 - 20 - 40 = 40mm = 113.385 pt
+        // expected tx = 20mm = 56.692 pt, ty = 100 - 20 - 50 = 30mm = 85.039 pt
         final translationBottomRight = await getSlotTranslation(
           const PrintCoordinateContext(
             globalTransform: PrintStickerTransform(
@@ -448,7 +448,7 @@ void main() {
           ),
         );
         expect(translationBottomRight[0], closeTo(56.692, 0.01));
-        expect(translationBottomRight[1], closeTo(113.385, 0.01));
+        expect(translationBottomRight[1], closeTo(85.039, 0.01));
       },
     );
   });

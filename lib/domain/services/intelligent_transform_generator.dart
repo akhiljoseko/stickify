@@ -113,6 +113,26 @@ class IntelligentTransformGenerator {
     final printableWidth = stickerMaxX - stickerMinX;
     final printableHeight = stickerMaxY - stickerMinY;
 
+    // Returns the calibration transform for a slot, with X/Y components
+    // swapped when the sheet is rotated 90°.
+    PrintStickerTransform calForSlot(int r, int c, int absIndex) {
+      final raw = calibrationContext?.resolveFor(
+            row: r,
+            column: c,
+            absoluteSlotIndex: absIndex,
+          ) ??
+          const PrintStickerTransform.identity();
+      if (!isRotated90) return raw;
+      return PrintStickerTransform(
+        offsetX: raw.offsetY,
+        offsetY: raw.offsetX,
+        scaleX: raw.scaleY,
+        scaleY: raw.scaleX,
+        anchorX: raw.anchorY,
+        anchorY: raw.anchorX,
+      );
+    }
+
     // Helper to project a slot index to its boundaries
     Map<String, double> getBounds(int r, int c) {
       final stickerX =
@@ -122,13 +142,7 @@ class IntelligentTransformGenerator {
           sheetConfig.marginTop +
           r * (stickerConfig.heightMm + sheetConfig.rowGap);
 
-      final transform =
-          calibrationContext?.resolveFor(
-            row: r,
-            column: c,
-            absoluteSlotIndex: r * totalColumns + c,
-          ) ??
-          const PrintStickerTransform.identity();
+      final transform = calForSlot(r, c, r * totalColumns + c);
 
       final calStickerX =
           stickerX +
@@ -419,16 +433,9 @@ class IntelligentTransformGenerator {
       tag: 'PrintPipeline',
     );
 
-    final calScaleX =
-        calibrationContext
-            ?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0)
-            .scaleX ??
-        1.0;
-    final calScaleY =
-        calibrationContext
-            ?.resolveFor(row: 0, column: 0, absoluteSlotIndex: 0)
-            .scaleY ??
-        1.0;
+    final calForSlot0 = calForSlot(0, 0, 0);
+    final calScaleX = calForSlot0.scaleX;
+    final calScaleY = calForSlot0.scaleY;
 
     final totalContentWidth =
         sheetConfig.marginLeft +
@@ -601,17 +608,11 @@ class IntelligentTransformGenerator {
     for (var r = 0; r < totalRows; r++) {
       for (var c = 0; c < totalColumns; c++) {
         final absIndex = r * totalColumns + c;
-        final calTransform =
-            calibrationContext?.resolveFor(
-              row: r,
-              column: c,
-              absoluteSlotIndex: absIndex,
-            ) ??
-            const PrintStickerTransform.identity();
+        final ct = calForSlot(r, c, absIndex);
         final optimizationTransform =
             finalTransforms[absIndex] ?? const PrintStickerTransform.identity();
         final fullTransform = composer.composeTwo(
-          calTransform,
+          ct,
           optimizationTransform,
         );
         final bounds = projectBounds(r, c, fullTransform);
@@ -638,13 +639,7 @@ class IntelligentTransformGenerator {
       );
 
       Map<String, double> getFullBounds(int r, int c) {
-        final ct =
-            calibrationContext?.resolveFor(
-              row: r,
-              column: c,
-              absoluteSlotIndex: r * totalColumns + c,
-            ) ??
-            const PrintStickerTransform.identity();
+        final ct = calForSlot(r, c, r * totalColumns + c);
         final ot =
             finalTransforms[r * totalColumns + c] ??
             const PrintStickerTransform.identity();
@@ -654,17 +649,11 @@ class IntelligentTransformGenerator {
       for (final absIndex in stillConflicting) {
         final r = absIndex ~/ totalColumns;
         final c = absIndex % totalColumns;
-        final calTransform =
-            calibrationContext?.resolveFor(
-              row: r,
-              column: c,
-              absoluteSlotIndex: absIndex,
-            ) ??
-            const PrintStickerTransform.identity();
+        final ct = calForSlot(r, c, absIndex);
         final existingOptimization =
             finalTransforms[absIndex] ?? const PrintStickerTransform.identity();
         final existingFull = composer.composeTwo(
-          calTransform,
+          ct,
           existingOptimization,
         );
         final bounds = projectBounds(r, c, existingFull);

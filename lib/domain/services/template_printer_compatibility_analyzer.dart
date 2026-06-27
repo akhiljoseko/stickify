@@ -286,13 +286,23 @@ class TemplatePrinterCompatibilityAnalyzer {
     for (var r = 0; r < totalRows; r++) {
       for (var c = 0; c < totalColumns; c++) {
         final absIndex = r * totalColumns + c;
-        final transform =
+        final rawTransform =
             calibrationContext?.resolveFor(
               row: r,
               column: c,
               absoluteSlotIndex: absIndex,
             ) ??
             const PrintStickerTransform.identity();
+        final transform = isRotated90
+            ? PrintStickerTransform(
+                offsetX: rawTransform.offsetY,
+                offsetY: rawTransform.offsetX,
+                scaleX: rawTransform.scaleY,
+                scaleY: rawTransform.scaleX,
+                anchorX: rawTransform.anchorY,
+                anchorY: rawTransform.anchorX,
+              )
+            : rawTransform;
         final calPrintableWidth = printableWidth * transform.scaleX;
         final calPrintableHeight = printableHeight * transform.scaleY;
         if (calPrintableWidth > availableWidth ||
@@ -458,13 +468,24 @@ class TemplatePrinterCompatibilityAnalyzer {
         sheetConfig.marginTop +
         r * (stickerConfig.heightMm + sheetConfig.rowGap);
 
-    final transform =
+    final rawTransform =
         calibrationContext?.resolveFor(
           row: r,
           column: c,
           absoluteSlotIndex: r * sheetConfig.columns + c,
         ) ??
         const PrintStickerTransform.identity();
+
+    final transform = isRotated90
+        ? PrintStickerTransform(
+            offsetX: rawTransform.offsetY,
+            offsetY: rawTransform.offsetX,
+            scaleX: rawTransform.scaleY,
+            scaleY: rawTransform.scaleX,
+            anchorX: rawTransform.anchorY,
+            anchorY: rawTransform.anchorX,
+          )
+        : rawTransform;
 
     final calStickerX =
         stickerX +

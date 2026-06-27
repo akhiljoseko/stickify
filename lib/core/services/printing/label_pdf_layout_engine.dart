@@ -219,6 +219,19 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
                 (sticker.heightMm * transform.anchorY * (1.0 - transform.scaleY)) +
                 transform.offsetY;
 
+            // Clamp slotY to 0 — a negative value would push stickers above the
+            // PDF page boundary and get clipped. This can happen when Level 3
+            // translation resolves a rotated right-edge conflict (which maps to
+            // the template top edge) by shifting content upward.
+            final clampedSlotY = slotY < 0 ? 0.0 : slotY;
+            if (clampedSlotY != slotY) {
+              Log.debug(
+                'LayoutEngine: slot(r=$r,c=$c) slotY clamped from '
+                '${slotY.toStringAsFixed(2)}mm to 0mm to prevent page clipping',
+                tag: 'PrintPipeline',
+              );
+            }
+
             // Log the first sticker of each row and column to debug positioning
             Log.debug(
               'LayoutEngine: slot(r=$r,c=$c) '
@@ -236,9 +249,9 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
                 'pageH=${(targetFormat.height / PdfPageFormat.mm).toStringAsFixed(1)}mm '
                 'isSpooledAsPortrait=$isSpooledAsPortrait '
                 'slotLeft=${slotX.toStringAsFixed(2)}mm '
-                'slotTop=${slotY.toStringAsFixed(2)}mm '
+                'slotTop=${clampedSlotY.toStringAsFixed(2)}mm '
                 'slotRight=${(slotX + sticker.widthMm).toStringAsFixed(2)}mm '
-                'slotBottom=${(slotY + sticker.heightMm).toStringAsFixed(2)}mm',
+                'slotBottom=${(clampedSlotY + sticker.heightMm).toStringAsFixed(2)}mm',
                 tag: 'PrintPipeline',
               );
             }
@@ -246,7 +259,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
             pageSlots.add(
               pw.Positioned(
                 left: slotX * PdfPageFormat.mm,
-                top: slotY * PdfPageFormat.mm,
+                top: clampedSlotY * PdfPageFormat.mm,
                 child: pw.SizedBox(
                   // Keep at original sticker dimensions — the transform
                   // (scale, clipping polygon) is applied inside the content

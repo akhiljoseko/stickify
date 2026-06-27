@@ -320,16 +320,18 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       return pw.CustomPaint(
         painter: (canvas, size) {
           final vertices = sticker.printableArea;
-          // Flip Y coordinate system for PDF Graphics (starts bottom-left)
+          // Flip Y coordinate system for PDF Graphics (starts bottom-left).
+          // The Sized Box is at original sticker.heightMm, so the Y flip
+          // reference must also use the original height (not scaled).
           canvas.moveTo(
             vertices[0].x * scaleX * PdfPageFormat.mm,
-            (sticker.heightMm * scaleY - vertices[0].y * scaleY) *
+            (sticker.heightMm - vertices[0].y * scaleY) *
                 PdfPageFormat.mm,
           );
           for (var i = 1; i < vertices.length; i++) {
             canvas.lineTo(
               vertices[i].x * scaleX * PdfPageFormat.mm,
-              (sticker.heightMm * scaleY - vertices[i].y * scaleY) *
+              (sticker.heightMm - vertices[i].y * scaleY) *
                   PdfPageFormat.mm,
             );
           }

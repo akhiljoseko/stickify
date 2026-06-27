@@ -134,6 +134,14 @@ class PrintPipelineOrchestrator {
         tag: 'PrintPipeline',
       );
 
+      // Determine if the sheet will be rotated 90° in the printer coordinate space.
+      final templateIsPortrait = sheetConfig.pageWidth < sheetConfig.pageHeight;
+      final printerSupportsPortrait = printer.capabilities.supportsPortraitCustomPaper;
+      final printerSupportsLandscape = printer.capabilities.supportsLandscapeCustomPaper;
+      final isRotated90 = templateIsPortrait
+          ? !printerSupportsPortrait && printerSupportsLandscape
+          : !printerSupportsLandscape && printerSupportsPortrait;
+
       // 4. Compose transforms: composed = existing ∘ optimization
       final newStickerTransforms = Map<int, PrintStickerTransform>.from(
         calibrationContext.stickerTransforms,
@@ -148,25 +156,36 @@ class PrintPipelineOrchestrator {
         final row = stickerIndex ~/ totalColumns;
         final column = stickerIndex % totalColumns;
 
-        // Retrieve effective calibration transform
-        final existingCalibration = calibrationContext.resolveFor(
+        // Retrieve effective calibration transform, swapping X/Y when rotated
+        // so both calibration and optimization are in the same coordinate space.
+        final rawCalibration = calibrationContext.resolveFor(
           row: row,
           column: column,
           absoluteSlotIndex: stickerIndex,
         );
+        final effectiveCalibration = isRotated90
+            ? PrintStickerTransform(
+                offsetX: rawCalibration.offsetY,
+                offsetY: rawCalibration.offsetX,
+                scaleX: rawCalibration.scaleY,
+                scaleY: rawCalibration.scaleX,
+                anchorX: rawCalibration.anchorY,
+                anchorY: rawCalibration.anchorX,
+              )
+            : rawCalibration;
 
         // Compose: calibration FIRST, optimization SECOND
         final composed = _transformComposer.composeTwo(
-          existingCalibration,
+          effectiveCalibration,
           optimizationTransform,
         );
 
         Log.debug(
           '  Slot $stickerIndex (row=$row, col=$column): '
-          'calibration=(${existingCalibration.offsetX.toStringAsFixed(3)}, '
-          '${existingCalibration.offsetY.toStringAsFixed(3)}, '
-          '${existingCalibration.scaleX.toStringAsFixed(5)}, '
-          '${existingCalibration.scaleY.toStringAsFixed(5)}) ∘ '
+          'calibration=(${rawCalibration.offsetX.toStringAsFixed(3)}, '
+          '${rawCalibration.offsetY.toStringAsFixed(3)}, '
+          '${rawCalibration.scaleX.toStringAsFixed(5)}, '
+          '${rawCalibration.scaleY.toStringAsFixed(5)}) ∘ '
           'optimization=(${optimizationTransform.offsetX.toStringAsFixed(3)}, '
           '${optimizationTransform.offsetY.toStringAsFixed(3)}, '
           '${optimizationTransform.scaleX.toStringAsFixed(5)}, '

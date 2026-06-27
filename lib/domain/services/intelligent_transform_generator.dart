@@ -231,13 +231,23 @@ class IntelligentTransformGenerator {
       final hasTopAndBottom = topConflict != null && bottomConflict != null;
 
       if (!hasLeftAndRight && !hasTopAndBottom) {
-        final candidateOffsetX = leftConflict != null
-            ? leftConflict.overlapMm
-            : (rightConflict != null ? -rightConflict.overlapMm : 0.0);
+        // When rotated 90°, printer Left/Right map to template Y (dy)
+        // and printer Top/Bottom map to template X (dx).
+        final candidateOffsetX = isRotated90
+            ? (topConflict != null
+                ? topConflict.overlapMm
+                : (bottomConflict != null ? -bottomConflict.overlapMm : 0.0))
+            : (leftConflict != null
+                ? leftConflict.overlapMm
+                : (rightConflict != null ? -rightConflict.overlapMm : 0.0));
 
-        final candidateOffsetY = topConflict != null
-            ? topConflict.overlapMm
-            : (bottomConflict != null ? -bottomConflict.overlapMm : 0.0);
+        final candidateOffsetY = isRotated90
+            ? (leftConflict != null
+                ? leftConflict.overlapMm
+                : (rightConflict != null ? -rightConflict.overlapMm : 0.0))
+            : (topConflict != null
+                ? topConflict.overlapMm
+                : (bottomConflict != null ? -bottomConflict.overlapMm : 0.0));
 
         var globalShiftSucceeds = true;
 
@@ -374,13 +384,23 @@ class IntelligentTransformGenerator {
               bottomConflict?.affectedStickerIndices.contains(absIndex) ??
               false;
 
-          final dx = (inLeft && !unresolvedLeft)
-              ? leftGroupShift
-              : ((inRight && !unresolvedRight) ? rightGroupShift : 0.0);
+          // When rotated 90°, printer Left/Right map to template Y (dy)
+          // and printer Top/Bottom map to template X (dx).
+          final dx = isRotated90
+              ? ((inTop && !unresolvedTop)
+                  ? topGroupShift
+                  : ((inBottom && !unresolvedBottom) ? bottomGroupShift : 0.0))
+              : ((inLeft && !unresolvedLeft)
+                  ? leftGroupShift
+                  : ((inRight && !unresolvedRight) ? rightGroupShift : 0.0));
 
-          final dy = (inTop && !unresolvedTop)
-              ? topGroupShift
-              : ((inBottom && !unresolvedBottom) ? bottomGroupShift : 0.0);
+          final dy = isRotated90
+              ? ((inLeft && !unresolvedLeft)
+                  ? leftGroupShift
+                  : ((inRight && !unresolvedRight) ? rightGroupShift : 0.0))
+              : ((inTop && !unresolvedTop)
+                  ? topGroupShift
+                  : ((inBottom && !unresolvedBottom) ? bottomGroupShift : 0.0));
 
           if (dx != 0.0 || dy != 0.0) {
             transforms[absIndex] = PrintStickerTransform(

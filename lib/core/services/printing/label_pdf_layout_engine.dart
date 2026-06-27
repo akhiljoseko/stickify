@@ -175,6 +175,14 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       shiftY = physicalFormat.marginTop / PdfPageFormat.mm;
     }
 
+    Log.debug(
+      'LayoutEngine: pageFormat=${(targetFormat.width / PdfPageFormat.mm).toStringAsFixed(1)}'
+      'x${(targetFormat.height / PdfPageFormat.mm).toStringAsFixed(1)}mm '
+      'isSpooledAsPortrait=$isSpooledAsPortrait '
+      'sticker=${sticker.widthMm}x${sticker.heightMm}mm',
+      tag: 'PrintPipeline',
+    );
+
     // Build pages using absolute stacking coordinates
     for (var sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
       final pageSlots = <pw.Widget>[];
@@ -210,6 +218,30 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
                 shiftY +
                 (sticker.heightMm * transform.anchorY * (1.0 - transform.scaleY)) +
                 transform.offsetY;
+
+            // Log the first sticker of each row and column to debug positioning
+            Log.debug(
+              'LayoutEngine: slot(r=$r,c=$c) '
+              'slotX=${slotX.toStringAsFixed(2)}mm slotY=${slotY.toStringAsFixed(2)}mm '
+              'offsetX=${transform.offsetX.toStringAsFixed(3)} '
+              'offsetY=${transform.offsetY.toStringAsFixed(3)} '
+              'scaleX=${transform.scaleX.toStringAsFixed(5)} '
+              'scaleY=${transform.scaleY.toStringAsFixed(5)}',
+              tag: 'PrintPipeline',
+            );
+            if (r == 0 || c == 0) {
+              Log.debug(
+                'LayoutEngine[pos]: slot(r=$r,c=$c) '
+                'pageW=${(targetFormat.width / PdfPageFormat.mm).toStringAsFixed(1)}mm '
+                'pageH=${(targetFormat.height / PdfPageFormat.mm).toStringAsFixed(1)}mm '
+                'isSpooledAsPortrait=$isSpooledAsPortrait '
+                'slotLeft=${slotX.toStringAsFixed(2)}mm '
+                'slotTop=${slotY.toStringAsFixed(2)}mm '
+                'slotRight=${(slotX + sticker.widthMm).toStringAsFixed(2)}mm '
+                'slotBottom=${(slotY + sticker.heightMm).toStringAsFixed(2)}mm',
+                tag: 'PrintPipeline',
+              );
+            }
 
             pageSlots.add(
               pw.Positioned(

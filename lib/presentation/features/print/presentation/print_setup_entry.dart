@@ -1,5 +1,6 @@
 import 'dart:math' show min;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stickify/app/app_service_locator.dart';
@@ -260,7 +261,22 @@ class _PrintSetupViewState extends State<_PrintSetupView> {
             variant: variant,
           );
 
-          return Scaffold(
+          return Focus(
+            onKeyEvent: (node, event) {
+              if (event is KeyDownEvent) {
+                final isCtrl = HardwareKeyboard.instance.isControlPressed ||
+                    HardwareKeyboard.instance.isMetaPressed;
+                if (isCtrl && event.logicalKey == LogicalKeyboardKey.keyP) {
+                  final workflowCubit = context.read<PrintWorkflowCubit>();
+                  if (workflowCubit.state is! PrintWorkflowSubmitting) {
+                    workflowCubit.startPrintJob();
+                  }
+                  return KeyEventResult.handled;
+                }
+              }
+              return KeyEventResult.ignored;
+            },
+            child: Scaffold(
             appBar: AppBar(
               title: const Text('Print Configuration'),
               leading: IconButton(
@@ -333,8 +349,9 @@ class _PrintSetupViewState extends State<_PrintSetupView> {
                 );
               },
             ),
-          );
-        }
+          ),
+        );
+      }
 
         return const SizedBox.shrink();
       },

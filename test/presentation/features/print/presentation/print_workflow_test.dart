@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stickify/app/app_service_locator.dart';
 import 'package:stickify/core/core.dart';
@@ -24,6 +26,7 @@ class MockPrinterCalibrationCoordinateResolver extends Mock implements PrinterCa
 class MockTemplatePrinterCompatibilityAnalyzer extends Mock implements TemplatePrinterCompatibilityAnalyzer {}
 class MockPrintPipelineOrchestrator extends Mock implements PrintPipelineOrchestrator {}
 class MockAppServiceLocator extends Mock implements AppServiceLocator {}
+class MockGoRouter extends Mock implements GoRouter {}
 
 void main() {
   setUpAll(() {
@@ -420,7 +423,10 @@ void main() {
   });
 
   group('PrintSetupPage Widget Tests', () {
+    late GoRouter goRouter;
+
     setUp(() {
+      goRouter = MockGoRouter();
       productRepository = MockSyncableProductRepository();
       templateRepository = MockSyncableTemplateRepository();
       printJobRepository = MockPrintJobRepository();
@@ -446,6 +452,16 @@ void main() {
       when(() => printJobRepository.onPrintJobCreated).thenAnswer(
         (_) => const Stream.empty(),
       );
+      when(() => printJobRepository.savePrintJob(any()))
+          .thenAnswer((_) async => const Result.success(null));
+      when(() => variantPrintStatsRepository.incrementCount(
+            variantSku: any(named: 'variantSku'),
+            productId: any(named: 'productId'),
+            productName: any(named: 'productName'),
+            variantName: any(named: 'variantName'),
+            labelCount: any(named: 'labelCount'),
+            printedAt: any(named: 'printedAt'),
+          )).thenAnswer((_) async => const Result.success(null));
       when(() => printerDiscoveryService.getAvailablePrinters()).thenAnswer(
         (_) async => const [
           PrinterDevice(name: 'Zebra ZT411-A (Default)', url: 'zebra-url', isDefault: true),
@@ -492,11 +508,14 @@ void main() {
           RepositoryProvider.value(value: printJobIdGenerator),
           RepositoryProvider.value(value: localDatabase),
         ],
-        child: PrintSetupPage(
-          productId: 'prod-test',
-          variantSku: 'PROD-VAR-SKU',
-          templateId: 'temp-test',
-          quantity: quantity,
+        child: InheritedGoRouter(
+          goRouter: goRouter,
+          child: PrintSetupPage(
+            productId: 'prod-test',
+            variantSku: 'PROD-VAR-SKU',
+            templateId: 'temp-test',
+            quantity: quantity,
+          ),
         ),
       );
     }
@@ -572,6 +591,41 @@ void main() {
 
       // Disabling 2 slots on sheet 0 pushes the remaining printed labels to a 3rd sheet.
       expect(find.text('3'), findsOneWidget);
+    });
+
+    testWidgets('pressing Ctrl + P triggers printing', (tester) async {
+      await tester.pumpApp(buildTestableWidget(quantity: 20), size: const Size(1200, 1000));
+      await tester.pumpAndSettle();
+
+      // Verify print service was not called initially
+      verifyNever(() => printService.printLabels(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printer: any(named: 'printer'),
+            printFromBottom: any(named: 'printFromBottom'),
+            executionConfiguration: any(named: 'executionConfiguration'),
+          ));
+
+      // Simulate Ctrl + P
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyP);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+      await tester.pumpAndSettle();
+
+      // Verify printing was triggered
+      verify(() => printService.printLabels(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printer: any(named: 'printer'),
+            printFromBottom: any(named: 'printFromBottom'),
+            executionConfiguration: any(named: 'executionConfiguration'),
+          )).called(1);
     });
   });
 }

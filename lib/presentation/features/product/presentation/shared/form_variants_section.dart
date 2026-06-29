@@ -67,7 +67,6 @@ class FormVariantsSection extends StatelessWidget {
                 decoration: InputDecoration(
                   labelText: 'Variant SKU',
                   prefixText: globalSku.isNotEmpty ? '$globalSku-' : null,
-                  hintText: 'e.g. 150P-001',
                 ),
               ),
               const SizedBox(height: 12),
@@ -161,7 +160,6 @@ class FormVariantsSection extends StatelessWidget {
                       decoration: InputDecoration(
                         labelText: 'Variant SKU',
                         prefixText: globalSku.isNotEmpty ? '$globalSku-' : null,
-                        hintText: 'e.g. 150P-001',
                       ),
                     ),
                   ),

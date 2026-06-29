@@ -104,7 +104,7 @@ class FormBasicInfoSection extends StatelessWidget {
             const SizedBox(height: 16),
             TextFormField(
               controller: skuController,
-              decoration: const InputDecoration(labelText: 'Global SKU Prefix', hintText: 'e.g. ALM-ORG-2024'),
+              decoration: const InputDecoration(labelText: 'Global SKU Prefix'),
               validator: (val) => (val == null || val.isEmpty) ? 'SKU Prefix is required' : null,
             ),
           ],

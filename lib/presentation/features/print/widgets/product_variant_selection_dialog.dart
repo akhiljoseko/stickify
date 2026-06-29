@@ -37,6 +37,8 @@ class _ProductVariantSelectionDialogState
   Product? _selectedProduct;
   bool _isLoading = true;
   int _highlightedIndex = 0;
+  double _savedProductScrollOffset = 0;
+  int _savedProductHighlightedIndex = 0;
 
   @override
   void initState() {
@@ -108,7 +110,7 @@ class _ProductVariantSelectionDialogState
     if (_selectedProduct != null) {
       setState(() {
         _selectedProduct = null;
-        _highlightedIndex = 0;
+        _highlightedIndex = _savedProductHighlightedIndex;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _searchFocusNode.requestFocus();
@@ -116,6 +118,9 @@ class _ProductVariantSelectionDialogState
           baseOffset: 0,
           extentOffset: _searchController.text.length,
         );
+        if (_productScrollController.hasClients) {
+          _productScrollController.jumpTo(_savedProductScrollOffset);
+        }
       });
     } else {
       _searchFocusNode.requestFocus();
@@ -182,6 +187,10 @@ class _ProductVariantSelectionDialogState
           _highlightedIndex >= 0 &&
           _highlightedIndex < _filteredProducts.length) {
         setState(() {
+          _savedProductScrollOffset = _productScrollController.hasClients
+              ? _productScrollController.offset
+              : 0.0;
+          _savedProductHighlightedIndex = _highlightedIndex;
           _selectedProduct = _filteredProducts[_highlightedIndex];
           _highlightedIndex = 0;
         });
@@ -214,7 +223,7 @@ class _ProductVariantSelectionDialogState
     if (_selectedProduct != null) {
       setState(() {
         _selectedProduct = null;
-        _highlightedIndex = 0;
+        _highlightedIndex = _savedProductHighlightedIndex;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _searchFocusNode.requestFocus();
@@ -222,6 +231,9 @@ class _ProductVariantSelectionDialogState
           baseOffset: 0,
           extentOffset: _searchController.text.length,
         );
+        if (_productScrollController.hasClients) {
+          _productScrollController.jumpTo(_savedProductScrollOffset);
+        }
       });
     }
   }
@@ -382,6 +394,10 @@ class _ProductVariantSelectionDialogState
                                       trailing: const Icon(Icons.chevron_right),
                                       onTap: () {
                                         setState(() {
+                                          _savedProductScrollOffset = _productScrollController.hasClients
+                                              ? _productScrollController.offset
+                                              : 0.0;
+                                          _savedProductHighlightedIndex = i;
                                           _selectedProduct = p;
                                           _highlightedIndex = 0;
                                         });
@@ -406,7 +422,7 @@ class _ProductVariantSelectionDialogState
                           onPressed: () {
                             setState(() {
                               _selectedProduct = null;
-                              _highlightedIndex = 0;
+                              _highlightedIndex = _savedProductHighlightedIndex;
                             });
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               _searchFocusNode.requestFocus();
@@ -414,6 +430,9 @@ class _ProductVariantSelectionDialogState
                                 baseOffset: 0,
                                 extentOffset: _searchController.text.length,
                               );
+                              if (_productScrollController.hasClients) {
+                                _productScrollController.jumpTo(_savedProductScrollOffset);
+                              }
                             });
                           },
                           icon: const Icon(Icons.arrow_back, size: 16),

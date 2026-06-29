@@ -212,5 +212,59 @@ void main() {
       expect(searchTextFieldRebuilt.controller?.selection.baseOffset, 0);
       expect(searchTextFieldRebuilt.controller?.selection.extentOffset, 9);
     });
+
+    testWidgets('restores scroll position and highlighted index when returning to product list', (tester) async {
+      final largeProductList = List.generate(
+        15,
+        (index) => Product(
+          id: 'prod-$index',
+          name: 'Product ${String.fromCharCode(65 + index)}',
+          sku: 'SKU-$index',
+        ),
+      );
+      when(() => productRepository.getAllProducts()).thenAnswer(
+        (_) async => Result.success(largeProductList),
+      );
+
+      await tester.pumpApp(buildTestableWidget());
+      await tester.pumpAndSettle();
+
+      for (var i = 0; i < 9; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pumpAndSettle();
+      }
+
+      final scrollable = tester.state<ScrollableState>(
+        find.descendant(
+          of: find.byType(ListView),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      final initialOffset = scrollable.position.pixels;
+      expect(initialOffset, greaterThan(0));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Select Variant'), findsOneWidget);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
+      await tester.pumpAndSettle();
+
+      final restoredScrollable = tester.state<ScrollableState>(
+        find.descendant(
+          of: find.byType(ListView),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      expect(restoredScrollable.position.pixels, equals(initialOffset));
+
+      final listTileFinder = find.ancestor(
+        of: find.text('Product J'),
+        matching: find.byType(ListTile),
+      );
+      expect(listTileFinder, findsOneWidget);
+      final tile = tester.widget<ListTile>(listTileFinder);
+      expect(tile.selected, isTrue);
+    });
   });
 }

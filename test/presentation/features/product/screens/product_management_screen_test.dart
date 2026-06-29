@@ -194,5 +194,70 @@ void main() {
             .having((p) => p.id, 'id', isNot(equals('prod-1'))),
       ))).called(1);
     });
+
+    testWidgets('variant SKU prefix locking and renaming behavior in form view', (tester) async {
+      await tester.pumpApp(buildTestableWidget(), size: const Size(1200, 1000));
+      await tester.pumpAndSettle();
+
+      // Click Add Product to open the empty form
+      final addButton = find.widgetWithText(ElevatedButton, 'Add Product');
+      await tester.tap(addButton);
+      await tester.pumpAndSettle();
+
+      // Type in Global SKU Prefix
+      final skuFieldFinder = find.widgetWithText(TextFormField, 'Global SKU Prefix').first;
+      await tester.enterText(skuFieldFinder, 'MYPREFIX');
+      await tester.pumpAndSettle();
+
+      // Verify the variant SKU text field decoration shows the prefixText 'MYPREFIX-'
+      final variantSkuFieldFinder = find.widgetWithText(TextField, 'Variant SKU').first;
+      final variantSkuField = tester.widget<TextField>(variantSkuFieldFinder);
+      expect(variantSkuField.decoration?.prefixText, 'MYPREFIX-');
+
+      // Add a variant: enter name, variant SKU suffix, qty, and click Add Variant
+      final variantNameFieldFinder = find.widgetWithText(TextField, 'Variant Name').first;
+      await tester.enterText(variantNameFieldFinder, 'Variant 1');
+      await tester.enterText(variantSkuFieldFinder, '001');
+      await tester.pumpAndSettle();
+
+      final addVariantIcon = find.byTooltip('Add Variant');
+      expect(addVariantIcon, findsOneWidget);
+      await tester.tap(addVariantIcon);
+      await tester.pumpAndSettle();
+
+      // The variant should be added to the list. Let's verify the listed SKU contains 'MYPREFIX-001'
+      expect(find.textContaining('MYPREFIX-001'), findsOneWidget);
+
+      // Now, edit the global SKU prefix to 'NEWPREFIX'
+      await tester.enterText(skuFieldFinder, 'NEWPREFIX');
+      await tester.pumpAndSettle();
+
+      // Verify that the listed variant SKU has updated to 'NEWPREFIX-001'
+      expect(find.textContaining('NEWPREFIX-001'), findsOneWidget);
+
+      // Also verify that prefixText decoration on the SKU field has updated to 'NEWPREFIX-'
+      final updatedVariantSkuField = tester.widget<TextField>(variantSkuFieldFinder);
+      expect(updatedVariantSkuField.decoration?.prefixText, 'NEWPREFIX-');
+
+      // Click Edit Variant icon on the list tile to edit the variant
+      final editVariantIcon = find.byTooltip('Edit Variant').first;
+      await tester.tap(editVariantIcon);
+      await tester.pumpAndSettle();
+
+      // The variant SKU suffix input field should contain ONLY the suffix '001' (prefix stripped)
+      final editingVariantSkuField = tester.widget<TextField>(variantSkuFieldFinder);
+      expect(editingVariantSkuField.controller?.text, '001');
+
+      // Change the suffix to '002' and update it
+      await tester.enterText(variantSkuFieldFinder, '002');
+      await tester.pumpAndSettle();
+
+      final updateVariantIcon = find.byTooltip('Update Variant');
+      await tester.tap(updateVariantIcon);
+      await tester.pumpAndSettle();
+
+      // Verify the listed SKU is now 'NEWPREFIX-002'
+      expect(find.textContaining('NEWPREFIX-002'), findsOneWidget);
+    });
   });
 }

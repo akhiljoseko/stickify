@@ -23,8 +23,10 @@ class MobileProductDetailPanel extends StatelessWidget {
   final VoidCallback onBack;
 
   void _showEditVariantBottomSheet(BuildContext context, ProductVariant variant) {
+    final prefix = product.sku.isNotEmpty ? '${product.sku}-' : '';
+    final suffix = variant.sku.startsWith(prefix) ? variant.sku.substring(prefix.length) : variant.sku;
     final nameController = TextEditingController(text: variant.name);
-    final skuController = TextEditingController(text: variant.sku);
+    final skuController = TextEditingController(text: suffix);
     final quantityController = TextEditingController(text: variant.quantity.toString());
     final unitController = TextEditingController(text: variant.unit);
     final wholesaleController = TextEditingController(text: variant.wholesale.toString());
@@ -65,7 +67,10 @@ class MobileProductDetailPanel extends StatelessWidget {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: skuController,
-                        decoration: const InputDecoration(labelText: 'SKU'),
+                        decoration: InputDecoration(
+                          labelText: 'SKU',
+                          prefixText: product.sku.isNotEmpty ? '${product.sku}-' : null,
+                        ),
                         validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
                       ),
                       const SizedBox(height: 12),
@@ -155,11 +160,13 @@ class MobileProductDetailPanel extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () {
                           if (formKey.currentState!.validate()) {
+                            final suffixVal = skuController.text.trim();
+                            final newSku = product.sku.isNotEmpty ? '${product.sku}-$suffixVal' : suffixVal;
                             final updatedVariants = product.variants.map((v) {
                               if (v.sku == variant.sku) {
                                 return ProductVariant(
                                   name: nameController.text.trim(),
-                                  sku: skuController.text.trim(),
+                                  sku: newSku,
                                   quantity: double.parse(quantityController.text),
                                   unit: unitController.text.trim(),
                                   wholesale: double.parse(wholesaleController.text),

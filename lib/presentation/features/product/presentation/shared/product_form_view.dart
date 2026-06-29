@@ -100,13 +100,21 @@ class ProductFormViewState extends State<ProductFormView> {
     _storageController = TextEditingController(text: p?.storageConditions ?? '');
     _imageUrlController = TextEditingController(text: p?.imageUrl ?? '');
 
-    var previousSku = _skuController.text;
+    var previousSku = _skuController.text.trim();
     _skuController.addListener(() {
-      final currentSku = _skuController.text;
-      if (_varSkuController.text.isEmpty || _varSkuController.text == previousSku) {
-        _varSkuController.text = currentSku;
+      final currentSku = _skuController.text.trim();
+      if (currentSku != previousSku) {
+        setState(() {
+          for (var i = 0; i < _variants.length; i++) {
+            final v = _variants[i];
+            final suffix = _getSkuSuffix(v.sku, previousSku);
+            _variants[i] = v.copyWith(
+              sku: currentSku.isNotEmpty ? '$currentSku-$suffix' : suffix,
+            );
+          }
+          previousSku = currentSku;
+        });
       }
-      previousSku = currentSku;
     });
 
     if (p != null) {
@@ -222,15 +230,27 @@ class ProductFormViewState extends State<ProductFormView> {
     }
   }
 
+  String _getSkuSuffix(String fullSku, String globalSku) {
+    if (globalSku.isEmpty) return fullSku;
+    final prefix = '$globalSku-';
+    if (fullSku.startsWith(prefix)) {
+      return fullSku.substring(prefix.length);
+    }
+    return fullSku;
+  }
+
   void _addVariant() {
-    final name = _varNameController.text;
-    final sku = _varSkuController.text;
+    final name = _varNameController.text.trim();
+    final suffix = _varSkuController.text.trim();
     final qty = double.tryParse(_varQtyController.text) ?? 1.0;
     final unit = _varUnitController.text;
     final wholesale = double.tryParse(_varWholesaleController.text) ?? 0.0;
     final mrp = double.tryParse(_varMrpController.text) ?? 0.0;
 
-    if (name.isNotEmpty && sku.isNotEmpty) {
+    if (name.isNotEmpty && suffix.isNotEmpty) {
+      final globalSku = _skuController.text.trim();
+      final fullSku = globalSku.isNotEmpty ? '$globalSku-$suffix' : suffix;
+
       setState(() {
         final variant = ProductVariant(
           name: name,
@@ -238,7 +258,7 @@ class ProductFormViewState extends State<ProductFormView> {
           unit: unit,
           wholesale: wholesale,
           mrp: mrp,
-          sku: sku,
+          sku: fullSku,
         );
 
         if (_editingVariantIndex != null) {
@@ -249,7 +269,7 @@ class ProductFormViewState extends State<ProductFormView> {
         }
 
         _varNameController.clear();
-        _varSkuController.text = _skuController.text;
+        _varSkuController.clear();
         _varQtyController.clear();
         _varWholesaleController.clear();
         _varMrpController.clear();
@@ -263,7 +283,7 @@ class ProductFormViewState extends State<ProductFormView> {
     setState(() {
       _editingVariantIndex = index;
       _varNameController.text = v.name;
-      _varSkuController.text = v.sku;
+      _varSkuController.text = _getSkuSuffix(v.sku, _skuController.text.trim());
       _varQtyController.text = v.quantity.toString();
       _varUnitController.text = v.unit;
       _varWholesaleController.text = v.wholesale.toString();
@@ -275,7 +295,7 @@ class ProductFormViewState extends State<ProductFormView> {
     setState(() {
       _editingVariantIndex = null;
       _varNameController.clear();
-      _varSkuController.text = _skuController.text;
+      _varSkuController.clear();
       _varQtyController.clear();
       _varWholesaleController.clear();
       _varMrpController.clear();
@@ -349,7 +369,7 @@ class ProductFormViewState extends State<ProductFormView> {
           if (_editingVariantIndex == i) {
             _editingVariantIndex = null;
             _varNameController.clear();
-            _varSkuController.text = _skuController.text;
+            _varSkuController.clear();
             _varQtyController.clear();
             _varWholesaleController.clear();
             _varMrpController.clear();
@@ -361,6 +381,7 @@ class ProductFormViewState extends State<ProductFormView> {
       },
       onEditVariant: _editVariant,
       isMobile: isMobile,
+      globalSku: _skuController.text,
       editingIndex: _editingVariantIndex,
       onCancelEdit: _cancelEditVariant,
     );

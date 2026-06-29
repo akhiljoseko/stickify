@@ -29,8 +29,10 @@ class ProductDetailPanel extends StatelessWidget {
   final ValueChanged<String> onDelete;
 
   void _showEditVariantDialog(BuildContext context, ProductVariant variant) {
+    final prefix = product.sku.isNotEmpty ? '${product.sku}-' : '';
+    final suffix = variant.sku.startsWith(prefix) ? variant.sku.substring(prefix.length) : variant.sku;
     final nameController = TextEditingController(text: variant.name);
-    final skuController = TextEditingController(text: variant.sku);
+    final skuController = TextEditingController(text: suffix);
     final quantityController = TextEditingController(text: variant.quantity.toString());
     final unitController = TextEditingController(text: variant.unit);
     final wholesaleController = TextEditingController(text: variant.wholesale.toString());
@@ -61,7 +63,10 @@ class ProductDetailPanel extends StatelessWidget {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: skuController,
-                        decoration: const InputDecoration(labelText: 'SKU'),
+                        decoration: InputDecoration(
+                          labelText: 'SKU',
+                          prefixText: product.sku.isNotEmpty ? '${product.sku}-' : null,
+                        ),
                         validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
                       ),
                       const SizedBox(height: 12),
@@ -159,11 +164,13 @@ class ProductDetailPanel extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
+                      final suffixVal = skuController.text.trim();
+                      final newSku = product.sku.isNotEmpty ? '${product.sku}-$suffixVal' : suffixVal;
                       final updatedVariants = product.variants.map((v) {
                         if (v.sku == variant.sku) {
                           return ProductVariant(
                             name: nameController.text.trim(),
-                            sku: skuController.text.trim(),
+                            sku: newSku,
                             quantity: double.parse(quantityController.text),
                             unit: unitController.text.trim(),
                             wholesale: double.parse(wholesaleController.text),
@@ -207,7 +214,7 @@ class ProductDetailPanel extends StatelessWidget {
 
   void _showAddVariantDialog(BuildContext context) {
     final nameController = TextEditingController();
-    final skuController = TextEditingController(text: product.sku);
+    final skuController = TextEditingController();
     final quantityController = TextEditingController(text: '1');
     final unitController = TextEditingController(text: 'pcs');
     final wholesaleController = TextEditingController();
@@ -238,7 +245,10 @@ class ProductDetailPanel extends StatelessWidget {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: skuController,
-                        decoration: const InputDecoration(labelText: 'SKU'),
+                        decoration: InputDecoration(
+                          labelText: 'SKU',
+                          prefixText: product.sku.isNotEmpty ? '${product.sku}-' : null,
+                        ),
                         validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
                       ),
                       const SizedBox(height: 12),
@@ -336,9 +346,11 @@ class ProductDetailPanel extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
+                      final suffixVal = skuController.text.trim();
+                      final newSku = product.sku.isNotEmpty ? '${product.sku}-$suffixVal' : suffixVal;
                       final newVariant = ProductVariant(
                         name: nameController.text.trim(),
-                        sku: skuController.text.trim(),
+                        sku: newSku,
                         quantity: double.parse(quantityController.text),
                         unit: unitController.text.trim(),
                         wholesale: double.parse(wholesaleController.text),

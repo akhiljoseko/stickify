@@ -33,3 +33,12 @@ class ProductDetailView extends ProductSubView {
   @override
   List<Object?> get props => [product];
 }
+
+class ProductCopyView extends ProductSubView {
+  const ProductCopyView(this.product);
+
+  final Product product;
+
+  @override
+  List<Object?> get props => [product];
+}

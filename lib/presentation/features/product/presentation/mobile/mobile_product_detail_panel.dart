@@ -458,6 +458,11 @@ class MobileProductDetailPanel extends StatelessWidget {
             tooltip: 'Edit Product',
           ),
           IconButton(
+            icon: const Icon(Icons.copy_outlined),
+            onPressed: () => context.read<ProductCubit>().setSubView(ProductCopyView(product)),
+            tooltip: 'Copy Product',
+          ),
+          IconButton(
             icon: const Icon(Icons.delete_outline),
             onPressed: () async {
               final confirm = await showDialog<bool>(

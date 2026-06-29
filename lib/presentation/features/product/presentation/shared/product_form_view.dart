@@ -23,11 +23,15 @@ class ProductFormView extends StatefulWidget {
     required this.onBack,
     required this.onSave,
     this.product,
+    this.isCopy = false,
     super.key,
   });
 
   /// The product to edit, or null if creating a new product.
   final Product? product;
+
+  /// Whether the product is being copied.
+  final bool isCopy;
 
   /// Callback when the user requests to go back.
   final VoidCallback onBack;
@@ -85,8 +89,12 @@ class ProductFormViewState extends State<ProductFormView> {
     super.initState();
     final p = widget.product;
 
-    _nameController = TextEditingController(text: p?.name);
-    _skuController = TextEditingController(text: p?.sku);
+    _nameController = TextEditingController(
+      text: widget.isCopy && p != null ? '${p.name} (Copy)' : p?.name,
+    );
+    _skuController = TextEditingController(
+      text: widget.isCopy && p != null ? '${p.sku}-copy' : p?.sku,
+    );
     _categoryController = TextEditingController(text: p?.category ?? ProductCategories.defaultCategory);
     _shelfLifeController = TextEditingController(text: p?.shelfLifeDays?.toString() ?? '365');
     _storageController = TextEditingController(text: p?.storageConditions ?? '');
@@ -103,7 +111,11 @@ class ProductFormViewState extends State<ProductFormView> {
 
     if (p != null) {
       _ingredients.addAll(p.ingredients);
-      _variants.addAll(p.variants);
+      if (widget.isCopy) {
+        _variants.addAll(p.variants.map((v) => v.copyWith(sku: '${v.sku}-copy')));
+      } else {
+        _variants.addAll(p.variants);
+      }
       if (p.nutritionFacts != null) {
         _includeNutrition = true;
         _caloriesController = TextEditingController(text: p.nutritionFacts!.calories.toString());
@@ -182,7 +194,7 @@ class ProductFormViewState extends State<ProductFormView> {
     }
 
     final product = Product(
-      id: widget.product?.id ?? 'prod-${const Uuid().v4()}',
+      id: widget.isCopy ? 'prod-${const Uuid().v4()}' : (widget.product?.id ?? 'prod-${const Uuid().v4()}'),
       name: name,
       sku: sku,
       category: category,
@@ -423,13 +435,23 @@ class ProductFormViewState extends State<ProductFormView> {
                             ElevatedButton.icon(
                               onPressed: _saveForm,
                               icon: const Icon(Icons.save, size: 16),
-                              label: Text(widget.product != null ? 'Update Product' : 'Create Product'),
+                              label: Text(
+                                widget.isCopy
+                                    ? 'Create Product'
+                                    : (widget.product != null
+                                        ? 'Update Product'
+                                        : 'Create Product'),
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          widget.product != null ? 'Edit Product' : 'Add New Product',
+                          widget.isCopy
+                              ? 'Copy Product'
+                              : (widget.product != null
+                                  ? 'Edit Product'
+                                  : 'Add New Product'),
                           style: textTheme.displayLarge,
                         ),
                         const SizedBox(height: 24),

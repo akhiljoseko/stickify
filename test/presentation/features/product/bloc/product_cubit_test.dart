@@ -246,6 +246,8 @@ void main() {
         when(
           () => productRepository.saveProduct(any()),
         ).thenAnswer((_) async => const Result.success(null));
+        when(() => productRepository.getAllProducts())
+            .thenAnswer((_) async => const Result.success([]));
         when(
           () => productRepository.getProducts(
             page: any(named: 'page'),
@@ -295,6 +297,8 @@ void main() {
             ),
           ),
         );
+        when(() => productRepository.getAllProducts())
+            .thenAnswer((_) async => const Result.success([]));
         return ProductCubit(productRepository, fileStorageService);
       },
       act: (cubit) => cubit.saveProduct(mockProducts[0]),
@@ -345,6 +349,8 @@ void main() {
         when(() => productRepository.saveProduct(any())).thenAnswer(
           (_) async => const Result.success(null),
         );
+        when(() => productRepository.getAllProducts())
+            .thenAnswer((_) async => const Result.success([]));
         when(
           () => productRepository.getProducts(
             page: any(named: 'page'),
@@ -400,6 +406,96 @@ void main() {
             ),
           ),
         ).called(1);
+      },
+    );
+
+    blocTest<ProductCubit, ProductState>(
+      'saveProduct emits FormError when SKU prefix already exists on another product',
+      build: () {
+        when(() => productRepository.getAllProducts()).thenAnswer(
+          (_) async => const Result.success([
+            Product(
+              id: 'another-prod',
+              name: 'Another Product',
+              sku: 'DUPLICATE-SKU',
+            ),
+          ]),
+        );
+        return ProductCubit(productRepository, fileStorageService);
+      },
+      act: (cubit) => cubit.saveProduct(
+        const Product(
+          id: 'new-prod',
+          name: 'New Product',
+          sku: 'DUPLICATE-SKU',
+        ),
+      ),
+      expect: () => [
+        const ProductFormSubmitting(),
+        const ProductFormError('A product with this SKU prefix already exists.'),
+      ],
+      verify: (_) {
+        verifyNever(() => productRepository.saveProduct(any()));
+      },
+    );
+
+    blocTest<ProductCubit, ProductState>(
+      'saveProduct succeeds when SKU prefix belongs to the same product being edited',
+      build: () {
+        when(() => productRepository.getAllProducts()).thenAnswer(
+          (_) async => const Result.success([
+            Product(
+              id: 'edit-prod',
+              name: 'Product Name',
+              sku: 'SAME-SKU',
+            ),
+          ]),
+        );
+        when(() => productRepository.saveProduct(any())).thenAnswer(
+          (_) async => const Result.success(null),
+        );
+        when(
+          () => productRepository.getProducts(
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+            query: any(named: 'query'),
+            category: any(named: 'category'),
+          ),
+        ).thenAnswer(
+          (_) async => Result.success(
+            PaginatedResult(
+              items: mockProducts,
+              totalCount: 2,
+              hasMore: false,
+              currentPage: 0,
+            ),
+          ),
+        );
+        return ProductCubit(productRepository, fileStorageService);
+      },
+      act: (cubit) => cubit.saveProduct(
+        const Product(
+          id: 'edit-prod',
+          name: 'Updated Product Name',
+          sku: 'SAME-SKU',
+        ),
+      ),
+      expect: () => [
+        const ProductFormSubmitting(),
+        const ProductFormSuccess(),
+        isA<ProductPageLoaded>().having(
+          (s) => s.pagingState.isLoading,
+          'loading first',
+          true,
+        ),
+        isA<ProductPageLoaded>().having(
+          (s) => s.pagingState.isLoading,
+          'loading done',
+          false,
+        ),
+      ],
+      verify: (_) {
+        verify(() => productRepository.saveProduct(any())).called(1);
       },
     );
   });

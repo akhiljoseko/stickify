@@ -148,5 +148,51 @@ void main() {
       expect(find.text('Packaging Variants'), findsOneWidget);
       expect(find.text('No packaging variants configured.'), findsOneWidget);
     });
+
+    testWidgets('copying product pre-populates form with suffixes', (tester) async {
+      when(() => productRepository.getAllProducts()).thenAnswer(
+        (_) async => Result.success(mockProducts),
+      );
+
+      await tester.pumpApp(buildTestableWidget(), size: const Size(1200, 800));
+      await tester.pumpAndSettle();
+
+      // Open detail view
+      final firstRow = find.text('ChronoMaster Elite').first;
+      await tester.tap(firstRow);
+      await tester.pumpAndSettle();
+
+      // Click Copy Product
+      final copyButton = find.widgetWithText(OutlinedButton, 'Copy Product');
+      expect(copyButton, findsOneWidget);
+      await tester.tap(copyButton);
+      await tester.pumpAndSettle();
+
+      // Check fields and header
+      expect(find.text('Copy Product'), findsOneWidget);
+      final nameField = tester.widget<TextFormField>(
+        find.widgetWithText(TextFormField, 'Product Name').first,
+      );
+      expect(nameField.controller?.text, 'ChronoMaster Elite (Copy)');
+
+      final skuField = tester.widget<TextFormField>(
+        find.widgetWithText(TextFormField, 'Global SKU Prefix').first,
+      );
+      expect(skuField.controller?.text, 'WTCH-293-882-EL-copy');
+
+      // Click Save/Create
+      final saveButton = find.widgetWithText(ElevatedButton, 'Create Product');
+      expect(saveButton, findsOneWidget);
+      await tester.tap(saveButton);
+      await tester.pumpAndSettle();
+
+      // Verify saveProduct was called with a new UUID and the updated copy data
+      verify(() => productRepository.saveProduct(any(
+        that: isA<Product>()
+            .having((p) => p.name, 'name', 'ChronoMaster Elite (Copy)')
+            .having((p) => p.sku, 'sku', 'WTCH-293-882-EL-copy')
+            .having((p) => p.id, 'id', isNot(equals('prod-1'))),
+      ))).called(1);
+    });
   });
 }

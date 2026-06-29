@@ -99,6 +99,30 @@ class MobileProductManagementScreen extends StatelessWidget {
                     onSave: (product) => context.read<ProductCubit>().saveProduct(product),
                   ),
                 );
+              case ProductCopyView(:final product):
+                return Scaffold(
+                  appBar: AppBar(
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
+                    ),
+                    title: const Text('Copy Product'),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.check),
+                        tooltip: 'Save Product',
+                        onPressed: () => formKey.currentState?.saveForm(),
+                      ),
+                    ],
+                  ),
+                  body: ProductFormView(
+                    key: formKey,
+                    product: product,
+                    isCopy: true,
+                    onBack: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
+                    onSave: (product) => context.read<ProductCubit>().saveProduct(product),
+                  ),
+                );
               case ProductCatalogView():
                 return MobileCatalogListView(state: state);
             }

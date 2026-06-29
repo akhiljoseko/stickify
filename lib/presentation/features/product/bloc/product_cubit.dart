@@ -109,6 +109,17 @@ class ProductCubit extends Cubit<ProductState> {
   Future<void> saveProduct(Product product, {ProductSubView? nextView}) async {
     emit(const ProductFormSubmitting());
 
+    final allProductsResult = await _productRepository.getAllProducts();
+    if (allProductsResult is Success<List<Product>, AppError>) {
+      final isDuplicate = allProductsResult.value.any((p) =>
+          p.sku.trim().toLowerCase() == product.sku.trim().toLowerCase() &&
+          p.id != product.id);
+      if (isDuplicate) {
+        emit(const ProductFormError('A product with this SKU prefix already exists.'));
+        return;
+      }
+    }
+
     var finalProduct = product;
     final imageUrl = product.imageUrl;
     if (imageUrl != null &&

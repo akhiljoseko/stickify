@@ -17,6 +17,7 @@ class ProductDetailPanel extends StatelessWidget {
     required this.product,
     required this.onBack,
     required this.onEdit,
+    required this.onCopy,
     required this.onDelete,
     super.key,
   });
@@ -24,6 +25,7 @@ class ProductDetailPanel extends StatelessWidget {
   final Product product;
   final VoidCallback onBack;
   final ValueChanged<Product> onEdit;
+  final ValueChanged<Product> onCopy;
   final ValueChanged<String> onDelete;
 
   void _showEditVariantDialog(BuildContext context, ProductVariant variant) {
@@ -513,6 +515,8 @@ class ProductDetailPanel extends StatelessWidget {
                 onSelected: (value) async {
                   if (value == 'edit') {
                     onEdit(product);
+                  } else if (value == 'copy') {
+                    onCopy(product);
                   } else if (value == 'delete' && await _confirmDeleteProduct(context)) {
                     onDelete(product.id);
                   }
@@ -521,6 +525,13 @@ class ProductDetailPanel extends StatelessWidget {
                   const PopupMenuItem(value: 'edit', child: ListTile(
                     leading: Icon(Icons.edit, size: 20),
                     title: Text('Edit'),
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    contentPadding: EdgeInsets.zero,
+                  )),
+                  const PopupMenuItem(value: 'copy', child: ListTile(
+                    leading: Icon(Icons.copy, size: 20),
+                    title: Text('Copy Product'),
                     dense: true,
                     visualDensity: VisualDensity.compact,
                     contentPadding: EdgeInsets.zero,
@@ -544,6 +555,11 @@ class ProductDetailPanel extends StatelessWidget {
                     tooltip: 'Edit Product',
                   ),
                   IconButton(
+                    onPressed: () => onCopy(product),
+                    icon: const Icon(Icons.copy_outlined),
+                    tooltip: 'Copy Product',
+                  ),
+                  IconButton(
                     onPressed: () async {
                       if (await _confirmDeleteProduct(context)) {
                         onDelete(product.id);
@@ -562,6 +578,12 @@ class ProductDetailPanel extends StatelessWidget {
                     onPressed: () => onEdit(product),
                     icon: const Icon(Icons.edit, size: 16),
                     label: const Text('Edit Product'),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () => onCopy(product),
+                    icon: const Icon(Icons.copy, size: 16),
+                    label: const Text('Copy Product'),
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(

@@ -94,7 +94,8 @@ class _ProductVariantSelectionDialogState
     setState(() {
       _filteredProducts = _allProducts.where((p) {
         return p.name.toLowerCase().contains(query) ||
-            p.sku.toLowerCase().contains(query);
+            p.sku.toLowerCase().contains(query) ||
+            p.keywords.any((k) => k.toLowerCase().contains(query));
       }).toList();
       _highlightedIndex = 0;
     });

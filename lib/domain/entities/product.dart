@@ -16,6 +16,7 @@ class Product extends Equatable {
     this.ingredients = const [],
     this.nutritionFacts,
     this.variants = const [],
+    this.keywords = const [],
     this.lastModified,
   });
 
@@ -29,6 +30,7 @@ class Product extends Equatable {
   final List<Ingredient> ingredients;
   final NutritionFacts? nutritionFacts;
   final List<ProductVariant> variants;
+  final List<String> keywords;
   final DateTime? lastModified;
 
   String get ingredientsString {
@@ -49,6 +51,7 @@ class Product extends Equatable {
         ingredients,
         nutritionFacts,
         variants,
+        keywords,
         lastModified,
       ];
 
@@ -63,6 +66,7 @@ class Product extends Equatable {
     List<Ingredient>? ingredients,
     NutritionFacts? nutritionFacts,
     List<ProductVariant>? variants,
+    List<String>? keywords,
     DateTime? lastModified,
   }) {
     return Product(
@@ -76,6 +80,7 @@ class Product extends Equatable {
       ingredients: ingredients ?? this.ingredients,
       nutritionFacts: nutritionFacts ?? this.nutritionFacts,
       variants: variants ?? this.variants,
+      keywords: keywords ?? this.keywords,
       lastModified: lastModified ?? this.lastModified,
     );
   }

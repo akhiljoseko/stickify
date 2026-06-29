@@ -266,5 +266,37 @@ void main() {
       final tile = tester.widget<ListTile>(listTileFinder);
       expect(tile.selected, isTrue);
     });
+
+    testWidgets('search filters products by keyword in print dialog', (tester) async {
+      final products = [
+        const Product(
+          id: 'prod-kw-1',
+          name: 'Product Organic',
+          sku: 'SKU-1',
+          keywords: ['gluten-free'],
+        ),
+        const Product(
+          id: 'prod-kw-2',
+          name: 'Product Normal',
+          sku: 'SKU-2',
+          keywords: ['nut-free'],
+        ),
+      ];
+      when(() => productRepository.getAllProducts()).thenAnswer(
+        (_) async => Result.success(products),
+      );
+
+      await tester.pumpApp(buildTestableWidget());
+      await tester.pumpAndSettle();
+
+      // Enter search text 'gluten-free'
+      final searchField = find.byType(TextField);
+      await tester.enterText(searchField, 'gluten-free');
+      await tester.pumpAndSettle();
+
+      // Verify that Product Organic is shown, but Product Normal is filtered out
+      expect(find.text('Product Organic'), findsOneWidget);
+      expect(find.text('Product Normal'), findsNothing);
+    });
   });
 }

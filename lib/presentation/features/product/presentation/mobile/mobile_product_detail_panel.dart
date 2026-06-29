@@ -8,6 +8,7 @@ import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_ingredients_card.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/product_detail_keywords_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_nutrition_facts_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_storage_card.dart';
 import 'package:stickify/presentation/widgets/widgets.dart';
@@ -442,6 +443,10 @@ class MobileProductDetailPanel extends StatelessWidget {
       ingredients: product.ingredients,
     );
 
+    final keywordsCard = ProductDetailKeywordsCard(
+      keywords: product.keywords,
+    );
+
     final nutritionFactsCard = ProductDetailNutritionFactsCard(
       nutritionFacts: product.nutritionFacts,
     );
@@ -509,6 +514,8 @@ class MobileProductDetailPanel extends StatelessWidget {
               variantsCard,
               const SizedBox(height: 16),
               ingredientsCard,
+              const SizedBox(height: 16),
+              keywordsCard,
               const SizedBox(height: 16),
               nutritionFactsCard,
               const SizedBox(height: 16),

@@ -133,7 +133,7 @@ types:
         index: 13
   ProductHiveModel:
     typeId: 5
-    nextIndex: 13
+    nextIndex: 14
     fields:
       id:
         index: 0
@@ -157,6 +157,8 @@ types:
         index: 11
       lastModified:
         index: 12
+      keywords:
+        index: 13
   ProductVariantHiveModel:
     typeId: 6
     nextIndex: 7

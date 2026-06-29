@@ -88,7 +88,8 @@ class DatabaseProductRepository implements ProductRepository {
         final q = query.toLowerCase();
         products = products.where((p) =>
           p.name.toLowerCase().contains(q) ||
-          p.sku.toLowerCase().contains(q)
+          p.sku.toLowerCase().contains(q) ||
+          p.keywords.any((k) => k.toLowerCase().contains(q))
         ).toList();
       }
 

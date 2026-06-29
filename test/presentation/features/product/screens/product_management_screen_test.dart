@@ -196,7 +196,7 @@ void main() {
     });
 
     testWidgets('variant SKU prefix locking and renaming behavior in form view', (tester) async {
-      await tester.pumpApp(buildTestableWidget(), size: const Size(1200, 1000));
+      await tester.pumpApp(buildTestableWidget(), size: const Size(1200, 1200));
       await tester.pumpAndSettle();
 
       // Click Add Product to open the empty form
@@ -222,6 +222,7 @@ void main() {
 
       final addVariantIcon = find.byTooltip('Add Variant');
       expect(addVariantIcon, findsOneWidget);
+      await tester.ensureVisible(addVariantIcon);
       await tester.tap(addVariantIcon);
       await tester.pumpAndSettle();
 
@@ -241,6 +242,7 @@ void main() {
 
       // Click Edit Variant icon on the list tile to edit the variant
       final editVariantIcon = find.byTooltip('Edit Variant').first;
+      await tester.ensureVisible(editVariantIcon);
       await tester.tap(editVariantIcon);
       await tester.pumpAndSettle();
 
@@ -253,6 +255,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final updateVariantIcon = find.byTooltip('Update Variant');
+      await tester.ensureVisible(updateVariantIcon);
       await tester.tap(updateVariantIcon);
       await tester.pumpAndSettle();
 

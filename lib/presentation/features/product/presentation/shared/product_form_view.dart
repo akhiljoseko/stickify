@@ -8,6 +8,7 @@ import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/form_basic_info_section.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/form_ingredients_section.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/form_keywords_section.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/form_nutrition_section.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/form_storage_section.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/form_variants_section.dart';
@@ -62,11 +63,14 @@ class ProductFormViewState extends State<ProductFormView> {
   late final TextEditingController _fiberController;
 
   final List<Ingredient> _ingredients = [];
+  final List<String> _keywords = [];
   final List<ProductVariant> _variants = [];
   int? _editingVariantIndex;
 
   final TextEditingController _ingNameController = TextEditingController();
   final TextEditingController _ingPercentController = TextEditingController();
+
+  final TextEditingController _keywordController = TextEditingController();
 
   final TextEditingController _varNameController = TextEditingController();
   final TextEditingController _varSkuController = TextEditingController();
@@ -119,6 +123,7 @@ class ProductFormViewState extends State<ProductFormView> {
 
     if (p != null) {
       _ingredients.addAll(p.ingredients);
+      _keywords.addAll(p.keywords);
       if (widget.isCopy) {
         _variants.addAll(p.variants.map((v) => v.copyWith(sku: '${v.sku}-copy')));
       } else {
@@ -169,6 +174,8 @@ class ProductFormViewState extends State<ProductFormView> {
     _ingNameController.dispose();
     _ingPercentController.dispose();
 
+    _keywordController.dispose();
+
     _varNameController.dispose();
     _varSkuController.dispose();
     _varQtyController.dispose();
@@ -212,10 +219,21 @@ class ProductFormViewState extends State<ProductFormView> {
       ingredients: List.unmodifiable(_ingredients),
       nutritionFacts: nutrition,
       variants: List.unmodifiable(_variants),
+      keywords: List.unmodifiable(_keywords),
       lastModified: DateTime.now(),
     );
 
     widget.onSave(product);
+  }
+
+  void _addKeyword() {
+    final kw = _keywordController.text.trim();
+    if (kw.isNotEmpty && !_keywords.contains(kw)) {
+      setState(() {
+        _keywords.add(kw);
+        _keywordController.clear();
+      });
+    }
   }
 
   void _addIngredient() {
@@ -354,6 +372,14 @@ class ProductFormViewState extends State<ProductFormView> {
       fiberController: _fiberController,
     );
 
+    final keywordsCard = FormKeywordsSection(
+      keywordController: _keywordController,
+      keywords: _keywords,
+      onAddKeyword: _addKeyword,
+      onRemoveKeyword: (i) => setState(() => _keywords.removeAt(i)),
+      isMobile: isMobile,
+    );
+
     final variantsCard = FormVariantsSection(
       varNameController: _varNameController,
       varSkuController: _varSkuController,
@@ -414,13 +440,24 @@ class ProductFormViewState extends State<ProductFormView> {
               children: [
                 ingredientsCard,
                 const SizedBox(height: 16),
+                keywordsCard,
+                const SizedBox(height: 16),
                 nutritionCard,
               ],
             ),
             desktop: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(flex: 7, child: ingredientsCard),
+                Expanded(
+                  flex: 7,
+                  child: Column(
+                    children: [
+                      ingredientsCard,
+                      const SizedBox(height: 16),
+                      keywordsCard,
+                    ],
+                  ),
+                ),
                 const SizedBox(width: 16),
                 Expanded(flex: 5, child: nutritionCard),
               ],

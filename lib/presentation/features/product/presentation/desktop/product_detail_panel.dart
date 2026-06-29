@@ -8,6 +8,7 @@ import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_ingredients_card.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/product_detail_keywords_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_nutrition_facts_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_storage_card.dart';
 import 'package:stickify/presentation/widgets/widgets.dart';
@@ -789,6 +790,10 @@ class ProductDetailPanel extends StatelessWidget {
       ingredients: product.ingredients,
     );
 
+    final keywordsCard = ProductDetailKeywordsCard(
+      keywords: product.keywords,
+    );
+
     final nutritionFactsCard = ProductDetailNutritionFactsCard(
       nutritionFacts: product.nutritionFacts,
       subtitle: 'Per 100g serving',
@@ -835,6 +840,8 @@ class ProductDetailPanel extends StatelessWidget {
                             children: [
                               ingredientsCard,
                               const SizedBox(height: 16),
+                              keywordsCard,
+                              const SizedBox(height: 16),
                               nutritionFactsCard,
                               const SizedBox(height: 16),
                               storageCard,
@@ -848,6 +855,8 @@ class ProductDetailPanel extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     ingredientsCard,
+                                    const SizedBox(height: 16),
+                                    keywordsCard,
                                     const SizedBox(height: 16),
                                     ConstrainedBox(
                                       constraints: const BoxConstraints(maxWidth: 600),

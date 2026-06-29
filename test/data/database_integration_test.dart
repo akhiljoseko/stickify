@@ -108,6 +108,32 @@ void main() {
           final all = (await productRepository.getAllProducts()).getOrThrow();
           expect(all.length, 3);
         });
+
+        test('getProducts filters by keyword', () async {
+          const p1 = Product(
+            id: 'prod-kw-1',
+            name: 'Special Pack A',
+            sku: 'SPA-01',
+            keywords: ['gluten-free'],
+          );
+          const p2 = Product(
+            id: 'prod-kw-2',
+            name: 'Special Pack B',
+            sku: 'SPB-01',
+            keywords: ['nut-free'],
+          );
+          (await productRepository.saveProduct(p1)).getOrThrow();
+          (await productRepository.saveProduct(p2)).getOrThrow();
+
+          final res = (await productRepository.getProducts(
+            page: 0,
+            pageSize: 10,
+            query: 'gluten-free',
+          )).getOrThrow();
+
+          expect(res.items.length, 1);
+          expect(res.items.first.id, 'prod-kw-1');
+        });
       });
 
       group('DatabaseTemplateRepository', () {
@@ -210,6 +236,20 @@ void main() {
           final results = (await searchRepository.search('ChronoMaster')).getOrThrow();
           expect(results, isNotEmpty);
           expect(results.any((r) => r.title.contains('ChronoMaster')), isTrue);
+        });
+
+        test('search items matches product keywords', () async {
+          const p1 = Product(
+            id: 'prod-kw-test',
+            name: 'Keyword Product',
+            sku: 'KP-01',
+            keywords: ['sugar-free', 'vegan'],
+          );
+          (await productRepository.saveProduct(p1)).getOrThrow();
+
+          final results = (await searchRepository.search('vegan')).getOrThrow();
+          expect(results, isNotEmpty);
+          expect(results.any((r) => r.id == 'prod-kw-test'), isTrue);
         });
 
         test('search filters with category facets', () async {

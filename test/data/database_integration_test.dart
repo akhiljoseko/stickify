@@ -1,8 +1,11 @@
+// Redundant argument values are used in tests to verify defaults and cover edge cases.
+// ignore_for_file: avoid_redundant_argument_values
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
+import 'package:stickify/data/repositories/database_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
 import 'package:stickify/data/repositories/database_template_repository.dart';
@@ -27,6 +30,7 @@ void main() {
       late LocalDatabase database;
       late DatabaseProductRepository productRepository;
       late DatabaseTemplateRepository templateRepository;
+      late DatabasePrinterProfileRepository printerProfileRepository;
       late DatabasePrintJobRepository printJobRepository;
       late DatabaseSearchRepository searchRepository;
 
@@ -35,6 +39,7 @@ void main() {
         database = await dbBuilder(tempDir);
         productRepository = DatabaseProductRepository(database: database);
         templateRepository = DatabaseTemplateRepository(database: database);
+        printerProfileRepository = DatabasePrinterProfileRepository(database: database);
         printJobRepository = DatabasePrintJobRepository(database: database);
         searchRepository = DatabaseSearchRepository(
           productRepository: productRepository,
@@ -102,6 +107,32 @@ void main() {
 
           final all = (await productRepository.getAllProducts()).getOrThrow();
           expect(all.length, 3);
+        });
+
+        test('getProducts filters by keyword', () async {
+          const p1 = Product(
+            id: 'prod-kw-1',
+            name: 'Special Pack A',
+            sku: 'SPA-01',
+            keywords: ['gluten-free'],
+          );
+          const p2 = Product(
+            id: 'prod-kw-2',
+            name: 'Special Pack B',
+            sku: 'SPB-01',
+            keywords: ['nut-free'],
+          );
+          (await productRepository.saveProduct(p1)).getOrThrow();
+          (await productRepository.saveProduct(p2)).getOrThrow();
+
+          final res = (await productRepository.getProducts(
+            page: 0,
+            pageSize: 10,
+            query: 'gluten-free',
+          )).getOrThrow();
+
+          expect(res.items.length, 1);
+          expect(res.items.first.id, 'prod-kw-1');
         });
       });
 
@@ -207,6 +238,20 @@ void main() {
           expect(results.any((r) => r.title.contains('ChronoMaster')), isTrue);
         });
 
+        test('search items matches product keywords', () async {
+          const p1 = Product(
+            id: 'prod-kw-test',
+            name: 'Keyword Product',
+            sku: 'KP-01',
+            keywords: ['sugar-free', 'vegan'],
+          );
+          (await productRepository.saveProduct(p1)).getOrThrow();
+
+          final results = (await searchRepository.search('vegan')).getOrThrow();
+          expect(results, isNotEmpty);
+          expect(results.any((r) => r.id == 'prod-kw-test'), isTrue);
+        });
+
         test('search filters with category facets', () async {
           const p1 = Product(
             id: 'prod-search-1',
@@ -224,6 +269,129 @@ void main() {
           expect(templatesOnly.every((r) => r.category == 'Templates'), isTrue);
           expect(productsOnly.any((r) => r.title == 'Search Product'), isTrue);
           expect(templatesOnly.any((r) => r.title == 'Search Template'), isTrue);
+        });
+      });
+
+      group('DatabasePrinterProfileRepository', () {
+        test('starts empty', () async {
+          final profiles = (await printerProfileRepository.getAllProfiles()).getOrThrow();
+          expect(profiles, isEmpty);
+        });
+
+        test('save, update, delete, and nested round-trip calibration integrity', () async {
+          final now = DateTime(2026, 6, 24, 12, 0, 0);
+
+          final profile = PrinterProfile(
+            id: 'prof-test-1',
+            displayName: 'Zebra Shipping',
+            status: PrinterProfileStatus.active,
+            printerIdentity: const PrinterIdentity(
+              systemPrinterName: 'Zebra ZT411',
+              manufacturer: 'Zebra Technologies',
+            ),
+            capabilities: const PrinterCapabilities(
+              supportsCustomPaperSize: true,
+              supportsPortraitCustomPaper: true,
+              supportsLandscapeCustomPaper: false,
+              supportsManualFeed: false,
+              supportsBorderlessPrinting: false,
+              supportsTraySelection: true,
+            ),
+            optimizationPreferences: const OptimizationPreferences(
+              allowScaling: true,
+              allowTranslation: true,
+              allowStickerSpecificAdjustment: true,
+            ),
+            trays: [
+              PrinterTrayProfile(
+                trayIdentifier: 'tray_1',
+                displayName: 'Main Roll',
+                supportedPaperConfigurations: const [
+                  PaperConfigurationReference(
+                    id: 'shipping_100x150',
+                    displayName: 'Shipping Label',
+                  ),
+                ],
+                calibration: PrinterCalibration(
+                  enabled: true,
+                  calibrationRules: const [
+                    CalibrationRule(
+                      target: CalibrationTarget.sheet(),
+                      transformation: PrintStickerTransform(
+                        offsetX: 1.5,
+                        offsetY: -2,
+                        scaleX: 0.98,
+                        scaleY: 0.98,
+                        anchorX: 0,
+                        anchorY: 1,
+                      ),
+                    ),
+                  ],
+                  lastCalibratedAt: now,
+                ),
+              ),
+            ],
+            createdAt: now,
+            updatedAt: now,
+          );
+
+          // 1. Save profile
+          (await printerProfileRepository.saveProfile(profile)).getOrThrow();
+          var fetched = (await printerProfileRepository.getProfileById('prof-test-1')).getOrThrow();
+          expect(fetched, isNotNull);
+          
+          // Verify nested round-trip calibration integrity
+          expect(fetched!.id, equals(profile.id));
+          expect(fetched.displayName, equals(profile.displayName));
+          expect(fetched.status, equals(profile.status));
+          expect(fetched.printerIdentity, equals(profile.printerIdentity));
+          expect(fetched.capabilities, equals(profile.capabilities));
+          expect(fetched.optimizationPreferences, equals(profile.optimizationPreferences));
+          expect(fetched.trays, equals(profile.trays));
+          expect(fetched.createdAt, equals(profile.createdAt));
+          expect(fetched.updatedAt, equals(profile.updatedAt));
+
+          // Verify nested details specifically
+          final tray = fetched.trays.first;
+          expect(tray.trayIdentifier, equals('tray_1'));
+          expect(tray.supportedPaperConfigurations.first.id, equals('shipping_100x150'));
+          expect(tray.calibration.enabled, isTrue);
+          expect(tray.calibration.calibrationRules.first.target.type, equals(TargetType.sheet));
+          expect(tray.calibration.calibrationRules.first.transformation.offsetX, equals(1.5));
+          expect(tray.calibration.calibrationRules.first.transformation.anchorX, equals(0.0));
+
+          // 2. Update profile
+          final updatedProfile = PrinterProfile(
+            id: 'prof-test-1',
+            displayName: 'Zebra Shipping Updated',
+            status: PrinterProfileStatus.needsValidation,
+            printerIdentity: profile.printerIdentity,
+            capabilities: profile.capabilities,
+            optimizationPreferences: profile.optimizationPreferences,
+            trays: profile.trays,
+            createdAt: profile.createdAt,
+            updatedAt: now.add(const Duration(hours: 1)),
+          );
+
+          (await printerProfileRepository.saveProfile(updatedProfile)).getOrThrow();
+          fetched = (await printerProfileRepository.getProfileById('prof-test-1')).getOrThrow();
+          expect(fetched, isNotNull);
+          expect(fetched!.displayName, equals('Zebra Shipping Updated'));
+          expect(fetched.status, equals(PrinterProfileStatus.needsValidation));
+          expect(fetched.updatedAt, equals(now.add(const Duration(hours: 1))));
+
+          // 3. Retrieve all
+          final all = (await printerProfileRepository.getAllProfiles()).getOrThrow();
+          expect(all.length, equals(1));
+          expect(all.first.id, equals('prof-test-1'));
+
+          // 4. Delete profile
+          (await printerProfileRepository.deleteProfile('prof-test-1')).getOrThrow();
+          fetched = (await printerProfileRepository.getProfileById('prof-test-1')).getOrThrow();
+          expect(fetched, isNull);
+
+          final allAfterDelete = (await printerProfileRepository.getAllProfiles()).getOrThrow();
+          expect(allAfterDelete, isEmpty);
         });
       });
     });

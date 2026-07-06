@@ -3,7 +3,7 @@
 // ignore_for_file: comment_references, prefer_int_literals
 import 'package:responsive_framework/responsive_framework.dart';
 
-/// Canonical breakpoint name constants and configuration for Stickify.
+/// Canonical breakpoint name constants and configuration for Label Grid.
 ///
 /// **Always import and reference these constants** — never hardcode raw
 /// breakpoint strings or pixel values in widget code.

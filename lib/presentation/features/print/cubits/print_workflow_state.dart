@@ -36,6 +36,9 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     this.disabledSlots = const {},
     this.printFromBottom = false,
     this.isQuantityManuallyEdited = false,
+    this.selectedPrinterProfile,
+    this.selectedTrayProfile,
+    this.compatibilityResult,
   });
 
   /// The active product.
@@ -68,6 +71,15 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
   /// Whether the user has manually edited the quantity field.
   final bool isQuantityManuallyEdited;
 
+  /// Selected printer profile (matched from database).
+  final PrinterProfile? selectedPrinterProfile;
+
+  /// Selected tray profile for calibration/compatibility checks.
+  final PrinterTrayProfile? selectedTrayProfile;
+
+  /// Cached compatibility check result.
+  final CompatibilityAnalysisResult? compatibilityResult;
+
   /// Returns a copy of the state with modified fields.
   PrintWorkflowLoaded copyWith({
     Product? product,
@@ -80,6 +92,9 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     Set<int>? disabledSlots,
     bool? printFromBottom,
     bool? isQuantityManuallyEdited,
+    PrinterProfile? Function()? selectedPrinterProfile,
+    PrinterTrayProfile? Function()? selectedTrayProfile,
+    CompatibilityAnalysisResult? Function()? compatibilityResult,
   }) {
     return PrintWorkflowLoaded(
       product: product ?? this.product,
@@ -92,6 +107,9 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
       disabledSlots: disabledSlots ?? this.disabledSlots,
       printFromBottom: printFromBottom ?? this.printFromBottom,
       isQuantityManuallyEdited: isQuantityManuallyEdited ?? this.isQuantityManuallyEdited,
+      selectedPrinterProfile: selectedPrinterProfile != null ? selectedPrinterProfile() : this.selectedPrinterProfile,
+      selectedTrayProfile: selectedTrayProfile != null ? selectedTrayProfile() : this.selectedTrayProfile,
+      compatibilityResult: compatibilityResult != null ? compatibilityResult() : this.compatibilityResult,
     );
   }
 
@@ -107,6 +125,9 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
         disabledSlots,
         printFromBottom,
         isQuantityManuallyEdited,
+        selectedPrinterProfile,
+        selectedTrayProfile,
+        compatibilityResult,
       ];
 }
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Design system theme declarations for Stickify based on docs/design.md.
+/// Design system theme declarations for Label Grid based on docs/design.md.
 class AppTheme {
   AppTheme._();
 

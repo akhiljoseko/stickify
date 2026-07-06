@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "Label Grid"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "2.4.0"
 #define MyAppPublisher "Inevitable Software Company"
 #define MyAppExeName "stickify.exe"
 #define MyAppAssocName MyAppName + " File"
@@ -13,7 +13,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{127220BE-8A90-4C36-BD25-A1B00AF3E30F}
+AppId={{78E852C5-CCE8-4857-88DF-2AA019004114}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -34,12 +34,14 @@ ChangesAssociations=yes
 DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users).
 PrivilegesRequired=lowest
-PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=G:\GitHub\stickify
-OutputBaseFilename=label-grid-installer
-SetupIconFile=G:\GitHub\stickify\windows\runner\resources\app_icon.ico
+PrivilegesRequiredOverridesAllowed=commandline
+OutputDir=G:\GitHub\stickify\windows-release-files
+OutputBaseFilename=label-grid-{#MyAppVersion}-setup
+SetupIconFile=G:\GitHub\stickify\windows-release-files\setup-icon.ico
+Password=inevitable@26
+Encryption=yes
 SolidCompression=yes
-WizardStyle=modern
+WizardStyle=modern dynamic
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

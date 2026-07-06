@@ -1,6 +1,6 @@
 // The Domain Service pattern defines clean single-purpose service boundaries.
-// ignore_for_file: one_member_abstracts
 
+import 'dart:typed_data';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 
@@ -18,5 +18,15 @@ abstract interface class PrintService {
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,
+    PrintExecutionConfiguration? executionConfiguration,
+  });
+
+  /// Prints raw PDF bytes directly to the target system printer with specified paper format size.
+  Future<Result<void, AppError>> printRawPdf({
+    required Uint8List pdfBytes,
+    required PrinterDevice printer,
+    required double widthMm,
+    required double heightMm,
+    required String docName,
   });
 }

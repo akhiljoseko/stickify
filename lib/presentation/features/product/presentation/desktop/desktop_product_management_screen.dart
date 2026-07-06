@@ -51,11 +51,19 @@ class DesktopProductManagementScreen extends StatelessWidget {
                   onBack: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
                   onSave: (product) => context.read<ProductCubit>().saveProduct(product),
                 );
+              case ProductCopyView(:final product):
+                return ProductFormView(
+                  product: product,
+                  isCopy: true,
+                  onBack: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
+                  onSave: (product) => context.read<ProductCubit>().saveProduct(product),
+                );
               case ProductDetailView(:final product):
                 return ProductDetailPanel(
                   product: product,
                   onBack: () => context.read<ProductCubit>().setSubView(const ProductCatalogView()),
                   onEdit: (product) => context.read<ProductCubit>().setSubView(ProductEditView(product)),
+                  onCopy: (product) => context.read<ProductCubit>().setSubView(ProductCopyView(product)),
                   onDelete: (id) async {
                     await context.read<ProductCubit>().deleteProduct(id);
                     if (context.mounted) {

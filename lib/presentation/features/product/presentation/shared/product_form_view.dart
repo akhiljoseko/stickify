@@ -8,6 +8,7 @@ import 'package:stickify/domain/entities/product.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/form_basic_info_section.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/form_ingredients_section.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/form_keywords_section.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/form_nutrition_section.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/form_storage_section.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/form_variants_section.dart';
@@ -23,11 +24,15 @@ class ProductFormView extends StatefulWidget {
     required this.onBack,
     required this.onSave,
     this.product,
+    this.isCopy = false,
     super.key,
   });
 
   /// The product to edit, or null if creating a new product.
   final Product? product;
+
+  /// Whether the product is being copied.
+  final bool isCopy;
 
   /// Callback when the user requests to go back.
   final VoidCallback onBack;
@@ -58,11 +63,14 @@ class ProductFormViewState extends State<ProductFormView> {
   late final TextEditingController _fiberController;
 
   final List<Ingredient> _ingredients = [];
+  final List<String> _keywords = [];
   final List<ProductVariant> _variants = [];
   int? _editingVariantIndex;
 
   final TextEditingController _ingNameController = TextEditingController();
   final TextEditingController _ingPercentController = TextEditingController();
+
+  final TextEditingController _keywordController = TextEditingController();
 
   final TextEditingController _varNameController = TextEditingController();
   final TextEditingController _varSkuController = TextEditingController();
@@ -85,25 +93,42 @@ class ProductFormViewState extends State<ProductFormView> {
     super.initState();
     final p = widget.product;
 
-    _nameController = TextEditingController(text: p?.name);
-    _skuController = TextEditingController(text: p?.sku);
+    _nameController = TextEditingController(
+      text: widget.isCopy && p != null ? '${p.name} (Copy)' : p?.name,
+    );
+    _skuController = TextEditingController(
+      text: widget.isCopy && p != null ? '${p.sku}-copy' : p?.sku,
+    );
     _categoryController = TextEditingController(text: p?.category ?? ProductCategories.defaultCategory);
     _shelfLifeController = TextEditingController(text: p?.shelfLifeDays?.toString() ?? '365');
     _storageController = TextEditingController(text: p?.storageConditions ?? '');
     _imageUrlController = TextEditingController(text: p?.imageUrl ?? '');
 
-    var previousSku = _skuController.text;
+    var previousSku = _skuController.text.trim();
     _skuController.addListener(() {
-      final currentSku = _skuController.text;
-      if (_varSkuController.text.isEmpty || _varSkuController.text == previousSku) {
-        _varSkuController.text = currentSku;
+      final currentSku = _skuController.text.trim();
+      if (currentSku != previousSku) {
+        setState(() {
+          for (var i = 0; i < _variants.length; i++) {
+            final v = _variants[i];
+            final suffix = _getSkuSuffix(v.sku, previousSku);
+            _variants[i] = v.copyWith(
+              sku: currentSku.isNotEmpty ? '$currentSku-$suffix' : suffix,
+            );
+          }
+          previousSku = currentSku;
+        });
       }
-      previousSku = currentSku;
     });
 
     if (p != null) {
       _ingredients.addAll(p.ingredients);
-      _variants.addAll(p.variants);
+      _keywords.addAll(p.keywords);
+      if (widget.isCopy) {
+        _variants.addAll(p.variants.map((v) => v.copyWith(sku: '${v.sku}-copy')));
+      } else {
+        _variants.addAll(p.variants);
+      }
       if (p.nutritionFacts != null) {
         _includeNutrition = true;
         _caloriesController = TextEditingController(text: p.nutritionFacts!.calories.toString());
@@ -149,6 +174,8 @@ class ProductFormViewState extends State<ProductFormView> {
     _ingNameController.dispose();
     _ingPercentController.dispose();
 
+    _keywordController.dispose();
+
     _varNameController.dispose();
     _varSkuController.dispose();
     _varQtyController.dispose();
@@ -182,7 +209,7 @@ class ProductFormViewState extends State<ProductFormView> {
     }
 
     final product = Product(
-      id: widget.product?.id ?? 'prod-${const Uuid().v4()}',
+      id: widget.isCopy ? 'prod-${const Uuid().v4()}' : (widget.product?.id ?? 'prod-${const Uuid().v4()}'),
       name: name,
       sku: sku,
       category: category,
@@ -192,10 +219,21 @@ class ProductFormViewState extends State<ProductFormView> {
       ingredients: List.unmodifiable(_ingredients),
       nutritionFacts: nutrition,
       variants: List.unmodifiable(_variants),
+      keywords: List.unmodifiable(_keywords),
       lastModified: DateTime.now(),
     );
 
     widget.onSave(product);
+  }
+
+  void _addKeyword() {
+    final kw = _keywordController.text.trim();
+    if (kw.isNotEmpty && !_keywords.contains(kw)) {
+      setState(() {
+        _keywords.add(kw);
+        _keywordController.clear();
+      });
+    }
   }
 
   void _addIngredient() {
@@ -210,15 +248,27 @@ class ProductFormViewState extends State<ProductFormView> {
     }
   }
 
+  String _getSkuSuffix(String fullSku, String globalSku) {
+    if (globalSku.isEmpty) return fullSku;
+    final prefix = '$globalSku-';
+    if (fullSku.startsWith(prefix)) {
+      return fullSku.substring(prefix.length);
+    }
+    return fullSku;
+  }
+
   void _addVariant() {
-    final name = _varNameController.text;
-    final sku = _varSkuController.text;
+    final name = _varNameController.text.trim();
+    final suffix = _varSkuController.text.trim();
     final qty = double.tryParse(_varQtyController.text) ?? 1.0;
     final unit = _varUnitController.text;
     final wholesale = double.tryParse(_varWholesaleController.text) ?? 0.0;
     final mrp = double.tryParse(_varMrpController.text) ?? 0.0;
 
-    if (name.isNotEmpty && sku.isNotEmpty) {
+    if (name.isNotEmpty && suffix.isNotEmpty) {
+      final globalSku = _skuController.text.trim();
+      final fullSku = globalSku.isNotEmpty ? '$globalSku-$suffix' : suffix;
+
       setState(() {
         final variant = ProductVariant(
           name: name,
@@ -226,7 +276,7 @@ class ProductFormViewState extends State<ProductFormView> {
           unit: unit,
           wholesale: wholesale,
           mrp: mrp,
-          sku: sku,
+          sku: fullSku,
         );
 
         if (_editingVariantIndex != null) {
@@ -237,7 +287,7 @@ class ProductFormViewState extends State<ProductFormView> {
         }
 
         _varNameController.clear();
-        _varSkuController.text = _skuController.text;
+        _varSkuController.clear();
         _varQtyController.clear();
         _varWholesaleController.clear();
         _varMrpController.clear();
@@ -251,7 +301,7 @@ class ProductFormViewState extends State<ProductFormView> {
     setState(() {
       _editingVariantIndex = index;
       _varNameController.text = v.name;
-      _varSkuController.text = v.sku;
+      _varSkuController.text = _getSkuSuffix(v.sku, _skuController.text.trim());
       _varQtyController.text = v.quantity.toString();
       _varUnitController.text = v.unit;
       _varWholesaleController.text = v.wholesale.toString();
@@ -263,7 +313,7 @@ class ProductFormViewState extends State<ProductFormView> {
     setState(() {
       _editingVariantIndex = null;
       _varNameController.clear();
-      _varSkuController.text = _skuController.text;
+      _varSkuController.clear();
       _varQtyController.clear();
       _varWholesaleController.clear();
       _varMrpController.clear();
@@ -322,6 +372,14 @@ class ProductFormViewState extends State<ProductFormView> {
       fiberController: _fiberController,
     );
 
+    final keywordsCard = FormKeywordsSection(
+      keywordController: _keywordController,
+      keywords: _keywords,
+      onAddKeyword: _addKeyword,
+      onRemoveKeyword: (i) => setState(() => _keywords.removeAt(i)),
+      isMobile: isMobile,
+    );
+
     final variantsCard = FormVariantsSection(
       varNameController: _varNameController,
       varSkuController: _varSkuController,
@@ -337,7 +395,7 @@ class ProductFormViewState extends State<ProductFormView> {
           if (_editingVariantIndex == i) {
             _editingVariantIndex = null;
             _varNameController.clear();
-            _varSkuController.text = _skuController.text;
+            _varSkuController.clear();
             _varQtyController.clear();
             _varWholesaleController.clear();
             _varMrpController.clear();
@@ -349,6 +407,7 @@ class ProductFormViewState extends State<ProductFormView> {
       },
       onEditVariant: _editVariant,
       isMobile: isMobile,
+      globalSku: _skuController.text,
       editingIndex: _editingVariantIndex,
       onCancelEdit: _cancelEditVariant,
     );
@@ -381,13 +440,24 @@ class ProductFormViewState extends State<ProductFormView> {
               children: [
                 ingredientsCard,
                 const SizedBox(height: 16),
+                keywordsCard,
+                const SizedBox(height: 16),
                 nutritionCard,
               ],
             ),
             desktop: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(flex: 7, child: ingredientsCard),
+                Expanded(
+                  flex: 7,
+                  child: Column(
+                    children: [
+                      ingredientsCard,
+                      const SizedBox(height: 16),
+                      keywordsCard,
+                    ],
+                  ),
+                ),
                 const SizedBox(width: 16),
                 Expanded(flex: 5, child: nutritionCard),
               ],
@@ -423,13 +493,23 @@ class ProductFormViewState extends State<ProductFormView> {
                             ElevatedButton.icon(
                               onPressed: _saveForm,
                               icon: const Icon(Icons.save, size: 16),
-                              label: Text(widget.product != null ? 'Update Product' : 'Create Product'),
+                              label: Text(
+                                widget.isCopy
+                                    ? 'Create Product'
+                                    : (widget.product != null
+                                        ? 'Update Product'
+                                        : 'Create Product'),
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          widget.product != null ? 'Edit Product' : 'Add New Product',
+                          widget.isCopy
+                              ? 'Copy Product'
+                              : (widget.product != null
+                                  ? 'Edit Product'
+                                  : 'Add New Product'),
                           style: textTheme.displayLarge,
                         ),
                         const SizedBox(height: 24),

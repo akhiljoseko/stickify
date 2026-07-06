@@ -1,8 +1,12 @@
-
-import 'package:flutter/foundation.dart';
+// The named parameters must be public for callers in other libraries, but the
+// internal fields are kept private to preserve encapsulation, requiring initializer lists.
+// ignore_for_file: prefer_initializing_formals
+import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:stickify/core/core.dart';
+import 'package:stickify/core/services/printing/print_calibration_context_resolver.dart';
+import 'package:stickify/core/services/printing/print_pre_flight_validator.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// Concrete implementation of [PrintService] using the `pdf` and `printing` packages.
@@ -13,10 +17,16 @@ import 'package:stickify/domain/domain.dart';
 class PdfPrintService implements PrintService, PrinterDiscoveryService {
   /// Instantiates a new [PdfPrintService].
   const PdfPrintService({
-    required this._layoutEngine,
-  });
+    required LabelLayoutEngine layoutEngine,
+    required PrintCalibrationContextResolver calibrationResolver,
+    PrintPreFlightValidator preFlightValidator = const PrintPreFlightValidator(),
+  })  : _layoutEngine = layoutEngine,
+        _calibrationResolver = calibrationResolver,
+        _preFlightValidator = preFlightValidator;
 
   final LabelLayoutEngine _layoutEngine;
+  final PrintCalibrationContextResolver _calibrationResolver;
+  final PrintPreFlightValidator _preFlightValidator;
 
   @override
   Future<List<PrinterDevice>> getAvailablePrinters() async {
@@ -24,6 +34,11 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
     return list
         .map((p) => PrinterDevice(name: p.name, url: p.url, isDefault: p.isDefault))
         .toList();
+  }
+
+  @override
+  Future<List<DiscoveredPrinter>> getDiscoveredPrinters() {
+    throw UnimplementedError('getDiscoveredPrinters is not implemented in PdfPrintService');
   }
 
   @override
@@ -35,100 +50,32 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,
+    PrintExecutionConfiguration? executionConfiguration,
   }) async {
     try {
-      // 1. Pre-print validation layer
-      final sheetConfig = template.sheetConfig;
-      if (sheetConfig == null) {
-        return const Result.failure(
-          ValidationError(message: 'Sheet configuration is required for custom label printing.'),
-        );
-      }
-      final stickerConfig = template.stickerConfig;
-      if (stickerConfig == null) {
-        return const Result.failure(
-          ValidationError(message: 'Sticker configuration is required for custom label printing.'),
-        );
+      // 1. Pre-print validation (delegated to PrintPreFlightValidator)
+      final validationResult = _preFlightValidator.validate(
+        template: template,
+        quantity: quantity,
+        disabledSlots: disabledSlots,
+      );
+      if (validationResult case Failure(error: final err)) {
+        return Result.failure(err);
       }
 
-      if (sheetConfig.pageWidth <= 0 || sheetConfig.pageHeight <= 0) {
-        return const Result.failure(ValidationError(message: 'Page width and height must be greater than zero.'));
-      }
-      if (stickerConfig.widthMm <= 0 || stickerConfig.heightMm <= 0) {
-        return const Result.failure(ValidationError(message: 'Sticker width and height must be greater than zero.'));
-      }
-      if (sheetConfig.columns <= 0 || sheetConfig.rows <= 0) {
-        return const Result.failure(ValidationError(message: 'Columns and rows must be greater than zero.'));
-      }
-      if (sheetConfig.columnGap < 0 || sheetConfig.rowGap < 0) {
-        return const Result.failure(ValidationError(message: 'Gaps cannot be negative.'));
-      }
-      if (sheetConfig.marginTop < 0 || sheetConfig.marginBottom < 0 ||
-          sheetConfig.marginLeft < 0 || sheetConfig.marginRight < 0) {
-        return const Result.failure(ValidationError(message: 'Margins cannot be negative.'));
-      }
-      if (quantity <= 0) {
-        return const Result.failure(ValidationError(message: 'Quantity must be greater than zero.'));
-      }
+      final sheetConfig = template.sheetConfig!;
 
-      // Check slot indices
-      final maxSlots = sheetConfig.columns * sheetConfig.rows;
-      for (final slot in disabledSlots) {
-        if (slot < 0 || slot >= maxSlots) {
-          return const Result.failure(
-            ValidationError(message: 'Disabled slot index is out of bounds.'),
-          );
-        }
+      // 2. Resolve coordinate context using the print calibration context resolver helper.
+      final calibrationResult = _calibrationResolver.resolve(
+        executionConfiguration: executionConfiguration,
+        sheetConfig: sheetConfig,
+      );
+      if (calibrationResult case Failure(error: final err)) {
+        return Result.failure(err);
       }
+      final coordinateContext = (calibrationResult as Success<PrintCoordinateContext, AppError>).value;
 
-      final requiredWidth = sheetConfig.marginLeft +
-          sheetConfig.columns * stickerConfig.widthMm +
-          (sheetConfig.columns - 1) * sheetConfig.columnGap +
-          sheetConfig.marginRight;
-      final requiredHeight = sheetConfig.marginTop +
-          sheetConfig.rows * stickerConfig.heightMm +
-          (sheetConfig.rows - 1) * sheetConfig.rowGap +
-          sheetConfig.marginBottom;
-
-      if (requiredWidth > sheetConfig.pageWidth || requiredHeight > sheetConfig.pageHeight) {
-        return Result.failure(
-          ValidationError(
-            message: 'Sticker grid layout exceeds the physical sheet bounds. '
-                'Required size: ${requiredWidth.toStringAsFixed(1)} x ${requiredHeight.toStringAsFixed(1)} mm. '
-                'Configured sheet size: ${sheetConfig.pageWidth} x ${sheetConfig.pageHeight} mm.',
-          ),
-        );
-      }
-
-      if (stickerConfig.printableArea.isNotEmpty && stickerConfig.printableArea.length < 3) {
-        return const Result.failure(ValidationError(message: 'Printable area polygon must have at least 3 points.'));
-      }
-
-      // Barcode / QR containment validation
-      for (final element in template.elements) {
-        final isBarcodeOrQr = element is BarcodeElementBlueprint || element is QrElementBlueprint;
-        final isInside = PolygonUtils.isBoxInPolygon(
-          x: element.x,
-          y: element.y,
-          width: element.width,
-          height: element.height,
-          rotationDegrees: element.rotation,
-          vertices: stickerConfig.printableArea,
-        );
-
-        if (isBarcodeOrQr && !isInside) {
-          return Result.failure(
-            ValidationError(
-              message: 'Barcode/QR element "${element.id}" falls outside the printable area polygon.',
-            ),
-          );
-        } else if (!isInside) {
-          // Log a warning for non-barcode elements that are clipped
-          debugPrint('WARNING: Element "${element.id}" is outside the printable area polygon.');
-        }
-      }
-
-      // 2. Generate PDF bytes using the layout engine
+      // 3. Generate PDF bytes using the layout engine.
       final pdfBytes = await _layoutEngine.buildPdfBytes(
         product: product,
         variant: variant,
@@ -136,6 +83,7 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
         quantity: quantity,
         disabledSlots: disabledSlots,
         printFromBottom: printFromBottom,
+        coordinateContext: coordinateContext,
       );
 
       final targetFormat = PdfPageFormat(
@@ -144,7 +92,7 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
         marginAll: 0,
       );
 
-      // 3. Dispatch to printing framework
+      // 4. Dispatch to printing framework
       await Printing.layoutPdf(
         name: '${product.name}_${variant.name}_labels',
         onLayout: (format) async => pdfBytes,
@@ -158,6 +106,41 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
       return Result.failure(
         UnexpectedError(
           message: 'Failed to compile and print PDF document.',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<void, AppError>> printRawPdf({
+    required Uint8List pdfBytes,
+    required PrinterDevice printer,
+    required double widthMm,
+    required double heightMm,
+    required String docName,
+  }) async {
+    try {
+      final targetFormat = PdfPageFormat(
+        widthMm * PdfPageFormat.mm,
+        heightMm * PdfPageFormat.mm,
+        marginAll: 0,
+      );
+
+      await Printing.layoutPdf(
+        name: docName,
+        onLayout: (format) async => pdfBytes,
+        format: targetFormat,
+        dynamicLayout: false,
+        forceCustomPrintPaper: true,
+      );
+
+      return const Result.success(null);
+    } catch (e, s) {
+      return Result.failure(
+        UnexpectedError(
+          message: 'Failed to print raw PDF document.',
           originalError: e,
           stackTrace: s,
         ),

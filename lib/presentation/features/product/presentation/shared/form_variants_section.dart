@@ -15,6 +15,7 @@ class FormVariantsSection extends StatelessWidget {
     required this.onRemoveVariant,
     required this.onEditVariant,
     required this.isMobile,
+    required this.globalSku,
     this.editingIndex,
     this.onCancelEdit,
     super.key,
@@ -31,6 +32,7 @@ class FormVariantsSection extends StatelessWidget {
   final ValueChanged<int> onRemoveVariant;
   final ValueChanged<int> onEditVariant;
   final bool isMobile;
+  final String globalSku;
   final int? editingIndex;
   final VoidCallback? onCancelEdit;
 
@@ -62,7 +64,10 @@ class FormVariantsSection extends StatelessWidget {
               const SizedBox(height: 12),
               TextField(
                 controller: varSkuController,
-                decoration: const InputDecoration(labelText: 'Variant SKU', hintText: 'e.g. ALM-150P-001'),
+                decoration: InputDecoration(
+                  labelText: 'Variant SKU',
+                  prefixText: globalSku.isNotEmpty ? '$globalSku-' : null,
+                ),
               ),
               const SizedBox(height: 12),
               Row(
@@ -152,7 +157,10 @@ class FormVariantsSection extends StatelessWidget {
                     flex: 3,
                     child: TextField(
                       controller: varSkuController,
-                      decoration: const InputDecoration(labelText: 'Variant SKU', hintText: 'e.g. ALM-150P-001'),
+                      decoration: InputDecoration(
+                        labelText: 'Variant SKU',
+                        prefixText: globalSku.isNotEmpty ? '$globalSku-' : null,
+                      ),
                     ),
                   ),
                 ],

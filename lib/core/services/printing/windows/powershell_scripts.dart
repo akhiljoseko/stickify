@@ -116,6 +116,7 @@ if ($Action -eq "set") {
 
     # Query printer paper sizes to find the matched paper size RawKind ID
     $paperSizeId = 0
+    $isFlipped = $false
     try {
         [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing") | Out-Null
         $settings = New-Object System.Drawing.Printing.PrinterSettings
@@ -130,10 +131,15 @@ if ($Action -eq "set") {
             $hMm = [Math]::Round($ps.Height * 0.254, 1)
             
             $matchNormal = [Math]::Abs($wMm - $targetW) -le $tolerance -and [Math]::Abs($hMm - $targetH) -le $tolerance
+            $matchFlipped = [Math]::Abs($wMm - $targetH) -le $tolerance -and [Math]::Abs($hMm - $targetW) -le $tolerance
             
             if ($matchNormal) {
                 $paperSizeId = $ps.RawKind
+                $isFlipped = $false
                 break
+            } elseif ($matchFlipped) {
+                $paperSizeId = $ps.RawKind
+                $isFlipped = $true
             }
         }
     } catch {}
@@ -151,6 +157,12 @@ if ($Action -eq "set") {
 
     $w = [Int16][Math]::Round($WidthMm * 10)
     $h = [Int16][Math]::Round($HeightMm * 10)
+
+    if ($isFlipped) {
+        # Swap width and height to match the portrait-registered form in the driver
+        $w = [Int16][Math]::Round($HeightMm * 10)
+        $h = [Int16][Math]::Round($WidthMm * 10)
+    }
 
     # Always Portrait (1) for custom paper sizes since layout coordinates/rotation are already
     # fully composed in the generated PDF bytes. This prevents driver-level double-rotation.
@@ -222,6 +234,25 @@ $settings.PaperSizes | ForEach-Object {
         Name = $_.PaperName
         Width = [Math]::Round($_.Width * 0.254, 1)
         Height = [Math]::Round($_.Height * 0.254, 1)
+    }
+} | ConvertTo-Json
+''';
+
+  /// PowerShell script that lists all installed printers with their status,
+  /// driver name, manufacturer, and driver version as a JSON array.
+  static const String listPrinters = r'''
+$drivers = Get-PrinterDriver | Group-Object -Property Name -AsHashTable -AsString
+Get-Printer | ForEach-Object {
+    $drv = $drivers[$_.DriverName]
+    if ($drv -is [array]) {
+        $drv = $drv[0]
+    }
+    [PSCustomObject]@{
+        Name = $_.Name
+        PrinterStatus = $_.PrinterStatus.ToString()
+        DriverName = $_.DriverName
+        Manufacturer = if ($drv) { $drv.Manufacturer } else { "" }
+        DriverVersion = if ($drv) { $drv.DriverVersion.ToString() } else { "" }
     }
 } | ConvertTo-Json
 ''';

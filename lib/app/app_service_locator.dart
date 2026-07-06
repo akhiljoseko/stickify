@@ -8,17 +8,22 @@ import 'package:stickify/core/platform/file_picker_service.dart';
 import 'package:stickify/core/presentation/notifications/notification_service.dart';
 import 'package:stickify/core/services/pdf_print_service.dart';
 import 'package:stickify/core/services/print_job/timestamp_print_job_id_generator.dart';
+import 'package:stickify/core/services/printing/calibration_sheet_pdf_generator.dart';
 import 'package:stickify/core/services/printing/label_pdf_layout_engine.dart';
+import 'package:stickify/core/services/printing/print_calibration_context_resolver.dart';
 import 'package:stickify/core/services/printing/windows/windows_devmode_manager.dart';
 import 'package:stickify/core/services/printing/windows/windows_paper_validator.dart';
 import 'package:stickify/core/services/printing/windows/windows_print_service.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
+import 'package:stickify/data/repositories/database_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
 import 'package:stickify/data/repositories/database_template_repository.dart';
 import 'package:stickify/data/repositories/database_variant_print_stats_repository.dart';
+import 'package:stickify/data/repositories/firestore_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/firestore_product_repository.dart';
 import 'package:stickify/data/repositories/firestore_template_repository.dart';
+import 'package:stickify/data/repositories/syncing_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/syncing_product_repository.dart';
 import 'package:stickify/data/repositories/syncing_template_repository.dart';
 import 'package:stickify/data/services/firebase_auth_service.dart';
@@ -28,6 +33,9 @@ import 'package:stickify/data/services/hive_sync_queue.dart';
 import 'package:stickify/data/services/local_file_storage_service.dart';
 import 'package:stickify/data/services/unimplemented_file_storage_service.dart';
 import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/features/printer_configuration/cubit/printer_configuration_cubit.dart';
+import 'package:stickify/presentation/features/printer_management/cubit/calibration_session_cubit.dart';
+import 'package:stickify/presentation/features/printer_management/cubit/printer_management_cubit.dart';
 
 /// Centralized Dependency Injection container and service locator.
 class AppServiceLocator {
@@ -36,15 +44,20 @@ class AppServiceLocator {
     required this.authService,
     required this.productRepository,
     required this.templateRepository,
+    required this.printerProfileRepository,
     required this.printJobRepository,
     required this.variantPrintStatsRepository,
     required this.searchRepository,
     required this.printService,
+    required this.printerDiscoveryService,
     required this.filePickerService,
     required this.printJobIdGenerator,
     required this.featureAccessService,
     required this.notificationService,
     required this.fileStorageService,
+    required this.printerCalibrationCoordinateResolver,
+    required this.templatePrinterCompatibilityAnalyzer,
+    required this.printPipelineOrchestrator,
     required this._authSubscription,
   });
 
@@ -63,6 +76,7 @@ class AppServiceLocator {
 
     final localProductRepo = DatabaseProductRepository(database: database);
     final localTemplateRepo = DatabaseTemplateRepository(database: database);
+    final localPrinterProfileRepo = DatabasePrinterProfileRepository(database: database);
     final syncQueue = HiveSyncQueue(database: database);
 
     final productRepository = SyncingProductRepository(
@@ -71,6 +85,10 @@ class AppServiceLocator {
     );
     final templateRepository = SyncingTemplateRepository(
       local: localTemplateRepo,
+      syncQueue: syncQueue,
+    );
+    final printerProfileRepository = SyncingPrinterProfileRepository(
+      local: localPrinterProfileRepo,
       syncQueue: syncQueue,
     );
     final printJobRepository = DatabasePrintJobRepository(
@@ -86,13 +104,47 @@ class AppServiceLocator {
     );
 
     const layoutEngine = LabelPdfLayoutEngine();
-    final printService = Platform.isWindows
-        ? WindowsPrintService(
-            layoutEngine: layoutEngine,
-            paperValidator: WindowsPaperValidator(),
-            devModeManager: WindowsDevModeManager(),
-          ) as PrintService
-        : const PdfPrintService(layoutEngine: layoutEngine) as PrintService;
+
+    // Register calibration engine components
+    const matcher = CalibrationRuleMatcher();
+    const composer = CalibrationTransformComposer();
+    const resolver = PrinterCalibrationCoordinateResolver(
+      ruleMatcher: matcher,
+      transformComposer: composer,
+    );
+    const calibrationResolver = PrintCalibrationContextResolver(resolver);
+
+    const templatePrinterCompatibilityAnalyzer = TemplatePrinterCompatibilityAnalyzer();
+    const intelligentTransformGenerator = IntelligentTransformGenerator();
+    const printPipelineOrchestrator = PrintPipelineOrchestrator(
+      calibrationResolver: resolver,
+      compatibilityAnalyzer: templatePrinterCompatibilityAnalyzer,
+      transformGenerator: intelligentTransformGenerator,
+      transformComposer: composer,
+    );
+
+    // Use typed local variables so both PrintService and PrinterDiscoveryService
+    // can be stored without a runtime cast. The knowledge that each concrete
+    // service implements both interfaces is encapsulated here in the factory.
+    final PrintService printService;
+    final PrinterDiscoveryService printerDiscoveryService;
+    if (Platform.isWindows) {
+      final svc = WindowsPrintService(
+        layoutEngine: layoutEngine,
+        paperValidator: WindowsPaperValidator(),
+        devModeManager: WindowsDevModeManager(),
+        calibrationResolver: calibrationResolver,
+      );
+      printService = svc;
+      printerDiscoveryService = svc;
+    } else {
+      const svc = PdfPrintService(
+        layoutEngine: layoutEngine,
+        calibrationResolver: calibrationResolver,
+      );
+      printService = svc;
+      printerDiscoveryService = svc;
+    }
 
     final filePickerService = ImagePickerServiceImpl(ImagePicker());
     const printJobIdGenerator = TimestampPrintJobIdGenerator();
@@ -110,9 +162,11 @@ class AppServiceLocator {
         final uid = user.uid;
         productRepository.remote = FirestoreProductRepository(remoteDb: remoteDb, userId: uid);
         templateRepository.remote = FirestoreTemplateRepository(remoteDb: remoteDb, userId: uid);
+        printerProfileRepository.remote = FirestorePrinterProfileRepository(remoteDb: remoteDb, userId: uid);
       } else {
         productRepository.remote = null;
         templateRepository.remote = null;
+        printerProfileRepository.remote = null;
       }
     });
 
@@ -121,6 +175,7 @@ class AppServiceLocator {
     if (currentUser != null) {
       productRepository.remote = FirestoreProductRepository(remoteDb: remoteDb, userId: currentUser.uid);
       templateRepository.remote = FirestoreTemplateRepository(remoteDb: remoteDb, userId: currentUser.uid);
+      printerProfileRepository.remote = FirestorePrinterProfileRepository(remoteDb: remoteDb, userId: currentUser.uid);
     }
 
     return AppServiceLocator._(
@@ -128,15 +183,20 @@ class AppServiceLocator {
       authService: authService,
       productRepository: productRepository,
       templateRepository: templateRepository,
+      printerProfileRepository: printerProfileRepository,
       printJobRepository: printJobRepository,
       variantPrintStatsRepository: variantPrintStatsRepository,
       searchRepository: searchRepository,
       printService: printService,
+      printerDiscoveryService: printerDiscoveryService,
       filePickerService: filePickerService,
       printJobIdGenerator: printJobIdGenerator,
       featureAccessService: featureAccessService,
       notificationService: notificationService,
       fileStorageService: fileStorageService,
+      printerCalibrationCoordinateResolver: resolver,
+      templatePrinterCompatibilityAnalyzer: templatePrinterCompatibilityAnalyzer,
+      printPipelineOrchestrator: printPipelineOrchestrator,
       authSubscription: authSubscription,
     );
   }
@@ -153,6 +213,9 @@ class AppServiceLocator {
   /// The syncing template repository.
   final SyncableTemplateRepository templateRepository;
 
+  /// The syncing printer profile repository.
+  final SyncablePrinterProfileRepository printerProfileRepository;
+
   /// The local-only print job repository.
   final PrintJobRepository printJobRepository;
 
@@ -164,6 +227,12 @@ class AppServiceLocator {
 
   /// The printing service.
   final PrintService printService;
+
+  /// The printer discovery service.
+  ///
+  /// Points to the same concrete instance as [printService] but is typed
+  /// independently — no runtime cast required at the DI registration site.
+  final PrinterDiscoveryService printerDiscoveryService;
 
   /// The file picking service.
   final FilePickerService filePickerService;
@@ -181,6 +250,64 @@ class AppServiceLocator {
   final FileStorageService fileStorageService;
 
   final StreamSubscription<AppUser?> _authSubscription;
+
+  /// The resolver for printer calibration coordinates.
+  final PrinterCalibrationCoordinateResolver printerCalibrationCoordinateResolver;
+
+  /// The analyzer for template/printer compatibility.
+  final TemplatePrinterCompatibilityAnalyzer templatePrinterCompatibilityAnalyzer;
+
+  /// The orchestrator for print pipeline.
+  final PrintPipelineOrchestrator printPipelineOrchestrator;
+
+  /// The printer profile matcher.
+  final PrinterProfileMatcher printerProfileMatcher = PrinterProfileMatcher();
+
+  /// The printer profile compatibility analyzer.
+  final PrinterProfileCompatibilityAnalyzer printerProfileCompatibilityAnalyzer =
+      PrinterProfileCompatibilityAnalyzer();
+
+  /// The calibration rule generator.
+  final CalibrationRuleGenerator calibrationRuleGenerator = const CalibrationRuleGenerator();
+
+  /// The calibration sheet PDF generator.
+  final CalibrationSheetPdfGenerator calibrationSheetPdfGenerator =
+      const CalibrationSheetPdfGenerator();
+
+  /// Factory method to construct [PrinterConfigurationCubit].
+  PrinterConfigurationCubit createPrinterConfigurationCubit() {
+    return PrinterConfigurationCubit(
+      printerProfileRepository: printerProfileRepository,
+    );
+  }
+
+  /// Factory method to construct [PrinterManagementCubit].
+  PrinterManagementCubit createPrinterManagementCubit() {
+    return PrinterManagementCubit(
+      printerDiscoveryService: printerDiscoveryService,
+      printerProfileRepository: printerProfileRepository,
+      printerProfileMatcher: printerProfileMatcher,
+      printerProfileCompatibilityAnalyzer: printerProfileCompatibilityAnalyzer,
+    );
+  }
+
+  /// Factory method to construct [CalibrationSessionCubit].
+  CalibrationSessionCubit createCalibrationSessionCubit({
+    required String profileId,
+    required String trayId,
+    required String paperConfigurationId,
+  }) {
+    return CalibrationSessionCubit(
+      profileId: profileId,
+      trayId: trayId,
+      paperConfigurationId: paperConfigurationId,
+      ruleGenerator: calibrationRuleGenerator,
+      pdfGenerator: calibrationSheetPdfGenerator,
+      profileRepository: printerProfileRepository,
+      printService: printService,
+      templateRepository: templateRepository,
+    );
+  }
 
   /// Clean up subscriptions and release resources.
   void dispose() {

@@ -8,6 +8,7 @@ import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/product/bloc/product_cubit.dart';
 import 'package:stickify/presentation/features/product/bloc/product_sub_view.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_ingredients_card.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/product_detail_keywords_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_nutrition_facts_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_storage_card.dart';
 import 'package:stickify/presentation/widgets/widgets.dart';
@@ -23,8 +24,10 @@ class MobileProductDetailPanel extends StatelessWidget {
   final VoidCallback onBack;
 
   void _showEditVariantBottomSheet(BuildContext context, ProductVariant variant) {
+    final prefix = product.sku.isNotEmpty ? '${product.sku}-' : '';
+    final suffix = variant.sku.startsWith(prefix) ? variant.sku.substring(prefix.length) : variant.sku;
     final nameController = TextEditingController(text: variant.name);
-    final skuController = TextEditingController(text: variant.sku);
+    final skuController = TextEditingController(text: suffix);
     final quantityController = TextEditingController(text: variant.quantity.toString());
     final unitController = TextEditingController(text: variant.unit);
     final wholesaleController = TextEditingController(text: variant.wholesale.toString());
@@ -65,7 +68,10 @@ class MobileProductDetailPanel extends StatelessWidget {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: skuController,
-                        decoration: const InputDecoration(labelText: 'SKU'),
+                        decoration: InputDecoration(
+                          labelText: 'SKU',
+                          prefixText: product.sku.isNotEmpty ? '${product.sku}-' : null,
+                        ),
                         validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
                       ),
                       const SizedBox(height: 12),
@@ -155,11 +161,13 @@ class MobileProductDetailPanel extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () {
                           if (formKey.currentState!.validate()) {
+                            final suffixVal = skuController.text.trim();
+                            final newSku = product.sku.isNotEmpty ? '${product.sku}-$suffixVal' : suffixVal;
                             final updatedVariants = product.variants.map((v) {
                               if (v.sku == variant.sku) {
                                 return ProductVariant(
                                   name: nameController.text.trim(),
-                                  sku: skuController.text.trim(),
+                                  sku: newSku,
                                   quantity: double.parse(quantityController.text),
                                   unit: unitController.text.trim(),
                                   wholesale: double.parse(wholesaleController.text),
@@ -435,6 +443,10 @@ class MobileProductDetailPanel extends StatelessWidget {
       ingredients: product.ingredients,
     );
 
+    final keywordsCard = ProductDetailKeywordsCard(
+      keywords: product.keywords,
+    );
+
     final nutritionFactsCard = ProductDetailNutritionFactsCard(
       nutritionFacts: product.nutritionFacts,
     );
@@ -456,6 +468,11 @@ class MobileProductDetailPanel extends StatelessWidget {
             icon: const Icon(Icons.edit_outlined),
             onPressed: () => context.read<ProductCubit>().setSubView(ProductEditView(product)),
             tooltip: 'Edit Product',
+          ),
+          IconButton(
+            icon: const Icon(Icons.copy_outlined),
+            onPressed: () => context.read<ProductCubit>().setSubView(ProductCopyView(product)),
+            tooltip: 'Copy Product',
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
@@ -497,6 +514,8 @@ class MobileProductDetailPanel extends StatelessWidget {
               variantsCard,
               const SizedBox(height: 16),
               ingredientsCard,
+              const SizedBox(height: 16),
+              keywordsCard,
               const SizedBox(height: 16),
               nutritionFactsCard,
               const SizedBox(height: 16),

@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Represents a single ingredient content percentage in a product.
 ///
-/// Used for industrial cataloging and automated Allergen Warnings.
+/// Used for industrial cataloging.
 class Ingredient extends Equatable {
   /// Creates an [Ingredient] record.
   const Ingredient({

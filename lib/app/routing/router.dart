@@ -6,6 +6,9 @@ import 'package:stickify/presentation/features/dashboard/presentation/dashboard_
 import 'package:stickify/presentation/features/print/presentation/print_setup_entry.dart';
 import 'package:stickify/presentation/features/print/presentation/template_selection_page.dart';
 import 'package:stickify/presentation/features/print_history/presentation/print_history_screen.dart';
+import 'package:stickify/presentation/features/printer_configuration/views/printer_configuration_page.dart';
+import 'package:stickify/presentation/features/printer_management/views/calibration_wizard_page.dart';
+import 'package:stickify/presentation/features/printer_management/views/printer_management_page.dart';
 import 'package:stickify/presentation/features/product/presentation/product_management_entry.dart';
 import 'package:stickify/presentation/features/template_editor/label_editor/label_editor_screen.dart';
 import 'package:stickify/presentation/features/template_editor/preview/preview_screen.dart';
@@ -219,10 +222,31 @@ class PrintSetupRoute extends GoRouteData with $PrintSetupRoute {
         ),
       ],
     ),
-    // Branch 3 — Settings
+    // Branch 3 — Printers
+    TypedStatefulShellBranch<PrintersBranchData>(
+      routes: [
+        TypedGoRoute<PrinterManagementRoute>(
+          path: '/printers',
+          routes: [
+            TypedGoRoute<PrinterConfigurationRoute>(
+              path: 'new',
+            ),
+            TypedGoRoute<PrinterConfigurationEditRoute>(
+              path: ':profileId',
+            ),
+            TypedGoRoute<CalibrationWizardRoute>(
+              path: ':profileId/calibrate/:trayId',
+            ),
+          ],
+        ),
+      ],
+    ),
+    // Branch 4 — Settings
     TypedStatefulShellBranch<SettingsBranchData>(
       routes: [
-        TypedGoRoute<SettingsRoute>(path: '/settings'),
+        TypedGoRoute<SettingsRoute>(
+          path: '/settings',
+        ),
       ],
     ),
   ],
@@ -274,6 +298,11 @@ class TemplatesBranchData extends StatefulShellBranchData {
 /// Branch data for the Settings tab.
 class SettingsBranchData extends StatefulShellBranchData {
   const SettingsBranchData();
+}
+
+/// Branch data for the Printers tab.
+class PrintersBranchData extends StatefulShellBranchData {
+  const PrintersBranchData();
 }
 
 // ─────────────── Individual screen route data classes ───────────────────────
@@ -382,6 +411,101 @@ class SettingsRoute extends GoRouteData with $SettingsRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return const SettingsScreen();
+  }
+}
+
+/// Route data for the Printer Management screen.
+@immutable
+class PrinterManagementRoute extends GoRouteData with $PrinterManagementRoute {
+  const PrinterManagementRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const PrinterManagementPage();
+  }
+}
+
+/// Route data for creating a new printer configuration.
+@immutable
+class PrinterConfigurationRoute extends GoRouteData
+    with $PrinterConfigurationRoute {
+  const PrinterConfigurationRoute({
+    this.systemPrinterName,
+    this.manufacturer,
+    this.model,
+    this.driverName,
+  });
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  /// The system printer name to pre-populate.
+  final String? systemPrinterName;
+
+  /// The manufacturer to pre-populate.
+  final String? manufacturer;
+
+  /// The model to pre-populate.
+  final String? model;
+
+  /// The driver name to pre-populate.
+  final String? driverName;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return PrinterConfigurationPage(
+      systemPrinterName: systemPrinterName,
+      manufacturer: manufacturer,
+      model: model,
+      driverName: driverName,
+    );
+  }
+}
+
+/// Route data for editing an existing printer configuration.
+@immutable
+class PrinterConfigurationEditRoute extends GoRouteData
+    with $PrinterConfigurationEditRoute {
+  const PrinterConfigurationEditRoute({required this.profileId});
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  final String profileId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return PrinterConfigurationPage(profileId: profileId);
+  }
+}
+
+/// Route data for the Printer Calibration Wizard.
+@immutable
+class CalibrationWizardRoute extends GoRouteData with $CalibrationWizardRoute {
+  /// Creates a [CalibrationWizardRoute] instance.
+  const CalibrationWizardRoute({
+    required this.profileId,
+    required this.trayId,
+    required this.paperConfigurationId,
+  });
+
+  /// Navigates using the root navigator.
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  /// The ID of the printer profile.
+  final String profileId;
+
+  /// The ID of the tray profile.
+  final String trayId;
+
+  /// The ID of the paper configuration.
+  final String paperConfigurationId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return CalibrationWizardPage(
+      profileId: profileId,
+      trayId: trayId,
+      paperConfigurationId: paperConfigurationId,
+    );
   }
 }
 

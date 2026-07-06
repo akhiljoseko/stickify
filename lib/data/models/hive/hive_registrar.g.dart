@@ -7,11 +7,21 @@ import 'package:stickify/data/models/hive/hive_adapters.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
+    registerAdapter(CalibrationRuleHiveModelAdapter());
+    registerAdapter(CalibrationTargetHiveModelAdapter());
     registerAdapter(ElementBlueprintHiveModelAdapter());
     registerAdapter(IngredientHiveModelAdapter());
     registerAdapter(LabelTemplateHiveModelAdapter());
     registerAdapter(NutritionFactsHiveModelAdapter());
+    registerAdapter(OptimizationPreferencesHiveModelAdapter());
+    registerAdapter(PaperConfigurationReferenceHiveModelAdapter());
     registerAdapter(PrintJobHiveModelAdapter());
+    registerAdapter(PrintStickerTransformHiveModelAdapter());
+    registerAdapter(PrinterCalibrationHiveModelAdapter());
+    registerAdapter(PrinterCapabilitiesHiveModelAdapter());
+    registerAdapter(PrinterIdentityHiveModelAdapter());
+    registerAdapter(PrinterProfileHiveModelAdapter());
+    registerAdapter(PrinterTrayProfileHiveModelAdapter());
     registerAdapter(ProductHiveModelAdapter());
     registerAdapter(ProductVariantHiveModelAdapter());
     registerAdapter(SheetConfigHiveModelAdapter());
@@ -23,11 +33,21 @@ extension HiveRegistrar on HiveInterface {
 
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
+    registerAdapter(CalibrationRuleHiveModelAdapter());
+    registerAdapter(CalibrationTargetHiveModelAdapter());
     registerAdapter(ElementBlueprintHiveModelAdapter());
     registerAdapter(IngredientHiveModelAdapter());
     registerAdapter(LabelTemplateHiveModelAdapter());
     registerAdapter(NutritionFactsHiveModelAdapter());
+    registerAdapter(OptimizationPreferencesHiveModelAdapter());
+    registerAdapter(PaperConfigurationReferenceHiveModelAdapter());
     registerAdapter(PrintJobHiveModelAdapter());
+    registerAdapter(PrintStickerTransformHiveModelAdapter());
+    registerAdapter(PrinterCalibrationHiveModelAdapter());
+    registerAdapter(PrinterCapabilitiesHiveModelAdapter());
+    registerAdapter(PrinterIdentityHiveModelAdapter());
+    registerAdapter(PrinterProfileHiveModelAdapter());
+    registerAdapter(PrinterTrayProfileHiveModelAdapter());
     registerAdapter(ProductHiveModelAdapter());
     registerAdapter(ProductVariantHiveModelAdapter());
     registerAdapter(SheetConfigHiveModelAdapter());

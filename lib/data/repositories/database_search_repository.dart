@@ -38,6 +38,7 @@ class DatabaseSearchRepository implements SearchRepository {
           if (p.category != null) p.category!.toLowerCase(),
           ...p.ingredients.map((i) => i.name.toLowerCase()),
           ...p.variants.map((v) => v.name.toLowerCase()),
+          ...p.keywords.map((k) => k.toLowerCase()),
           'product',
         ];
         return SearchItem(

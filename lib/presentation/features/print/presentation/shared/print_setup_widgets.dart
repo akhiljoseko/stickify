@@ -312,6 +312,9 @@ class SheetsPreview extends StatelessWidget {
   /// Product variant entity.
   final ProductVariant variant;
 
+  /// Maximum number of sheet previews to render (prevents OOM for large jobs).
+  static const int maxPreviewSheets = 15;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -440,11 +443,13 @@ class SheetsPreview extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-          // Sheets scrollable container
+          // Sheets scrollable container — capped to prevent OOM for large jobs
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: totalSheets,
+            itemCount: totalSheets > maxPreviewSheets
+                ? maxPreviewSheets
+                : totalSheets,
           separatorBuilder: (context, index) => const SizedBox(height: 24),
           itemBuilder: (context, sheetIndex) {
             final disabledOnSheet = loadedState.disabledSlots
@@ -759,7 +764,30 @@ class SheetsPreview extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: 24),
+        if (totalSheets > maxPreviewSheets) ...[
+          Card(
+            color: colorScheme.surfaceContainerHighest,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: colorScheme.primary, size: 18),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      '${totalSheets - maxPreviewSheets} additional sheet(s) will be printed. '
+                      'All stickers will print correctly.',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
         // Help Box
         Card(
           color: colorScheme.surfaceContainer,

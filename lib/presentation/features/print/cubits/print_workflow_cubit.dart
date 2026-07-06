@@ -1,11 +1,5 @@
-// The initializer list pattern `_field = param` is intentional: constructor
-// parameter names must stay public (e.g. `productRepository`) to provide a
-// clean named-parameter API for call sites, while field names are private
-// (`_productRepository`) to enforce encapsulation. Using `this._field`
-// initializing formals would expose underscore-prefixed names in the public
-// constructor API.
-// ignore_for_file: prefer_initializing_formals
 import 'dart:async';
+import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
@@ -18,23 +12,19 @@ import 'package:stickify/presentation/features/print/cubits/print_workflow_state
 class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   /// Creates a [PrintWorkflowCubit] with the necessary repositories and services.
   PrintWorkflowCubit({
-    required ProductRepository productRepository,
-    required TemplateRepository templateRepository,
-    required PrintJobRepository printJobRepository,
-    required VariantPrintStatsRepository variantPrintStatsRepository,
-    required PrintService printService,
-    required PrinterDiscoveryService printerDiscoveryService,
-    required PrintJobIdGenerator printJobIdGenerator,
-    required LocalDatabase localDatabase,
-  })  : _productRepository = productRepository,
-        _templateRepository = templateRepository,
-        _printJobRepository = printJobRepository,
-        _variantPrintStatsRepository = variantPrintStatsRepository,
-        _printService = printService,
-        _printerDiscoveryService = printerDiscoveryService,
-        _printJobIdGenerator = printJobIdGenerator,
-        _localDatabase = localDatabase,
-        super(const PrintWorkflowInitial());
+    required this._productRepository,
+    required this._templateRepository,
+    required this._printJobRepository,
+    required this._variantPrintStatsRepository,
+    required this._printService,
+    required this._printerDiscoveryService,
+    required this._printJobIdGenerator,
+    required this._localDatabase,
+    required this._printerProfileRepository,
+    required this._calibrationResolver,
+    required this._compatibilityAnalyzer,
+    required this._printPipelineOrchestrator,
+  })  : super(const PrintWorkflowInitial());
 
   /// Repository providing product catalog records.
   final ProductRepository _productRepository;
@@ -59,6 +49,18 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
 
   /// Local database instance for settings caching.
   final LocalDatabase _localDatabase;
+
+  /// Repository providing printer profiles.
+  final PrinterProfileRepository _printerProfileRepository;
+
+  /// Resolver for printer tray calibration rules.
+  final PrinterCalibrationCoordinateResolver _calibrationResolver;
+
+  /// Analyzer for printer capabilities and template compatibility.
+  final TemplatePrinterCompatibilityAnalyzer _compatibilityAnalyzer;
+
+  /// Orchestration service for composed calibration + optimization pipelines.
+  final PrintPipelineOrchestrator _printPipelineOrchestrator;
 
   /// Loads the initial metadata needed to configure the print job.
   ///
@@ -116,6 +118,57 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 defaultQty = 20;
               }
 
+              final profilesResult = await _printerProfileRepository.getAllProfiles();
+              PrinterProfile? matchedProfile;
+              PrinterTrayProfile? matchedTray;
+              CompatibilityAnalysisResult? compatibilityResult;
+
+              if (profilesResult is Success<List<PrinterProfile>, AppError>) {
+                final profiles = profilesResult.value;
+                matchedProfile = profiles.firstWhereOrNull(
+                  (p) => p.printerIdentity.systemPrinterName == defaultPrinter.name,
+                );
+
+                if (matchedProfile != null) {
+                  Log.debug(
+                    'PrintWorkflow: matched profile "${matchedProfile.displayName}" '
+                    '(id: ${matchedProfile.id}) for default printer "${defaultPrinter.name}". '
+                    'Trays: ${matchedProfile.trays.length}. '
+                    'Profile trays calibration: '
+                    '${matchedProfile.trays.map((t) => "${t.trayIdentifier}(enabled=${t.calibration.enabled}, rules=${t.calibration.calibrationRules.length})").join(", ")}.',
+                    tag: 'PrintPipeline',
+                  );
+                }
+
+                if (matchedProfile != null && selected != null && selected.sheetConfig != null) {
+                  matchedTray = matchedProfile.trays.firstWhereOrNull(
+                    (t) => t.supportedPaperConfigurations.any((ref) => ref.id == selected!.id),
+                  );
+
+                  if (matchedTray != null) {
+                    final calibrationResult = _calibrationResolver.resolve(
+                      CalibrationRequest(
+                        tray: matchedTray,
+                        paperConfigId: selected.id,
+                        sheetConfig: selected.sheetConfig!,
+                      ),
+                    );
+
+                    final calibrationContext = switch (calibrationResult) {
+                      Success(value: final context) => context,
+                      Failure() => const PrintCoordinateContext.identity(),
+                    };
+
+                    compatibilityResult = _compatibilityAnalyzer.analyze(
+                      template: selected,
+                      printer: matchedProfile,
+                      tray: matchedTray,
+                      calibrationContext: calibrationContext,
+                    );
+                  }
+                }
+              }
+
               final loaded = PrintWorkflowLoaded(
                 product: product,
                 variant: variant,
@@ -126,6 +179,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 quantity: defaultQty,
                 printFromBottom: cachedBottom,
                 isQuantityManuallyEdited: initialQuantity != null && initialQuantity > 0,
+                selectedPrinterProfile: matchedProfile,
+                selectedTrayProfile: matchedTray,
+                compatibilityResult: compatibilityResult,
               );
               emit(loaded);
           }
@@ -146,11 +202,13 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         qty = s.quantity;
       }
 
-      emit(s.copyWith(
+      final updated = s.copyWith(
         selectedTemplate: () => template,
         quantity: qty,
-        disabledSlots: {}, // reset skipped slots when template changes
-      ));
+        disabledSlots: const {}, // reset skipped slots when template changes
+      );
+      emit(updated);
+      _updatePrinterAndTrayProfile(s.selectedPrinter ?? const PrinterDevice(name: 'No Printer Found', url: ''), template);
     }
   }
 
@@ -169,7 +227,71 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   void updatePrinter(PrinterDevice printer) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
-      emit(s.copyWith(selectedPrinter: () => printer));
+      _updatePrinterAndTrayProfile(printer, s.selectedTemplate);
+    }
+  }
+
+  Future<void> _updatePrinterAndTrayProfile(PrinterDevice printer, LabelTemplate? template) async {
+    final s = state;
+    if (s is PrintWorkflowLoaded) {
+      final profilesResult = await _printerProfileRepository.getAllProfiles();
+      PrinterProfile? matchedProfile;
+      PrinterTrayProfile? matchedTray;
+      CompatibilityAnalysisResult? compatibilityResult;
+
+      if (profilesResult is Success<List<PrinterProfile>, AppError>) {
+        final profiles = profilesResult.value;
+        matchedProfile = profiles.firstWhereOrNull(
+          (p) => p.printerIdentity.systemPrinterName == printer.name,
+        );
+
+        if (matchedProfile != null) {
+          Log.debug(
+            'PrintWorkflow(_updatePrinterAndTrayProfile): matched '
+            '"${matchedProfile.displayName}" for printer "${printer.name}". '
+            'Trays: ${matchedProfile.trays.length}. '
+            'Calibration status: '
+            '${matchedProfile.trays.map((t) => "${t.trayIdentifier}(enabled=${t.calibration.enabled}, rules=${t.calibration.calibrationRules.length})").join(", ")}.',
+            tag: 'PrintPipeline',
+          );
+        }
+
+        if (matchedProfile != null && template != null && template.sheetConfig != null) {
+          matchedTray = matchedProfile.trays.firstWhereOrNull(
+            (t) => t.supportedPaperConfigurations.any((ref) => ref.id == template.id),
+          );
+
+          if (matchedTray != null) {
+            final calibrationResult = _calibrationResolver.resolve(
+              CalibrationRequest(
+                tray: matchedTray,
+                paperConfigId: template.id,
+                sheetConfig: template.sheetConfig!,
+              ),
+            );
+
+            final calibrationContext = switch (calibrationResult) {
+              Success(value: final context) => context,
+              Failure() => const PrintCoordinateContext.identity(),
+            };
+
+            compatibilityResult = _compatibilityAnalyzer.analyze(
+              template: template,
+              printer: matchedProfile,
+              tray: matchedTray,
+              calibrationContext: calibrationContext,
+            );
+          }
+        }
+      }
+
+      emit(s.copyWith(
+        selectedPrinter: () => printer,
+        selectedTemplate: template != null ? () => template : null,
+        selectedPrinterProfile: () => matchedProfile,
+        selectedTrayProfile: () => matchedTray,
+        compatibilityResult: () => compatibilityResult,
+      ));
     }
   }
 
@@ -273,6 +395,29 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
       }
 
       emit(PrintWorkflowSubmitting(loadedState: s));
+
+      PrintExecutionConfiguration? executionConfiguration;
+      if (s.selectedPrinterProfile != null && s.selectedTrayProfile != null) {
+        final orchestratorResult = _printPipelineOrchestrator.resolve(
+          template: template,
+          printer: s.selectedPrinterProfile!,
+          tray: s.selectedTrayProfile!,
+          paperConfigurationId: template.id,
+        );
+
+        switch (orchestratorResult) {
+          case Failure(error: final err):
+            emit(PrintWorkflowError(message: err.message));
+            return;
+          case Success(value: final coordinateContext):
+            executionConfiguration = PrintExecutionConfiguration(
+              selectedTray: s.selectedTrayProfile,
+              paperConfigurationId: template.id,
+              coordinateContext: coordinateContext,
+            );
+        }
+      }
+
       final printResult = await _printService.printLabels(
         product: s.product,
         variant: s.variant,
@@ -281,6 +426,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         disabledSlots: s.disabledSlots,
         printer: printer,
         printFromBottom: s.printFromBottom,
+        executionConfiguration: executionConfiguration,
       );
 
       switch (printResult) {

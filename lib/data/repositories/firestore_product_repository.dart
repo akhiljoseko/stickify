@@ -65,7 +65,8 @@ class FirestoreProductRepository implements ProductRepository {
           if (query != null && query.isNotEmpty) {
             filtered = filtered.where((p) =>
               p.name.toLowerCase().contains(query.toLowerCase()) ||
-              p.sku.toLowerCase().contains(query.toLowerCase())
+              p.sku.toLowerCase().contains(query.toLowerCase()) ||
+              p.keywords.any((k) => k.toLowerCase().contains(query.toLowerCase()))
             ).toList();
           }
           if (category != null && category.isNotEmpty) {
@@ -109,7 +110,8 @@ class FirestoreProductRepository implements ProductRepository {
           final filtered = all.where((product) {
             final matchesQuery = query.isEmpty ||
                 product.name.toLowerCase().contains(query.toLowerCase()) ||
-                product.sku.toLowerCase().contains(query.toLowerCase());
+                product.sku.toLowerCase().contains(query.toLowerCase()) ||
+                product.keywords.any((k) => k.toLowerCase().contains(query.toLowerCase()));
             final matchesCategory = category.isEmpty ||
                 (product.category ?? '').toLowerCase() == category.toLowerCase();
             return matchesQuery && matchesCategory;

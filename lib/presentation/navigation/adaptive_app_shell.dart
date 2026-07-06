@@ -42,6 +42,11 @@ const List<AppNavDestination> kAppNavDestinations = [
     label: 'Templates',
   ),
   AppNavDestination(
+    icon: Icons.print_outlined,
+    selectedIcon: Icons.print,
+    label: 'Printers',
+  ),
+  AppNavDestination(
     icon: Icons.settings_outlined,
     selectedIcon: Icons.settings,
     label: 'Settings',

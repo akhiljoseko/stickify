@@ -9,11 +9,13 @@ class SyncCubit extends Cubit<SyncState> {
   SyncCubit({
     required this._productRepo,
     required this._templateRepo,
+    required this._printerProfileRepo,
     required this._auth,
   })  : super(const SyncInitial());
 
   final SyncableProductRepository _productRepo;
   final SyncableTemplateRepository _templateRepo;
+  final SyncablePrinterProfileRepository _printerProfileRepo;
   final AuthService _auth;
 
   /// Pulls remote Firestore updates and overwrites the local cache database.
@@ -36,6 +38,12 @@ class SyncCubit extends Cubit<SyncState> {
       final tResult = await _templateRepo.sync(uid);
       if (tResult is Failure<void, AppError>) {
         emit(SyncFailure(tResult.error.message));
+        return;
+      }
+
+      final printerResult = await _printerProfileRepo.sync(uid);
+      if (printerResult is Failure<void, AppError>) {
+        emit(SyncFailure(printerResult.error.message));
         return;
       }
 

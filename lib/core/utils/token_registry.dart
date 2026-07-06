@@ -54,7 +54,7 @@ class TemplateToken {
   final bool visibleInDropdown;
 }
 
-/// The centralized registry of all template tokens available in Stickify.
+/// The centralized registry of all template tokens available in Label Grid.
 final List<TemplateToken> tokenRegistry = [
   // ================= SYSTEM CALCULATED TOKENS =================
   TemplateToken(

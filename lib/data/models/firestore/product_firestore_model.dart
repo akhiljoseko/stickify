@@ -14,6 +14,7 @@ class ProductFirestoreModel {
     this.ingredients = const [],
     this.nutritionFacts,
     this.variants = const [],
+    this.keywords = const [],
     this.lastModified,
   });
 
@@ -35,6 +36,7 @@ class ProductFirestoreModel {
       variants: p.variants
           .map(ProductVariantFirestoreModel.fromDomain)
           .toList(),
+      keywords: p.keywords,
       lastModified: p.lastModified,
     );
   }
@@ -66,6 +68,7 @@ class ProductFirestoreModel {
             ),
           )
           .toList(),
+      keywords: (json['keywords'] as List? ?? []).cast<String>(),
       lastModified: (json['lastModified'] as Timestamp?)?.toDate(),
     );
   }
@@ -80,6 +83,7 @@ class ProductFirestoreModel {
   final List<IngredientFirestoreModel> ingredients;
   final NutritionFactsFirestoreModel? nutritionFacts;
   final List<ProductVariantFirestoreModel> variants;
+  final List<String> keywords;
   final DateTime? lastModified;
 
   Map<String, dynamic> toMap() {
@@ -94,6 +98,7 @@ class ProductFirestoreModel {
       'ingredients': ingredients.map((i) => i.toMap()).toList(),
       'nutritionFacts': nutritionFacts?.toMap(),
       'variants': variants.map((v) => v.toMap()).toList(),
+      'keywords': keywords,
       'lastModified': lastModified != null ? Timestamp.fromDate(lastModified!) : null,
     };
   }
@@ -110,6 +115,7 @@ class ProductFirestoreModel {
       ingredients: ingredients.map((i) => i.toDomain()).toList(),
       nutritionFacts: nutritionFacts?.toDomain(),
       variants: variants.map((v) => v.toDomain()).toList(),
+      keywords: keywords,
       lastModified: lastModified,
     );
   }

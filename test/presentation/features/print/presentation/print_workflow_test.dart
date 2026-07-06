@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:stickify/app/app_service_locator.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_cubit.dart';
@@ -10,14 +13,20 @@ import 'package:stickify/presentation/features/print/presentation/print_setup_en
 import 'package:stickify/presentation/features/template_editor/renderers/text_element_renderer.dart';
 import '../../../../helpers/pump_app.dart';
 
-class MockProductRepository extends Mock implements ProductRepository {}
-class MockTemplateRepository extends Mock implements TemplateRepository {}
+class MockSyncableProductRepository extends Mock implements SyncableProductRepository {}
+class MockSyncableTemplateRepository extends Mock implements SyncableTemplateRepository {}
 class MockPrintJobRepository extends Mock implements PrintJobRepository {}
 class MockPrintService extends Mock implements PrintService {}
 class MockPrinterDiscoveryService extends Mock implements PrinterDiscoveryService {}
 class MockPrintJobIdGenerator extends Mock implements PrintJobIdGenerator {}
 class MockVariantPrintStatsRepository extends Mock implements VariantPrintStatsRepository {}
 class MockLocalDatabase extends Mock implements LocalDatabase {}
+class MockSyncablePrinterProfileRepository extends Mock implements SyncablePrinterProfileRepository {}
+class MockPrinterCalibrationCoordinateResolver extends Mock implements PrinterCalibrationCoordinateResolver {}
+class MockTemplatePrinterCompatibilityAnalyzer extends Mock implements TemplatePrinterCompatibilityAnalyzer {}
+class MockPrintPipelineOrchestrator extends Mock implements PrintPipelineOrchestrator {}
+class MockAppServiceLocator extends Mock implements AppServiceLocator {}
+class MockGoRouter extends Mock implements GoRouter {}
 
 void main() {
   setUpAll(() {
@@ -67,14 +76,19 @@ void main() {
     );
   });
 
-  late ProductRepository productRepository;
-  late TemplateRepository templateRepository;
+  late SyncableProductRepository productRepository;
+  late SyncableTemplateRepository templateRepository;
   late PrintJobRepository printJobRepository;
   late PrintService printService;
   late PrinterDiscoveryService printerDiscoveryService;
   late PrintJobIdGenerator printJobIdGenerator;
   late VariantPrintStatsRepository variantPrintStatsRepository;
   late LocalDatabase localDatabase;
+  late SyncablePrinterProfileRepository printerProfileRepository;
+  late PrinterCalibrationCoordinateResolver calibrationResolver;
+  late TemplatePrinterCompatibilityAnalyzer compatibilityAnalyzer;
+  late PrintPipelineOrchestrator printPipelineOrchestrator;
+  late AppServiceLocator serviceLocator;
 
   const testProduct = Product(
     id: 'prod-test',
@@ -174,14 +188,19 @@ void main() {
 
   group('PrintWorkflowCubit Tests', () {
     setUp(() {
-      productRepository = MockProductRepository();
-      templateRepository = MockTemplateRepository();
+      productRepository = MockSyncableProductRepository();
+      templateRepository = MockSyncableTemplateRepository();
       printJobRepository = MockPrintJobRepository();
       printService = MockPrintService();
       printerDiscoveryService = MockPrinterDiscoveryService();
       printJobIdGenerator = MockPrintJobIdGenerator();
       variantPrintStatsRepository = MockVariantPrintStatsRepository();
       localDatabase = MockLocalDatabase();
+      printerProfileRepository = MockSyncablePrinterProfileRepository();
+      calibrationResolver = MockPrinterCalibrationCoordinateResolver();
+      compatibilityAnalyzer = MockTemplatePrinterCompatibilityAnalyzer();
+      printPipelineOrchestrator = MockPrintPipelineOrchestrator();
+      serviceLocator = MockAppServiceLocator();
 
       when(() => localDatabase.get<bool>(any(), any())).thenAnswer((_) async => false);
       when(() => localDatabase.save<bool>(any(), any(), any())).thenAnswer((_) async {});
@@ -216,7 +235,22 @@ void main() {
             disabledSlots: any(named: 'disabledSlots'),
             printer: any(named: 'printer'),
             printFromBottom: any(named: 'printFromBottom'),
+            executionConfiguration: any(named: 'executionConfiguration'),
           )).thenAnswer((_) async => const Result.success(null));
+      when(() => printerProfileRepository.getAllProfiles())
+          .thenAnswer((_) async => const Result.success([]));
+      when(() => serviceLocator.productRepository).thenReturn(productRepository);
+      when(() => serviceLocator.templateRepository).thenReturn(templateRepository);
+      when(() => serviceLocator.printJobRepository).thenReturn(printJobRepository);
+      when(() => serviceLocator.variantPrintStatsRepository).thenReturn(variantPrintStatsRepository);
+      when(() => serviceLocator.printService).thenReturn(printService);
+      when(() => serviceLocator.printerDiscoveryService).thenReturn(printerDiscoveryService);
+      when(() => serviceLocator.printJobIdGenerator).thenReturn(printJobIdGenerator);
+      when(() => serviceLocator.database).thenReturn(localDatabase);
+      when(() => serviceLocator.printerProfileRepository).thenReturn(printerProfileRepository);
+      when(() => serviceLocator.printerCalibrationCoordinateResolver).thenReturn(calibrationResolver);
+      when(() => serviceLocator.templatePrinterCompatibilityAnalyzer).thenReturn(compatibilityAnalyzer);
+      when(() => serviceLocator.printPipelineOrchestrator).thenReturn(printPipelineOrchestrator);
     });
 
     test('loads workflow successfully and sets initial state', () async {
@@ -229,6 +263,10 @@ void main() {
         printerDiscoveryService: printerDiscoveryService,
         printJobIdGenerator: printJobIdGenerator,
         localDatabase: localDatabase,
+        printerProfileRepository: printerProfileRepository,
+        calibrationResolver: calibrationResolver,
+        compatibilityAnalyzer: compatibilityAnalyzer,
+        printPipelineOrchestrator: printPipelineOrchestrator,
       );
 
       expect(cubit.state, const PrintWorkflowInitial());
@@ -254,6 +292,10 @@ void main() {
         printerDiscoveryService: printerDiscoveryService,
         printJobIdGenerator: printJobIdGenerator,
         localDatabase: localDatabase,
+        printerProfileRepository: printerProfileRepository,
+        calibrationResolver: calibrationResolver,
+        compatibilityAnalyzer: compatibilityAnalyzer,
+        printPipelineOrchestrator: printPipelineOrchestrator,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -262,6 +304,7 @@ void main() {
       expect((cubit.state as PrintWorkflowLoaded).quantity, 35);
 
       cubit.updatePrinter(const PrinterDevice(name: 'Industrial Master B3', url: 'industrial-url'));
+      await pumpEventQueue();
       expect((cubit.state as PrintWorkflowLoaded).selectedPrinter?.name, 'Industrial Master B3');
 
       cubit.toggleSlot(3);
@@ -281,6 +324,10 @@ void main() {
         printerDiscoveryService: printerDiscoveryService,
         printJobIdGenerator: printJobIdGenerator,
         localDatabase: localDatabase,
+        printerProfileRepository: printerProfileRepository,
+        calibrationResolver: calibrationResolver,
+        compatibilityAnalyzer: compatibilityAnalyzer,
+        printPipelineOrchestrator: printPipelineOrchestrator,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -313,6 +360,10 @@ void main() {
         printerDiscoveryService: printerDiscoveryService,
         printJobIdGenerator: printJobIdGenerator,
         localDatabase: localDatabase,
+        printerProfileRepository: printerProfileRepository,
+        calibrationResolver: calibrationResolver,
+        compatibilityAnalyzer: compatibilityAnalyzer,
+        printPipelineOrchestrator: printPipelineOrchestrator,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -340,6 +391,10 @@ void main() {
         printerDiscoveryService: printerDiscoveryService,
         printJobIdGenerator: printJobIdGenerator,
         localDatabase: localDatabase,
+        printerProfileRepository: printerProfileRepository,
+        calibrationResolver: calibrationResolver,
+        compatibilityAnalyzer: compatibilityAnalyzer,
+        printPipelineOrchestrator: printPipelineOrchestrator,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -368,15 +423,23 @@ void main() {
   });
 
   group('PrintSetupPage Widget Tests', () {
+    late GoRouter goRouter;
+
     setUp(() {
-      productRepository = MockProductRepository();
-      templateRepository = MockTemplateRepository();
+      goRouter = MockGoRouter();
+      productRepository = MockSyncableProductRepository();
+      templateRepository = MockSyncableTemplateRepository();
       printJobRepository = MockPrintJobRepository();
       printService = MockPrintService();
       printerDiscoveryService = MockPrinterDiscoveryService();
       printJobIdGenerator = MockPrintJobIdGenerator();
       variantPrintStatsRepository = MockVariantPrintStatsRepository();
       localDatabase = MockLocalDatabase();
+      printerProfileRepository = MockSyncablePrinterProfileRepository();
+      calibrationResolver = MockPrinterCalibrationCoordinateResolver();
+      compatibilityAnalyzer = MockTemplatePrinterCompatibilityAnalyzer();
+      printPipelineOrchestrator = MockPrintPipelineOrchestrator();
+      serviceLocator = MockAppServiceLocator();
 
       when(() => localDatabase.get<bool>(any(), any())).thenAnswer((_) async => false);
       when(() => localDatabase.save<bool>(any(), any(), any())).thenAnswer((_) async {});
@@ -389,6 +452,16 @@ void main() {
       when(() => printJobRepository.onPrintJobCreated).thenAnswer(
         (_) => const Stream.empty(),
       );
+      when(() => printJobRepository.savePrintJob(any()))
+          .thenAnswer((_) async => const Result.success(null));
+      when(() => variantPrintStatsRepository.incrementCount(
+            variantSku: any(named: 'variantSku'),
+            productId: any(named: 'productId'),
+            productName: any(named: 'productName'),
+            variantName: any(named: 'variantName'),
+            labelCount: any(named: 'labelCount'),
+            printedAt: any(named: 'printedAt'),
+          )).thenAnswer((_) async => const Result.success(null));
       when(() => printerDiscoveryService.getAvailablePrinters()).thenAnswer(
         (_) async => const [
           PrinterDevice(name: 'Zebra ZT411-A (Default)', url: 'zebra-url', isDefault: true),
@@ -404,12 +477,28 @@ void main() {
             disabledSlots: any(named: 'disabledSlots'),
             printer: any(named: 'printer'),
             printFromBottom: any(named: 'printFromBottom'),
+            executionConfiguration: any(named: 'executionConfiguration'),
           )).thenAnswer((_) async => const Result.success(null));
+      when(() => printerProfileRepository.getAllProfiles())
+          .thenAnswer((_) async => const Result.success([]));
+      when(() => serviceLocator.productRepository).thenReturn(productRepository);
+      when(() => serviceLocator.templateRepository).thenReturn(templateRepository);
+      when(() => serviceLocator.printJobRepository).thenReturn(printJobRepository);
+      when(() => serviceLocator.variantPrintStatsRepository).thenReturn(variantPrintStatsRepository);
+      when(() => serviceLocator.printService).thenReturn(printService);
+      when(() => serviceLocator.printerDiscoveryService).thenReturn(printerDiscoveryService);
+      when(() => serviceLocator.printJobIdGenerator).thenReturn(printJobIdGenerator);
+      when(() => serviceLocator.database).thenReturn(localDatabase);
+      when(() => serviceLocator.printerProfileRepository).thenReturn(printerProfileRepository);
+      when(() => serviceLocator.printerCalibrationCoordinateResolver).thenReturn(calibrationResolver);
+      when(() => serviceLocator.templatePrinterCompatibilityAnalyzer).thenReturn(compatibilityAnalyzer);
+      when(() => serviceLocator.printPipelineOrchestrator).thenReturn(printPipelineOrchestrator);
     });
 
     Widget buildTestableWidget({int? quantity}) {
       return MultiRepositoryProvider(
         providers: [
+          RepositoryProvider.value(value: serviceLocator),
           RepositoryProvider.value(value: productRepository),
           RepositoryProvider.value(value: templateRepository),
           RepositoryProvider.value(value: printJobRepository),
@@ -419,11 +508,14 @@ void main() {
           RepositoryProvider.value(value: printJobIdGenerator),
           RepositoryProvider.value(value: localDatabase),
         ],
-        child: PrintSetupPage(
-          productId: 'prod-test',
-          variantSku: 'PROD-VAR-SKU',
-          templateId: 'temp-test',
-          quantity: quantity,
+        child: InheritedGoRouter(
+          goRouter: goRouter,
+          child: PrintSetupPage(
+            productId: 'prod-test',
+            variantSku: 'PROD-VAR-SKU',
+            templateId: 'temp-test',
+            quantity: quantity,
+          ),
         ),
       );
     }
@@ -499,6 +591,41 @@ void main() {
 
       // Disabling 2 slots on sheet 0 pushes the remaining printed labels to a 3rd sheet.
       expect(find.text('3'), findsOneWidget);
+    });
+
+    testWidgets('pressing Ctrl + P triggers printing', (tester) async {
+      await tester.pumpApp(buildTestableWidget(quantity: 20), size: const Size(1200, 1000));
+      await tester.pumpAndSettle();
+
+      // Verify print service was not called initially
+      verifyNever(() => printService.printLabels(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printer: any(named: 'printer'),
+            printFromBottom: any(named: 'printFromBottom'),
+            executionConfiguration: any(named: 'executionConfiguration'),
+          ));
+
+      // Simulate Ctrl + P
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyP);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+      await tester.pumpAndSettle();
+
+      // Verify printing was triggered
+      verify(() => printService.printLabels(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printer: any(named: 'printer'),
+            printFromBottom: any(named: 'printFromBottom'),
+            executionConfiguration: any(named: 'executionConfiguration'),
+          )).called(1);
     });
   });
 }

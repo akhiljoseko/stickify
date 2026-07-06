@@ -36,8 +36,8 @@ lib/
     ├── widgets/                  # App-wide reusable widgets (2+ feature consumers)
     └── features/
         └── [feature_name]/
-            ├── cubits/           # Cubit + State classes
-            ├── pages/            # Page (DI shell) + View (layout) in one file
+            ├── cubits/           # Cubit/Bloc + State classes (sometimes named `cubit/` or `bloc/`)
+            ├── presentation/     # Presentation layouts (pages, views, sometimes named `views/`)
             └── widgets/          # Feature-private atomic widgets
 ```
 
@@ -120,15 +120,15 @@ This separation means the View can be tested in isolation by wrapping it in a `M
 
 ### Screen Files
 
-All screen files live under `pages/` and use the `_screen.dart` suffix:
+All screen files live under `presentation/` (or `views/`) and use `_entry.dart` or `_page.dart` / `_screen.dart` suffixes:
 
 ```
-lib/presentation/features/product_dashboard/
-├── cubits/
-│   ├── product_dashboard_cubit.dart
-│   └── product_dashboard_state.dart
-├── pages/
-│   └── product_dashboard_screen.dart   ← Page class + View class (both here)
+lib/presentation/features/product/
+├── bloc/
+│   ├── product_cubit.dart
+│   └── product_state.dart
+├── presentation/
+│   └── product_management_entry.dart   ← Entry/Page class + View class (both here)
 └── widgets/
     ├── product_card.dart
     ├── product_filter_bar.dart
@@ -139,11 +139,11 @@ lib/presentation/features/product_dashboard/
 
 | Artifact             | Convention                              | Example                            |
 |----------------------|-----------------------------------------|------------------------------------|
-| Screen file          | `[feature]_screen.dart`                 | `product_dashboard_screen.dart`    |
-| Page class           | `[FeatureName]Page`                     | `ProductDashboardPage`             |
-| View class           | `_[FeatureName]View` (private)          | `_ProductDashboardView`            |
-| Cubit class          | `[FeatureName]Cubit`                    | `ProductDashboardCubit`            |
-| State class          | `[FeatureName]State` (sealed)           | `ProductDashboardState`            |
+| Screen file          | `[feature]_entry.dart` or `_page.dart`  | `product_management_entry.dart`    |
+| Page class           | `[FeatureName]Page` or `[Name]Screen`   | `ProductManagementScreen`          |
+| View class           | `_[FeatureName]View` (private)          | `_ProductManagementView`           |
+| Cubit class          | `[FeatureName]Cubit`                    | `ProductCubit`                     |
+| State class          | `[FeatureName]State` (sealed)           | `ProductState`                     |
 | Feature widget       | `[descriptive_name].dart`               | `product_card.dart`                |
 | Shared widget        | `[descriptive_name].dart` in `/widgets` | `app_status_badge.dart`            |
 

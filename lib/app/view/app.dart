@@ -36,6 +36,7 @@ class _AppState extends State<App> {
     final locator = widget.locator;
     return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<AppServiceLocator>.value(value: locator),
         RepositoryProvider<LocalDatabase>.value(value: locator.database),
         RepositoryProvider<AuthService>.value(value: locator.authService),
         RepositoryProvider<ProductRepository>.value(
@@ -50,6 +51,12 @@ class _AppState extends State<App> {
         RepositoryProvider<SyncableTemplateRepository>.value(
           value: locator.templateRepository,
         ),
+        RepositoryProvider<PrinterProfileRepository>.value(
+          value: locator.printerProfileRepository,
+        ),
+        RepositoryProvider<SyncablePrinterProfileRepository>.value(
+          value: locator.printerProfileRepository,
+        ),
         RepositoryProvider<PrintJobRepository>.value(
           value: locator.printJobRepository,
         ),
@@ -61,7 +68,7 @@ class _AppState extends State<App> {
         ),
         RepositoryProvider<PrintService>.value(value: locator.printService),
         RepositoryProvider<PrinterDiscoveryService>.value(
-          value: locator.printService as PrinterDiscoveryService,
+          value: locator.printerDiscoveryService,
         ),
         RepositoryProvider<PrintJobIdGenerator>.value(
           value: locator.printJobIdGenerator,
@@ -124,7 +131,6 @@ class _AppViewState extends State<_AppView> {
       // ── Theme ────────────────────────────────────────────────────────────
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light,
 
       // ── Localization ─────────────────────────────────────────────────────
       localizationsDelegates: AppLocalizations.localizationsDelegates,

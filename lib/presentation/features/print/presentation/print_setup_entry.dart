@@ -1,7 +1,9 @@
 import 'dart:math' show min;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stickify/app/app_service_locator.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_cubit.dart';
@@ -40,16 +42,21 @@ class PrintSetupPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locator = context.read<AppServiceLocator>();
     return BlocProvider(
       create: (context) => PrintWorkflowCubit(
-        productRepository: context.read<ProductRepository>(),
-        templateRepository: context.read<TemplateRepository>(),
-        printJobRepository: context.read<PrintJobRepository>(),
-        variantPrintStatsRepository: context.read<VariantPrintStatsRepository>(),
-        printService: context.read<PrintService>(),
-        printerDiscoveryService: context.read<PrinterDiscoveryService>(),
-        printJobIdGenerator: context.read<PrintJobIdGenerator>(),
-        localDatabase: context.read<LocalDatabase>(),
+        productRepository: locator.productRepository,
+        templateRepository: locator.templateRepository,
+        printJobRepository: locator.printJobRepository,
+        variantPrintStatsRepository: locator.variantPrintStatsRepository,
+        printService: locator.printService,
+        printerDiscoveryService: locator.printerDiscoveryService,
+        printJobIdGenerator: locator.printJobIdGenerator,
+        localDatabase: locator.database,
+        printerProfileRepository: locator.printerProfileRepository,
+        calibrationResolver: locator.printerCalibrationCoordinateResolver,
+        compatibilityAnalyzer: locator.templatePrinterCompatibilityAnalyzer,
+        printPipelineOrchestrator: locator.printPipelineOrchestrator,
       )..loadWorkflow(productId, variantSku, templateId, quantity),
       child: const _PrintSetupView(),
     );
@@ -254,7 +261,22 @@ class _PrintSetupViewState extends State<_PrintSetupView> {
             variant: variant,
           );
 
-          return Scaffold(
+          return Focus(
+            onKeyEvent: (node, event) {
+              if (event is KeyDownEvent) {
+                final isCtrl = HardwareKeyboard.instance.isControlPressed ||
+                    HardwareKeyboard.instance.isMetaPressed;
+                if (isCtrl && event.logicalKey == LogicalKeyboardKey.keyP) {
+                  final workflowCubit = context.read<PrintWorkflowCubit>();
+                  if (workflowCubit.state is! PrintWorkflowSubmitting) {
+                    workflowCubit.startPrintJob();
+                  }
+                  return KeyEventResult.handled;
+                }
+              }
+              return KeyEventResult.ignored;
+            },
+            child: Scaffold(
             appBar: AppBar(
               title: const Text('Print Configuration'),
               leading: IconButton(
@@ -327,8 +349,9 @@ class _PrintSetupViewState extends State<_PrintSetupView> {
                 );
               },
             ),
-          );
-        }
+          ),
+        );
+      }
 
         return const SizedBox.shrink();
       },

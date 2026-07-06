@@ -9,7 +9,7 @@ This document provides a comprehensive overview of every logical module in the L
 2. [Product Management Module](#2-product-management-module)
 3. [Template Editor Module](#3-template-editor-module)
 4. [PDF Generation & Print Management Module](#4-pdf-generation--print-management-module)
-5. [Search & Reporting Module](#5-search--reporting-module)
+5. [Printer Configuration & Management Module](#5-printer-configuration--management-module)
 6. [Data & Storage Infrastructure](#6-data--storage-infrastructure)
 
 ---
@@ -91,17 +91,21 @@ This document provides a comprehensive overview of every logical module in the L
 
 ---
 
-## 5. Search & Reporting Module
+## 5. Printer Configuration & Management Module
 
 ### Requirements
-- Provide unified search across products, variants, templates, and recent print jobs.
-- Display search results in an industrial, high-density data table.
-- Direct operators to relevant action screens (e.g., printing or editing) directly from search results.
+- Discover system-connected printers dynamically and register them as printer profiles.
+- Define hardware parameters per profile (margins, custom sizes, feed tray paths, and borderless printing options).
+- Configure runtime optimization preferences (e.g. minimum scaling thresholds and orientation adjustments).
+- Provide an interactive multi-step calibration wizard allowing technicians to measure physical offsets, compute offset/scale correction rules, and save them.
 
 ### Implementation Details
-- **Location:** `lib/presentation/features/search/`
-- **State Management:** `SearchCubit` listens to query strings and interacts with `SearchRepository` to filter through local cache indexes.
-- **UI Pattern:** Renders a clean search text field with automatic debouncing to prevent excessive repository queries.
+- **Location:** `lib/presentation/features/printer_configuration/` and `lib/presentation/features/printer_management/`
+- **State Management:** Coordinates three different Cubits:
+  - `PrinterManagementCubit` (manages the list of profiles and database actions).
+  - `PrinterConfigurationCubit` (handles the form and validation logic for creating/updating a profile).
+  - `CalibrationSessionCubit` (orchestrates the multi-step measurement, validation, and calibration rule generator workflow).
+- **UI Patterns:** Splits configuration into clean tabbed sections for basic info, capabilities, and optimization preferences, while using a step-by-step layout wizard for calibration.
 
 ---
 

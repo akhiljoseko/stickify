@@ -1,6 +1,6 @@
 name: stickify
 description: A Very Good Project created by Very Good CLI.
-version: 1.8.0+3
+version: 2.4.0+7
 publish_to: none
 
 environment:
@@ -10,6 +10,7 @@ dependencies:
   barcode_widget: ^2.0.4
   bloc: ^9.2.0
   cloud_firestore: ^6.5.0
+  collection: ^1.19.1
   equatable: ^2.0.8
   firebase_auth: ^6.5.2
   firebase_core: ^4.10.0

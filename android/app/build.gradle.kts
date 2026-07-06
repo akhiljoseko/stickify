@@ -63,17 +63,17 @@ android {
         create("production") {
             dimension = "default"
             applicationIdSuffix = ""
-            manifestPlaceholders["appName"] = "Stickify"
+            manifestPlaceholders["appName"] = "Label Grid"
         }
         create("staging") {
             dimension = "default"
             applicationIdSuffix = ".stg"
-            manifestPlaceholders["appName"] = "[STG] Stickify"
+            manifestPlaceholders["appName"] = "[STG] Label Grid"
         }
         create("development") {
             dimension = "default"
             applicationIdSuffix = ".dev"
-            manifestPlaceholders["appName"] = "[DEV] Stickify"
+            manifestPlaceholders["appName"] = "[DEV] Label Grid"
         }
     }
 

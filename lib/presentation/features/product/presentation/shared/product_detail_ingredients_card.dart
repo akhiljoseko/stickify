@@ -41,33 +41,6 @@ class ProductDetailIngredientsCard extends StatelessWidget {
                         ))
                     .toList(),
               ),
-            if (ingredients.any((i) =>
-                i.name.toLowerCase().contains('almond') ||
-                i.name.toLowerCase().contains('nut'))) ...[
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.errorContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: colorScheme.error.withValues(alpha: 0.2)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'ALLERGEN WARNING',
-                      style: textTheme.labelSmall?.copyWith(color: colorScheme.error, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Contains Nuts (Almonds). Processed in a facility that also handles soy, dairy, and wheat.',
-                      style: textTheme.bodySmall?.copyWith(color: colorScheme.onErrorContainer),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ],
         ),
       ),

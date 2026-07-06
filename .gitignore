@@ -116,4 +116,4 @@ app.*.map.json
 # Generated l10n files
 lib/l10n/gen/
 
-windows-release-files
+windows-release-files/*.exe

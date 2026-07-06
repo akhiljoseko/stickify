@@ -223,5 +223,69 @@ void main() {
       await tester.tap(refreshBtn);
       verify(() => cubit.loadPrintersAndProfiles()).called(2);
     });
+
+    testWidgets('renders all buttons in row when width is large', (tester) async {
+      final profile = createProfile(
+        id: 'p1',
+        displayName: 'ZT411 Labeler',
+        systemPrinterName: 'Zebra_ZT411',
+      );
+
+      final match = PrinterProfileMatchResult(
+        profile: profile,
+        status: PrinterProfileMatchStatus.matched,
+        discoveredPrinter: const DiscoveredPrinter(
+          systemPrinterName: 'Zebra_ZT411',
+          status: DiscoveredPrinterStatus.online,
+        ),
+      );
+
+      await tester.pumpApp(
+        Scaffold(
+          body: SizedBox(
+            width: 600,
+            child: PrinterCard(matchResult: match),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // All 3 buttons should be rendered on the screen
+      expect(find.byKey(const ValueKey('delete_btn')), findsOneWidget);
+      expect(find.byKey(const ValueKey('edit_profile_btn')), findsOneWidget);
+      expect(find.text('Calibrate'), findsOneWidget);
+      expect(find.byTooltip('More actions'), findsNothing);
+    });
+
+    testWidgets('collapses some buttons into overflow popup menu when width is small', (tester) async {
+      final profile = createProfile(
+        id: 'p1',
+        displayName: 'ZT411 Labeler',
+        systemPrinterName: 'Zebra_ZT411',
+      );
+
+      final match = PrinterProfileMatchResult(
+        profile: profile,
+        status: PrinterProfileMatchStatus.matched,
+        discoveredPrinter: const DiscoveredPrinter(
+          systemPrinterName: 'Zebra_ZT411',
+          status: DiscoveredPrinterStatus.online,
+        ),
+      );
+
+      await tester.pumpApp(
+        Scaffold(
+          body: SizedBox(
+            width: 200, // very tight width
+            child: PrinterCard(matchResult: match),
+          ),
+        ),
+        size: const Size(800, 1000),
+      );
+      await tester.pumpAndSettle();
+
+      // Some buttons are collapsed to overflow
+      expect(find.byTooltip('More actions'), findsOneWidget);
+    });
   });
 }

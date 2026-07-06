@@ -171,34 +171,154 @@ class PrinterCard extends StatelessWidget {
             // Actions Row — hidden when missing since profile cannot be edited
             if (!isMissing) ...[
               const Divider(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton.icon(
-                    onPressed: () => _confirmDelete(context, profile),
-                    icon: const Icon(Icons.delete_outline, size: 16),
-                    label: const Text('Delete'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.error,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final availableWidth = constraints.maxWidth;
+
+                  final candidates = <_PrinterAction>[
+                    _PrinterAction(
+                      id: 'delete',
+                      width: 110,
+                      button: TextButton.icon(
+                        key: const ValueKey('delete_btn'),
+                        onPressed: () => _confirmDelete(context, profile),
+                        icon: const Icon(Icons.delete_outline, size: 16),
+                        label: const Text('Delete'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: colorScheme.error,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                      ),
+                      menuEntry: PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
+                            const SizedBox(width: 8),
+                            Text('Delete', style: TextStyle(color: colorScheme.error)),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  TextButton.icon(
-                    onPressed: () => PrinterConfigurationEditRoute(
-                      profileId: profile.id,
-                    ).push<void>(context),
-                    icon: const Icon(Icons.edit, size: 16),
-                    label: const Text('Edit Profile'),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    _PrinterAction(
+                      id: 'edit',
+                      width: 150,
+                      button: TextButton.icon(
+                        key: const ValueKey('edit_profile_btn'),
+                        onPressed: () => PrinterConfigurationEditRoute(
+                          profileId: profile.id,
+                        ).push<void>(context),
+                        icon: const Icon(Icons.edit, size: 16),
+                        label: const Text('Edit Profile'),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                      ),
+                      menuEntry: PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, color: colorScheme.onSurfaceVariant, size: 20),
+                            const SizedBox(width: 8),
+                            const Text('Edit Profile'),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                  if (profile.trays.isNotEmpty) ...[
-                    const SizedBox(width: 4),
-                    _buildCalibrateMenu(context, profile),
-                  ],
-                ],
+                    if (profile.trays.isNotEmpty)
+                      _PrinterAction(
+                        id: 'calibrate',
+                        width: 130,
+                        button: _buildCalibrateMenu(context, profile),
+                        menuEntry: PopupMenuItem<String>(
+                          value: 'calibrate',
+                          child: Row(
+                            children: [
+                              Icon(Icons.tune, color: colorScheme.onSurfaceVariant, size: 20),
+                              const SizedBox(width: 8),
+                              const Text('Calibrate'),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ];
+
+                  int getPriority(String id) {
+                    if (id == 'calibrate') return 2;
+                    if (id == 'edit') return 1;
+                    return 0;
+                  }
+
+                  final prioritySorted = List<_PrinterAction>.from(candidates)
+                    ..sort((a, b) => getPriority(b.id).compareTo(getPriority(a.id)));
+
+                  final visible = <_PrinterAction>[];
+                  final overflow = <_PrinterAction>[];
+
+                  double totalWidthAll = 0;
+                  for (var i = 0; i < candidates.length; i++) {
+                    totalWidthAll += candidates[i].width;
+                    if (i > 0) totalWidthAll += 4.0;
+                  }
+
+                  if (totalWidthAll <= availableWidth) {
+                    visible.addAll(candidates);
+                  } else {
+                    var currentWidth = 48.0;
+                    var hasOverflowed = false;
+                    for (final candidate in prioritySorted) {
+                      if (hasOverflowed) {
+                        overflow.add(candidate);
+                        continue;
+                      }
+                      final needed = candidate.width + (visible.isEmpty ? 0 : 4.0);
+                      if (currentWidth + needed <= availableWidth) {
+                        visible.add(candidate);
+                        currentWidth += needed;
+                      } else {
+                        overflow.add(candidate);
+                        hasOverflowed = true;
+                      }
+                    }
+                    visible.sort((a, b) => candidates.indexOf(a).compareTo(candidates.indexOf(b)));
+                    overflow.sort((a, b) => candidates.indexOf(a).compareTo(candidates.indexOf(b)));
+                  }
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ...List.generate(visible.length, (index) {
+                        final button = visible[index].button;
+                        if (index == 0) return button;
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: button,
+                        );
+                      }),
+                      if (overflow.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert),
+                            tooltip: 'More actions',
+                            onSelected: (value) {
+                              if (value == 'calibrate') {
+                                _handleCalibrate(context, profile);
+                              } else if (value == 'edit') {
+                                PrinterConfigurationEditRoute(
+                                  profileId: profile.id,
+                                ).push<void>(context);
+                              } else if (value == 'delete') {
+                                _confirmDelete(context, profile);
+                              }
+                            },
+                            itemBuilder: (context) => overflow.map((action) => action.menuEntry).toList(),
+                          ),
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
             ],
           ],
@@ -269,6 +389,76 @@ class PrinterCard extends StatelessWidget {
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
             child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleCalibrate(BuildContext context, PrinterProfile profile) {
+    if (profile.trays.length == 1) {
+      final tray = profile.trays.first;
+      if (tray.supportedPaperConfigurations.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Add a paper configuration to the tray before calibrating.'),
+          ),
+        );
+        return;
+      }
+      CalibrationWizardRoute(
+        profileId: profile.id,
+        trayId: tray.trayIdentifier,
+        paperConfigurationId: tray.supportedPaperConfigurations.first.id,
+      ).push<void>(context);
+    } else {
+      _showCalibrateTrayDialog(context, profile);
+    }
+  }
+
+  void _showCalibrateTrayDialog(BuildContext context, PrinterProfile profile) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Select Tray to Calibrate'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: profile.trays.map((tray) {
+              final isCalibrated = tray.calibration.enabled &&
+                  tray.calibration.calibrationRules.isNotEmpty;
+              return ListTile(
+                leading: Icon(
+                  isCalibrated ? Icons.tune : Icons.tune_outlined,
+                  color: isCalibrated
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                title: Text(tray.displayName),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  if (tray.supportedPaperConfigurations.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Add a paper configuration to the tray before calibrating.'),
+                      ),
+                    );
+                    return;
+                  }
+                  CalibrationWizardRoute(
+                    profileId: profile.id,
+                    trayId: tray.trayIdentifier,
+                    paperConfigurationId: tray.supportedPaperConfigurations.first.id,
+                  ).push<void>(context);
+                },
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
           ),
         ],
       ),
@@ -373,4 +563,18 @@ class PrinterCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PrinterAction {
+  const _PrinterAction({
+    required this.id,
+    required this.button,
+    required this.width,
+    required this.menuEntry,
+  });
+
+  final String id;
+  final Widget button;
+  final double width;
+  final PopupMenuEntry<String> menuEntry;
 }

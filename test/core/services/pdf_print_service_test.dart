@@ -71,7 +71,10 @@ void main() {
       );
 
       expect(result, isA<Failure<void, AppError>>());
-      expect((result as Failure).error.message, contains('Sheet configuration is required'));
+      expect(
+        (result as Failure).error.message,
+        contains('Sheet configuration is required'),
+      );
     });
 
     test('Fails when stickerConfig is missing', () async {
@@ -102,7 +105,10 @@ void main() {
       );
 
       expect(result, isA<Failure<void, AppError>>());
-      expect((result as Failure).error.message, contains('Sticker configuration is required'));
+      expect(
+        (result as Failure).error.message,
+        contains('Sticker configuration is required'),
+      );
     });
 
     test('Fails when grid layout size exceeds the sheet boundaries', () async {
@@ -142,7 +148,10 @@ void main() {
       );
 
       expect(result, isA<Failure<void, AppError>>());
-      expect((result as Failure).error.message, contains('exceeds the physical sheet bounds'));
+      expect(
+        (result as Failure).error.message,
+        contains('exceeds the physical sheet bounds'),
+      );
     });
 
     test('Fails when barcode is outside the printable area polygon', () async {
@@ -199,116 +208,129 @@ void main() {
       );
 
       expect(result, isA<Failure<void, AppError>>());
-      expect((result as Failure).error.message, contains('falls outside the printable area polygon'));
+      expect(
+        (result as Failure).error.message,
+        contains('falls outside the printable area polygon'),
+      );
     });
 
-    test('Passes validation when barcode is fully inside the printable area polygon', () async {
-      const template = LabelTemplate(
-        id: 'temp-1',
-        name: 'Test Template',
-        sheetConfig: SheetConfig(
-          pageWidth: 210,
-          pageHeight: 297,
-          marginTop: 10,
-          marginBottom: 10,
-          marginLeft: 10,
-          marginRight: 10,
-          columns: 2,
-          rows: 5,
-          columnGap: 5,
-          rowGap: 5,
-        ),
-        stickerConfig: StickerConfig(
-          widthMm: 50,
-          heightMm: 50,
-          cornerRadiusMm: 2,
-          printableArea: [
-            StickerPoint(0, 0),
-            StickerPoint(50, 0),
-            StickerPoint(50, 50),
-            StickerPoint(0, 50),
-          ],
-        ),
-        elements: [
-          BarcodeElementBlueprint(
-            id: 'barcode-1',
-            x: 5,
-            y: 5,
-            width: 40,
-            height: 10,
-            rotation: 0,
-            data: '1234',
-            isDynamic: false,
-            barcodeType: BlueprintBarcodeType.code128,
-            showLabel: true,
+    test(
+      'Passes validation when barcode is fully inside the printable area polygon',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-1',
+          name: 'Test Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 210,
+            pageHeight: 297,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 2,
+            rows: 5,
+            columnGap: 5,
+            rowGap: 5,
           ),
-        ],
-      );
+          stickerConfig: StickerConfig(
+            widthMm: 50,
+            heightMm: 50,
+            cornerRadiusMm: 2,
+            printableArea: [
+              StickerPoint(0, 0),
+              StickerPoint(50, 0),
+              StickerPoint(50, 50),
+              StickerPoint(0, 50),
+            ],
+          ),
+          elements: [
+            BarcodeElementBlueprint(
+              id: 'barcode-1',
+              x: 5,
+              y: 5,
+              width: 40,
+              height: 10,
+              rotation: 0,
+              data: '1234',
+              isDynamic: false,
+              barcodeType: BlueprintBarcodeType.code128,
+              showLabel: true,
+            ),
+          ],
+        );
 
-      final result = await service.printLabels(
-        product: testProduct,
-        variant: testVariant,
-        template: template,
-        quantity: 1,
-        disabledSlots: {},
-        printer: const PrinterDevice(name: 'Zebra', url: ''),
-      );
+        final result = await service.printLabels(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 1,
+          disabledSlots: {},
+          printer: const PrinterDevice(name: 'Zebra', url: ''),
+        );
 
-      expect(result, isA<Success<void, AppError>>());
-    });
+        expect(result, isA<Success<void, AppError>>());
+      },
+    );
   });
 
   group('PdfPrintService Output Inspection Tests', () {
-    test('Generates PDF with exact custom sheet dimensions in MediaBox', () async {
-      const template = LabelTemplate(
-        id: 'temp-custom-size',
-        name: 'Custom Size Template',
-        sheetConfig: SheetConfig(
-          pageWidth: 180,
-          pageHeight: 120,
-          marginTop: 5,
-          marginBottom: 5,
-          marginLeft: 5,
-          marginRight: 5,
-          columns: 2,
-          rows: 2,
-          columnGap: 5,
-          rowGap: 5,
-        ),
-        stickerConfig: StickerConfig(
-          widthMm: 80,
-          heightMm: 50,
-          cornerRadiusMm: 2,
-          printableArea: [],
-        ),
-      );
+    test(
+      'Generates PDF with exact custom sheet dimensions in MediaBox',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-custom-size',
+          name: 'Custom Size Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 180,
+            pageHeight: 120,
+            marginTop: 5,
+            marginBottom: 5,
+            marginLeft: 5,
+            marginRight: 5,
+            columns: 2,
+            rows: 2,
+            columnGap: 5,
+            rowGap: 5,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 80,
+            heightMm: 50,
+            cornerRadiusMm: 2,
+            printableArea: [],
+          ),
+        );
 
-      final result = await service.printLabels(
-        product: testProduct,
-        variant: testVariant,
-        template: template,
-        quantity: 1,
-        disabledSlots: {},
-        printer: const PrinterDevice(name: 'Zebra', url: ''),
-      );
+        final result = await service.printLabels(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 1,
+          disabledSlots: {},
+          printer: const PrinterDevice(name: 'Zebra', url: ''),
+        );
 
-      expect(result, isA<Success<void, AppError>>());
-      expect(mockPrintingPlatform.capturedPdfBytes, isNotNull);
+        expect(result, isA<Success<void, AppError>>());
+        expect(mockPrintingPlatform.capturedPdfBytes, isNotNull);
 
-      // Inspect uncompressed raw PDF string for MediaBox dimensions
-      final pdfString = String.fromCharCodes(mockPrintingPlatform.capturedPdfBytes!);
-      
-      // Expected width in points = 180mm * 2.834645669291339 = 510.236 points
-      // Expected height in points = 120mm * 2.834645669291339 = 340.157 points
-      final mediaBoxRegex = RegExp(r'/MediaBox\s*\[\s*0\s+0\s+([0-9.]+)\s+([0-9.]+)\s*\]');
-      final match = mediaBoxRegex.firstMatch(pdfString);
-      expect(match, isNotNull, reason: 'MediaBox must be defined in the PDF');
-      
-      final parsedWidth = double.parse(match!.group(1)!);
-      final parsedHeight = double.parse(match.group(2)!);
-      expect(parsedWidth, closeTo(510.236, 0.1));
-      expect(parsedHeight, closeTo(340.157, 0.1));
-    });
+        // Inspect uncompressed raw PDF string for MediaBox dimensions
+        final pdfString = String.fromCharCodes(
+          mockPrintingPlatform.capturedPdfBytes!,
+        );
+
+        // Expected width in points = 180mm * 2.834645669291339 = 510.236 points
+        // Expected height in points = 120mm * 2.834645669291339 = 340.157 points
+        final mediaBoxRegex = RegExp(
+          r'/MediaBox\s*\[\s*0\s+0\s+([0-9.]+)\s+([0-9.]+)\s*\]',
+        );
+        final match = mediaBoxRegex.firstMatch(pdfString);
+        expect(match, isNotNull, reason: 'MediaBox must be defined in the PDF');
+
+        final parsedWidth = double.parse(match!.group(1)!);
+        final parsedHeight = double.parse(match.group(2)!);
+        expect(parsedWidth, closeTo(510.236, 0.1));
+        expect(parsedHeight, closeTo(340.157, 0.1));
+      },
+    );
 
     test('Clips sticker layout using custom printable polygon path', () async {
       const template = LabelTemplate(
@@ -350,16 +372,26 @@ void main() {
       expect(result, isA<Success<void, AppError>>());
       expect(mockPrintingPlatform.capturedPdfBytes, isNotNull);
 
-      final pdfString = String.fromCharCodes(mockPrintingPlatform.capturedPdfBytes!);
-      
+      final pdfString = String.fromCharCodes(
+        mockPrintingPlatform.capturedPdfBytes!,
+      );
+
       // Verify that the path operators for clipping are compiled into the PDF
       // Triangle vertices in PDF:
       // Point 1: 0, 50 -> Y = (50 - 0) * 2.8346 = 141.73
       // Point 2: 80, 50 -> Y = (50 - 0) * 2.8346 = 141.73
       // Point 3: 40, 0 -> Y = (50 - 50) * 2.8346 = 0
       // We expect the path to be closed and clipped: e.g. contains ' W ' (Clip path operator)
-      expect(pdfString, contains(' W'), reason: 'PDF must contain a clipping operator (W)');
-      expect(pdfString, contains(' h'), reason: 'PDF must contain a path close operator (h)');
+      expect(
+        pdfString,
+        contains(' W'),
+        reason: 'PDF must contain a clipping operator (W)',
+      );
+      expect(
+        pdfString,
+        contains(' h'),
+        reason: 'PDF must contain a path close operator (h)',
+      );
     });
   });
 
@@ -444,8 +476,11 @@ void main() {
       registerFallbackValue(const PrintCoordinateContext.identity());
     });
 
-    test('No printer configuration (null configuration) -> identity context', () async {
-      when(() => mockLayoutEngine.buildPdfBytes(
+    test(
+      'No printer configuration (null configuration) -> identity context',
+      () async {
+        when(
+          () => mockLayoutEngine.buildPdfBytes(
             product: any(named: 'product'),
             variant: any(named: 'variant'),
             template: any(named: 'template'),
@@ -453,34 +488,43 @@ void main() {
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: any(named: 'coordinateContext'),
-          )).thenAnswer((_) async => Uint8List(0));
+          ),
+        ).thenAnswer((_) async => Uint8List(0));
 
-      final result = await calibrationService.printLabels(
-        product: testProduct,
-        variant: testVariant,
-        template: template,
-        quantity: 1,
-        disabledSlots: {},
-        printer: const PrinterDevice(name: 'Zebra', url: ''),
-        executionConfiguration: null,
-      );
+        final result = await calibrationService.printLabels(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 1,
+          disabledSlots: {},
+          printer: const PrinterDevice(name: 'Zebra', url: ''),
+          executionConfiguration: null,
+        );
 
-      expect(result, isA<Success<void, AppError>>());
-      final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
-            template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
-            disabledSlots: any(named: 'disabledSlots'),
-            printFromBottom: any(named: 'printFromBottom'),
-            coordinateContext: captureAny(named: 'coordinateContext'),
-          )).captured.first as PrintCoordinateContext;
+        expect(result, isA<Success<void, AppError>>());
+        final capturedContext =
+            verify(
+                  () => mockLayoutEngine.buildPdfBytes(
+                    product: any(named: 'product'),
+                    variant: any(named: 'variant'),
+                    template: any(named: 'template'),
+                    quantity: any(named: 'quantity'),
+                    disabledSlots: any(named: 'disabledSlots'),
+                    printFromBottom: any(named: 'printFromBottom'),
+                    coordinateContext: captureAny(named: 'coordinateContext'),
+                  ),
+                ).captured.first
+                as PrintCoordinateContext;
 
-      expect(capturedContext.isIdentity, isTrue);
-    });
+        expect(capturedContext.isIdentity, isTrue);
+      },
+    );
 
-    test('No selected tray (PrintExecutionConfiguration with null selectedTray) -> identity context', () async {
-      when(() => mockLayoutEngine.buildPdfBytes(
+    test(
+      'No selected tray (PrintExecutionConfiguration with null selectedTray) -> identity context',
+      () async {
+        when(
+          () => mockLayoutEngine.buildPdfBytes(
             product: any(named: 'product'),
             variant: any(named: 'variant'),
             template: any(named: 'template'),
@@ -488,42 +532,52 @@ void main() {
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: any(named: 'coordinateContext'),
-          )).thenAnswer((_) async => Uint8List(0));
+          ),
+        ).thenAnswer((_) async => Uint8List(0));
 
-      final result = await calibrationService.printLabels(
-        product: testProduct,
-        variant: testVariant,
-        template: template,
-        quantity: 1,
-        disabledSlots: {},
-        printer: const PrinterDevice(name: 'Zebra', url: ''),
-        executionConfiguration: const PrintExecutionConfiguration(selectedTray: null),
-      );
+        final result = await calibrationService.printLabels(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 1,
+          disabledSlots: {},
+          printer: const PrinterDevice(name: 'Zebra', url: ''),
+          executionConfiguration: const PrintExecutionConfiguration(
+            selectedTray: null,
+          ),
+        );
 
-      expect(result, isA<Success<void, AppError>>());
-      final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
-            template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
-            disabledSlots: any(named: 'disabledSlots'),
-            printFromBottom: any(named: 'printFromBottom'),
-            coordinateContext: captureAny(named: 'coordinateContext'),
-          )).captured.first as PrintCoordinateContext;
+        expect(result, isA<Success<void, AppError>>());
+        final capturedContext =
+            verify(
+                  () => mockLayoutEngine.buildPdfBytes(
+                    product: any(named: 'product'),
+                    variant: any(named: 'variant'),
+                    template: any(named: 'template'),
+                    quantity: any(named: 'quantity'),
+                    disabledSlots: any(named: 'disabledSlots'),
+                    printFromBottom: any(named: 'printFromBottom'),
+                    coordinateContext: captureAny(named: 'coordinateContext'),
+                  ),
+                ).captured.first
+                as PrintCoordinateContext;
 
-      expect(capturedContext.isIdentity, isTrue);
-    });
+        expect(capturedContext.isIdentity, isTrue);
+      },
+    );
 
     test('Calibration disabled -> identity context', () async {
-      when(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
-            template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
-            disabledSlots: any(named: 'disabledSlots'),
-            printFromBottom: any(named: 'printFromBottom'),
-            coordinateContext: any(named: 'coordinateContext'),
-          )).thenAnswer((_) async => Uint8List(0));
+      when(
+        () => mockLayoutEngine.buildPdfBytes(
+          product: any(named: 'product'),
+          variant: any(named: 'variant'),
+          template: any(named: 'template'),
+          quantity: any(named: 'quantity'),
+          disabledSlots: any(named: 'disabledSlots'),
+          printFromBottom: any(named: 'printFromBottom'),
+          coordinateContext: any(named: 'coordinateContext'),
+        ),
+      ).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
         product: testProduct,
@@ -539,29 +593,35 @@ void main() {
       );
 
       expect(result, isA<Success<void, AppError>>());
-      final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
-            template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
-            disabledSlots: any(named: 'disabledSlots'),
-            printFromBottom: any(named: 'printFromBottom'),
-            coordinateContext: captureAny(named: 'coordinateContext'),
-          )).captured.first as PrintCoordinateContext;
+      final capturedContext =
+          verify(
+                () => mockLayoutEngine.buildPdfBytes(
+                  product: any(named: 'product'),
+                  variant: any(named: 'variant'),
+                  template: any(named: 'template'),
+                  quantity: any(named: 'quantity'),
+                  disabledSlots: any(named: 'disabledSlots'),
+                  printFromBottom: any(named: 'printFromBottom'),
+                  coordinateContext: captureAny(named: 'coordinateContext'),
+                ),
+              ).captured.first
+              as PrintCoordinateContext;
 
       expect(capturedContext.isIdentity, isTrue);
     });
 
     test('Valid calibration -> applies rules and matches parameters', () async {
-      when(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
-            template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
-            disabledSlots: any(named: 'disabledSlots'),
-            printFromBottom: any(named: 'printFromBottom'),
-            coordinateContext: any(named: 'coordinateContext'),
-          )).thenAnswer((_) async => Uint8List(0));
+      when(
+        () => mockLayoutEngine.buildPdfBytes(
+          product: any(named: 'product'),
+          variant: any(named: 'variant'),
+          template: any(named: 'template'),
+          quantity: any(named: 'quantity'),
+          disabledSlots: any(named: 'disabledSlots'),
+          printFromBottom: any(named: 'printFromBottom'),
+          coordinateContext: any(named: 'coordinateContext'),
+        ),
+      ).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
         product: testProduct,
@@ -577,15 +637,19 @@ void main() {
       );
 
       expect(result, isA<Success<void, AppError>>());
-      final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
-            template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
-            disabledSlots: any(named: 'disabledSlots'),
-            printFromBottom: any(named: 'printFromBottom'),
-            coordinateContext: captureAny(named: 'coordinateContext'),
-          )).captured.first as PrintCoordinateContext;
+      final capturedContext =
+          verify(
+                () => mockLayoutEngine.buildPdfBytes(
+                  product: any(named: 'product'),
+                  variant: any(named: 'variant'),
+                  template: any(named: 'template'),
+                  quantity: any(named: 'quantity'),
+                  disabledSlots: any(named: 'disabledSlots'),
+                  printFromBottom: any(named: 'printFromBottom'),
+                  coordinateContext: captureAny(named: 'coordinateContext'),
+                ),
+              ).captured.first
+              as PrintCoordinateContext;
 
       expect(capturedContext.isIdentity, isFalse);
       // Left edge rule applies to columns == 0 (index 0 and 2)
@@ -639,6 +703,7 @@ class FakePrintingPlatform extends PrintingPlatform {
     bool usePrinterSettings,
     OutputType outputType,
     bool forceCustomPrintPaper,
+    bool windowsModernDialog,
   ) async {
     capturedPdfBytes = await onLayout(format);
     return true;
@@ -668,5 +733,9 @@ class FakePrintingPlatform extends PrintingPlatform {
   ) async => Uint8List(0);
 
   @override
-  Stream<PdfRaster> raster(Uint8List document, List<int>? pages, double dpi) async* {}
+  Stream<PdfRaster> raster(
+    Uint8List document,
+    List<int>? pages,
+    double dpi,
+  ) async* {}
 }

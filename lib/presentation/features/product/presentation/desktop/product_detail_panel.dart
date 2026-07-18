@@ -46,8 +46,14 @@ class ProductDetailPanel extends StatelessWidget {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (dialogContext, setState) {
+            final size = MediaQuery.of(dialogContext).size;
             return AlertDialog(
-              constraints: const BoxConstraints(maxWidth: 480),
+              constraints: BoxConstraints(
+                minWidth: size.width * 0.5,
+                maxWidth: size.width * 0.5,
+                minHeight: size.height * 0.7,
+                maxHeight: size.height * 0.7,
+              ),
               title: Text('Edit Variant - ${variant.name}'),
               content: SingleChildScrollView(
                 child: Form(
@@ -228,8 +234,14 @@ class ProductDetailPanel extends StatelessWidget {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (dialogContext, setState) {
+            final size = MediaQuery.of(dialogContext).size;
             return AlertDialog(
-              constraints: const BoxConstraints(maxWidth: 480),
+              constraints: BoxConstraints(
+                minWidth: size.width * 0.5,
+                maxWidth: size.width * 0.5,
+                minHeight: size.height * 0.7,
+                maxHeight: size.height * 0.7,
+              ),
               title: const Text('Add Variant'),
               content: SingleChildScrollView(
                 child: Form(

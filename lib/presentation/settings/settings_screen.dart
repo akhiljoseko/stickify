@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:stickify/auth/auth.dart';
 
 /// Settings screen — the designated place for the Logout action.
@@ -74,7 +75,6 @@ class SettingsScreen extends StatelessWidget {
             //     ],
             //   ),
             // ),
-
             const SizedBox(height: 32),
 
             // ── Logout Section ─────────────────────────────────────────────
@@ -100,6 +100,26 @@ class SettingsScreen extends StatelessWidget {
                 // callback detects the AuthUnauthenticated state change and
                 // navigates to /login automatically.
                 onTap: () => context.read<AuthCubit>().logout(),
+              ),
+            ),
+            const SizedBox(height: 32),
+            Center(
+              child: FutureBuilder<PackageInfo>(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final info = snapshot.data!;
+                    return Text(
+                      'Version ${info.version}',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.6,
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
               ),
             ),
             const SizedBox(height: 24),

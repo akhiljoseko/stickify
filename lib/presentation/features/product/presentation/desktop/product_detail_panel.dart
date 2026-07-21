@@ -710,7 +710,7 @@ class ProductDetailPanel extends StatelessWidget {
                       ),
                     ],
                   ),
-                  ...product.variants.map((v) => TableRow(
+                  ...product.sortedVariants.map((v) => TableRow(
                         children: [
                           _cell(textTheme, v.name),
                           _cell(textTheme, '${v.quantity} ${v.unit}'),

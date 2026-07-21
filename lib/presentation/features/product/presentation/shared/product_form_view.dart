@@ -125,9 +125,9 @@ class ProductFormViewState extends State<ProductFormView> {
       _ingredients.addAll(p.ingredients);
       _keywords.addAll(p.keywords);
       if (widget.isCopy) {
-        _variants.addAll(p.variants.map((v) => v.copyWith(sku: '${v.sku}-copy')));
+        _variants.addAll(p.sortedVariants.map((v) => v.copyWith(sku: '${v.sku}-copy')));
       } else {
-        _variants.addAll(p.variants);
+        _variants.addAll(p.sortedVariants);
       }
       if (p.nutritionFacts != null) {
         _includeNutrition = true;
@@ -285,6 +285,7 @@ class ProductFormViewState extends State<ProductFormView> {
         } else {
           _variants.add(variant);
         }
+        _variants.sort((a, b) => a.mrp.compareTo(b.mrp));
 
         _varNameController.clear();
         _varSkuController.clear();

@@ -27,7 +27,7 @@ void main() {
         quantity: 15,
         unit: 'pcs',
         wholesale: 150,
-        mrp: 200,
+        mrp: 100,
         sku: 'SKU-C-15',
       ),
       ProductVariant(
@@ -35,7 +35,7 @@ void main() {
         quantity: 5,
         unit: 'pcs',
         wholesale: 50,
-        mrp: 70,
+        mrp: 300,
         sku: 'SKU-C-5',
       ),
       ProductVariant(
@@ -43,7 +43,7 @@ void main() {
         quantity: 10,
         unit: 'pcs',
         wholesale: 100,
-        mrp: 140,
+        mrp: 200,
         sku: 'SKU-C-10',
       ),
     ],
@@ -104,7 +104,7 @@ void main() {
       expect((listTiles[2].title! as Text).data, 'C Product');
     });
 
-    testWidgets('sorts variants by quantity', (tester) async {
+    testWidgets('sorts variants by MRP', (tester) async {
       await tester.pumpApp(buildTestableWidget());
       await tester.pumpAndSettle();
 
@@ -112,12 +112,12 @@ void main() {
       await tester.tap(find.widgetWithText(ListTile, 'C Product'));
       await tester.pumpAndSettle();
 
-      // Variants should be sorted by quantity: 5, 10, 15
+      // Variants should be sorted by MRP: 100, 200, 300 (Pack of 15, Pack of 10, Pack of 5)
       final listTiles = tester.widgetList<ListTile>(find.byType(ListTile)).toList();
       expect(listTiles.length, 3);
-      expect((listTiles[0].title! as Text).data, 'Pack of 5');
+      expect((listTiles[0].title! as Text).data, 'Pack of 15');
       expect((listTiles[1].title! as Text).data, 'Pack of 10');
-      expect((listTiles[2].title! as Text).data, 'Pack of 15');
+      expect((listTiles[2].title! as Text).data, 'Pack of 5');
     });
 
     testWidgets('arrow keys change highlight and Enter selects product', (tester) async {

@@ -333,7 +333,7 @@ class MobileProductDetailPanel extends StatelessWidget {
                 ),
               )
             else
-              ...product.variants.map((v) => ListTile(
+              ...product.sortedVariants.map((v) => ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(v.name, style: textTheme.titleSmall),
                     subtitle: Column(

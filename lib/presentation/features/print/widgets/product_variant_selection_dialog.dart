@@ -103,8 +103,7 @@ class _ProductVariantSelectionDialogState
 
   List<ProductVariant> _getSortedVariants() {
     if (_selectedProduct == null) return [];
-    return List<ProductVariant>.from(_selectedProduct!.variants)
-      ..sort((a, b) => a.quantity.compareTo(b.quantity));
+    return _selectedProduct!.sortedVariants;
   }
 
   void _handleCtrlS() {

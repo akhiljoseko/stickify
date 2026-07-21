@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/quantity_unit_dropdown.dart';
 import 'package:stickify/presentation/widgets/template_selector.dart';
 
 /// A reusable dialog widget for editing a [ProductVariant].
@@ -184,26 +185,9 @@ class _EditVariantDialogState extends State<EditVariantDialog> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue:
-                          const [
-                            'pcs',
-                            'ml',
-                            'gm',
-                            'kg',
-                            'L',
-                          ].contains(_unitController.text)
-                          ? _unitController.text
-                          : 'gm',
-                      decoration: const InputDecoration(labelText: 'Unit'),
-                      items: const [
-                        DropdownMenuItem(value: 'pcs', child: Text('pcs')),
-                        DropdownMenuItem(value: 'ml', child: Text('ml')),
-                        DropdownMenuItem(value: 'gm', child: Text('gm')),
-                        DropdownMenuItem(value: 'kg', child: Text('kg')),
-                        DropdownMenuItem(value: 'L', child: Text('L')),
-                      ],
+                   Expanded(
+                    child: QuantityUnitDropdown(
+                      initialValue: _unitController.text,
                       onChanged: (val) {
                         if (val != null) {
                           _unitController.text = val;

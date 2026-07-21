@@ -12,6 +12,7 @@ import 'package:stickify/presentation/features/product/presentation/shared/produ
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_keywords_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_nutrition_facts_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_storage_card.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/quantity_unit_dropdown.dart';
 import 'package:stickify/presentation/widgets/widgets.dart';
 
 class ProductDetailPanel extends StatelessWidget {
@@ -136,30 +137,8 @@ class ProductDetailPanel extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: DropdownButtonFormField<String>(
+                            child: QuantityUnitDropdown(
                               initialValue: unitController.text,
-                              decoration: const InputDecoration(
-                                labelText: 'Unit',
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 'pcs',
-                                  child: Text('pcs'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'ml',
-                                  child: Text('ml'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'gm',
-                                  child: Text('gm'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'kg',
-                                  child: Text('kg'),
-                                ),
-                                DropdownMenuItem(value: 'L', child: Text('L')),
-                              ],
                               onChanged: (val) {
                                 if (val != null) unitController.text = val;
                               },

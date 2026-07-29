@@ -679,6 +679,259 @@ void main() {
       expect(error.message, contains('not supported by the tray'));
     });
   });
+
+  group('PdfPrintService Calibration Integration Tests', () {
+    late PdfPrintService calibrationService;
+    late MockLabelLayoutEngine mockLayoutEngine;
+    late PrinterCalibrationCoordinateResolver realResolver;
+    late PrintCalibrationContextResolver realCalibrationResolver;
+
+    final testTray = PrinterTrayProfile(
+      trayIdentifier: 'tray_1',
+      displayName: 'Tray 1',
+      supportedPaperConfigurations: const [
+        PaperConfigurationReference(id: 'temp-1', displayName: 'Template 1'),
+      ],
+      calibration: PrinterCalibration(
+        enabled: true,
+        calibrationRules: const [
+          CalibrationRule(
+            target: CalibrationTarget.edge(EdgeGroup.left),
+            transformation: PrintStickerTransform(scaleX: 0.95, anchorX: 0),
+          ),
+        ],
+      ),
+    );
+
+    final disabledTray = PrinterTrayProfile(
+      trayIdentifier: 'tray_1',
+      displayName: 'Tray 1',
+      supportedPaperConfigurations: const [
+        PaperConfigurationReference(id: 'temp-1', displayName: 'Template 1'),
+      ],
+      calibration: PrinterCalibration(
+        enabled: false,
+        calibrationRules: const [
+          CalibrationRule(
+            target: CalibrationTarget.edge(EdgeGroup.left),
+            transformation: PrintStickerTransform(scaleX: 0.95, anchorX: 0),
+          ),
+        ],
+      ),
+    );
+
+    const template = LabelTemplate(
+      id: 'temp-1',
+      name: 'Test Template',
+      sheetConfig: SheetConfig(
+        pageWidth: 210,
+        pageHeight: 297,
+        marginTop: 10,
+        marginBottom: 10,
+        marginLeft: 10,
+        marginRight: 10,
+        columns: 2,
+        rows: 2,
+        columnGap: 2,
+        rowGap: 2,
+      ),
+      stickerConfig: StickerConfig(
+        widthMm: 50,
+        heightMm: 30,
+        cornerRadiusMm: 2,
+        printableArea: [],
+      ),
+    );
+
+    setUp(() {
+      mockLayoutEngine = MockLabelLayoutEngine();
+      realResolver = const PrinterCalibrationCoordinateResolver(
+        ruleMatcher: CalibrationRuleMatcher(),
+        transformComposer: CalibrationTransformComposer(),
+      );
+      realCalibrationResolver = PrintCalibrationContextResolver(realResolver);
+      calibrationService = PdfPrintService(
+        layoutEngine: mockLayoutEngine,
+        calibrationResolver: realCalibrationResolver,
+      );
+
+      registerFallbackValue(testProduct);
+      registerFallbackValue(testVariant);
+      registerFallbackValue(template);
+      registerFallbackValue(const PrintCoordinateContext.identity());
+    });
+
+    test('No printer configuration (null configuration) -> identity context', () async {
+      when(() => mockLayoutEngine.buildPdfBytes(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printFromBottom: any(named: 'printFromBottom'),
+            coordinateContext: any(named: 'coordinateContext'),
+          )).thenAnswer((_) async => Uint8List(0));
+
+      final result = await calibrationService.printLabels(
+        product: testProduct,
+        variant: testVariant,
+        template: template,
+        quantity: 1,
+        disabledSlots: {},
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
+        executionConfiguration: null,
+      );
+
+      expect(result, isA<Success<void, AppError>>());
+      final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printFromBottom: any(named: 'printFromBottom'),
+            coordinateContext: captureAny(named: 'coordinateContext'),
+          )).captured.first as PrintCoordinateContext;
+
+      expect(capturedContext.isIdentity, isTrue);
+    });
+
+    test('No selected tray (PrintExecutionConfiguration with null selectedTray) -> identity context', () async {
+      when(() => mockLayoutEngine.buildPdfBytes(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printFromBottom: any(named: 'printFromBottom'),
+            coordinateContext: any(named: 'coordinateContext'),
+          )).thenAnswer((_) async => Uint8List(0));
+
+      final result = await calibrationService.printLabels(
+        product: testProduct,
+        variant: testVariant,
+        template: template,
+        quantity: 1,
+        disabledSlots: {},
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
+        executionConfiguration: const PrintExecutionConfiguration(selectedTray: null),
+      );
+
+      expect(result, isA<Success<void, AppError>>());
+      final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printFromBottom: any(named: 'printFromBottom'),
+            coordinateContext: captureAny(named: 'coordinateContext'),
+          )).captured.first as PrintCoordinateContext;
+
+      expect(capturedContext.isIdentity, isTrue);
+    });
+
+    test('Calibration disabled -> identity context', () async {
+      when(() => mockLayoutEngine.buildPdfBytes(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printFromBottom: any(named: 'printFromBottom'),
+            coordinateContext: any(named: 'coordinateContext'),
+          )).thenAnswer((_) async => Uint8List(0));
+
+      final result = await calibrationService.printLabels(
+        product: testProduct,
+        variant: testVariant,
+        template: template,
+        quantity: 1,
+        disabledSlots: {},
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
+        executionConfiguration: PrintExecutionConfiguration(
+          selectedTray: disabledTray,
+          paperConfigurationId: 'temp-1',
+        ),
+      );
+
+      expect(result, isA<Success<void, AppError>>());
+      final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printFromBottom: any(named: 'printFromBottom'),
+            coordinateContext: captureAny(named: 'coordinateContext'),
+          )).captured.first as PrintCoordinateContext;
+
+      expect(capturedContext.isIdentity, isTrue);
+    });
+
+    test('Valid calibration -> applies rules and matches parameters', () async {
+      when(() => mockLayoutEngine.buildPdfBytes(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printFromBottom: any(named: 'printFromBottom'),
+            coordinateContext: any(named: 'coordinateContext'),
+          )).thenAnswer((_) async => Uint8List(0));
+
+      final result = await calibrationService.printLabels(
+        product: testProduct,
+        variant: testVariant,
+        template: template,
+        quantity: 1,
+        disabledSlots: {},
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
+        executionConfiguration: PrintExecutionConfiguration(
+          selectedTray: testTray,
+          paperConfigurationId: 'temp-1',
+        ),
+      );
+
+      expect(result, isA<Success<void, AppError>>());
+      final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printFromBottom: any(named: 'printFromBottom'),
+            coordinateContext: captureAny(named: 'coordinateContext'),
+          )).captured.first as PrintCoordinateContext;
+
+      expect(capturedContext.isIdentity, isFalse);
+      // Left edge rule applies to columns == 0 (index 0 and 2)
+      final transform0 = capturedContext.stickerTransforms[0];
+      expect(transform0, isNotNull);
+      expect(transform0!.scaleX, equals(0.95));
+      expect(transform0.anchorX, equals(0.0));
+    });
+
+    test('Unsupported paper configuration -> returns failure', () async {
+      final result = await calibrationService.printLabels(
+        product: testProduct,
+        variant: testVariant,
+        template: template,
+        quantity: 1,
+        disabledSlots: {},
+        printer: const PrinterDevice(name: 'Zebra', url: ''),
+        executionConfiguration: PrintExecutionConfiguration(
+          selectedTray: testTray,
+          paperConfigurationId: 'unsupported-temp-id',
+        ),
+      );
+
+      expect(result, isA<Failure<void, AppError>>());
+      final error = (result as Failure<void, AppError>).error;
+      expect(error, isA<ValidationError>());
+      expect(error.message, contains('not supported by the tray'));
+    });
+  });
 }
 
 class MockLabelLayoutEngine extends Mock implements LabelLayoutEngine {}

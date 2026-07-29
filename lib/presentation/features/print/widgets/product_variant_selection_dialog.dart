@@ -436,7 +436,9 @@ class _ProductVariantSelectionDialogState
                                       trailing: const Icon(Icons.chevron_right),
                                       onTap: () {
                                         setState(() {
-                                          _savedProductScrollOffset = _productScrollController.hasClients
+                                          _savedProductScrollOffset =
+                                              _productScrollController
+                                                  .hasClients
                                               ? _productScrollController.offset
                                               : 0.0;
                                           _savedProductHighlightedIndex = i;
@@ -473,7 +475,9 @@ class _ProductVariantSelectionDialogState
                                 extentOffset: _searchController.text.length,
                               );
                               if (_productScrollController.hasClients) {
-                                _productScrollController.jumpTo(_savedProductScrollOffset);
+                                _productScrollController.jumpTo(
+                                  _savedProductScrollOffset,
+                                );
                               }
                             });
                           },
@@ -550,8 +554,12 @@ class _ProductVariantSelectionDialogState
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             IconButton(
-                                              key: ValueKey('edit_variant_${v.sku}'),
-                                              icon: const Icon(Icons.edit_outlined),
+                                              key: ValueKey(
+                                                'edit_variant_${v.sku}',
+                                              ),
+                                              icon: const Icon(
+                                                Icons.edit_outlined,
+                                              ),
                                               onPressed: () => _editVariant(v),
                                             ),
                                             const SizedBox(width: 8),

@@ -680,4 +680,306 @@ void main() {
       expect(error.message, contains('not supported by the tray'));
     });
   });
+
+  group('WindowsPrintService Calibration Integration Tests', () {
+    late WindowsPrintService calibrationService;
+    late MockLabelLayoutEngine mockLayout;
+    late MockPaperValidationEngine mockValidator;
+    late MockWindowsDevModeManager mockDevMode;
+    late PrinterCalibrationCoordinateResolver realResolver;
+    late PrintCalibrationContextResolver realCalibrationResolver;
+
+    final testTray = PrinterTrayProfile(
+      trayIdentifier: 'tray_1',
+      displayName: 'Tray 1',
+      supportedPaperConfigurations: const [
+        PaperConfigurationReference(id: 'temp-1', displayName: 'Template 1'),
+      ],
+      calibration: PrinterCalibration(
+        enabled: true,
+        calibrationRules: const [
+          CalibrationRule(
+            target: CalibrationTarget.edge(EdgeGroup.left),
+            transformation: PrintStickerTransform(scaleX: 0.95, anchorX: 0),
+          ),
+        ],
+      ),
+    );
+
+    final disabledTray = PrinterTrayProfile(
+      trayIdentifier: 'tray_1',
+      displayName: 'Tray 1',
+      supportedPaperConfigurations: const [
+        PaperConfigurationReference(id: 'temp-1', displayName: 'Template 1'),
+      ],
+      calibration: PrinterCalibration(
+        enabled: false,
+        calibrationRules: const [
+          CalibrationRule(
+            target: CalibrationTarget.edge(EdgeGroup.left),
+            transformation: PrintStickerTransform(scaleX: 0.95, anchorX: 0),
+          ),
+        ],
+      ),
+    );
+
+    setUp(() {
+      mockLayout = MockLabelLayoutEngine();
+      mockValidator = MockPaperValidationEngine();
+      mockDevMode = MockWindowsDevModeManager();
+      realResolver = const PrinterCalibrationCoordinateResolver(
+        ruleMatcher: CalibrationRuleMatcher(),
+        transformComposer: CalibrationTransformComposer(),
+      );
+      realCalibrationResolver = PrintCalibrationContextResolver(realResolver);
+
+      when(() => mockDevMode.healOnStartup()).thenAnswer((_) async {});
+      when(
+        () => mockDevMode.applySettings(any(), any()),
+      ).thenAnswer((_) async => 'backup-token-xyz');
+      when(
+        () => mockDevMode.restoreSettings(any(), any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockValidator.isPaperSizeSupported(any(), any()),
+      ).thenAnswer((_) async => true);
+
+      calibrationService = WindowsPrintService(
+        layoutEngine: mockLayout,
+        paperValidator: mockValidator,
+        devModeManager: mockDevMode,
+        calibrationResolver: realCalibrationResolver,
+      );
+    });
+
+    test(
+      'No printer configuration (null configuration) -> identity context',
+      () async {
+        fakePrintingPlatform.printersList = [
+          const Printer(name: 'Zebra ZT411-A', url: 'zebra-url'),
+        ];
+
+        when(
+          () => mockLayout.buildPdfBytes(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printFromBottom: any(named: 'printFromBottom'),
+            physicalFormat: any(named: 'physicalFormat'),
+            coordinateContext: any(named: 'coordinateContext'),
+          ),
+        ).thenAnswer((_) async => Uint8List(0));
+
+        final result = await calibrationService.printLabels(
+          product: testProduct,
+          variant: testVariant,
+          template: testTemplate,
+          quantity: 1,
+          disabledSlots: {},
+          printer: const PrinterDevice(name: 'Zebra ZT411-A', url: 'zebra-url'),
+          executionConfiguration: null,
+        );
+
+        expect(result, isA<Success<void, AppError>>());
+        final capturedContext =
+            verify(
+                  () => mockLayout.buildPdfBytes(
+                    product: any(named: 'product'),
+                    variant: any(named: 'variant'),
+                    template: any(named: 'template'),
+                    quantity: any(named: 'quantity'),
+                    disabledSlots: any(named: 'disabledSlots'),
+                    printFromBottom: any(named: 'printFromBottom'),
+                    physicalFormat: any(named: 'physicalFormat'),
+                    coordinateContext: captureAny(named: 'coordinateContext'),
+                  ),
+                ).captured.first
+                as PrintCoordinateContext;
+
+        expect(capturedContext.isIdentity, isTrue);
+      },
+    );
+
+    test(
+      'No selected tray (PrintExecutionConfiguration with null selectedTray) -> identity context',
+      () async {
+        fakePrintingPlatform.printersList = [
+          const Printer(name: 'Zebra ZT411-A', url: 'zebra-url'),
+        ];
+
+        when(
+          () => mockLayout.buildPdfBytes(
+            product: any(named: 'product'),
+            variant: any(named: 'variant'),
+            template: any(named: 'template'),
+            quantity: any(named: 'quantity'),
+            disabledSlots: any(named: 'disabledSlots'),
+            printFromBottom: any(named: 'printFromBottom'),
+            physicalFormat: any(named: 'physicalFormat'),
+            coordinateContext: any(named: 'coordinateContext'),
+          ),
+        ).thenAnswer((_) async => Uint8List(0));
+
+        final result = await calibrationService.printLabels(
+          product: testProduct,
+          variant: testVariant,
+          template: testTemplate,
+          quantity: 1,
+          disabledSlots: {},
+          printer: const PrinterDevice(name: 'Zebra ZT411-A', url: 'zebra-url'),
+          executionConfiguration: const PrintExecutionConfiguration(
+            selectedTray: null,
+          ),
+        );
+
+        expect(result, isA<Success<void, AppError>>());
+        final capturedContext =
+            verify(
+                  () => mockLayout.buildPdfBytes(
+                    product: any(named: 'product'),
+                    variant: any(named: 'variant'),
+                    template: any(named: 'template'),
+                    quantity: any(named: 'quantity'),
+                    disabledSlots: any(named: 'disabledSlots'),
+                    printFromBottom: any(named: 'printFromBottom'),
+                    physicalFormat: any(named: 'physicalFormat'),
+                    coordinateContext: captureAny(named: 'coordinateContext'),
+                  ),
+                ).captured.first
+                as PrintCoordinateContext;
+
+        expect(capturedContext.isIdentity, isTrue);
+      },
+    );
+
+    test('Calibration disabled -> identity context', () async {
+      fakePrintingPlatform.printersList = [
+        const Printer(name: 'Zebra ZT411-A', url: 'zebra-url'),
+      ];
+
+      when(
+        () => mockLayout.buildPdfBytes(
+          product: any(named: 'product'),
+          variant: any(named: 'variant'),
+          template: any(named: 'template'),
+          quantity: any(named: 'quantity'),
+          disabledSlots: any(named: 'disabledSlots'),
+          printFromBottom: any(named: 'printFromBottom'),
+          physicalFormat: any(named: 'physicalFormat'),
+          coordinateContext: any(named: 'coordinateContext'),
+        ),
+      ).thenAnswer((_) async => Uint8List(0));
+
+      final result = await calibrationService.printLabels(
+        product: testProduct,
+        variant: testVariant,
+        template: testTemplate,
+        quantity: 1,
+        disabledSlots: {},
+        printer: const PrinterDevice(name: 'Zebra ZT411-A', url: 'zebra-url'),
+        executionConfiguration: PrintExecutionConfiguration(
+          selectedTray: disabledTray,
+          paperConfigurationId: 'temp-1',
+        ),
+      );
+
+      expect(result, isA<Success<void, AppError>>());
+      final capturedContext =
+          verify(
+                () => mockLayout.buildPdfBytes(
+                  product: any(named: 'product'),
+                  variant: any(named: 'variant'),
+                  template: any(named: 'template'),
+                  quantity: any(named: 'quantity'),
+                  disabledSlots: any(named: 'disabledSlots'),
+                  printFromBottom: any(named: 'printFromBottom'),
+                  physicalFormat: any(named: 'physicalFormat'),
+                  coordinateContext: captureAny(named: 'coordinateContext'),
+                ),
+              ).captured.first
+              as PrintCoordinateContext;
+
+      expect(capturedContext.isIdentity, isTrue);
+    });
+
+    test('Valid calibration -> applies rules and matches parameters', () async {
+      fakePrintingPlatform.printersList = [
+        const Printer(name: 'Zebra ZT411-A', url: 'zebra-url'),
+      ];
+
+      when(
+        () => mockLayout.buildPdfBytes(
+          product: any(named: 'product'),
+          variant: any(named: 'variant'),
+          template: any(named: 'template'),
+          quantity: any(named: 'quantity'),
+          disabledSlots: any(named: 'disabledSlots'),
+          printFromBottom: any(named: 'printFromBottom'),
+          physicalFormat: any(named: 'physicalFormat'),
+          coordinateContext: any(named: 'coordinateContext'),
+        ),
+      ).thenAnswer((_) async => Uint8List(0));
+
+      final result = await calibrationService.printLabels(
+        product: testProduct,
+        variant: testVariant,
+        template: testTemplate,
+        quantity: 1,
+        disabledSlots: {},
+        printer: const PrinterDevice(name: 'Zebra ZT411-A', url: 'zebra-url'),
+        executionConfiguration: PrintExecutionConfiguration(
+          selectedTray: testTray,
+          paperConfigurationId: 'temp-1',
+        ),
+      );
+
+      expect(result, isA<Success<void, AppError>>());
+      final capturedContext =
+          verify(
+                () => mockLayout.buildPdfBytes(
+                  product: any(named: 'product'),
+                  variant: any(named: 'variant'),
+                  template: any(named: 'template'),
+                  quantity: any(named: 'quantity'),
+                  disabledSlots: any(named: 'disabledSlots'),
+                  printFromBottom: any(named: 'printFromBottom'),
+                  physicalFormat: any(named: 'physicalFormat'),
+                  coordinateContext: captureAny(named: 'coordinateContext'),
+                ),
+              ).captured.first
+              as PrintCoordinateContext;
+
+      expect(capturedContext.isIdentity, isFalse);
+      final transform0 = capturedContext.stickerTransforms[0];
+      expect(transform0, isNotNull);
+      expect(transform0!.scaleX, equals(0.95));
+      expect(transform0.anchorX, equals(0.0));
+    });
+
+    test('Unsupported paper configuration -> returns failure', () async {
+      fakePrintingPlatform.printersList = [
+        const Printer(name: 'Zebra ZT411-A', url: 'zebra-url'),
+      ];
+
+      final result = await calibrationService.printLabels(
+        product: testProduct,
+        variant: testVariant,
+        template: testTemplate,
+        quantity: 1,
+        disabledSlots: {},
+        printer: const PrinterDevice(name: 'Zebra ZT411-A', url: 'zebra-url'),
+        executionConfiguration: PrintExecutionConfiguration(
+          selectedTray: testTray,
+          paperConfigurationId: 'unsupported-temp-id',
+        ),
+      );
+
+      expect(result, isA<Failure<void, AppError>>());
+      final error = (result as Failure<void, AppError>).error;
+      expect(error, isA<ValidationError>());
+      expect(error.message, contains('not supported by the tray'));
+    });
+  });
 }

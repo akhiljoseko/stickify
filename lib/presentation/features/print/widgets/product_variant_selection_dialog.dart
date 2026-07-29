@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:stickify/app/routing/router.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/edit_variant_dialog.dart';
 
 /// A popup modal dialog for searching products and selecting a specific [ProductVariant] to print.
 class ProductVariantSelectionDialog extends StatefulWidget {
@@ -103,8 +104,48 @@ class _ProductVariantSelectionDialogState
 
   List<ProductVariant> _getSortedVariants() {
     if (_selectedProduct == null) return [];
-    return List<ProductVariant>.from(_selectedProduct!.variants)
-      ..sort((a, b) => a.quantity.compareTo(b.quantity));
+    return _selectedProduct!.sortedVariants;
+  }
+
+  void _editVariant(ProductVariant variant) {
+    EditVariantDialog.show(
+      context,
+      product: _selectedProduct!,
+      variant: variant,
+      onSave: (updatedVariant) async {
+        final updatedVariants = _selectedProduct!.variants.map((v) {
+          return v.sku == variant.sku ? updatedVariant : v;
+        }).toList();
+
+        final updatedProduct = Product(
+          id: _selectedProduct!.id,
+          name: _selectedProduct!.name,
+          sku: _selectedProduct!.sku,
+          category: _selectedProduct!.category,
+          shelfLifeDays: _selectedProduct!.shelfLifeDays,
+          storageConditions: _selectedProduct!.storageConditions,
+          imageUrl: _selectedProduct!.imageUrl,
+          ingredients: _selectedProduct!.ingredients,
+          nutritionFacts: _selectedProduct!.nutritionFacts,
+          variants: List.unmodifiable(updatedVariants),
+          lastModified: DateTime.now(),
+        );
+
+        final repo = context.read<ProductRepository>();
+        final saveResult = await repo.saveProduct(updatedProduct);
+        if (saveResult is Success) {
+          await _loadProducts();
+          if (mounted) {
+            setState(() {
+              _selectedProduct = _allProducts.firstWhere(
+                (p) => p.id == updatedProduct.id,
+                orElse: () => updatedProduct,
+              );
+            });
+          }
+        }
+      },
+    );
   }
 
   void _handleCtrlS() {
@@ -395,7 +436,9 @@ class _ProductVariantSelectionDialogState
                                       trailing: const Icon(Icons.chevron_right),
                                       onTap: () {
                                         setState(() {
-                                          _savedProductScrollOffset = _productScrollController.hasClients
+                                          _savedProductScrollOffset =
+                                              _productScrollController
+                                                  .hasClients
                                               ? _productScrollController.offset
                                               : 0.0;
                                           _savedProductHighlightedIndex = i;
@@ -432,7 +475,9 @@ class _ProductVariantSelectionDialogState
                                 extentOffset: _searchController.text.length,
                               );
                               if (_productScrollController.hasClients) {
-                                _productScrollController.jumpTo(_savedProductScrollOffset);
+                                _productScrollController.jumpTo(
+                                  _savedProductScrollOffset,
+                                );
                               }
                             });
                           },
@@ -505,8 +550,21 @@ class _ProductVariantSelectionDialogState
                                         subtitle: Text(
                                           '${v.quantity} ${v.unit} | MRP: ₹${v.mrp.toStringAsFixed(2)}',
                                         ),
-                                        trailing: const Icon(
-                                          Icons.print_outlined,
+                                        trailing: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              key: ValueKey(
+                                                'edit_variant_${v.sku}',
+                                              ),
+                                              icon: const Icon(
+                                                Icons.edit_outlined,
+                                              ),
+                                              onPressed: () => _editVariant(v),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Icon(Icons.print_outlined),
+                                          ],
                                         ),
                                         onTap: () {
                                           PrintTemplateSelectRoute(

@@ -39,6 +39,11 @@ class Product extends Equatable {
     return sorted.map((i) => i.name).join(', ');
   }
 
+  List<ProductVariant> get sortedVariants {
+    return List<ProductVariant>.from(variants)
+      ..sort((a, b) => a.mrp.compareTo(b.mrp));
+  }
+
   @override
   List<Object?> get props => [
         id,

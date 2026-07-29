@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/product_variant.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/quantity_unit_dropdown.dart';
 
 class FormVariantsSection extends StatelessWidget {
   const FormVariantsSection({
@@ -81,17 +82,9 @@ class FormVariantsSection extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: DropdownButtonFormField<String>(
+                    child: QuantityUnitDropdown(
                       isExpanded: true,
                       initialValue: varUnitController.text,
-                      decoration: const InputDecoration(labelText: 'Unit'),
-                      items: const [
-                        DropdownMenuItem(value: 'pcs', child: Text('pcs')),
-                        DropdownMenuItem(value: 'ml', child: Text('ml')),
-                        DropdownMenuItem(value: 'gm', child: Text('gm')),
-                        DropdownMenuItem(value: 'kg', child: Text('kg')),
-                        DropdownMenuItem(value: 'L', child: Text('L')),
-                      ],
                       onChanged: (val) {
                         if (val != null) varUnitController.text = val;
                       },
@@ -179,17 +172,9 @@ class FormVariantsSection extends StatelessWidget {
                   const SizedBox(width: 12),
                   SizedBox(
                     width: 90,
-                    child: DropdownButtonFormField<String>(
+                    child: QuantityUnitDropdown(
                       isExpanded: true,
                       initialValue: varUnitController.text,
-                      decoration: const InputDecoration(labelText: 'Unit'),
-                      items: const [
-                        DropdownMenuItem(value: 'pcs', child: Text('pcs')),
-                        DropdownMenuItem(value: 'ml', child: Text('ml')),
-                        DropdownMenuItem(value: 'gm', child: Text('gm')),
-                        DropdownMenuItem(value: 'kg', child: Text('kg')),
-                        DropdownMenuItem(value: 'L', child: Text('L')),
-                      ],
                       onChanged: (val) {
                         if (val != null) varUnitController.text = val;
                       },

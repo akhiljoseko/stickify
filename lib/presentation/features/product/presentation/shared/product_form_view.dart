@@ -75,7 +75,9 @@ class ProductFormViewState extends State<ProductFormView> {
   final TextEditingController _varNameController = TextEditingController();
   final TextEditingController _varSkuController = TextEditingController();
   final TextEditingController _varQtyController = TextEditingController();
-  final TextEditingController _varUnitController = TextEditingController(text: 'pcs');
+  final TextEditingController _varUnitController = TextEditingController(
+    text: 'pcs',
+  );
   final TextEditingController _varWholesaleController = TextEditingController();
   final TextEditingController _varMrpController = TextEditingController();
 
@@ -99,9 +101,15 @@ class ProductFormViewState extends State<ProductFormView> {
     _skuController = TextEditingController(
       text: widget.isCopy && p != null ? '${p.sku}-copy' : p?.sku,
     );
-    _categoryController = TextEditingController(text: p?.category ?? ProductCategories.defaultCategory);
-    _shelfLifeController = TextEditingController(text: p?.shelfLifeDays?.toString() ?? '365');
-    _storageController = TextEditingController(text: p?.storageConditions ?? '');
+    _categoryController = TextEditingController(
+      text: p?.category ?? ProductCategories.defaultCategory,
+    );
+    _shelfLifeController = TextEditingController(
+      text: p?.shelfLifeDays?.toString() ?? '365',
+    );
+    _storageController = TextEditingController(
+      text: p?.storageConditions ?? '',
+    );
     _imageUrlController = TextEditingController(text: p?.imageUrl ?? '');
 
     var previousSku = _skuController.text.trim();
@@ -125,25 +133,38 @@ class ProductFormViewState extends State<ProductFormView> {
       _ingredients.addAll(p.ingredients);
       _keywords.addAll(p.keywords);
       if (widget.isCopy) {
-        _variants.addAll(p.variants.map((v) => v.copyWith(sku: '${v.sku}-copy')));
+        _variants.addAll(
+          p.sortedVariants.map((v) => v.copyWith(sku: '${v.sku}-copy')),
+        );
       } else {
-        _variants.addAll(p.variants);
+        _variants.addAll(p.sortedVariants);
       }
       if (p.nutritionFacts != null) {
         _includeNutrition = true;
-        _caloriesController = TextEditingController(text: p.nutritionFacts!.calories.toString());
-        _proteinController = TextEditingController(text: p.nutritionFacts!.protein.toString());
-        _fatController = TextEditingController(text: p.nutritionFacts!.totalFat.toString());
-        _saturatedFatController = TextEditingController(text: p.nutritionFacts!.saturatedFat.toString());
-        _carbsController = TextEditingController(text: p.nutritionFacts!.totalCarbs.toString());
-        _fiberController = TextEditingController(text: p.nutritionFacts!.fiber.toString());
+        _caloriesController = TextEditingController(
+          text: p.nutritionFacts!.calories.toString(),
+        );
+        _proteinController = TextEditingController(
+          text: p.nutritionFacts!.protein.toString(),
+        );
+        _fatController = TextEditingController(
+          text: p.nutritionFacts!.totalFat.toString(),
+        );
+        _saturatedFatController = TextEditingController(
+          text: p.nutritionFacts!.saturatedFat.toString(),
+        );
+        _carbsController = TextEditingController(
+          text: p.nutritionFacts!.totalCarbs.toString(),
+        );
+        _fiberController = TextEditingController(
+          text: p.nutritionFacts!.fiber.toString(),
+        );
       } else {
         _initEmptyNutritionControllers();
       }
     } else {
       _initEmptyNutritionControllers();
     }
-
   }
 
   void _initEmptyNutritionControllers() {
@@ -193,8 +214,12 @@ class ProductFormViewState extends State<ProductFormView> {
     final sku = _skuController.text;
     final category = _categoryController.text;
     final shelfLife = int.tryParse(_shelfLifeController.text);
-    final storage = _storageController.text.isEmpty ? null : _storageController.text;
-    final image = _imageUrlController.text.isEmpty ? null : _imageUrlController.text;
+    final storage = _storageController.text.isEmpty
+        ? null
+        : _storageController.text;
+    final image = _imageUrlController.text.isEmpty
+        ? null
+        : _imageUrlController.text;
 
     NutritionFacts? nutrition;
     if (_includeNutrition) {
@@ -209,7 +234,9 @@ class ProductFormViewState extends State<ProductFormView> {
     }
 
     final product = Product(
-      id: widget.isCopy ? 'prod-${const Uuid().v4()}' : (widget.product?.id ?? 'prod-${const Uuid().v4()}'),
+      id: widget.isCopy
+          ? 'prod-${const Uuid().v4()}'
+          : (widget.product?.id ?? 'prod-${const Uuid().v4()}'),
       name: name,
       sku: sku,
       category: category,
@@ -285,6 +312,7 @@ class ProductFormViewState extends State<ProductFormView> {
         } else {
           _variants.add(variant);
         }
+        _variants.sort((a, b) => a.mrp.compareTo(b.mrp));
 
         _varNameController.clear();
         _varSkuController.clear();
@@ -335,7 +363,8 @@ class ProductFormViewState extends State<ProductFormView> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final isMobile = context.watch<AppEnvironment>().experience == AppExperience.mobile;
+    final isMobile =
+        context.watch<AppEnvironment>().experience == AppExperience.mobile;
 
     final basicInfoCard = FormBasicInfoSection(
       nameController: _nameController,
@@ -400,7 +429,8 @@ class ProductFormViewState extends State<ProductFormView> {
             _varWholesaleController.clear();
             _varMrpController.clear();
             _varUnitController.text = 'pcs';
-          } else if (_editingVariantIndex != null && _editingVariantIndex! > i) {
+          } else if (_editingVariantIndex != null &&
+              _editingVariantIndex! > i) {
             _editingVariantIndex = _editingVariantIndex! - 1;
           }
         });
@@ -478,7 +508,10 @@ class ProductFormViewState extends State<ProductFormView> {
               controller: controller,
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 24,
+                  ),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       if (!isMobile) ...[
@@ -497,8 +530,8 @@ class ProductFormViewState extends State<ProductFormView> {
                                 widget.isCopy
                                     ? 'Create Product'
                                     : (widget.product != null
-                                        ? 'Update Product'
-                                        : 'Create Product'),
+                                          ? 'Update Product'
+                                          : 'Create Product'),
                               ),
                             ),
                           ],
@@ -508,8 +541,8 @@ class ProductFormViewState extends State<ProductFormView> {
                           widget.isCopy
                               ? 'Copy Product'
                               : (widget.product != null
-                                  ? 'Edit Product'
-                                  : 'Add New Product'),
+                                    ? 'Edit Product'
+                                    : 'Add New Product'),
                           style: textTheme.displayLarge,
                         ),
                         const SizedBox(height: 24),

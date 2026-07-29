@@ -7,14 +7,19 @@ import 'package:mocktail/mocktail.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/print/widgets/product_variant_selection_dialog.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/edit_variant_dialog.dart';
 
 import '../../../../helpers/pump_app.dart';
 
 class MockProductRepository extends Mock implements ProductRepository {}
+
+class MockTemplateRepository extends Mock implements TemplateRepository {}
+
 class MockGoRouter extends Mock implements GoRouter {}
 
 void main() {
   late ProductRepository productRepository;
+  late TemplateRepository templateRepository;
   late GoRouter goRouter;
 
   const testProductC = Product(
@@ -27,7 +32,7 @@ void main() {
         quantity: 15,
         unit: 'pcs',
         wholesale: 150,
-        mrp: 200,
+        mrp: 100,
         sku: 'SKU-C-15',
       ),
       ProductVariant(
@@ -35,7 +40,7 @@ void main() {
         quantity: 5,
         unit: 'pcs',
         wholesale: 50,
-        mrp: 70,
+        mrp: 300,
         sku: 'SKU-C-5',
       ),
       ProductVariant(
@@ -43,7 +48,7 @@ void main() {
         quantity: 10,
         unit: 'pcs',
         wholesale: 100,
-        mrp: 140,
+        mrp: 200,
         sku: 'SKU-C-10',
       ),
     ],
@@ -63,16 +68,25 @@ void main() {
 
   setUp(() {
     productRepository = MockProductRepository();
+    templateRepository = MockTemplateRepository();
     goRouter = MockGoRouter();
 
     when(() => productRepository.getAllProducts()).thenAnswer(
-      (_) async => const Result.success([testProductC, testProductA, testProductB]),
+      (_) async =>
+          const Result.success([testProductC, testProductA, testProductB]),
+    );
+
+    when(() => templateRepository.fetchTemplates()).thenAnswer(
+      (_) async => const Result.success([]),
     );
   });
 
   Widget buildTestableWidget() {
-    return RepositoryProvider<ProductRepository>.value(
-      value: productRepository,
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<ProductRepository>.value(value: productRepository),
+        RepositoryProvider<TemplateRepository>.value(value: templateRepository),
+      ],
       child: InheritedGoRouter(
         goRouter: goRouter,
         child: const ProductVariantSelectionDialog(),
@@ -97,14 +111,16 @@ void main() {
       await tester.pumpAndSettle();
 
       // Products should be sorted A, B, C
-      final listTiles = tester.widgetList<ListTile>(find.byType(ListTile)).toList();
+      final listTiles = tester
+          .widgetList<ListTile>(find.byType(ListTile))
+          .toList();
       expect(listTiles.length, 3);
       expect((listTiles[0].title! as Text).data, 'A Product');
       expect((listTiles[1].title! as Text).data, 'B Product');
       expect((listTiles[2].title! as Text).data, 'C Product');
     });
 
-    testWidgets('sorts variants by quantity', (tester) async {
+    testWidgets('sorts variants by MRP', (tester) async {
       await tester.pumpApp(buildTestableWidget());
       await tester.pumpAndSettle();
 
@@ -112,20 +128,26 @@ void main() {
       await tester.tap(find.widgetWithText(ListTile, 'C Product'));
       await tester.pumpAndSettle();
 
-      // Variants should be sorted by quantity: 5, 10, 15
-      final listTiles = tester.widgetList<ListTile>(find.byType(ListTile)).toList();
+      // Variants should be sorted by MRP: 100, 200, 300 (Pack of 15, Pack of 10, Pack of 5)
+      final listTiles = tester
+          .widgetList<ListTile>(find.byType(ListTile))
+          .toList();
       expect(listTiles.length, 3);
-      expect((listTiles[0].title! as Text).data, 'Pack of 5');
+      expect((listTiles[0].title! as Text).data, 'Pack of 15');
       expect((listTiles[1].title! as Text).data, 'Pack of 10');
-      expect((listTiles[2].title! as Text).data, 'Pack of 15');
+      expect((listTiles[2].title! as Text).data, 'Pack of 5');
     });
 
-    testWidgets('arrow keys change highlight and Enter selects product', (tester) async {
+    testWidgets('arrow keys change highlight and Enter selects product', (
+      tester,
+    ) async {
       await tester.pumpApp(buildTestableWidget());
       await tester.pumpAndSettle();
 
       // Default highlighted index should be 0 (A Product)
-      var listTiles = tester.widgetList<ListTile>(find.byType(ListTile)).toList();
+      var listTiles = tester
+          .widgetList<ListTile>(find.byType(ListTile))
+          .toList();
       expect(listTiles[0].selected, isTrue);
       expect(listTiles[1].selected, isFalse);
 
@@ -142,28 +164,36 @@ void main() {
       await tester.pumpAndSettle();
 
       // B Product has no variants, should show no variants configured screen
-      expect(find.text('No variants configured for this product.'), findsOneWidget);
+      expect(
+        find.text('No variants configured for this product.'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('backspace key goes back to product list from variant selection', (tester) async {
-      await tester.pumpApp(buildTestableWidget());
-      await tester.pumpAndSettle();
+    testWidgets(
+      'backspace key goes back to product list from variant selection',
+      (tester) async {
+        await tester.pumpApp(buildTestableWidget());
+        await tester.pumpAndSettle();
 
-      // Select C Product
-      await tester.tap(find.widgetWithText(ListTile, 'C Product'));
-      await tester.pumpAndSettle();
+        // Select C Product
+        await tester.tap(find.widgetWithText(ListTile, 'C Product'));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Select Variant'), findsOneWidget);
+        expect(find.text('Select Variant'), findsOneWidget);
 
-      // Press Backspace
-      await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
-      await tester.pumpAndSettle();
+        // Press Backspace
+        await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
+        await tester.pumpAndSettle();
 
-      // Should be back to product list
-      expect(find.text('Select Product'), findsOneWidget);
-    });
+        // Should be back to product list
+        expect(find.text('Select Product'), findsOneWidget);
+      },
+    );
 
-    testWidgets('Ctrl + S focuses and selects search field text', (tester) async {
+    testWidgets('Ctrl + S focuses and selects search field text', (
+      tester,
+    ) async {
       await tester.pumpApp(buildTestableWidget());
       await tester.pumpAndSettle();
 
@@ -184,90 +214,100 @@ void main() {
       expect(searchTextField.controller?.selection.extentOffset, 5);
     });
 
-    testWidgets('Ctrl + S in variant state returns to product list and selects search field', (tester) async {
-      await tester.pumpApp(buildTestableWidget());
-      await tester.pumpAndSettle();
-
-      // Type search text
-      final searchTextFieldFinder = find.byType(TextField);
-      await tester.enterText(searchTextFieldFinder, 'C Product');
-      await tester.pumpAndSettle();
-
-      // Select C Product
-      await tester.tap(find.widgetWithText(ListTile, 'C Product'));
-      await tester.pumpAndSettle();
-      expect(find.text('Select Variant'), findsOneWidget);
-
-      // Trigger Ctrl + S
-      await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
-      await tester.sendKeyEvent(LogicalKeyboardKey.keyS);
-      await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
-      await tester.pumpAndSettle();
-
-      // Should be back to product list
-      expect(find.text('Select Product'), findsOneWidget);
-
-      // Search text 'C Product' should be fully selected
-      final searchTextFieldRebuilt = tester.widget<TextField>(find.byType(TextField));
-      expect(searchTextFieldRebuilt.controller?.selection.baseOffset, 0);
-      expect(searchTextFieldRebuilt.controller?.selection.extentOffset, 9);
-    });
-
-    testWidgets('restores scroll position and highlighted index when returning to product list', (tester) async {
-      final largeProductList = List.generate(
-        15,
-        (index) => Product(
-          id: 'prod-$index',
-          name: 'Product ${String.fromCharCode(65 + index)}',
-          sku: 'SKU-$index',
-        ),
-      );
-      when(() => productRepository.getAllProducts()).thenAnswer(
-        (_) async => Result.success(largeProductList),
-      );
-
-      await tester.pumpApp(buildTestableWidget());
-      await tester.pumpAndSettle();
-
-      for (var i = 0; i < 9; i++) {
-        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    testWidgets(
+      'Ctrl + S in variant state returns to product list and selects search field',
+      (tester) async {
+        await tester.pumpApp(buildTestableWidget());
         await tester.pumpAndSettle();
-      }
 
-      final scrollable = tester.state<ScrollableState>(
-        find.descendant(
-          of: find.byType(ListView),
-          matching: find.byType(Scrollable),
-        ),
-      );
-      final initialOffset = scrollable.position.pixels;
-      expect(initialOffset, greaterThan(0));
+        // Type search text
+        final searchTextFieldFinder = find.byType(TextField);
+        await tester.enterText(searchTextFieldFinder, 'C Product');
+        await tester.pumpAndSettle();
 
-      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-      await tester.pumpAndSettle();
-      expect(find.text('Select Variant'), findsOneWidget);
+        // Select C Product
+        await tester.tap(find.widgetWithText(ListTile, 'C Product'));
+        await tester.pumpAndSettle();
+        expect(find.text('Select Variant'), findsOneWidget);
 
-      await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
-      await tester.pumpAndSettle();
+        // Trigger Ctrl + S
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+        await tester.sendKeyEvent(LogicalKeyboardKey.keyS);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+        await tester.pumpAndSettle();
 
-      final restoredScrollable = tester.state<ScrollableState>(
-        find.descendant(
-          of: find.byType(ListView),
-          matching: find.byType(Scrollable),
-        ),
-      );
-      expect(restoredScrollable.position.pixels, equals(initialOffset));
+        // Should be back to product list
+        expect(find.text('Select Product'), findsOneWidget);
 
-      final listTileFinder = find.ancestor(
-        of: find.text('Product J'),
-        matching: find.byType(ListTile),
-      );
-      expect(listTileFinder, findsOneWidget);
-      final tile = tester.widget<ListTile>(listTileFinder);
-      expect(tile.selected, isTrue);
-    });
+        // Search text 'C Product' should be fully selected
+        final searchTextFieldRebuilt = tester.widget<TextField>(
+          find.byType(TextField),
+        );
+        expect(searchTextFieldRebuilt.controller?.selection.baseOffset, 0);
+        expect(searchTextFieldRebuilt.controller?.selection.extentOffset, 9);
+      },
+    );
 
-    testWidgets('search filters products by keyword in print dialog', (tester) async {
+    testWidgets(
+      'restores scroll position and highlighted index when returning to product list',
+      (tester) async {
+        final largeProductList = List.generate(
+          15,
+          (index) => Product(
+            id: 'prod-$index',
+            name: 'Product ${String.fromCharCode(65 + index)}',
+            sku: 'SKU-$index',
+          ),
+        );
+        when(() => productRepository.getAllProducts()).thenAnswer(
+          (_) async => Result.success(largeProductList),
+        );
+
+        await tester.pumpApp(buildTestableWidget());
+        await tester.pumpAndSettle();
+
+        for (var i = 0; i < 9; i++) {
+          await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+          await tester.pumpAndSettle();
+        }
+
+        final scrollable = tester.state<ScrollableState>(
+          find.descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          ),
+        );
+        final initialOffset = scrollable.position.pixels;
+        expect(initialOffset, greaterThan(0));
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await tester.pumpAndSettle();
+        expect(find.text('Select Variant'), findsOneWidget);
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
+        await tester.pumpAndSettle();
+
+        final restoredScrollable = tester.state<ScrollableState>(
+          find.descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          ),
+        );
+        expect(restoredScrollable.position.pixels, equals(initialOffset));
+
+        final listTileFinder = find.ancestor(
+          of: find.text('Product J'),
+          matching: find.byType(ListTile),
+        );
+        expect(listTileFinder, findsOneWidget);
+        final tile = tester.widget<ListTile>(listTileFinder);
+        expect(tile.selected, isTrue);
+      },
+    );
+
+    testWidgets('search filters products by keyword in print dialog', (
+      tester,
+    ) async {
       final products = [
         const Product(
           id: 'prod-kw-1',
@@ -297,6 +337,67 @@ void main() {
       // Verify that Product Organic is shown, but Product Normal is filtered out
       expect(find.text('Product Organic'), findsOneWidget);
       expect(find.text('Product Normal'), findsNothing);
+    });
+
+    testWidgets('renders edit button and opens EditVariantDialog on click', (
+      tester,
+    ) async {
+      registerFallbackValue(
+        const Product(
+          id: '',
+          name: '',
+          sku: '',
+        ),
+      );
+
+      when(() => productRepository.saveProduct(any())).thenAnswer(
+        (_) async => const Result.success(null),
+      );
+
+      await tester.pumpApp(buildTestableWidget());
+      await tester.pumpAndSettle();
+
+      // Select C Product
+      await tester.tap(find.widgetWithText(ListTile, 'C Product'));
+      await tester.pumpAndSettle();
+
+      // Find the edit button for 'SKU-C-15' (mrp 100)
+      final editBtnFinder = find.byKey(const ValueKey('edit_variant_SKU-C-15'));
+      expect(editBtnFinder, findsOneWidget);
+
+      // Tap on it
+      await tester.tap(editBtnFinder);
+      await tester.pumpAndSettle();
+
+      // EditVariantDialog should be open
+      expect(find.byType(EditVariantDialog), findsOneWidget);
+      expect(find.text('Edit Variant - Pack of 15'), findsOneWidget);
+
+      // Edit the name text field
+      final textFormFieldFinder = find.byType(TextFormField);
+      // Let's enter text into the first TextFormField which is Variant Name
+      await tester.enterText(textFormFieldFinder.first, 'Pack of 15 Updated');
+
+      // Click save
+      final saveBtnFinder = find.widgetWithText(ElevatedButton, 'Save Variant');
+      await tester.tap(saveBtnFinder);
+      await tester.pumpAndSettle();
+
+      // EditVariantDialog should be closed
+      expect(find.byType(EditVariantDialog), findsNothing);
+
+      // Verify saveProduct was called with updated variant name
+      verify(
+        () => productRepository.saveProduct(
+          any(
+            that: isA<Product>().having(
+              (p) => p.variants.firstWhere((v) => v.sku == 'SKU-C-15').name,
+              'variant name',
+              'Pack of 15 Updated',
+            ),
+          ),
+        ),
+      ).called(1);
     });
   });
 }

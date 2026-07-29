@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/app/routing/router.dart';
@@ -11,6 +12,7 @@ import 'package:stickify/presentation/features/product/presentation/shared/produ
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_keywords_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_nutrition_facts_card.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/product_detail_storage_card.dart';
+import 'package:stickify/presentation/features/product/presentation/shared/quantity_unit_dropdown.dart';
 import 'package:stickify/presentation/widgets/widgets.dart';
 
 class MobileProductDetailPanel extends StatelessWidget {
@@ -23,14 +25,23 @@ class MobileProductDetailPanel extends StatelessWidget {
   final Product product;
   final VoidCallback onBack;
 
-  void _showEditVariantBottomSheet(BuildContext context, ProductVariant variant) {
+  void _showEditVariantBottomSheet(
+    BuildContext context,
+    ProductVariant variant,
+  ) {
     final prefix = product.sku.isNotEmpty ? '${product.sku}-' : '';
-    final suffix = variant.sku.startsWith(prefix) ? variant.sku.substring(prefix.length) : variant.sku;
+    final suffix = variant.sku.startsWith(prefix)
+        ? variant.sku.substring(prefix.length)
+        : variant.sku;
     final nameController = TextEditingController(text: variant.name);
     final skuController = TextEditingController(text: suffix);
-    final quantityController = TextEditingController(text: variant.quantity.toString());
+    final quantityController = TextEditingController(
+      text: variant.quantity.toString(),
+    );
     final unitController = TextEditingController(text: variant.unit);
-    final wholesaleController = TextEditingController(text: variant.wholesale.toString());
+    final wholesaleController = TextEditingController(
+      text: variant.wholesale.toString(),
+    );
     final mrpController = TextEditingController(text: variant.mrp.toString());
     final formKey = GlobalKey<FormState>();
     var selectedTemplateId = variant.defaultTemplateId;
@@ -62,17 +73,25 @@ class MobileProductDetailPanel extends StatelessWidget {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: nameController,
-                        decoration: const InputDecoration(labelText: 'Variant Name'),
-                        validator: (val) => (val == null || val.trim().isEmpty) ? 'Name is required' : null,
+                        decoration: const InputDecoration(
+                          labelText: 'Variant Name',
+                        ),
+                        validator: (val) => (val == null || val.trim().isEmpty)
+                            ? 'Name is required'
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: skuController,
                         decoration: InputDecoration(
                           labelText: 'SKU',
-                          prefixText: product.sku.isNotEmpty ? '${product.sku}-' : null,
+                          prefixText: product.sku.isNotEmpty
+                              ? '${product.sku}-'
+                              : null,
                         ),
-                        validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
+                        validator: (val) => (val == null || val.trim().isEmpty)
+                            ? 'SKU is required'
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       Row(
@@ -80,23 +99,23 @@ class MobileProductDetailPanel extends StatelessWidget {
                           Expanded(
                             child: TextFormField(
                               controller: quantityController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'Quantity'),
-                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'Quantity',
+                              ),
+                              validator: (val) =>
+                                  (val == null || double.tryParse(val) == null)
+                                  ? 'Must be a number'
+                                  : null,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: DropdownButtonFormField<String>(
-                              initialValue: const ['pcs', 'ml', 'gm', 'kg', 'L'].contains(unitController.text) ? unitController.text : 'gm',
-                              decoration: const InputDecoration(labelText: 'Unit'),
-                              items: const [
-                                DropdownMenuItem(value: 'pcs', child: Text('pcs')),
-                                DropdownMenuItem(value: 'ml', child: Text('ml')),
-                                DropdownMenuItem(value: 'gm', child: Text('gm')),
-                                DropdownMenuItem(value: 'kg', child: Text('kg')),
-                                DropdownMenuItem(value: 'L', child: Text('L')),
-                              ],
+                            child: QuantityUnitDropdown(
+                              initialValue: unitController.text,
                               onChanged: (val) {
                                 if (val != null) unitController.text = val;
                               },
@@ -110,18 +129,34 @@ class MobileProductDetailPanel extends StatelessWidget {
                           Expanded(
                             child: TextFormField(
                               controller: wholesaleController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'Wholesale Price (₹)'),
-                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'Wholesale Price (₹)',
+                              ),
+                              validator: (val) =>
+                                  (val == null || double.tryParse(val) == null)
+                                  ? 'Must be a number'
+                                  : null,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextFormField(
                               controller: mrpController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'MRP (₹)'),
-                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'MRP (₹)',
+                              ),
+                              validator: (val) =>
+                                  (val == null || double.tryParse(val) == null)
+                                  ? 'Must be a number'
+                                  : null,
                             ),
                           ),
                         ],
@@ -162,15 +197,21 @@ class MobileProductDetailPanel extends StatelessWidget {
                         onPressed: () {
                           if (formKey.currentState!.validate()) {
                             final suffixVal = skuController.text.trim();
-                            final newSku = product.sku.isNotEmpty ? '${product.sku}-$suffixVal' : suffixVal;
+                            final newSku = product.sku.isNotEmpty
+                                ? '${product.sku}-$suffixVal'
+                                : suffixVal;
                             final updatedVariants = product.variants.map((v) {
                               if (v.sku == variant.sku) {
                                 return ProductVariant(
                                   name: nameController.text.trim(),
                                   sku: newSku,
-                                  quantity: double.parse(quantityController.text),
+                                  quantity: double.parse(
+                                    quantityController.text,
+                                  ),
                                   unit: unitController.text.trim(),
-                                  wholesale: double.parse(wholesaleController.text),
+                                  wholesale: double.parse(
+                                    wholesaleController.text,
+                                  ),
                                   mrp: double.parse(mrpController.text),
                                   defaultTemplateId: selectedTemplateId,
                                 );
@@ -235,7 +276,10 @@ class MobileProductDetailPanel extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.container,
                     borderRadius: BorderRadius.circular(4),
@@ -251,7 +295,10 @@ class MobileProductDetailPanel extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.green.shade50,
                     border: Border.all(color: Colors.green.shade200),
@@ -260,7 +307,11 @@ class MobileProductDetailPanel extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, size: 12, color: Colors.green.shade700),
+                      Icon(
+                        Icons.check_circle,
+                        size: 12,
+                        color: Colors.green.shade700,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'ACTIVE',
@@ -283,17 +334,26 @@ class MobileProductDetailPanel extends StatelessWidget {
             if (product.shelfLifeDays != null) ...[
               Row(
                 children: [
-                  Icon(Icons.calendar_today_outlined, size: 14, color: colorScheme.secondary),
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: 14,
+                    color: colorScheme.secondary,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     'Shelf Life: ${product.shelfLifeDays} Days',
-                    style: textTheme.bodySmall?.copyWith(color: colorScheme.secondary),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.secondary,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
             ],
-            Text('GLOBAL SKU PREFIX', style: textTheme.labelSmall?.copyWith(color: colorScheme.outline)),
+            Text(
+              'GLOBAL SKU PREFIX',
+              style: textTheme.labelSmall?.copyWith(color: colorScheme.outline),
+            ),
             const SizedBox(height: 4),
             Text(
               product.sku,
@@ -316,7 +376,10 @@ class MobileProductDetailPanel extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Packaging Variants & Prices', style: textTheme.titleSmall),
+                Text(
+                  'Packaging Variants & Prices',
+                  style: textTheme.titleSmall,
+                ),
                 TextButton.icon(
                   onPressed: () => _showAddVariantBottomSheet(context),
                   icon: const Icon(Icons.add_circle_outline, size: 16),
@@ -329,111 +392,141 @@ class MobileProductDetailPanel extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Center(
-                  child: Text('No packaging variants configured.', style: textTheme.bodyMedium?.copyWith(color: colorScheme.outline)),
+                  child: Text(
+                    'No packaging variants configured.',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.outline,
+                    ),
+                  ),
                 ),
               )
             else
-              ...product.variants.map((v) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(v.name, style: textTheme.titleSmall),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${v.quantity} ${v.unit} | SKU: ${v.sku}', style: textTheme.bodySmall),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Text('MRP: ₹${v.mrp.toStringAsFixed(2)}', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-                            const SizedBox(width: 12),
-                            Text('WS: ₹${v.wholesale.toStringAsFixed(2)}', style: textTheme.bodySmall),
-                            const SizedBox(width: 12),
-                            Text('₹${v.unitPrice.toStringAsFixed(2)}/${v.unit}', style: textTheme.bodySmall?.copyWith(color: colorScheme.secondary)),
-                          ],
-                        ),
-                      ],
-                    ),
-                    trailing: PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, size: 20),
-                      onSelected: (value) async {
-                        if (value == 'edit') {
-                          _showEditVariantBottomSheet(context, v);
-                        } else if (value == 'print') {
-                          unawaited(PrintTemplateSelectRoute(
+              ...product.sortedVariants.map(
+                (v) => ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(v.name, style: textTheme.titleSmall),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${v.quantity} ${v.unit} | SKU: ${v.sku}',
+                        style: textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Text(
+                            'MRP: ₹${v.mrp.toStringAsFixed(2)}',
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'WS: ₹${v.wholesale.toStringAsFixed(2)}',
+                            style: textTheme.bodySmall,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '₹${v.unitPrice.toStringAsFixed(2)}/${v.unit}',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.secondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  trailing: PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, size: 20),
+                    onSelected: (value) async {
+                      if (value == 'edit') {
+                        _showEditVariantBottomSheet(context, v);
+                      } else if (value == 'print') {
+                        unawaited(
+                          PrintTemplateSelectRoute(
                             productId: product.id,
                             variantSku: v.sku,
-                          ).push<void>(context));
-                        } else if (value == 'delete') {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (dialogCtx) => AlertDialog(
-                              title: const Text('Delete Variant'),
-                              content: Text('Are you sure you want to delete ${v.name}?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(dialogCtx, false),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(dialogCtx, true),
-                                  child: const Text('Delete'),
-                                ),
-                              ],
+                          ).push<void>(context),
+                        );
+                      } else if (value == 'delete') {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (dialogCtx) => AlertDialog(
+                            title: const Text('Delete Variant'),
+                            content: Text(
+                              'Are you sure you want to delete ${v.name}?',
                             ),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.pop(dialogCtx, false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(dialogCtx, true),
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          if (!context.mounted) return;
+                          final updatedVariants = product.variants
+                              .where((v2) => v2.sku != v.sku)
+                              .toList();
+                          final updatedProduct = Product(
+                            id: product.id,
+                            name: product.name,
+                            sku: product.sku,
+                            category: product.category,
+                            shelfLifeDays: product.shelfLifeDays,
+                            storageConditions: product.storageConditions,
+                            imageUrl: product.imageUrl,
+                            ingredients: product.ingredients,
+                            nutritionFacts: product.nutritionFacts,
+                            variants: List.unmodifiable(updatedVariants),
+                            lastModified: DateTime.now(),
                           );
-                          if (confirm == true) {
-                            if (!context.mounted) return;
-                            final updatedVariants = product.variants.where((v2) => v2.sku != v.sku).toList();
-                            final updatedProduct = Product(
-                              id: product.id,
-                              name: product.name,
-                              sku: product.sku,
-                              category: product.category,
-                              shelfLifeDays: product.shelfLifeDays,
-                              storageConditions: product.storageConditions,
-                              imageUrl: product.imageUrl,
-                              ingredients: product.ingredients,
-                              nutritionFacts: product.nutritionFacts,
-                              variants: List.unmodifiable(updatedVariants),
-                              lastModified: DateTime.now(),
-                            );
-                            await context.read<ProductCubit>().saveProduct(
-                              updatedProduct,
-                              nextView: ProductDetailView(updatedProduct),
-                            );
-                          }
+                          await context.read<ProductCubit>().saveProduct(
+                            updatedProduct,
+                            nextView: ProductDetailView(updatedProduct),
+                          );
                         }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'print',
-                          child: ListTile(
-                            leading: Icon(Icons.print_outlined, size: 20),
-                            title: Text('Print'),
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'print',
+                        child: ListTile(
+                          leading: Icon(Icons.print_outlined, size: 20),
+                          title: Text('Print'),
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
                         ),
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: ListTile(
-                            leading: Icon(Icons.edit_outlined, size: 20),
-                            title: Text('Edit'),
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: ListTile(
+                          leading: Icon(Icons.edit_outlined, size: 20),
+                          title: Text('Edit'),
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
                         ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: ListTile(
-                            leading: Icon(Icons.delete_outline, size: 20),
-                            title: Text('Delete'),
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: ListTile(
+                          leading: Icon(Icons.delete_outline, size: 20),
+                          title: Text('Delete'),
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
                         ),
-                      ],
-                    ),
-                  )),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -466,12 +559,16 @@ class MobileProductDetailPanel extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            onPressed: () => context.read<ProductCubit>().setSubView(ProductEditView(product)),
+            onPressed: () => context.read<ProductCubit>().setSubView(
+              ProductEditView(product),
+            ),
             tooltip: 'Edit Product',
           ),
           IconButton(
             icon: const Icon(Icons.copy_outlined),
-            onPressed: () => context.read<ProductCubit>().setSubView(ProductCopyView(product)),
+            onPressed: () => context.read<ProductCubit>().setSubView(
+              ProductCopyView(product),
+            ),
             tooltip: 'Copy Product',
           ),
           IconButton(
@@ -481,7 +578,9 @@ class MobileProductDetailPanel extends StatelessWidget {
                 context: context,
                 builder: (dialogCtx) => AlertDialog(
                   title: const Text('Delete Product'),
-                  content: Text('Are you sure you want to delete ${product.name}?'),
+                  content: Text(
+                    'Are you sure you want to delete ${product.name}?',
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(dialogCtx, false),
@@ -564,14 +663,20 @@ class MobileProductDetailPanel extends StatelessWidget {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: nameController,
-                        decoration: const InputDecoration(labelText: 'Variant Name'),
-                        validator: (val) => (val == null || val.trim().isEmpty) ? 'Name is required' : null,
+                        decoration: const InputDecoration(
+                          labelText: 'Variant Name',
+                        ),
+                        validator: (val) => (val == null || val.trim().isEmpty)
+                            ? 'Name is required'
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: skuController,
                         decoration: const InputDecoration(labelText: 'SKU'),
-                        validator: (val) => (val == null || val.trim().isEmpty) ? 'SKU is required' : null,
+                        validator: (val) => (val == null || val.trim().isEmpty)
+                            ? 'SKU is required'
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       Row(
@@ -579,23 +684,23 @@ class MobileProductDetailPanel extends StatelessWidget {
                           Expanded(
                             child: TextFormField(
                               controller: quantityController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'Quantity'),
-                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'Quantity',
+                              ),
+                              validator: (val) =>
+                                  (val == null || double.tryParse(val) == null)
+                                  ? 'Must be a number'
+                                  : null,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: DropdownButtonFormField<String>(
+                            child: QuantityUnitDropdown(
                               initialValue: 'gm',
-                              decoration: const InputDecoration(labelText: 'Unit'),
-                              items: const [
-                                DropdownMenuItem(value: 'pcs', child: Text('pcs')),
-                                DropdownMenuItem(value: 'ml', child: Text('ml')),
-                                DropdownMenuItem(value: 'gm', child: Text('gm')),
-                                DropdownMenuItem(value: 'kg', child: Text('kg')),
-                                DropdownMenuItem(value: 'L', child: Text('L')),
-                              ],
                               onChanged: (val) {
                                 if (val != null) unitController.text = val;
                               },
@@ -609,18 +714,34 @@ class MobileProductDetailPanel extends StatelessWidget {
                           Expanded(
                             child: TextFormField(
                               controller: wholesaleController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'Wholesale Price (₹)'),
-                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'Wholesale Price (₹)',
+                              ),
+                              validator: (val) =>
+                                  (val == null || double.tryParse(val) == null)
+                                  ? 'Must be a number'
+                                  : null,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextFormField(
                               controller: mrpController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'MRP (₹)'),
-                              validator: (val) => (val == null || double.tryParse(val) == null) ? 'Must be a number' : null,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'MRP (₹)',
+                              ),
+                              validator: (val) =>
+                                  (val == null || double.tryParse(val) == null)
+                                  ? 'Must be a number'
+                                  : null,
                             ),
                           ),
                         ],
@@ -679,7 +800,10 @@ class MobileProductDetailPanel extends StatelessWidget {
                               imageUrl: product.imageUrl,
                               ingredients: product.ingredients,
                               nutritionFacts: product.nutritionFacts,
-                              variants: List.unmodifiable([...product.variants, newVariant]),
+                              variants: List.unmodifiable([
+                                ...product.variants,
+                                newVariant,
+                              ]),
                               lastModified: DateTime.now(),
                             );
                             context.read<ProductCubit>().saveProduct(

@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "Label Grid"
-#define MyAppVersion "2.4.0"
+#define MyAppVersion "3.0.3"
 #define MyAppPublisher "Inevitable Software Company"
 #define MyAppExeName "stickify.exe"
 #define MyAppAssocName MyAppName + " File"

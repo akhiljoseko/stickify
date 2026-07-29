@@ -173,7 +173,7 @@ class CalibrationSheetPdfGenerator {
                   top: cy + 4.0,
                   child: pw.Text(
                     point.label,
-                    style: pw.TextStyle(
+                    style: const pw.TextStyle(
                       fontSize: 8,
                       color: PdfColors.red,
                       fontWeight: pw.FontWeight.bold,

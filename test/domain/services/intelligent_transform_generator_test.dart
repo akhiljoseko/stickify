@@ -271,5 +271,127 @@ void main() {
       expect(strategy.description, contains('required X-axis compression'));
       expect(strategy.description, contains('falls below the minimum acceptable scale'));
     });
+
+    test('Level 4: Row-specific calibration produces per-slot normalized Level-4 scale', () {
+      // 2x2 grid, totalContentWidth = 210mm.
+      // Available printer width = 210 - 15 - 15 = 180mm.
+      // geometricScaleX = 180 / 210 = 0.857142857...
+      final printer = makePrinter(marginLeft: 15, marginRight: 15, marginTop: 10, marginBottom: 10);
+      final customPreferences = printer.optimizationPreferences.copyWith(allowTranslation: false);
+
+      const calibrationContext = PrintCoordinateContext(
+        stickerTransforms: {
+          2: PrintStickerTransform(scaleX: 0.95),
+          3: PrintStickerTransform(scaleX: 0.95),
+        },
+      );
+
+      final analysis = analyzer.analyze(
+        template: template,
+        printer: printer,
+        tray: tray,
+        calibrationContext: calibrationContext,
+      );
+
+      final strategy = generator.generate(
+        analysisResult: analysis,
+        template: template,
+        printer: printer,
+        tray: tray,
+        preferences: customPreferences,
+        calibrationContext: calibrationContext,
+      );
+
+      expect(strategy.level, equals(OptimizationLevel.edgeGroupScaling));
+
+      // Row 0 (slots 0 & 1): calibration scaleX = 1.0 -> level4 scaleX = (180/210) / 1.0 = 0.857142857
+      const expectedRow0ScaleX = 180 / 210;
+      expect(strategy.transforms[0]!.scaleX, closeTo(expectedRow0ScaleX, 0.0001));
+      expect(strategy.transforms[1]!.scaleX, closeTo(expectedRow0ScaleX, 0.0001));
+
+      // Row 1 (slots 2 & 3): calibration scaleX = 0.95 -> level4 scaleX = (180/210) / 0.95 = 0.902255639
+      const expectedRow1ScaleX = (180 / 210) / 0.95;
+      expect(strategy.transforms[2]!.scaleX, closeTo(expectedRow1ScaleX, 0.0001));
+      expect(strategy.transforms[3]!.scaleX, closeTo(expectedRow1ScaleX, 0.0001));
+
+      // Verify row 0 and row 1 level 4 scaleX values differ according to their own calibration scales
+      expect(strategy.transforms[0]!.scaleX, isNot(equals(strategy.transforms[2]!.scaleX)));
+    });
+
+    test('Level 4: Sheet-wide calibration produces identical Level-4 scale across all slots', () {
+      final printer = makePrinter(marginLeft: 15, marginRight: 15, marginTop: 10, marginBottom: 10);
+      final customPreferences = printer.optimizationPreferences.copyWith(allowTranslation: false);
+
+      const calibrationContext = PrintCoordinateContext(
+        globalTransform: PrintStickerTransform(scaleX: 0.9, scaleY: 0.9),
+      );
+
+      final analysis = analyzer.analyze(
+        template: template,
+        printer: printer,
+        tray: tray,
+        calibrationContext: calibrationContext,
+      );
+
+      final strategy = generator.generate(
+        analysisResult: analysis,
+        template: template,
+        printer: printer,
+        tray: tray,
+        preferences: customPreferences,
+        calibrationContext: calibrationContext,
+      );
+
+      expect(strategy.level, equals(OptimizationLevel.edgeGroupScaling));
+
+      // For all slots: calibration scaleX = 0.9 -> level4 scaleX = (180/210) / 0.9 = 0.95238095
+      const expectedScaleX = (180 / 210) / 0.9;
+      for (var i = 0; i < 4; i++) {
+        expect(strategy.transforms[i]!.scaleX, closeTo(expectedScaleX, 0.0001));
+      }
+    });
+
+    test('Level 4: Zero calibration scale guard falls back to 1.0 without throwing', () {
+      final printer = makePrinter(marginLeft: 15, marginRight: 15, marginTop: 10, marginBottom: 10);
+      final customPreferences = printer.optimizationPreferences.copyWith(allowTranslation: false);
+
+      // Analyze with identity calibration context so conflicts exist
+      final analysis = analyzer.analyze(
+        template: template,
+        printer: printer,
+        tray: tray,
+        calibrationContext: const PrintCoordinateContext.identity(),
+      );
+
+      // Pass zero-scale calibration context to generator to trigger guard
+      const zeroScaleContext = PrintCoordinateContext(
+        globalTransform: PrintStickerTransform(scaleX: 0, scaleY: 0),
+      );
+
+      expect(
+        () => generator.generate(
+          analysisResult: analysis,
+          template: template,
+          printer: printer,
+          tray: tray,
+          preferences: customPreferences,
+          calibrationContext: zeroScaleContext,
+        ),
+        returnsNormally,
+      );
+
+      final strategy = generator.generate(
+        analysisResult: analysis,
+        template: template,
+        printer: printer,
+        tray: tray,
+        preferences: customPreferences,
+        calibrationContext: zeroScaleContext,
+      );
+
+      // Conflicting slots fall back to 1.0 for calibration scale -> level 4 scaleX = (180/210) / 1.0 = 0.857142857
+      const expectedScaleX = 180 / 210;
+      expect(strategy.transforms[0]!.scaleX, closeTo(expectedScaleX, 0.0001));
+    });
   });
 }

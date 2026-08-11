@@ -140,6 +140,140 @@ void main() {
     );
 
     test(
+      'applies correct Y-flip scaling order for polygon printableArea when scaleY != 1.0',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-polygon-scaled',
+          name: 'Polygon Scaled Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 210,
+            pageHeight: 297,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 1,
+            rows: 1,
+            columnGap: 0,
+            rowGap: 0,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 80,
+            heightMm: 50,
+            cornerRadiusMm: 0,
+            printableArea: [
+              StickerPoint(10, 10),
+              StickerPoint(70, 10),
+              StickerPoint(70, 40),
+              StickerPoint(10, 40),
+            ],
+          ),
+        );
+
+        const coordinateContext = PrintCoordinateContext(
+          globalTransform: PrintStickerTransform(
+            scaleX: 0.95,
+            scaleY: 0.9,
+          ),
+        );
+
+        final pdfBytes = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 1,
+          disabledSlots: {},
+          coordinateContext: coordinateContext,
+        );
+
+        expect(pdfBytes, isNotNull);
+        final pdfString = String.fromCharCodes(pdfBytes);
+
+        // Expected Y coordinate for point (10, 10) with height 50mm, scaleY 0.9:
+        // Correct formula: (50 - 10) * 0.9 = 36.0 mm -> 36.0 * 2.834645669291339 = 102.047 pt
+        // Old (buggy) formula: (50 - 10 * 0.9) = 41.0 mm -> 41.0 * 2.834645669291339 = 116.220 pt
+        // Expected X coordinate for point (10, 10) with scaleX 0.95:
+        // 10 * 0.95 = 9.5 mm -> 9.5 * 2.834645669291339 = 26.929 pt
+        final moveToRegex = RegExp(r'([0-9.]+)\s+([0-9.]+)\s+m');
+        final matches = moveToRegex.allMatches(pdfString).toList();
+        expect(matches, isNotEmpty, reason: 'PDF must contain moveTo (m) path operators');
+
+        final polygonMoveTo = matches.firstWhere(
+          (m) {
+            final x = double.parse(m.group(1)!);
+            final y = double.parse(m.group(2)!);
+            return (x - 26.929).abs() < 0.1 && (y - 102.047).abs() < 0.1;
+          },
+          orElse: () => throw StateError(
+            'Could not find moveTo matching corrected formula (26.929 pt, 102.047 pt). PDF stream:\n$pdfString',
+          ),
+        );
+        expect(polygonMoveTo, isNotNull);
+      },
+    );
+
+    test(
+      'produces identical polygon Y-flip coordinates for identity scale (scaleX=1.0, scaleY=1.0)',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-polygon-identity',
+          name: 'Polygon Identity Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 210,
+            pageHeight: 297,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 1,
+            rows: 1,
+            columnGap: 0,
+            rowGap: 0,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 80,
+            heightMm: 50,
+            cornerRadiusMm: 0,
+            printableArea: [
+              StickerPoint(10, 10),
+              StickerPoint(70, 10),
+              StickerPoint(70, 40),
+              StickerPoint(10, 40),
+            ],
+          ),
+        );
+
+        final pdfBytesIdentity = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 1,
+          disabledSlots: {},
+          coordinateContext: const PrintCoordinateContext.identity(),
+        );
+
+        final pdfString = String.fromCharCodes(pdfBytesIdentity);
+
+        // Expected Y coordinate for point (10, 10) with height 50mm, scaleY 1.0:
+        // (50 - 10) * 1.0 = 40.0 mm -> 40.0 * 2.834645669291339 = 113.385 pt
+        // Expected X coordinate for point (10, 10) with scaleX 1.0:
+        // 10 * 1.0 = 10.0 mm -> 10.0 * 2.834645669291339 = 28.346 pt
+        final moveToRegex = RegExp(r'([0-9.]+)\s+([0-9.]+)\s+m');
+        final matches = moveToRegex.allMatches(pdfString).toList();
+
+        final match = matches.firstWhere(
+          (m) {
+            final x = double.parse(m.group(1)!);
+            final y = double.parse(m.group(2)!);
+            return (x - 28.346).abs() < 0.1 && (y - 113.385).abs() < 0.1;
+          },
+          orElse: () => throw StateError('Could not find identity moveTo'),
+        );
+        expect(match, isNotNull);
+      },
+    );
+
+    test(
       'buildPdfBytes applies physical margin shifts to landscape custom sheets on Windows',
       () async {
         const template = LabelTemplate(

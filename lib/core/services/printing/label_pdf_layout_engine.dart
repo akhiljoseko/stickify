@@ -210,6 +210,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
               row: r,
               column: c,
               absoluteSlotIndex: absIndex,
+              slotsPerSheet: slotsPerSheet,
             );
 
             // Calculate physical grid position in mm.

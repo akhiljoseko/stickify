@@ -640,4 +640,85 @@ void main() {
       );
     });
   });
+
+  group('Multi-Sheet Bulk Printing Calibration Tests', () {
+    test(
+      'applies sticker slot calibration transforms across all sheets in multi-sheet job (50 stickers across 3 sheets)',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-multi-sheet',
+          name: 'Multi Sheet Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 200,
+            pageHeight: 300,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 2,
+            rows: 2, // 4 slots per sheet
+            columnGap: 10,
+            rowGap: 10,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 85,
+            heightMm: 130,
+            cornerRadiusMm: 0,
+            printableArea: [],
+          ),
+          elements: [
+            TextElementBlueprint(
+              id: 'text-1',
+              x: 0,
+              y: 0,
+              width: 50,
+              height: 10,
+              rotation: 0,
+              content: 'Test Sticker',
+              isDynamic: false,
+              fontSize: 10,
+              fontWeightValue: 400,
+              textAlign: BlueprintTextAlign.left,
+              colorHex: 0xFF000000,
+            ),
+          ],
+        );
+
+        // Calibration transform for slot 0 (r=0, c=0): shift X by +5mm (14.173 pt)
+        const coordinateContext = PrintCoordinateContext(
+          stickerTransforms: {
+            0: PrintStickerTransform(offsetX: 5),
+          },
+        );
+
+        // Quantity 10 stickers on 4 slots/sheet template -> 3 sheets (4 + 4 + 2 stickers)
+        final pdfBytes = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 10,
+          disabledSlots: {1}, // Slot 1 on Sheet 0 is disabled (partially used sheet)
+          coordinateContext: coordinateContext,
+        );
+
+        expect(pdfBytes, isNotNull);
+        final pdfString = String.fromCharCodes(pdfBytes);
+
+        // Count total pages (should contain 3 pages /MediaBox)
+        final mediaBoxMatches = RegExp('/MediaBox').allMatches(pdfString).length;
+        expect(mediaBoxMatches, equals(3));
+
+        // Slot 0 (r=0, c=0) on Sheet 0, Sheet 1, Sheet 2 should all have shifted X position:
+        // Default slotX = 10mm = 28.346 pt. With +5mm offset = 15mm = 42.5196 pt.
+        final cmRegex = RegExp(r'1\s+0\s+0\s+1\s+([0-9.-]+)\s+([0-9.-]+)\s+cm');
+        final matches = cmRegex.allMatches(pdfString).where((m) {
+          final tx = double.parse(m.group(1)!);
+          return (tx - 42.5196).abs() < 0.1;
+        }).toList();
+
+        // Slot 0 appears on Sheet 0, Sheet 1, Sheet 2 -> 3 occurrences in total PDF stream
+        expect(matches.length, equals(3), reason: 'Calibrated slot 0 offset (+5mm -> 42.52pt) must be applied across all 3 sheets');
+      },
+    );
+  });
 }

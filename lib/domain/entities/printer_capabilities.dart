@@ -12,6 +12,7 @@ class PrinterCapabilities extends Equatable {
     required this.supportsManualFeed,
     required this.supportsBorderlessPrinting,
     required this.supportsTraySelection,
+    this.reverseSheetOrder = false,
   });
 
   /// Whether the printer driver accepts user-defined paper sizes.
@@ -32,6 +33,9 @@ class PrinterCapabilities extends Equatable {
   /// Whether the driver supports explicit paper tray selection.
   final bool supportsTraySelection;
 
+  /// Whether physical sheets are fed in reverse order by the printer driver.
+  final bool reverseSheetOrder;
+
   @override
   List<Object?> get props => [
         supportsCustomPaperSize,
@@ -40,6 +44,7 @@ class PrinterCapabilities extends Equatable {
         supportsManualFeed,
         supportsBorderlessPrinting,
         supportsTraySelection,
+        reverseSheetOrder,
       ];
 
   @override
@@ -50,5 +55,6 @@ class PrinterCapabilities extends Equatable {
       'supportsLandscapeCustomPaper: $supportsLandscapeCustomPaper, '
       'supportsManualFeed: $supportsManualFeed, '
       'supportsBorderlessPrinting: $supportsBorderlessPrinting, '
-      'supportsTraySelection: $supportsTraySelection)';
+      'supportsTraySelection: $supportsTraySelection, '
+      'reverseSheetOrder: $reverseSheetOrder)';
 }

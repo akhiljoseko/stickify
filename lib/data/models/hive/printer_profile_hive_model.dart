@@ -107,6 +107,7 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
     required this.supportsManualFeed,
     required this.supportsBorderlessPrinting,
     required this.supportsTraySelection,
+    this.reverseSheetOrder = false,
   });
 
   factory PrinterCapabilitiesHiveModel.fromDomain(PrinterCapabilities cap) {
@@ -117,6 +118,7 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
       supportsManualFeed: cap.supportsManualFeed,
       supportsBorderlessPrinting: cap.supportsBorderlessPrinting,
       supportsTraySelection: cap.supportsTraySelection,
+      reverseSheetOrder: cap.reverseSheetOrder,
     );
   }
 
@@ -126,6 +128,7 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
   final bool supportsManualFeed;
   final bool supportsBorderlessPrinting;
   final bool supportsTraySelection;
+  final bool reverseSheetOrder;
 
   PrinterCapabilities toDomain() {
     return PrinterCapabilities(
@@ -135,6 +138,7 @@ class PrinterCapabilitiesHiveModel extends HiveObject {
       supportsManualFeed: supportsManualFeed,
       supportsBorderlessPrinting: supportsBorderlessPrinting,
       supportsTraySelection: supportsTraySelection,
+      reverseSheetOrder: reverseSheetOrder,
     );
   }
 }

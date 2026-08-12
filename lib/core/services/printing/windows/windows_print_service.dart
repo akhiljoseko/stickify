@@ -171,6 +171,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,
+    bool reverseSheetOrder = false,
     PrintExecutionConfiguration? executionConfiguration,
   }) async {
     String? backupToken;
@@ -244,6 +245,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
             quantity: quantity,
             disabledSlots: disabledSlots,
             printFromBottom: printFromBottom,
+            reverseSheetOrder: reverseSheetOrder,
             physicalFormat: format,
             coordinateContext: coordinateContext,
           );

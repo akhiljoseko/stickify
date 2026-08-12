@@ -23,6 +23,7 @@ class PrinterConfigurationState extends Equatable {
     this.supportsManualFeed = true,
     this.supportsBorderlessPrinting = false,
     this.supportsTraySelection = true,
+    this.reverseSheetOrder = false,
     this.allowScaling = true,
     this.allowTranslation = true,
     this.allowStickerSpecificAdjustment = true,
@@ -48,6 +49,7 @@ class PrinterConfigurationState extends Equatable {
   final bool supportsManualFeed;
   final bool supportsBorderlessPrinting;
   final bool supportsTraySelection;
+  final bool reverseSheetOrder;
   final bool allowScaling;
   final bool allowTranslation;
   final bool allowStickerSpecificAdjustment;
@@ -72,6 +74,7 @@ class PrinterConfigurationState extends Equatable {
     bool? supportsManualFeed,
     bool? supportsBorderlessPrinting,
     bool? supportsTraySelection,
+    bool? reverseSheetOrder,
     bool? allowScaling,
     bool? allowTranslation,
     bool? allowStickerSpecificAdjustment,
@@ -99,6 +102,7 @@ class PrinterConfigurationState extends Equatable {
           supportsBorderlessPrinting ?? this.supportsBorderlessPrinting,
       supportsTraySelection:
           supportsTraySelection ?? this.supportsTraySelection,
+      reverseSheetOrder: reverseSheetOrder ?? this.reverseSheetOrder,
       allowScaling: allowScaling ?? this.allowScaling,
       allowTranslation: allowTranslation ?? this.allowTranslation,
       allowStickerSpecificAdjustment:
@@ -126,6 +130,7 @@ class PrinterConfigurationState extends Equatable {
         supportsManualFeed,
         supportsBorderlessPrinting,
         supportsTraySelection,
+        reverseSheetOrder,
         allowScaling,
         allowTranslation,
         allowStickerSpecificAdjustment,

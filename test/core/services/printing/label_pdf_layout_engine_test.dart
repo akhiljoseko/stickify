@@ -719,5 +719,113 @@ void main() {
         expect(matches.length, equals(3), reason: 'Calibrated slot 0 offset (+5mm -> 42.52pt) must be applied across all 3 sheets');
       },
     );
+
+    test(
+      'supports multiple partially used sheets with disabled slots across Sheet 1 and Sheet 2',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-multi-partial',
+          name: 'Multi Partial Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 200,
+            pageHeight: 300,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 2,
+            rows: 2, // 4 slots per sheet
+            columnGap: 10,
+            rowGap: 10,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 85,
+            heightMm: 130,
+            cornerRadiusMm: 0,
+            printableArea: [],
+          ),
+          elements: [
+            TextElementBlueprint(
+              id: 'text-1',
+              x: 0,
+              y: 0,
+              width: 50,
+              height: 10,
+              rotation: 0,
+              content: 'Test Sticker',
+              isDynamic: false,
+              fontSize: 10,
+              fontWeightValue: 400,
+              textAlign: BlueprintTextAlign.left,
+              colorHex: 0xFF000000,
+            ),
+          ],
+        );
+
+        // Sheet 0 has slots 2,3 disabled (2 available). Sheet 1 has slot 4 disabled (3 available).
+        // Quantity 5 stickers -> Sheet 0 (2 stickers), Sheet 1 (3 stickers) -> total 2 sheets.
+        final pdfBytes = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 5,
+          disabledSlots: {2, 3, 4},
+        );
+
+        expect(pdfBytes, isNotNull);
+        final pdfString = String.fromCharCodes(pdfBytes);
+        final mediaBoxMatches = RegExp('/MediaBox').allMatches(pdfString).length;
+        expect(mediaBoxMatches, equals(2));
+      },
+    );
+
+    test(
+      'reverses PDF page sequence when reverseSheetOrder is true',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-reverse-order',
+          name: 'Reverse Order Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 200,
+            pageHeight: 300,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 1,
+            rows: 2, // 2 slots per sheet
+            columnGap: 0,
+            rowGap: 10,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 180,
+            heightMm: 130,
+            cornerRadiusMm: 0,
+            printableArea: [],
+          ),
+        );
+
+        final pdfBytesNormal = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 3,
+          disabledSlots: const {},
+        );
+
+        final pdfBytesReversed = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 3,
+          disabledSlots: {},
+          reverseSheetOrder: true,
+        );
+
+        expect(pdfBytesNormal, isNotNull);
+        expect(pdfBytesReversed, isNotNull);
+        expect(pdfBytesReversed, isNot(equals(pdfBytesNormal)));
+      },
+    );
   });
 }

@@ -50,6 +50,7 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,
+    bool reverseSheetOrder = false,
     PrintExecutionConfiguration? executionConfiguration,
   }) async {
     try {
@@ -83,6 +84,7 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
         quantity: quantity,
         disabledSlots: disabledSlots,
         printFromBottom: printFromBottom,
+        reverseSheetOrder: reverseSheetOrder,
         coordinateContext: coordinateContext,
       );
 

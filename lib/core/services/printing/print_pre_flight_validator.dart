@@ -97,10 +97,10 @@ class PrintPreFlightValidator {
       );
     }
 
-    // Slot index bounds check
-    final maxSlots = sheetConfig.columns * sheetConfig.rows;
+    // Slot index bounds check (supports per-sheet and job-wide absolute slot indices)
+    final slotsPerSheet = sheetConfig.columns * sheetConfig.rows;
     for (final slot in disabledSlots) {
-      if (slot < 0 || slot >= maxSlots) {
+      if (slot < 0 || (slot % slotsPerSheet) >= slotsPerSheet) {
         return const Result.failure(
           ValidationError(message: 'Disabled slot index is out of bounds.'),
         );

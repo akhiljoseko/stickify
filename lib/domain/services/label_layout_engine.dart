@@ -17,6 +17,7 @@ abstract interface class LabelLayoutEngine {
     required int quantity,
     required Set<int> disabledSlots,
     bool printFromBottom = false,
+    bool reverseSheetOrder = false,
     PdfPageFormat? physicalFormat,
     PrintCoordinateContext? coordinateContext,
   });

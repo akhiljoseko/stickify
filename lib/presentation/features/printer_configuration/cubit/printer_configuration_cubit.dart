@@ -72,6 +72,10 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
     emit(state.copyWith(supportsTraySelection: value));
   }
 
+  void setReverseSheetOrder(bool value) {
+    emit(state.copyWith(reverseSheetOrder: value));
+  }
+
   void setAllowScaling(bool value) {
     emit(state.copyWith(allowScaling: value));
   }
@@ -124,6 +128,7 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
         supportsBorderlessPrinting:
             profile.capabilities.supportsBorderlessPrinting,
         supportsTraySelection: profile.capabilities.supportsTraySelection,
+        reverseSheetOrder: profile.capabilities.reverseSheetOrder,
         allowScaling: profile.optimizationPreferences.allowScaling,
         allowTranslation: profile.optimizationPreferences.allowTranslation,
         allowStickerSpecificAdjustment:
@@ -286,6 +291,7 @@ class PrinterConfigurationCubit extends Cubit<PrinterConfigurationState> {
         supportsManualFeed: state.supportsManualFeed,
         supportsBorderlessPrinting: state.supportsBorderlessPrinting,
         supportsTraySelection: state.supportsTraySelection,
+        reverseSheetOrder: state.reverseSheetOrder,
       ),
       optimizationPreferences: OptimizationPreferences(
         allowScaling: state.allowScaling,

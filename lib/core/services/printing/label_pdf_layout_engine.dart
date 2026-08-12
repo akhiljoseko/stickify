@@ -29,6 +29,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     required int quantity,
     required Set<int> disabledSlots,
     bool printFromBottom = false,
+    bool reverseSheetOrder = false,
     PdfPageFormat? physicalFormat,
     PrintCoordinateContext? coordinateContext,
   }) async {
@@ -51,6 +52,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       imageCache: imageCache,
       compress: useIsolate,
       printFromBottom: printFromBottom,
+      reverseSheetOrder: reverseSheetOrder,
       regularFontBytes: regularFontBytes,
       boldFontBytes: boldFontBytes,
       physicalFormat: physicalFormat,
@@ -192,6 +194,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       tag: 'PrintPipeline',
     );
 
+    final pages = <pw.Page>[];
+
     // Build pages using absolute stacking coordinates
     for (var sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
       final pageSlots = <pw.Widget>[];
@@ -293,7 +297,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
         }
       }
 
-      doc.addPage(
+      pages.add(
         pw.Page(
           pageFormat: targetFormat,
           orientation: isSpooledAsPortrait ? pw.PageOrientation.landscape : null,
@@ -306,6 +310,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
         ),
       );
     }
+
+    (input.reverseSheetOrder ? pages.reversed : pages).forEach(doc.addPage);
 
     return doc.save();
   }
@@ -493,6 +499,7 @@ class _PdfJobInput {
     required this.regularFontBytes,
     required this.boldFontBytes,
     required this.coordinateContext,
+    this.reverseSheetOrder = false,
     this.physicalFormat,
   });
 
@@ -519,6 +526,9 @@ class _PdfJobInput {
 
   /// Whether to print from the bottom of the last sheet.
   final bool printFromBottom;
+
+  /// Whether to reverse compiled PDF page sequence.
+  final bool reverseSheetOrder;
 
   /// Regular font bytes.
   final Uint8List regularFontBytes;

@@ -165,6 +165,7 @@ class PrinterCapabilitiesFirestoreModel {
     required this.supportsManualFeed,
     required this.supportsBorderlessPrinting,
     required this.supportsTraySelection,
+    this.reverseSheetOrder = false,
   });
 
   factory PrinterCapabilitiesFirestoreModel.fromDomain(PrinterCapabilities cap) {
@@ -175,6 +176,7 @@ class PrinterCapabilitiesFirestoreModel {
       supportsManualFeed: cap.supportsManualFeed,
       supportsBorderlessPrinting: cap.supportsBorderlessPrinting,
       supportsTraySelection: cap.supportsTraySelection,
+      reverseSheetOrder: cap.reverseSheetOrder,
     );
   }
 
@@ -186,6 +188,7 @@ class PrinterCapabilitiesFirestoreModel {
       supportsManualFeed: m['supportsManualFeed'] as bool? ?? false,
       supportsBorderlessPrinting: m['supportsBorderlessPrinting'] as bool? ?? false,
       supportsTraySelection: m['supportsTraySelection'] as bool? ?? false,
+      reverseSheetOrder: m['reverseSheetOrder'] as bool? ?? false,
     );
   }
 
@@ -195,6 +198,7 @@ class PrinterCapabilitiesFirestoreModel {
   final bool supportsManualFeed;
   final bool supportsBorderlessPrinting;
   final bool supportsTraySelection;
+  final bool reverseSheetOrder;
 
   Map<String, dynamic> toMap() {
     return {
@@ -204,6 +208,7 @@ class PrinterCapabilitiesFirestoreModel {
       'supportsManualFeed': supportsManualFeed,
       'supportsBorderlessPrinting': supportsBorderlessPrinting,
       'supportsTraySelection': supportsTraySelection,
+      'reverseSheetOrder': reverseSheetOrder,
     };
   }
 
@@ -215,6 +220,7 @@ class PrinterCapabilitiesFirestoreModel {
       supportsManualFeed: supportsManualFeed,
       supportsBorderlessPrinting: supportsBorderlessPrinting,
       supportsTraySelection: supportsTraySelection,
+      reverseSheetOrder: reverseSheetOrder,
     );
   }
 }

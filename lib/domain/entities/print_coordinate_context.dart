@@ -144,23 +144,27 @@ class PrintCoordinateContext extends Equatable {
   /// Resolves the effective [PrintStickerTransform] for the sticker at the
   /// given [row], [column], and [absoluteSlotIndex].
   ///
-  /// The current lookup strategy returns the most specific override available
+  /// The lookup strategy returns the most specific override available
   /// (highest to lowest specificity):
-  /// 1. [stickerTransforms] keyed by [absoluteSlotIndex]
-  /// 2. [columnTransforms]  keyed by [column]
-  /// 3. [rowTransforms]     keyed by [row]
-  /// 4. [globalTransform]
-  ///
-  /// Future implementations may transition to composing applicable transforms
-  /// across levels (e.g., global, row, column, sticker) instead of selecting
-  /// a single override.
+  /// 1. [stickerTransforms] keyed by [absoluteSlotIndex] (job-wide absolute slot override)
+  /// 2. [stickerTransforms] keyed by `absoluteSlotIndex % slotsPerSheet` (per-sheet grid slot override)
+  /// 3. [columnTransforms]  keyed by [column]
+  /// 4. [rowTransforms]     keyed by [row]
+  /// 5. [globalTransform]
   PrintStickerTransform resolveFor({
     required int row,
     required int column,
     required int absoluteSlotIndex,
+    int? slotsPerSheet,
   }) {
     final stickerOverride = stickerTransforms[absoluteSlotIndex];
     if (stickerOverride != null) return stickerOverride;
+
+    if (slotsPerSheet != null && slotsPerSheet > 0) {
+      final sheetSlotIndex = absoluteSlotIndex % slotsPerSheet;
+      final sheetStickerOverride = stickerTransforms[sheetSlotIndex];
+      if (sheetStickerOverride != null) return sheetStickerOverride;
+    }
 
     final columnOverride = columnTransforms[column];
     if (columnOverride != null) return columnOverride;

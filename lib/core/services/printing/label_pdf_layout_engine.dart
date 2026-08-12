@@ -32,6 +32,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     bool reverseSheetOrder = false,
     PdfPageFormat? physicalFormat,
     PrintCoordinateContext? coordinateContext,
+    DateTime? manufacturingDate,
   }) async {
     // 1. Pre-cache all network/asset/file images on the main thread
     final imageCache = await _preCacheImages(template);
@@ -57,6 +58,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       boldFontBytes: boldFontBytes,
       physicalFormat: physicalFormat,
       coordinateContext: coordinateContext ?? const PrintCoordinateContext.identity(),
+      manufacturingDate: manufacturingDate,
     );
 
     if (useIsolate) {
@@ -289,6 +291,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
                     imageCache: input.imageCache,
                     scaleX: transform.scaleX,
                     scaleY: transform.scaleY,
+                    manufacturingDate: input.manufacturingDate,
                   ),
                 ),
               ),
@@ -328,6 +331,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     required Map<String, Uint8List> imageCache,
     double scaleX = 1.0,
     double scaleY = 1.0,
+    DateTime? manufacturingDate,
   }) {
     final elements = <pw.Widget>[];
 
@@ -348,6 +352,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
         product,
         variant,
         imageCache,
+        manufacturingDate,
       );
 
       final scaledX = bp.x * scaleX;
@@ -501,6 +506,7 @@ class _PdfJobInput {
     required this.coordinateContext,
     this.reverseSheetOrder = false,
     this.physicalFormat,
+    this.manufacturingDate,
   });
 
   /// The active product.
@@ -529,6 +535,9 @@ class _PdfJobInput {
 
   /// Whether to reverse compiled PDF page sequence.
   final bool reverseSheetOrder;
+
+  /// Optional custom manufacturing date for token resolution.
+  final DateTime? manufacturingDate;
 
   /// Regular font bytes.
   final Uint8List regularFontBytes;

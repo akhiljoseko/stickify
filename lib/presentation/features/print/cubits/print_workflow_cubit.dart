@@ -330,6 +330,14 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     }
   }
 
+  /// Updates the manufacturing date for token resolution.
+  void updateManufacturingDate(DateTime date) {
+    final s = state;
+    if (s is PrintWorkflowLoaded) {
+      emit(s.copyWith(manufacturingDate: date));
+    }
+  }
+
   /// Selects all slots in the first sheet.
   void selectAllFirstSheet() {
     final s = state;
@@ -438,6 +446,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         printFromBottom: s.printFromBottom,
         reverseSheetOrder: s.reverseSheetOrder,
         executionConfiguration: executionConfiguration,
+        manufacturingDate: s.manufacturingDate,
       );
 
       switch (printResult) {

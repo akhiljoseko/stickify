@@ -20,5 +20,6 @@ abstract interface class LabelLayoutEngine {
     bool reverseSheetOrder = false,
     PdfPageFormat? physicalFormat,
     PrintCoordinateContext? coordinateContext,
+    DateTime? manufacturingDate,
   });
 }

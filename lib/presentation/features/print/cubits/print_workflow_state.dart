@@ -40,6 +40,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     this.selectedPrinterProfile,
     this.selectedTrayProfile,
     this.compatibilityResult,
+    this.manufacturingDate,
   });
 
   /// The active product.
@@ -84,6 +85,9 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
   /// Cached compatibility check result.
   final CompatibilityAnalysisResult? compatibilityResult;
 
+  /// Optional custom manufacturing date for token resolution.
+  final DateTime? manufacturingDate;
+
   /// Returns a copy of the state with modified fields.
   PrintWorkflowLoaded copyWith({
     Product? product,
@@ -100,6 +104,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     PrinterProfile? Function()? selectedPrinterProfile,
     PrinterTrayProfile? Function()? selectedTrayProfile,
     CompatibilityAnalysisResult? Function()? compatibilityResult,
+    DateTime? manufacturingDate,
   }) {
     return PrintWorkflowLoaded(
       product: product ?? this.product,
@@ -116,6 +121,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
       selectedPrinterProfile: selectedPrinterProfile != null ? selectedPrinterProfile() : this.selectedPrinterProfile,
       selectedTrayProfile: selectedTrayProfile != null ? selectedTrayProfile() : this.selectedTrayProfile,
       compatibilityResult: compatibilityResult != null ? compatibilityResult() : this.compatibilityResult,
+      manufacturingDate: manufacturingDate ?? this.manufacturingDate,
     );
   }
 
@@ -135,6 +141,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
         selectedPrinterProfile,
         selectedTrayProfile,
         compatibilityResult,
+        manufacturingDate,
       ];
 }
 

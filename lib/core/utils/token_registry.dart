@@ -20,11 +20,11 @@ int getWeekOfYear(DateTime date) {
   return (diffDays / 7).floor() + 1;
 }
 
-String _formattedMfgDate() {
-  final now = DateTime.now();
-  final day = now.day.toString().padLeft(2, '0');
-  final month = now.month.toString().padLeft(2, '0');
-  final year = now.year.toString();
+String _formattedMfgDate([DateTime? date]) {
+  final target = date ?? DateTime.now();
+  final day = target.day.toString().padLeft(2, '0');
+  final month = target.month.toString().padLeft(2, '0');
+  final year = target.year.toString();
   return '$day-$month-$year';
 }
 
@@ -48,7 +48,7 @@ class TemplateToken {
   final String category;
 
   /// The logic to resolve/calculate the token value at runtime
-  final String Function(Product? product, ProductVariant? variant) getValue;
+  final String Function(Product? product, ProductVariant? variant, [DateTime? manufacturingDate]) getValue;
 
   /// Whether this token should be displayed in the template builder dropdown
   final bool visibleInDropdown;
@@ -61,25 +61,26 @@ final List<TemplateToken> tokenRegistry = [
     token: '{{system.mfg_date}}',
     displayName: 'MFG Date (Today)',
     category: 'System',
-    getValue: (p, v) => _formattedMfgDate(),
+    getValue: (p, v, [mfgDate]) => _formattedMfgDate(mfgDate),
   ),
   TemplateToken(
     token: '{{system.batch_number}}',
     displayName: 'Batch Number (Weekly)',
     category: 'System',
-    getValue: (p, v) {
-      final now = DateTime.now();
-      final week = getWeekOfYear(now);
-      return 'W${week}Y${now.year}';
+    getValue: (p, v, [mfgDate]) {
+      final date = mfgDate ?? DateTime.now();
+      final week = getWeekOfYear(date);
+      return 'W${week}Y${date.year}';
     },
   ),
   TemplateToken(
     token: '{{system.expiry_date}}',
     displayName: 'Expiry Date (Based on Shelf Life)',
     category: 'System',
-    getValue: (p, v) {
+    getValue: (p, v, [mfgDate]) {
       if (p == null || p.shelfLifeDays == null) return '';
-      final expiry = DateTime.now().add(Duration(days: p.shelfLifeDays!));
+      final baseDate = mfgDate ?? DateTime.now();
+      final expiry = baseDate.add(Duration(days: p.shelfLifeDays!));
       final day = expiry.day.toString().padLeft(2, '0');
       final month = expiry.month.toString().padLeft(2, '0');
       final year = expiry.year.toString();
@@ -92,55 +93,55 @@ final List<TemplateToken> tokenRegistry = [
     token: '{{product.name}}',
     displayName: 'Product Name',
     category: 'Product',
-    getValue: (p, v) => p?.name ?? '',
+    getValue: (p, v, [_]) => p?.name ?? '',
   ),
   TemplateToken(
     token: '{{product.sku}}',
     displayName: 'Product SKU (Fallback)',
     category: 'Product',
-    getValue: (p, v) => v?.sku ?? p?.sku ?? '',
+    getValue: (p, v, [_]) => v?.sku ?? p?.sku ?? '',
   ),
   TemplateToken(
     token: '{{product.id}}',
     displayName: 'Product ID',
     category: 'Product',
-    getValue: (p, v) => p?.id ?? '',
+    getValue: (p, v, [_]) => p?.id ?? '',
   ),
   TemplateToken(
     token: '{{product.category}}',
     displayName: 'Category',
     category: 'Product',
-    getValue: (p, v) => p?.category ?? '',
+    getValue: (p, v, [_]) => p?.category ?? '',
   ),
   TemplateToken(
     token: '{{product.shelfLifeDays}}',
     displayName: 'Shelf Life (Days)',
     category: 'Product',
-    getValue: (p, v) => p?.shelfLifeDays?.toString() ?? '',
+    getValue: (p, v, [_]) => p?.shelfLifeDays?.toString() ?? '',
   ),
   TemplateToken(
     token: '{{product.storageConditions}}',
     displayName: 'Storage Conditions',
     category: 'Product',
-    getValue: (p, v) => p?.storageConditions ?? '',
+    getValue: (p, v, [_]) => p?.storageConditions ?? '',
   ),
   TemplateToken(
     token: '{{product.ingredients}}',
     displayName: 'Ingredients List',
     category: 'Product',
-    getValue: (p, v) => p?.ingredientsString ?? '',
+    getValue: (p, v, [_]) => p?.ingredientsString ?? '',
   ),
   TemplateToken(
     token: '{{product.imageUrl}}',
     displayName: 'Product Image URL',
     category: 'Product',
-    getValue: (p, v) => p?.imageUrl ?? '',
+    getValue: (p, v, [_]) => p?.imageUrl ?? '',
   ),
   TemplateToken(
     token: '{{product.lastModified}}',
     displayName: 'Product Last Modified',
     category: 'Product',
-    getValue: (p, v) => p?.lastModified?.toIso8601String() ?? '',
+    getValue: (p, v, [_]) => p?.lastModified?.toIso8601String() ?? '',
   ),
 
   // ================= NUTRITION FACTS TOKENS =================
@@ -148,37 +149,37 @@ final List<TemplateToken> tokenRegistry = [
     token: '{{product.nutrition.calories}}',
     displayName: 'Calories (kcal)',
     category: 'Nutrition',
-    getValue: (p, v) => p?.nutritionFacts?.calories.toString() ?? '',
+    getValue: (p, v, [_]) => p?.nutritionFacts?.calories.toString() ?? '',
   ),
   TemplateToken(
     token: '{{product.nutrition.protein}}',
     displayName: 'Protein (g)',
     category: 'Nutrition',
-    getValue: (p, v) => p?.nutritionFacts?.protein.toString() ?? '',
+    getValue: (p, v, [_]) => p?.nutritionFacts?.protein.toString() ?? '',
   ),
   TemplateToken(
     token: '{{product.nutrition.totalFat}}',
     displayName: 'Total Fat (g)',
     category: 'Nutrition',
-    getValue: (p, v) => p?.nutritionFacts?.totalFat.toString() ?? '',
+    getValue: (p, v, [_]) => p?.nutritionFacts?.totalFat.toString() ?? '',
   ),
   TemplateToken(
     token: '{{product.nutrition.saturatedFat}}',
     displayName: 'Saturated Fat (g)',
     category: 'Nutrition',
-    getValue: (p, v) => p?.nutritionFacts?.saturatedFat.toString() ?? '',
+    getValue: (p, v, [_]) => p?.nutritionFacts?.saturatedFat.toString() ?? '',
   ),
   TemplateToken(
     token: '{{product.nutrition.totalCarbs}}',
     displayName: 'Total Carbs (g)',
     category: 'Nutrition',
-    getValue: (p, v) => p?.nutritionFacts?.totalCarbs.toString() ?? '',
+    getValue: (p, v, [_]) => p?.nutritionFacts?.totalCarbs.toString() ?? '',
   ),
   TemplateToken(
     token: '{{product.nutrition.fiber}}',
     displayName: 'Fiber (g)',
     category: 'Nutrition',
-    getValue: (p, v) => p?.nutritionFacts?.fiber.toString() ?? '',
+    getValue: (p, v, [_]) => p?.nutritionFacts?.fiber.toString() ?? '',
   ),
 
   // ================= VARIANT TOKENS =================
@@ -186,19 +187,19 @@ final List<TemplateToken> tokenRegistry = [
     token: '{{variant.name}}',
     displayName: 'Variant Name',
     category: 'Variant',
-    getValue: (p, v) => v?.name ?? '',
+    getValue: (p, v, [_]) => v?.name ?? '',
   ),
   TemplateToken(
     token: '{{variant.sku}}',
     displayName: 'Variant SKU',
     category: 'Variant',
-    getValue: (p, v) => v?.sku ?? '',
+    getValue: (p, v, [_]) => v?.sku ?? '',
   ),
   TemplateToken(
     token: '{{variant.quantity}}',
     displayName: 'Variant Quantity',
     category: 'Variant',
-    getValue: (p, v) => v != null
+    getValue: (p, v, [_]) => v != null
         ? (v.quantity % 1 == 0 ? v.quantity.toInt().toString() : v.quantity.toString())
         : '',
   ),
@@ -206,31 +207,31 @@ final List<TemplateToken> tokenRegistry = [
     token: '{{variant.unit}}',
     displayName: 'Variant Unit',
     category: 'Variant',
-    getValue: (p, v) => v?.unit ?? '',
+    getValue: (p, v, [_]) => v?.unit ?? '',
   ),
   TemplateToken(
     token: '{{variant.wholesale}}',
     displayName: 'Wholesale Price',
     category: 'Variant',
-    getValue: (p, v) => v?.wholesale.toStringAsFixed(2) ?? '',
+    getValue: (p, v, [_]) => v?.wholesale.toStringAsFixed(2) ?? '',
   ),
   TemplateToken(
     token: '{{variant.mrp}}',
     displayName: 'MRP Price',
     category: 'Variant',
-    getValue: (p, v) => v?.mrp.toStringAsFixed(2) ?? '',
+    getValue: (p, v, [_]) => v?.mrp.toStringAsFixed(2) ?? '',
   ),
   TemplateToken(
     token: '{{variant.unitPrice}}',
     displayName: 'Unit Price',
     category: 'Variant',
-    getValue: (p, v) => v?.unitPrice.toStringAsFixed(2) ?? '',
+    getValue: (p, v, [_]) => v?.unitPrice.toStringAsFixed(2) ?? '',
   ),
   TemplateToken(
     token: '{{variant.defaultTemplateId}}',
     displayName: 'Variant Default Template ID',
     category: 'Variant',
-    getValue: (p, v) => v?.defaultTemplateId ?? '',
+    getValue: (p, v, [_]) => v?.defaultTemplateId ?? '',
   ),
 
   // ================= LEGACY / BACKWARD COMPATIBILITY ALIASES =================
@@ -238,28 +239,28 @@ final List<TemplateToken> tokenRegistry = [
     token: '{{mfg}}',
     displayName: 'MFG Date (Legacy)',
     category: 'System',
-    getValue: (p, v) => _formattedMfgDate(),
+    getValue: (p, v, [mfgDate]) => _formattedMfgDate(mfgDate),
     visibleInDropdown: false,
   ),
   TemplateToken(
     token: '{{mfgDate}}',
     displayName: 'MFG Date (Legacy 2)',
     category: 'System',
-    getValue: (p, v) => _formattedMfgDate(),
+    getValue: (p, v, [mfgDate]) => _formattedMfgDate(mfgDate),
     visibleInDropdown: false,
   ),
   TemplateToken(
     token: '{{product.mfgDate}}',
     displayName: 'MFG Date (Legacy 3)',
     category: 'System',
-    getValue: (p, v) => _formattedMfgDate(),
+    getValue: (p, v, [mfgDate]) => _formattedMfgDate(mfgDate),
     visibleInDropdown: false,
   ),
   TemplateToken(
     token: '{{product.mfg}}',
     displayName: 'MFG Date (Legacy 4)',
     category: 'System',
-    getValue: (p, v) => _formattedMfgDate(),
+    getValue: (p, v, [mfgDate]) => _formattedMfgDate(mfgDate),
     visibleInDropdown: false,
   ),
 ];

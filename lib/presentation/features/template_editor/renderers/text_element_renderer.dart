@@ -9,12 +9,12 @@ class TextElementRenderer implements LabelElementRenderer {
   const TextElementRenderer();
 
   /// Utility to resolve dynamic metadata evaluation tokens (e.g. `{{product.name}}`, `{{variant.sku}}`) inside a [template] string.
-  static String resolveToken(String template, Product? product, [ProductVariant? variant]) {
+  static String resolveToken(String template, Product? product, [ProductVariant? variant, DateTime? manufacturingDate]) {
     var result = template;
 
     for (final tokenDef in tokenRegistry) {
       if (result.contains(tokenDef.token)) {
-        final value = tokenDef.getValue(product, variant);
+        final value = tokenDef.getValue(product, variant, manufacturingDate);
         result = result.replaceAll(tokenDef.token, value);
       }
     }
@@ -28,9 +28,10 @@ class TextElementRenderer implements LabelElementRenderer {
     ElementBlueprint blueprint, {
     Product? product,
     ProductVariant? variant,
+    DateTime? manufacturingDate,
   }) {
     final bp = blueprint as TextElementBlueprint;
-    final text = bp.isDynamic ? resolveToken(bp.content, product, variant) : bp.content;
+    final text = bp.isDynamic ? resolveToken(bp.content, product, variant, manufacturingDate) : bp.content;
 
     final fontWeight = FontWeight.values.firstWhere(
       (w) => w.value == bp.fontWeightValue,

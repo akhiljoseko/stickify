@@ -15,10 +15,11 @@ class PdfTextElementRenderer implements PdfElementRenderer<TextElementBlueprint>
     TextElementBlueprint blueprint,
     Product? product,
     ProductVariant? variant,
-    Map<String, Uint8List> imageCache,
-  ) {
+    Map<String, Uint8List> imageCache, [
+    DateTime? manufacturingDate,
+  ]) {
     final text = blueprint.isDynamic
-        ? TextElementRenderer.resolveToken(blueprint.content, product, variant)
+        ? TextElementRenderer.resolveToken(blueprint.content, product, variant, manufacturingDate)
         : blueprint.content;
 
     final fontWeight = switch (blueprint.fontWeightValue) {
@@ -58,8 +59,9 @@ class PdfShapeElementRenderer implements PdfElementRenderer<ShapeElementBlueprin
     ShapeElementBlueprint blueprint,
     Product? product,
     ProductVariant? variant,
-    Map<String, Uint8List> imageCache,
-  ) {
+    Map<String, Uint8List> imageCache, [
+    DateTime? manufacturingDate,
+  ]) {
     return pw.Container(
       width: blueprint.width * PdfPageFormat.mm,
       height: blueprint.height * PdfPageFormat.mm,
@@ -85,10 +87,11 @@ class PdfBarcodeElementRenderer implements PdfElementRenderer<BarcodeElementBlue
     BarcodeElementBlueprint blueprint,
     Product? product,
     ProductVariant? variant,
-    Map<String, Uint8List> imageCache,
-  ) {
+    Map<String, Uint8List> imageCache, [
+    DateTime? manufacturingDate,
+  ]) {
     final barcodeData = blueprint.isDynamic
-        ? TextElementRenderer.resolveToken(blueprint.data, product, variant)
+        ? TextElementRenderer.resolveToken(blueprint.data, product, variant, manufacturingDate)
         : blueprint.data;
 
     final data = barcodeData.isEmpty ? '12345678' : barcodeData;
@@ -147,10 +150,11 @@ class PdfQrElementRenderer implements PdfElementRenderer<QrElementBlueprint> {
     QrElementBlueprint blueprint,
     Product? product,
     ProductVariant? variant,
-    Map<String, Uint8List> imageCache,
-  ) {
+    Map<String, Uint8List> imageCache, [
+    DateTime? manufacturingDate,
+  ]) {
     final qrData = blueprint.isDynamic
-        ? TextElementRenderer.resolveToken(blueprint.data, product, variant)
+        ? TextElementRenderer.resolveToken(blueprint.data, product, variant, manufacturingDate)
         : blueprint.data;
     final data = qrData.isEmpty ? 'https://stickify.io' : qrData;
 
@@ -173,8 +177,9 @@ class PdfImageElementRenderer implements PdfElementRenderer<ImageElementBlueprin
     ImageElementBlueprint blueprint,
     Product? product,
     ProductVariant? variant,
-    Map<String, Uint8List> imageCache,
-  ) {
+    Map<String, Uint8List> imageCache, [
+    DateTime? manufacturingDate,
+  ]) {
     final pdfBoxFit = switch (blueprint.fit) {
       BlueprintBoxFit.fill => pw.BoxFit.fill,
       BlueprintBoxFit.contain => pw.BoxFit.contain,
@@ -219,8 +224,9 @@ class PdfNutritionTableElementRenderer implements PdfElementRenderer<NutritionTa
     NutritionTableElementBlueprint blueprint,
     Product? product,
     ProductVariant? variant,
-    Map<String, Uint8List> imageCache,
-  ) {
+    Map<String, Uint8List> imageCache, [
+    DateTime? manufacturingDate,
+  ]) {
     final textColor = PdfColor.fromInt(blueprint.colorHex);
 
     // Resolve nutrition facts from product or use default mock values

@@ -14,6 +14,7 @@ class NutritionTableElementRenderer implements LabelElementRenderer {
     ElementBlueprint blueprint, {
     Product? product,
     ProductVariant? variant,
+    DateTime? manufacturingDate,
   }) {
     // Cast to the expected blueprint subclass
     final bp = blueprint as NutritionTableElementBlueprint;

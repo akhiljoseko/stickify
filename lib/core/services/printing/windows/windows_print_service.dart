@@ -173,6 +173,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
     bool printFromBottom = false,
     bool reverseSheetOrder = false,
     PrintExecutionConfiguration? executionConfiguration,
+    DateTime? manufacturingDate,
   }) async {
     String? backupToken;
     try {
@@ -248,6 +249,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
             reverseSheetOrder: reverseSheetOrder,
             physicalFormat: format,
             coordinateContext: coordinateContext,
+            manufacturingDate: manufacturingDate,
           );
         },
         format: PdfPageFormat(

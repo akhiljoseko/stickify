@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_cubit.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_state.dart';
+import 'package:stickify/presentation/features/print/presentation/shared/manufacturing_date_picker.dart';
 import 'package:stickify/presentation/features/template_editor/core/element_renderer_registry.dart';
 import 'package:stickify/presentation/widgets/widgets.dart';
 
@@ -133,6 +134,13 @@ class _ParametersPanelState extends State<ParametersPanel> {
                 if (val != null) {
                   context.read<PrintWorkflowCubit>().updatePrinter(val);
                 }
+              },
+            ),
+            const SizedBox(height: 16),
+            ManufacturingDatePicker(
+              selectedDate: widget.loadedState.manufacturingDate,
+              onDateChanged: (date) {
+                context.read<PrintWorkflowCubit>().updateManufacturingDate(date);
               },
             ),
             const SizedBox(height: 20),
@@ -704,6 +712,7 @@ class SheetsPreview extends StatelessWidget {
                                                                 bp,
                                                                 product: product,
                                                                 variant: variant,
+                                                                manufacturingDate: loadedState.manufacturingDate,
                                                               );
       
                                                           return Positioned(

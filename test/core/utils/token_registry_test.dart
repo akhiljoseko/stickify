@@ -122,5 +122,28 @@ void main() {
         'MFG: $expectedMfg',
       );
     });
+
+    test('resolves system tokens using explicit custom manufacturing date', () {
+      final customMfg = DateTime(2026, 5, 10); // May 10th, 2026
+
+      // mfg_date -> 10-05-2026
+      expect(
+        TextElementRenderer.resolveToken('MFG: {{system.mfg_date}}', product, variant, customMfg),
+        'MFG: 10-05-2026',
+      );
+
+      // expiry_date (7 days shelf life) -> 17-05-2026
+      expect(
+        TextElementRenderer.resolveToken('EXP: {{system.expiry_date}}', product, variant, customMfg),
+        'EXP: 17-05-2026',
+      );
+
+      // batch_number (Week 19 of 2026) -> W19Y2026
+      final expectedBatch = 'W${getWeekOfYear(customMfg)}Y2026';
+      expect(
+        TextElementRenderer.resolveToken('BATCH: {{system.batch_number}}', product, variant, customMfg),
+        'BATCH: $expectedBatch',
+      );
+    });
   });
 }

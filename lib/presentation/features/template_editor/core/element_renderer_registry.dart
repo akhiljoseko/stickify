@@ -39,6 +39,7 @@ class _FallbackRenderer implements LabelElementRenderer {
     ElementBlueprint blueprint, {
     Product? product,
     ProductVariant? variant,
+    DateTime? manufacturingDate,
   }) {
     return SizedBox(
       width: blueprint.width,

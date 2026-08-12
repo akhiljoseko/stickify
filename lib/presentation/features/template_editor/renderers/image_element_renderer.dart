@@ -14,6 +14,7 @@ class ImageElementRenderer implements LabelElementRenderer {
     ElementBlueprint blueprint, {
     Product? product,
     ProductVariant? variant,
+    DateTime? manufacturingDate,
   }) {
     final bp = blueprint as ImageElementBlueprint;
 

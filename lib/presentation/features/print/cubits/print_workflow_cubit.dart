@@ -178,6 +178,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 selectedPrinter: defaultPrinter,
                 quantity: defaultQty,
                 printFromBottom: cachedBottom,
+                reverseSheetOrder: matchedProfile?.capabilities.reverseSheetOrder ?? false,
                 isQuantityManuallyEdited: initialQuantity != null && initialQuantity > 0,
                 selectedPrinterProfile: matchedProfile,
                 selectedTrayProfile: matchedTray,
@@ -291,6 +292,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         selectedPrinterProfile: () => matchedProfile,
         selectedTrayProfile: () => matchedTray,
         compatibilityResult: () => compatibilityResult,
+        reverseSheetOrder: matchedProfile?.capabilities.reverseSheetOrder ?? s.reverseSheetOrder,
       ));
     }
   }
@@ -317,6 +319,22 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     if (s is PrintWorkflowLoaded) {
       emit(s.copyWith(printFromBottom: value));
       await _localDatabase.save<bool>('settings', 'print_from_bottom', value);
+    }
+  }
+
+  /// Toggles whether to reverse PDF sheet page compilation order.
+  void toggleReverseSheetOrder({required bool value}) {
+    final s = state;
+    if (s is PrintWorkflowLoaded) {
+      emit(s.copyWith(reverseSheetOrder: value));
+    }
+  }
+
+  /// Updates the manufacturing date for token resolution.
+  void updateManufacturingDate(DateTime date) {
+    final s = state;
+    if (s is PrintWorkflowLoaded) {
+      emit(s.copyWith(manufacturingDate: date));
     }
   }
 
@@ -426,7 +444,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         disabledSlots: s.disabledSlots,
         printer: printer,
         printFromBottom: s.printFromBottom,
+        reverseSheetOrder: s.reverseSheetOrder,
         executionConfiguration: executionConfiguration,
+        manufacturingDate: s.manufacturingDate,
       );
 
       switch (printResult) {

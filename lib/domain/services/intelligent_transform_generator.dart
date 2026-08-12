@@ -462,10 +462,6 @@ class IntelligentTransformGenerator {
       tag: 'PrintPipeline',
     );
 
-    final calForSlot0 = calForSlot(0, 0, 0);
-    final calScaleX = calForSlot0.scaleX;
-    final calScaleY = calForSlot0.scaleY;
-
     final totalContentWidth =
         sheetConfig.marginLeft +
         totalColumns * stickerConfig.widthMm +
@@ -477,11 +473,11 @@ class IntelligentTransformGenerator {
         (totalRows - 1) * sheetConfig.rowGap +
         sheetConfig.marginBottom;
 
-    final scaleX = requiresScaleX
-        ? (availablePrinterWidth / totalContentWidth) / calScaleX
+    final geometricScaleX = requiresScaleX
+        ? availablePrinterWidth / totalContentWidth
         : 1.0;
-    final scaleY = requiresScaleY
-        ? (availablePrinterHeight / totalContentHeight) / calScaleY
+    final geometricScaleY = requiresScaleY
+        ? availablePrinterHeight / totalContentHeight
         : 1.0;
 
     Log.debug(
@@ -490,8 +486,8 @@ class IntelligentTransformGenerator {
       'totalContentHeight=${totalContentHeight.toStringAsFixed(1)}mm, '
       'availablePrinterWidth=${availablePrinterWidth.toStringAsFixed(1)}mm, '
       'availablePrinterHeight=${availablePrinterHeight.toStringAsFixed(1)}mm, '
-      'calScaleX=${calScaleX.toStringAsFixed(5)}, calScaleY=${calScaleY.toStringAsFixed(5)}, '
-      'computedScaleX=${scaleX.toStringAsFixed(5)}, computedScaleY=${scaleY.toStringAsFixed(5)}.',
+      'geometricScaleX=${geometricScaleX.toStringAsFixed(5)}, '
+      'geometricScaleY=${geometricScaleY.toStringAsFixed(5)}.',
       tag: 'PrintPipeline',
     );
     final anchorX =
@@ -557,11 +553,32 @@ class IntelligentTransformGenerator {
         final inBottom =
             bottomConflict?.affectedStickerIndices.contains(absIndex) ?? false;
 
+        final slotCal = calForSlot(r, c, absIndex);
+        var slotCalScaleX = slotCal.scaleX;
+        if (slotCalScaleX == 0.0) {
+          slotCalScaleX = 1.0;
+          Log.warning(
+            'TransformGenerator: Level 4 — slot $absIndex calibration scaleX is 0.0, falling back to 1.0.',
+            tag: 'PrintPipeline',
+          );
+        }
+        var slotCalScaleY = slotCal.scaleY;
+        if (slotCalScaleY == 0.0) {
+          slotCalScaleY = 1.0;
+          Log.warning(
+            'TransformGenerator: Level 4 — slot $absIndex calibration scaleY is 0.0, falling back to 1.0.',
+            tag: 'PrintPipeline',
+          );
+        }
+
+        final slotScaleX = geometricScaleX / slotCalScaleX;
+        final slotScaleY = geometricScaleY / slotCalScaleY;
+
         final sX = (inLeft && unresolvedLeft) || (inRight && unresolvedRight)
-            ? scaleX
+            ? slotScaleX
             : 1.0;
         final sY = (inTop && unresolvedTop) || (inBottom && unresolvedBottom)
-            ? scaleY
+            ? slotScaleY
             : 1.0;
 
         final aX = sX != 1.0 ? anchorX : 0.5;

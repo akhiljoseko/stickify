@@ -12,6 +12,7 @@ abstract interface class PdfElementRenderer<T extends ElementBlueprint> {
     T blueprint,
     Product? product,
     ProductVariant? variant,
-    Map<String, Uint8List> imageCache,
-  );
+    Map<String, Uint8List> imageCache, [
+    DateTime? manufacturingDate,
+  ]);
 }

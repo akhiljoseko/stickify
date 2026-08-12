@@ -29,8 +29,10 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     required int quantity,
     required Set<int> disabledSlots,
     bool printFromBottom = false,
+    bool reverseSheetOrder = false,
     PdfPageFormat? physicalFormat,
     PrintCoordinateContext? coordinateContext,
+    DateTime? manufacturingDate,
   }) async {
     // 1. Pre-cache all network/asset/file images on the main thread
     final imageCache = await _preCacheImages(template);
@@ -51,10 +53,12 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       imageCache: imageCache,
       compress: useIsolate,
       printFromBottom: printFromBottom,
+      reverseSheetOrder: reverseSheetOrder,
       regularFontBytes: regularFontBytes,
       boldFontBytes: boldFontBytes,
       physicalFormat: physicalFormat,
       coordinateContext: coordinateContext ?? const PrintCoordinateContext.identity(),
+      manufacturingDate: manufacturingDate,
     );
 
     if (useIsolate) {
@@ -192,6 +196,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       tag: 'PrintPipeline',
     );
 
+    final pages = <pw.Page>[];
+
     // Build pages using absolute stacking coordinates
     for (var sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
       final pageSlots = <pw.Widget>[];
@@ -210,6 +216,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
               row: r,
               column: c,
               absoluteSlotIndex: absIndex,
+              slotsPerSheet: slotsPerSheet,
             );
 
             // Calculate physical grid position in mm.
@@ -284,6 +291,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
                     imageCache: input.imageCache,
                     scaleX: transform.scaleX,
                     scaleY: transform.scaleY,
+                    manufacturingDate: input.manufacturingDate,
                   ),
                 ),
               ),
@@ -292,7 +300,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
         }
       }
 
-      doc.addPage(
+      pages.add(
         pw.Page(
           pageFormat: targetFormat,
           orientation: isSpooledAsPortrait ? pw.PageOrientation.landscape : null,
@@ -305,6 +313,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
         ),
       );
     }
+
+    (input.reverseSheetOrder ? pages.reversed : pages).forEach(doc.addPage);
 
     return doc.save();
   }
@@ -321,6 +331,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     required Map<String, Uint8List> imageCache,
     double scaleX = 1.0,
     double scaleY = 1.0,
+    DateTime? manufacturingDate,
   }) {
     final elements = <pw.Widget>[];
 
@@ -341,6 +352,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
         product,
         variant,
         imageCache,
+        manufacturingDate,
       );
 
       final scaledX = bp.x * scaleX;
@@ -375,18 +387,15 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
         painter: (canvas, size) {
           final vertices = sticker.printableArea;
           // Flip Y coordinate system for PDF Graphics (starts bottom-left).
-          // The Sized Box is at original sticker.heightMm, so the Y flip
-          // reference must also use the original height (not scaled).
+          // Elements scale downwards from the top edge (Y = heightMm).
           canvas.moveTo(
             vertices[0].x * scaleX * PdfPageFormat.mm,
-            (sticker.heightMm - vertices[0].y * scaleY) *
-                PdfPageFormat.mm,
+            (sticker.heightMm - (vertices[0].y * scaleY)) * PdfPageFormat.mm,
           );
           for (var i = 1; i < vertices.length; i++) {
             canvas.lineTo(
               vertices[i].x * scaleX * PdfPageFormat.mm,
-              (sticker.heightMm - vertices[i].y * scaleY) *
-                  PdfPageFormat.mm,
+              (sticker.heightMm - (vertices[i].y * scaleY)) * PdfPageFormat.mm,
             );
           }
           canvas
@@ -495,7 +504,9 @@ class _PdfJobInput {
     required this.regularFontBytes,
     required this.boldFontBytes,
     required this.coordinateContext,
+    this.reverseSheetOrder = false,
     this.physicalFormat,
+    this.manufacturingDate,
   });
 
   /// The active product.
@@ -521,6 +532,12 @@ class _PdfJobInput {
 
   /// Whether to print from the bottom of the last sheet.
   final bool printFromBottom;
+
+  /// Whether to reverse compiled PDF page sequence.
+  final bool reverseSheetOrder;
+
+  /// Optional custom manufacturing date for token resolution.
+  final DateTime? manufacturingDate;
 
   /// Regular font bytes.
   final Uint8List regularFontBytes;

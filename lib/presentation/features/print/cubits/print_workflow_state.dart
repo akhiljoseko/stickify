@@ -35,10 +35,12 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     this.selectedPrinter,
     this.disabledSlots = const {},
     this.printFromBottom = false,
+    this.reverseSheetOrder = false,
     this.isQuantityManuallyEdited = false,
     this.selectedPrinterProfile,
     this.selectedTrayProfile,
     this.compatibilityResult,
+    this.manufacturingDate,
   });
 
   /// The active product.
@@ -68,6 +70,9 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
   /// Whether to print from the bottom of the last sheet.
   final bool printFromBottom;
 
+  /// Whether physical sheets are printed in reverse order.
+  final bool reverseSheetOrder;
+
   /// Whether the user has manually edited the quantity field.
   final bool isQuantityManuallyEdited;
 
@@ -80,6 +85,9 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
   /// Cached compatibility check result.
   final CompatibilityAnalysisResult? compatibilityResult;
 
+  /// Optional custom manufacturing date for token resolution.
+  final DateTime? manufacturingDate;
+
   /// Returns a copy of the state with modified fields.
   PrintWorkflowLoaded copyWith({
     Product? product,
@@ -91,10 +99,12 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     PrinterDevice? Function()? selectedPrinter,
     Set<int>? disabledSlots,
     bool? printFromBottom,
+    bool? reverseSheetOrder,
     bool? isQuantityManuallyEdited,
     PrinterProfile? Function()? selectedPrinterProfile,
     PrinterTrayProfile? Function()? selectedTrayProfile,
     CompatibilityAnalysisResult? Function()? compatibilityResult,
+    DateTime? manufacturingDate,
   }) {
     return PrintWorkflowLoaded(
       product: product ?? this.product,
@@ -106,10 +116,12 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
       selectedPrinter: selectedPrinter != null ? selectedPrinter() : this.selectedPrinter,
       disabledSlots: disabledSlots ?? this.disabledSlots,
       printFromBottom: printFromBottom ?? this.printFromBottom,
+      reverseSheetOrder: reverseSheetOrder ?? this.reverseSheetOrder,
       isQuantityManuallyEdited: isQuantityManuallyEdited ?? this.isQuantityManuallyEdited,
       selectedPrinterProfile: selectedPrinterProfile != null ? selectedPrinterProfile() : this.selectedPrinterProfile,
       selectedTrayProfile: selectedTrayProfile != null ? selectedTrayProfile() : this.selectedTrayProfile,
       compatibilityResult: compatibilityResult != null ? compatibilityResult() : this.compatibilityResult,
+      manufacturingDate: manufacturingDate ?? this.manufacturingDate,
     );
   }
 
@@ -124,10 +136,12 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
         selectedPrinter,
         disabledSlots,
         printFromBottom,
+        reverseSheetOrder,
         isQuantityManuallyEdited,
         selectedPrinterProfile,
         selectedTrayProfile,
         compatibilityResult,
+        manufacturingDate,
       ];
 }
 

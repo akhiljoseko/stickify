@@ -18,7 +18,9 @@ abstract interface class PrintService {
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,
+    bool reverseSheetOrder = false,
     PrintExecutionConfiguration? executionConfiguration,
+    DateTime? manufacturingDate,
   });
 
   /// Prints raw PDF bytes directly to the target system printer with specified paper format size.

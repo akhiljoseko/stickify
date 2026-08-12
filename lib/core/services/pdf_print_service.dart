@@ -50,7 +50,9 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,
+    bool reverseSheetOrder = false,
     PrintExecutionConfiguration? executionConfiguration,
+    DateTime? manufacturingDate,
   }) async {
     try {
       // 1. Pre-print validation (delegated to PrintPreFlightValidator)
@@ -83,7 +85,9 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
         quantity: quantity,
         disabledSlots: disabledSlots,
         printFromBottom: printFromBottom,
+        reverseSheetOrder: reverseSheetOrder,
         coordinateContext: coordinateContext,
+        manufacturingDate: manufacturingDate,
       );
 
       final targetFormat = PdfPageFormat(

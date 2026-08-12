@@ -360,6 +360,15 @@ class _PrinterConfigurationView extends StatelessWidget {
                   .read<PrinterConfigurationCubit>()
                   .setSupportsTraySelection(v),
             ),
+            _buildToggle(
+              context,
+              label: 'Reverse Sheet Order',
+              subtitle: 'Enable if driver prints last sheet first (maps Page 1 to top partially used sheet)',
+              value: state.reverseSheetOrder,
+              onChanged: (v) => context
+                  .read<PrinterConfigurationCubit>()
+                  .setReverseSheetOrder(v),
+            ),
 
           ],
         ),
@@ -372,10 +381,14 @@ class _PrinterConfigurationView extends StatelessWidget {
     required String label,
     required bool value,
     required ValueChanged<bool> onChanged,
+    String? subtitle,
   }) {
     return SwitchListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+      subtitle: subtitle != null
+          ? Text(subtitle, style: Theme.of(context).textTheme.bodySmall)
+          : null,
       value: value,
       onChanged: onChanged,
       dense: true,

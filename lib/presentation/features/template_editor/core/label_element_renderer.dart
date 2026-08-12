@@ -11,5 +11,6 @@ abstract interface class LabelElementRenderer {
     ElementBlueprint blueprint, {
     Product? product,
     ProductVariant? variant,
+    DateTime? manufacturingDate,
   });
 }

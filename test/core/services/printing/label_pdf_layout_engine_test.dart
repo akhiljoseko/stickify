@@ -140,6 +140,139 @@ void main() {
     );
 
     test(
+      'applies correct Y-flip scaling order for polygon printableArea when scaleY != 1.0',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-polygon-scaled',
+          name: 'Polygon Scaled Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 210,
+            pageHeight: 297,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 1,
+            rows: 1,
+            columnGap: 0,
+            rowGap: 0,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 80,
+            heightMm: 50,
+            cornerRadiusMm: 0,
+            printableArea: [
+              StickerPoint(10, 10),
+              StickerPoint(70, 10),
+              StickerPoint(70, 40),
+              StickerPoint(10, 40),
+            ],
+          ),
+        );
+
+        const coordinateContext = PrintCoordinateContext(
+          globalTransform: PrintStickerTransform(
+            scaleX: 0.95,
+            scaleY: 0.9,
+          ),
+        );
+
+        final pdfBytes = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 1,
+          disabledSlots: {},
+          coordinateContext: coordinateContext,
+        );
+
+        expect(pdfBytes, isNotNull);
+        final pdfString = String.fromCharCodes(pdfBytes);
+
+        // Expected Y coordinate for point (10, 10) with height 50mm, scaleY 0.9:
+        // Correct top-aligned formula: 50 - (10 * 0.9) = 41.0 mm -> 41.0 * 2.834645669291339 = 116.220 pt
+        // Expected X coordinate for point (10, 10) with scaleX 0.95:
+        // 10 * 0.95 = 9.5 mm -> 9.5 * 2.834645669291339 = 26.929 pt
+        final moveToRegex = RegExp(r'([0-9.]+)\s+([0-9.]+)\s+m');
+        final matches = moveToRegex.allMatches(pdfString).toList();
+        expect(matches, isNotEmpty, reason: 'PDF must contain moveTo (m) path operators');
+
+        final polygonMoveTo = matches.firstWhere(
+          (m) {
+            final x = double.parse(m.group(1)!);
+            final y = double.parse(m.group(2)!);
+            return (x - 26.929).abs() < 0.1 && (y - 116.220).abs() < 0.1;
+          },
+          orElse: () => throw StateError(
+            'Could not find moveTo matching corrected formula (26.929 pt, 116.220 pt). PDF stream:\n$pdfString',
+          ),
+        );
+        expect(polygonMoveTo, isNotNull);
+      },
+    );
+
+    test(
+      'produces identical polygon Y-flip coordinates for identity scale (scaleX=1.0, scaleY=1.0)',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-polygon-identity',
+          name: 'Polygon Identity Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 210,
+            pageHeight: 297,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 1,
+            rows: 1,
+            columnGap: 0,
+            rowGap: 0,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 80,
+            heightMm: 50,
+            cornerRadiusMm: 0,
+            printableArea: [
+              StickerPoint(10, 10),
+              StickerPoint(70, 10),
+              StickerPoint(70, 40),
+              StickerPoint(10, 40),
+            ],
+          ),
+        );
+
+        final pdfBytesIdentity = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 1,
+          disabledSlots: {},
+          coordinateContext: const PrintCoordinateContext.identity(),
+        );
+
+        final pdfString = String.fromCharCodes(pdfBytesIdentity);
+
+        // Expected Y coordinate for point (10, 10) with height 50mm, scaleY 1.0:
+        // (50 - 10) * 1.0 = 40.0 mm -> 40.0 * 2.834645669291339 = 113.385 pt
+        // Expected X coordinate for point (10, 10) with scaleX 1.0:
+        // 10 * 1.0 = 10.0 mm -> 10.0 * 2.834645669291339 = 28.346 pt
+        final moveToRegex = RegExp(r'([0-9.]+)\s+([0-9.]+)\s+m');
+        final matches = moveToRegex.allMatches(pdfString).toList();
+
+        final match = matches.firstWhere(
+          (m) {
+            final x = double.parse(m.group(1)!);
+            final y = double.parse(m.group(2)!);
+            return (x - 28.346).abs() < 0.1 && (y - 113.385).abs() < 0.1;
+          },
+          orElse: () => throw StateError('Could not find identity moveTo'),
+        );
+        expect(match, isNotNull);
+      },
+    );
+
+    test(
       'buildPdfBytes applies physical margin shifts to landscape custom sheets on Windows',
       () async {
         const template = LabelTemplate(
@@ -505,5 +638,194 @@ void main() {
         isFalse,
       );
     });
+  });
+
+  group('Multi-Sheet Bulk Printing Calibration Tests', () {
+    test(
+      'applies sticker slot calibration transforms across all sheets in multi-sheet job (50 stickers across 3 sheets)',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-multi-sheet',
+          name: 'Multi Sheet Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 200,
+            pageHeight: 300,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 2,
+            rows: 2, // 4 slots per sheet
+            columnGap: 10,
+            rowGap: 10,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 85,
+            heightMm: 130,
+            cornerRadiusMm: 0,
+            printableArea: [],
+          ),
+          elements: [
+            TextElementBlueprint(
+              id: 'text-1',
+              x: 0,
+              y: 0,
+              width: 50,
+              height: 10,
+              rotation: 0,
+              content: 'Test Sticker',
+              isDynamic: false,
+              fontSize: 10,
+              fontWeightValue: 400,
+              textAlign: BlueprintTextAlign.left,
+              colorHex: 0xFF000000,
+            ),
+          ],
+        );
+
+        // Calibration transform for slot 0 (r=0, c=0): shift X by +5mm (14.173 pt)
+        const coordinateContext = PrintCoordinateContext(
+          stickerTransforms: {
+            0: PrintStickerTransform(offsetX: 5),
+          },
+        );
+
+        // Quantity 10 stickers on 4 slots/sheet template -> 3 sheets (4 + 4 + 2 stickers)
+        final pdfBytes = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 10,
+          disabledSlots: {1}, // Slot 1 on Sheet 0 is disabled (partially used sheet)
+          coordinateContext: coordinateContext,
+        );
+
+        expect(pdfBytes, isNotNull);
+        final pdfString = String.fromCharCodes(pdfBytes);
+
+        // Count total pages (should contain 3 pages /MediaBox)
+        final mediaBoxMatches = RegExp('/MediaBox').allMatches(pdfString).length;
+        expect(mediaBoxMatches, equals(3));
+
+        // Slot 0 (r=0, c=0) on Sheet 0, Sheet 1, Sheet 2 should all have shifted X position:
+        // Default slotX = 10mm = 28.346 pt. With +5mm offset = 15mm = 42.5196 pt.
+        final cmRegex = RegExp(r'1\s+0\s+0\s+1\s+([0-9.-]+)\s+([0-9.-]+)\s+cm');
+        final matches = cmRegex.allMatches(pdfString).where((m) {
+          final tx = double.parse(m.group(1)!);
+          return (tx - 42.5196).abs() < 0.1;
+        }).toList();
+
+        // Slot 0 appears on Sheet 0, Sheet 1, Sheet 2 -> 3 occurrences in total PDF stream
+        expect(matches.length, equals(3), reason: 'Calibrated slot 0 offset (+5mm -> 42.52pt) must be applied across all 3 sheets');
+      },
+    );
+
+    test(
+      'supports multiple partially used sheets with disabled slots across Sheet 1 and Sheet 2',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-multi-partial',
+          name: 'Multi Partial Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 200,
+            pageHeight: 300,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 2,
+            rows: 2, // 4 slots per sheet
+            columnGap: 10,
+            rowGap: 10,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 85,
+            heightMm: 130,
+            cornerRadiusMm: 0,
+            printableArea: [],
+          ),
+          elements: [
+            TextElementBlueprint(
+              id: 'text-1',
+              x: 0,
+              y: 0,
+              width: 50,
+              height: 10,
+              rotation: 0,
+              content: 'Test Sticker',
+              isDynamic: false,
+              fontSize: 10,
+              fontWeightValue: 400,
+              textAlign: BlueprintTextAlign.left,
+              colorHex: 0xFF000000,
+            ),
+          ],
+        );
+
+        // Sheet 0 has slots 2,3 disabled (2 available). Sheet 1 has slot 4 disabled (3 available).
+        // Quantity 5 stickers -> Sheet 0 (2 stickers), Sheet 1 (3 stickers) -> total 2 sheets.
+        final pdfBytes = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 5,
+          disabledSlots: {2, 3, 4},
+        );
+
+        expect(pdfBytes, isNotNull);
+        final pdfString = String.fromCharCodes(pdfBytes);
+        final mediaBoxMatches = RegExp('/MediaBox').allMatches(pdfString).length;
+        expect(mediaBoxMatches, equals(2));
+      },
+    );
+
+    test(
+      'reverses PDF page sequence when reverseSheetOrder is true',
+      () async {
+        const template = LabelTemplate(
+          id: 'temp-reverse-order',
+          name: 'Reverse Order Template',
+          sheetConfig: SheetConfig(
+            pageWidth: 200,
+            pageHeight: 300,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10,
+            columns: 1,
+            rows: 2, // 2 slots per sheet
+            columnGap: 0,
+            rowGap: 10,
+          ),
+          stickerConfig: StickerConfig(
+            widthMm: 180,
+            heightMm: 130,
+            cornerRadiusMm: 0,
+            printableArea: [],
+          ),
+        );
+
+        final pdfBytesNormal = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 3,
+          disabledSlots: const {},
+        );
+
+        final pdfBytesReversed = await engine.buildPdfBytes(
+          product: testProduct,
+          variant: testVariant,
+          template: template,
+          quantity: 3,
+          disabledSlots: {},
+          reverseSheetOrder: true,
+        );
+
+        expect(pdfBytesNormal, isNotNull);
+        expect(pdfBytesReversed, isNotNull);
+        expect(pdfBytesReversed, isNot(equals(pdfBytesNormal)));
+      },
+    );
   });
 }

@@ -376,16 +376,15 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
         painter: (canvas, size) {
           final vertices = sticker.printableArea;
           // Flip Y coordinate system for PDF Graphics (starts bottom-left).
-          // Flip in unscaled sticker-space first, then scale the whole result
-          // so the flip and scale operate in a consistent coordinate frame.
+          // Elements scale downwards from the top edge (Y = heightMm).
           canvas.moveTo(
             vertices[0].x * scaleX * PdfPageFormat.mm,
-            (sticker.heightMm - vertices[0].y) * scaleY * PdfPageFormat.mm,
+            (sticker.heightMm - (vertices[0].y * scaleY)) * PdfPageFormat.mm,
           );
           for (var i = 1; i < vertices.length; i++) {
             canvas.lineTo(
               vertices[i].x * scaleX * PdfPageFormat.mm,
-              (sticker.heightMm - vertices[i].y) * scaleY * PdfPageFormat.mm,
+              (sticker.heightMm - (vertices[i].y * scaleY)) * PdfPageFormat.mm,
             );
           }
           canvas

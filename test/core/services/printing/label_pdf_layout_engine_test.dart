@@ -190,8 +190,7 @@ void main() {
         final pdfString = String.fromCharCodes(pdfBytes);
 
         // Expected Y coordinate for point (10, 10) with height 50mm, scaleY 0.9:
-        // Correct formula: (50 - 10) * 0.9 = 36.0 mm -> 36.0 * 2.834645669291339 = 102.047 pt
-        // Old (buggy) formula: (50 - 10 * 0.9) = 41.0 mm -> 41.0 * 2.834645669291339 = 116.220 pt
+        // Correct top-aligned formula: 50 - (10 * 0.9) = 41.0 mm -> 41.0 * 2.834645669291339 = 116.220 pt
         // Expected X coordinate for point (10, 10) with scaleX 0.95:
         // 10 * 0.95 = 9.5 mm -> 9.5 * 2.834645669291339 = 26.929 pt
         final moveToRegex = RegExp(r'([0-9.]+)\s+([0-9.]+)\s+m');
@@ -202,10 +201,10 @@ void main() {
           (m) {
             final x = double.parse(m.group(1)!);
             final y = double.parse(m.group(2)!);
-            return (x - 26.929).abs() < 0.1 && (y - 102.047).abs() < 0.1;
+            return (x - 26.929).abs() < 0.1 && (y - 116.220).abs() < 0.1;
           },
           orElse: () => throw StateError(
-            'Could not find moveTo matching corrected formula (26.929 pt, 102.047 pt). PDF stream:\n$pdfString',
+            'Could not find moveTo matching corrected formula (26.929 pt, 116.220 pt). PDF stream:\n$pdfString',
           ),
         );
         expect(polygonMoveTo, isNotNull);

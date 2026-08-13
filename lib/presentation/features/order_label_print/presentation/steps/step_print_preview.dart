@@ -9,8 +9,9 @@ import 'package:stickify/presentation/features/order_label_print/cubits/order_la
 import 'package:stickify/presentation/features/print/cubits/print_workflow_cubit.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_state.dart';
 import 'package:stickify/presentation/features/print/presentation/shared/print_setup_widgets.dart';
+import 'package:stickify/presentation/features/print/presentation/shared/printer_loading_dialog.dart';
 
-/// Step 4: Final Print Preview & Execution View
+/// Step 3: Final Print Preview & Execution View
 class StepPrintPreviewView extends StatelessWidget {
   /// Creates a [StepPrintPreviewView].
   const StepPrintPreviewView({super.key});
@@ -44,8 +45,15 @@ class StepPrintPreviewView extends StatelessWidget {
   }
 }
 
-class _StepPrintPreviewContent extends StatelessWidget {
+class _StepPrintPreviewContent extends StatefulWidget {
   const _StepPrintPreviewContent();
+
+  @override
+  State<_StepPrintPreviewContent> createState() => _StepPrintPreviewContentState();
+}
+
+class _StepPrintPreviewContentState extends State<_StepPrintPreviewContent> {
+  bool _isDialogOpen = false;
 
   Set<int> _getActivePositions({
     required int qty,
@@ -123,6 +131,24 @@ class _StepPrintPreviewContent extends StatelessWidget {
 
     return BlocConsumer<PrintWorkflowCubit, PrintWorkflowState>(
       listener: (context, state) {
+        if (state is PrintWorkflowSubmitting) {
+          if (!_isDialogOpen) {
+            _isDialogOpen = true;
+            showDialog<void>(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => const PrinterLoadingDialog(),
+            ).then((_) {
+              _isDialogOpen = false;
+            });
+          }
+        } else {
+          if (_isDialogOpen) {
+            Navigator.of(context).pop();
+            _isDialogOpen = false;
+          }
+        }
+
         if (state is PrintWorkflowSuccess) {
           const message = 'Successfully sent order batch to printer!';
           try {
@@ -216,10 +242,11 @@ class _StepPrintPreviewContent extends StatelessWidget {
           sheetConfig: sheetConfig,
           state: state,
           showQuantityField: false,
-          showTemplateSelector: false,
+          showTemplateSelector: true,
           isSubmitting: state is PrintWorkflowSubmitting,
           onPrinterChanged: cubit.updatePrinter,
           onManufacturingDateChanged: cubit.updateManufacturingDate,
+          onTemplateChanged: cubit.selectTemplate,
           onPrint: cubit.startPrintJob,
         );
 

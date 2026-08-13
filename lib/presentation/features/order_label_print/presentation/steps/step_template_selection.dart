@@ -63,8 +63,8 @@ class StepTemplateSelectionView extends StatelessWidget {
               Expanded(
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 220,
-                    mainAxisExtent: 240,
+                    maxCrossAxisExtent: 260,
+                    mainAxisExtent: 280,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),

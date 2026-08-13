@@ -558,7 +558,8 @@ void main() {
 
       // Check that the dialog is open
       expect(find.text('Select Label Template'), findsOneWidget);
-      expect(find.textContaining('2 × 5 grid • 10 labels/sheet'), findsOneWidget);
+      expect(find.text('2 × 5 Grid'), findsOneWidget);
+      expect(find.text('10 Stickers / Sheet'), findsOneWidget);
 
       // Tap cancel to close dialog
       final cancelButton = find.text('Cancel');

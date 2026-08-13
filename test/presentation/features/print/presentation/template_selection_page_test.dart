@@ -97,7 +97,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the template is displayed and selected by default if it's the only one
-      expect(find.text('SELECTED'), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
       expect(find.text('Continue to Print Configuration'), findsOneWidget);
     });
   });

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/core/utils/app_breakpoints.dart';
 import 'package:stickify/domain/entities/label_template.dart';
-import 'package:stickify/presentation/widgets/app_image.dart';
+import 'package:stickify/presentation/widgets/template_grid_card.dart';
 
 /// A custom template selection form field.
 ///
@@ -57,6 +57,7 @@ class TemplateSelectorField extends StatelessWidget {
     } else {
       showModalBottomSheet<void>(
         context: context,
+        isScrollControlled: true,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
@@ -120,78 +121,6 @@ class TemplateSelectorField extends StatelessWidget {
   }
 }
 
-class _TemplateListTile extends StatelessWidget {
-  const _TemplateListTile({
-    required this.template,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  final LabelTemplate template;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    final stickersCount = template.sheetConfig != null
-        ? template.sheetConfig!.columns * template.sheetConfig!.rows
-        : 0;
-
-    final dimensions = template.stickerConfig != null
-        ? '${template.stickerConfig!.widthMm.toStringAsFixed(0)}x${template.stickerConfig!.heightMm.toStringAsFixed(0)} mm'
-        : 'N/A';
-
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.15) : null,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            AppImage(
-              imageUrl: template.imageUrl,
-              placeholderIcon: Icons.description_outlined,
-              width: 80,
-              height: 80,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    template.name,
-                    style: textTheme.bodyLarge?.copyWith(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '$dimensions | $stickersCount stickers/sheet',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            if (isSelected)
-              Icon(Icons.check_circle, color: colorScheme.primary)
-            else
-              const SizedBox(width: 24),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _NoneListTile extends StatelessWidget {
   const _NoneListTile({
     required this.noneLabel,
@@ -217,13 +146,13 @@ class _NoneListTile extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
                 color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: Icon(Icons.block, color: colorScheme.onSurfaceVariant, size: 32),
+              child: Icon(Icons.block, color: colorScheme.onSurfaceVariant, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -237,7 +166,7 @@ class _NoneListTile extends StatelessWidget {
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
                     'No default template selected',
                     style: textTheme.bodySmall?.copyWith(
@@ -247,11 +176,8 @@ class _NoneListTile extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
             if (isSelected)
-              Icon(Icons.check_circle, color: colorScheme.primary)
-            else
-              const SizedBox(width: 24),
+              Icon(Icons.check_circle, color: colorScheme.primary),
           ],
         ),
       ),
@@ -279,39 +205,47 @@ class _TemplateDialog extends StatelessWidget {
     return AlertDialog(
       title: const Text('Select Label Template'),
       content: SizedBox(
-        width: 500,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.6,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (allowNone) ...[
-                  _NoneListTile(
-                    noneLabel: noneLabel,
-                    isSelected: selectedTemplateId == null,
-                    onTap: () {
-                      onChanged(null);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const Divider(),
-                ],
-                ...templates.map((t) {
-                  return _TemplateListTile(
+        width: 720,
+        height: 480,
+        child: Column(
+          children: [
+            if (allowNone) ...[
+              _NoneListTile(
+                noneLabel: noneLabel,
+                isSelected: selectedTemplateId == null,
+                onTap: () {
+                  onChanged(null);
+                  Navigator.pop(context);
+                },
+              ),
+              const Divider(),
+            ],
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.only(top: 8),
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 210,
+                  mainAxisExtent: 220,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: templates.length,
+                itemBuilder: (context, index) {
+                  final t = templates[index];
+                  final isSelected = selectedTemplateId == t.id;
+
+                  return TemplateGridCard(
                     template: t,
-                    isSelected: selectedTemplateId == t.id,
+                    isSelected: isSelected,
                     onTap: () {
                       onChanged(t.id);
                       Navigator.pop(context);
                     },
                   );
-                }),
-              ],
+                },
+              ),
             ),
-          ),
+          ],
         ),
       ),
       actions: [
@@ -345,47 +279,53 @@ class _TemplateBottomSheet extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
+      height: MediaQuery.of(context).size.height * 0.7,
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
               'Select Label Template',
               style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
           const Divider(),
-          Flexible(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (allowNone) ...[
-                    _NoneListTile(
-                      noneLabel: noneLabel,
-                      isSelected: selectedTemplateId == null,
-                      onTap: () {
-                        onChanged(null);
-                        Navigator.pop(context);
-                      },
-                    ),
-                    const Divider(),
-                  ],
-                  ...templates.map((t) {
-                    return _TemplateListTile(
-                      template: t,
-                      isSelected: selectedTemplateId == t.id,
-                      onTap: () {
-                        onChanged(t.id);
-                        Navigator.pop(context);
-                      },
-                    );
-                  }),
-                ],
+          if (allowNone) ...[
+            _NoneListTile(
+              noneLabel: noneLabel,
+              isSelected: selectedTemplateId == null,
+              onTap: () {
+                onChanged(null);
+                Navigator.pop(context);
+              },
+            ),
+            const Divider(),
+          ],
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.only(top: 8),
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 180,
+                mainAxisExtent: 200,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
               ),
+              itemCount: templates.length,
+              itemBuilder: (context, index) {
+                final t = templates[index];
+                final isSelected = selectedTemplateId == t.id;
+
+                return TemplateGridCard(
+                  template: t,
+                  isSelected: isSelected,
+                  onTap: () {
+                    onChanged(t.id);
+                    Navigator.pop(context);
+                  },
+                );
+              },
             ),
           ),
         ],

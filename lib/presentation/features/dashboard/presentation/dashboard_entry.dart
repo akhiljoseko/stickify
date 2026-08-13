@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
@@ -53,8 +55,40 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-class _AdaptiveDashboardLayout extends StatelessWidget {
+class _AdaptiveDashboardLayout extends StatefulWidget {
   const _AdaptiveDashboardLayout();
+
+  @override
+  State<_AdaptiveDashboardLayout> createState() => _AdaptiveDashboardLayoutState();
+}
+
+class _AdaptiveDashboardLayoutState extends State<_AdaptiveDashboardLayout> {
+  @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_onHardwareKey);
+  }
+
+  @override
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_onHardwareKey);
+    super.dispose();
+  }
+
+  bool _onHardwareKey(KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return false;
+
+    final isCtrl = HardwareKeyboard.instance.isControlPressed ||
+        HardwareKeyboard.instance.isMetaPressed;
+
+    // Ctrl + O / Cmd + O: Open Order/Batch Print Wizard
+    if (isCtrl && event.logicalKey == LogicalKeyboardKey.keyO) {
+      context.push('/order-label-print');
+      return true;
+    }
+
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {

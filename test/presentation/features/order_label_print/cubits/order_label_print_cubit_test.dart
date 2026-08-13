@@ -75,7 +75,23 @@ void main() {
     mockPrinterDiscoveryService = MockPrinterDiscoveryService();
 
     when(() => mockTemplateRepo.fetchTemplates()).thenAnswer((_) async => const Success([testTemplate]));
-    when(() => mockProductRepo.getAllProducts()).thenAnswer((_) async => const Success([testProduct]));
+    when(
+      () => mockProductRepo.getProducts(
+        page: any(named: 'page'),
+        pageSize: any(named: 'pageSize'),
+        query: any(named: 'query'),
+        category: any(named: 'category'),
+      ),
+    ).thenAnswer(
+      (_) async => const Success(
+        PaginatedResult(
+          items: [testProduct],
+          totalCount: 1,
+          hasMore: false,
+          currentPage: 0,
+        ),
+      ),
+    );
     when(() => mockPrinterDiscoveryService.getAvailablePrinters()).thenAnswer((_) async => [testPrinter]);
 
     cubit = OrderLabelPrintCubit(

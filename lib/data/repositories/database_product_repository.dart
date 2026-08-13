@@ -32,7 +32,9 @@ class DatabaseProductRepository implements ProductRepository {
   Future<Result<List<Product>, AppError>> getAllProducts() async {
     try {
       final allModels = await _db.getAll<ProductHiveModel>(_collection);
-      return Result.success(allModels.map((m) => m.toDomain()).toList());
+      final products = allModels.map((m) => m.toDomain()).toList()
+        ..sort((a, b) => a.name.compareTo(b.name));
+      return Result.success(products);
     } on AppError catch (e) {
       return Result.failure(e);
     } catch (e, stackTrace) {

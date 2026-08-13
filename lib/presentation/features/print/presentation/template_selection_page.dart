@@ -202,148 +202,37 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                               ),
                             ),
                           ] else ...[
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                final isCompact = constraints.maxWidth < 600;
-                                final isTablet = constraints.maxWidth >= 600 && constraints.maxWidth < 1000;
-                                final crossAxisCount = isCompact ? 1 : (isTablet ? 2 : 3);
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                                maxCrossAxisExtent: 260,
+                                mainAxisExtent: 280,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
+                              itemCount: _templates.length,
+                              itemBuilder: (context, i) {
+                                final t = _templates[i];
+                                final isSelected = _selectedTemplateId == t.id;
 
-                                return GridView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossAxisCount,
-                                    crossAxisSpacing: 16,
-                                    mainAxisSpacing: 16,
-                                    childAspectRatio: 0.95,
-                                  ),
-                                  itemCount: _templates.length,
-                                  itemBuilder: (context, i) {
-                                    final t = _templates[i];
-                                    final isSelected = _selectedTemplateId == t.id;
-                                    final sticker = t.stickerConfig;
-                                    final dimensions = sticker != null
-                                        ? '${sticker.widthMm.toStringAsFixed(1)} x ${sticker.heightMm.toStringAsFixed(1)} mm'
-                                        : 'N/A';
-
-                                    return Card(
-                                      clipBehavior: Clip.antiAlias,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        side: BorderSide(
-                                          color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
-                                          width: isSelected ? 2 : 1,
-                                        ),
-                                      ),
-                                      child: InkWell(
-                                        onTap: () {
-                                          setState(() {
-                                            _selectedTemplateId = t.id;
-                                          });
-                                        },
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                                          children: [
-                                            // Mock Label Preview Box
-                                            Expanded(
-                                              child: Container(
-                                                color: colorScheme.surfaceContainerLow,
-                                                padding: const EdgeInsets.all(24),
-                                                child: Center(
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      border: Border.all(color: colorScheme.outlineVariant),
-                                                      boxShadow: const [
-                                                        BoxShadow(
-                                                          color: Colors.black12,
-                                                          blurRadius: 4,
-                                                          offset: Offset(0, 2),
-                                                        )
-                                                      ],
-                                                    ),
-                                                    child: AspectRatio(
-                                                      aspectRatio: sticker != null
-                                                          ? (sticker.widthMm / sticker.heightMm)
-                                                          : 1.5,
-                                                      child: t.imageUrl != null && t.imageUrl!.isNotEmpty
-                                                          ? AppImage(
-                                                              imageUrl: t.imageUrl,
-                                                              placeholderIcon: Icons.picture_in_picture_alt_outlined,
-                                                              borderRadius: 0,
-                                                            )
-                                                          : Padding(
-                                                              padding: const EdgeInsets.all(8),
-                                                              child: Column(
-                                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                                children: [
-                                                                  Container(width: double.infinity, height: 4, color: Colors.grey.shade300),
-                                                                  const SizedBox(height: 4),
-                                                                  Container(width: 30, height: 4, color: Colors.grey.shade300),
-                                                                  const Spacer(),
-                                                                  Row(
-                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                    children: [
-                                                                      Container(width: 20, height: 20, color: Colors.grey.shade300),
-                                                                      Container(width: 30, height: 8, color: Colors.grey.shade300),
-                                                                    ],
-                                                                  )
-                                                                ],
-                                                              ),
-                                                            ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            // Template details
-                                            Padding(
-                                              padding: const EdgeInsets.all(16),
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    t.name,
-                                                    style: textTheme.titleSmall?.copyWith(
-                                                      color: isSelected ? colorScheme.primary : colorScheme.onSurface,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: [
-                                                      Text(
-                                                        dimensions,
-                                                        style: textTheme.bodySmall?.copyWith(
-                                                          fontFamily: 'JetBrains Mono',
-                                                          color: colorScheme.onSurfaceVariant,
-                                                        ),
-                                                      ),
-                                                      if (isSelected)
-                                                        Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                          decoration: BoxDecoration(
-                                                            color: colorScheme.primaryContainer,
-                                                            borderRadius: BorderRadius.circular(4),
-                                                          ),
-                                                          child: Text(
-                                                            'SELECTED',
-                                                            style: textTheme.labelSmall?.copyWith(
-                                                              color: colorScheme.primary,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
+                                return TemplateGridCard(
+                                  template: t,
+                                  isSelected: isSelected,
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedTemplateId = t.id;
+                                    });
+                                  },
+                                  onDoubleTap: () {
+                                    setState(() {
+                                      _selectedTemplateId = t.id;
+                                    });
+                                    PrintSetupRoute(
+                                      productId: product.id,
+                                      variantSku: variant.sku,
+                                      templateId: t.id,
+                                    ).pushReplacement(context);
                                   },
                                 );
                               },

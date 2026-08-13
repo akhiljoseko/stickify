@@ -6,7 +6,7 @@ import 'package:stickify/domain/entities/sheet_config.dart';
 /// A shared visual grid card for selecting a [LabelTemplate].
 ///
 /// Displays a scaled preview of the sticker sheet layout (or image),
-/// the primary template name, and secondary grid dimensions.
+/// the primary template name, grid size, and total stickers/sheet.
 class TemplateGridCard extends StatelessWidget {
   /// Creates a [TemplateGridCard].
   const TemplateGridCard({
@@ -38,9 +38,9 @@ class TemplateGridCard extends StatelessWidget {
     final cols = template.sheetConfig?.columns ?? 0;
     final rows = template.sheetConfig?.rows ?? 0;
     final total = cols * rows;
-    final secondaryText = cols > 0 && rows > 0
-        ? '$cols × $rows grid • $total labels/sheet'
-        : 'Custom sheet layout';
+
+    final gridSizeText = cols > 0 && rows > 0 ? '$cols × $rows Grid' : 'Custom Grid';
+    final stickersPerSheetText = total > 0 ? '$total Stickers / Sheet' : 'Custom Sheet';
 
     final borderColor = isSelected
         ? colorScheme.primary
@@ -96,9 +96,10 @@ class TemplateGridCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
+                    // Line 1: Name
                     Text(
                       template.name,
-                      style: textTheme.titleSmall?.copyWith(
+                      style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: isSelected ? colorScheme.primary : colorScheme.onSurface,
                       ),
@@ -106,11 +107,26 @@ class TemplateGridCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
+                    // Line 2: Grid Size
                     Text(
-                      secondaryText,
+                      gridSizeText,
                       style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
                         color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 2),
+                    // Line 3: Sticker/Sheet Count
+                    Text(
+                      stickersPerSheetText,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: isSelected
+                            ? colorScheme.primary.withValues(alpha: 0.85)
+                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -187,7 +203,7 @@ class _MiniSheetPreview extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: aspectRatio,
         child: Container(
-          margin: const EdgeInsets.all(10),
+          margin: const EdgeInsets.all(8),
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: colorScheme.surface,

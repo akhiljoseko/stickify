@@ -140,7 +140,9 @@ class _ProductSearchBarState extends State<_ProductSearchBar> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: context.read<OrderLabelPrintCubit>().state.searchQuery);
+    _controller = TextEditingController(
+      text: context.read<OrderLabelPrintCubit>().state.searchQuery,
+    );
   }
 
   @override
@@ -188,8 +190,12 @@ class _ProductBrowserList extends StatelessWidget {
         if (state.filteredProducts.isEmpty) {
           return Center(
             child: Text(
-              state.searchQuery.isEmpty ? 'No products found' : 'No matching products found',
-              style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+              state.searchQuery.isEmpty
+                  ? 'No products found'
+                  : 'No matching products found',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           );
         }
@@ -205,11 +211,19 @@ class _ProductBrowserList extends StatelessWidget {
                   product.name,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text('${product.variants.length} variant(s) available'),
+                subtitle: Text(
+                  '${product.variants.length} variant(s) available',
+                ),
                 children: product.variants.map((variant) {
                   final existingItem = state.items.firstWhere(
-                    (i) => i.product.id == product.id && i.variant.sku == variant.sku,
-                    orElse: () => PrintableItem(product: product, variant: variant, quantity: 0),
+                    (i) =>
+                        i.product.id == product.id &&
+                        i.variant.sku == variant.sku,
+                    orElse: () => PrintableItem(
+                      product: product,
+                      variant: variant,
+                      quantity: 0,
+                    ),
                   );
 
                   return VariantInlineQuantityTile(
@@ -217,7 +231,11 @@ class _ProductBrowserList extends StatelessWidget {
                     variant: variant,
                     currentAddedQuantity: existingItem.quantity,
                     onAdd: (quantity) {
-                      context.read<OrderLabelPrintCubit>().addOrUpdateItem(product, variant, quantity);
+                      context.read<OrderLabelPrintCubit>().addOrUpdateItem(
+                        product,
+                        variant,
+                        quantity,
+                      );
                     },
                     onEdit: () {
                       _showEditVariantDialog(context, product, variant);
@@ -232,7 +250,11 @@ class _ProductBrowserList extends StatelessWidget {
     );
   }
 
-  void _showEditVariantDialog(BuildContext context, Product product, ProductVariant variant) {
+  void _showEditVariantDialog(
+    BuildContext context,
+    Product product,
+    ProductVariant variant,
+  ) {
     final cubit = context.read<OrderLabelPrintCubit>();
     final productRepository = context.read<ProductRepository>();
 
@@ -241,14 +263,20 @@ class _ProductBrowserList extends StatelessWidget {
       product: product,
       variant: variant,
       onSave: (updatedVariant) async {
-        final updatedVariants = product.variants.map(
-          (v) => v.sku == variant.sku ? updatedVariant : v,
-        ).toList();
+        final updatedVariants = product.variants
+            .map(
+              (v) => v.sku == variant.sku ? updatedVariant : v,
+            )
+            .toList();
         final updatedProduct = product.copyWith(variants: updatedVariants);
 
         final result = await productRepository.saveProduct(updatedProduct);
         if (result is Success) {
-          await cubit.refreshProductCatalog(updatedProduct, variant, updatedVariant);
+          await cubit.refreshProductCatalog(
+            updatedProduct,
+            variant,
+            updatedVariant,
+          );
         }
       },
     );
@@ -328,13 +356,17 @@ class _RunningBatchList extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     'No items added to batch yet',
-                    style: theme.textTheme.titleSmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Browse products on the left, enter label quantities, and click Add.',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -350,14 +382,20 @@ class _RunningBatchList extends StatelessWidget {
             return Card(
               margin: const EdgeInsets.only(bottom: 8),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            item.product.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           Text(
                             '${item.variant.name} (${item.variant.quantity} ${item.variant.unit}) | MRP: ₹${item.variant.mrp}',
                             style: theme.textTheme.bodySmall,
@@ -369,9 +407,14 @@ class _RunningBatchList extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.remove_circle_outline, size: 20),
+                          icon: const Icon(
+                            Icons.remove_circle_outline,
+                            size: 20,
+                          ),
                           onPressed: () {
-                            context.read<OrderLabelPrintCubit>().updateItemQuantity(index, item.quantity - 1);
+                            context
+                                .read<OrderLabelPrintCubit>()
+                                .updateItemQuantity(index, item.quantity - 1);
                           },
                         ),
                         SizedBox(
@@ -385,13 +428,21 @@ class _RunningBatchList extends StatelessWidget {
                         IconButton(
                           icon: const Icon(Icons.add_circle_outline, size: 20),
                           onPressed: () {
-                            context.read<OrderLabelPrintCubit>().updateItemQuantity(index, item.quantity + 1);
+                            context
+                                .read<OrderLabelPrintCubit>()
+                                .updateItemQuantity(index, item.quantity + 1);
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                            size: 20,
+                          ),
                           onPressed: () {
-                            context.read<OrderLabelPrintCubit>().removeItem(index);
+                            context.read<OrderLabelPrintCubit>().removeItem(
+                              index,
+                            );
                           },
                         ),
                       ],
@@ -431,9 +482,13 @@ class _Step2ActionButtons extends StatelessWidget {
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   minimumSize: const Size.fromHeight(48),
                 ),
-                onPressed: state.items.isEmpty ? null : () => cubit.goToNextStep(),
-                icon: const Icon(Icons.check),
-                label: const Text('Done Adding (Proceed to Print Preview)', style: TextStyle(fontWeight: FontWeight.bold)),
+                onPressed: state.items.isEmpty
+                    ? null
+                    : () => cubit.goToNextStep(),
+                label: const Text(
+                  'Proceed to Print',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],

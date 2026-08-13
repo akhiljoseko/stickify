@@ -23,10 +23,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
 
   @override
   Future<Uint8List> buildPdfBytes({
-    required Product product,
-    required ProductVariant variant,
+    required List<PrintableItem> items,
     required LabelTemplate template,
-    required int quantity,
     required Set<int> disabledSlots,
     bool printFromBottom = false,
     bool reverseSheetOrder = false,
@@ -45,10 +43,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
 
     // 2. Offload compilation to a background Isolate (unless configured not to)
     final jobInput = _PdfJobInput(
-      product: product,
-      variant: variant,
+      items: items,
       template: template,
-      quantity: quantity,
       disabledSlots: disabledSlots,
       imageCache: imageCache,
       compress: useIsolate,
@@ -139,18 +135,37 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     final sheetConfig = input.template.sheetConfig!;
     final sticker = input.template.stickerConfig!;
 
+    final totalQuantity = input.items.fold<int>(0, (sum, item) => sum + item.quantity);
     final slotsPerSheet = sheetConfig.columns * sheetConfig.rows;
     final totalSheets = _calculateTotalSheets(
-      input.quantity,
+      totalQuantity,
       slotsPerSheet,
       input.disabledSlots,
     );
     final activePositions = _getActivePositions(
-      qty: input.quantity,
+      qty: totalQuantity,
       slotsPerSheet: slotsPerSheet,
       disabledSlots: input.disabledSlots,
       printFromBottom: input.printFromBottom,
     );
+
+    // Map active slots sequentially to printable items in order
+    final sortedActivePositions = activePositions.toList()..sort();
+    final slotItemMap = <int, PrintableItem>{};
+    var currentItemIndex = 0;
+    var currentItemUsedQty = 0;
+
+    for (final absIndex in sortedActivePositions) {
+      while (currentItemIndex < input.items.length &&
+          currentItemUsedQty >= input.items[currentItemIndex].quantity) {
+        currentItemIndex++;
+        currentItemUsedQty = 0;
+      }
+      if (currentItemIndex < input.items.length) {
+        slotItemMap[absIndex] = input.items[currentItemIndex];
+        currentItemUsedQty++;
+      }
+    }
 
     final physicalFormat = input.physicalFormat;
 
@@ -209,6 +224,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
           final isActive = activePositions.contains(absIndex);
 
           if (isActive) {
+            final item = slotItemMap[absIndex]!;
             // Resolve any coordinate transformation for this sticker slot.
             // The identity transform (default) produces zero offset and 1.0
             // scale — output is byte-equivalent to pre-1A behavior.
@@ -286,8 +302,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
                   child: _buildStickerContent(
                     template: input.template,
                     sticker: sticker,
-                    product: input.product,
-                    variant: input.variant,
+                    product: item.product,
+                    variant: item.variant,
                     imageCache: input.imageCache,
                     scaleX: transform.scaleX,
                     scaleY: transform.scaleY,
@@ -493,10 +509,8 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
 class _PdfJobInput {
   /// Creates a [_PdfJobInput] payload.
   const _PdfJobInput({
-    required this.product,
-    required this.variant,
+    required this.items,
     required this.template,
-    required this.quantity,
     required this.disabledSlots,
     required this.imageCache,
     required this.compress,
@@ -509,17 +523,11 @@ class _PdfJobInput {
     this.manufacturingDate,
   });
 
-  /// The active product.
-  final Product product;
-
-  /// The active product variant.
-  final ProductVariant variant;
+  /// The list of items to print.
+  final List<PrintableItem> items;
 
   /// The label design template to compile.
   final LabelTemplate template;
-
-  /// Number of labels to print.
-  final int quantity;
 
   /// Slot grid positions on the sheet marked as disabled/skipped.
   final Set<int> disabledSlots;

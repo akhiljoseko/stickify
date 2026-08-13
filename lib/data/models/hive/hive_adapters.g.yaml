@@ -307,7 +307,7 @@ types:
         index: 2
   PrinterCapabilitiesHiveModel:
     typeId: 17
-    nextIndex: 10
+    nextIndex: 11
     fields:
       supportsCustomPaperSize:
         index: 0
@@ -321,6 +321,8 @@ types:
         index: 4
       supportsTraySelection:
         index: 5
+      reverseSheetOrder:
+        index: 10
   PrinterIdentityHiveModel:
     typeId: 18
     nextIndex: 5

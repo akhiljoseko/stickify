@@ -926,13 +926,14 @@ class PrinterCapabilitiesHiveModelAdapter
       supportsManualFeed: fields[3] as bool,
       supportsBorderlessPrinting: fields[4] as bool,
       supportsTraySelection: fields[5] as bool,
+      reverseSheetOrder: fields[10] == null ? false : fields[10] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, PrinterCapabilitiesHiveModel obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.supportsCustomPaperSize)
       ..writeByte(1)
@@ -944,7 +945,9 @@ class PrinterCapabilitiesHiveModelAdapter
       ..writeByte(4)
       ..write(obj.supportsBorderlessPrinting)
       ..writeByte(5)
-      ..write(obj.supportsTraySelection);
+      ..write(obj.supportsTraySelection)
+      ..writeByte(10)
+      ..write(obj.reverseSheetOrder);
   }
 
   @override

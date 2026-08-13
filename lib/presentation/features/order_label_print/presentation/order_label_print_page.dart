@@ -42,55 +42,62 @@ class _OrderLabelPrintView extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Order Label Printing'),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () {
-                if (context.canPop()) {
-                  context.pop();
-                } else {
-                  context.go('/dashboard');
-                }
-              },
+            leading: FocusTraversalGroup(
+              descendantsAreFocusable: false,
+              child: IconButton(
+                focusNode: FocusNode(canRequestFocus: false),
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/dashboard');
+                  }
+                },
+              ),
             ),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(48),
-              child: Container(
-                color: colorScheme.surfaceContainerLow,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                child: Row(
-                  children: [
-                    _StepIndicatorPill(
-                      stepNumber: 1,
-                      label: 'Template',
-                      isActive: state.step == OrderLabelPrintStep.templateSelection,
-                      isCompleted: state.step.index > OrderLabelPrintStep.templateSelection.index,
-                      onTap: () => context.read<OrderLabelPrintCubit>().setStep(OrderLabelPrintStep.templateSelection),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-                    const SizedBox(width: 8),
-                    _StepIndicatorPill(
-                      stepNumber: 2,
-                      label: 'Variants & Qty',
-                      isActive: state.step == OrderLabelPrintStep.variantSelection,
-                      isCompleted: state.step.index > OrderLabelPrintStep.variantSelection.index,
-                      onTap: state.selectedTemplate != null
-                          ? () => context.read<OrderLabelPrintCubit>().setStep(OrderLabelPrintStep.variantSelection)
-                          : null,
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-                    const SizedBox(width: 8),
-                    _StepIndicatorPill(
-                      stepNumber: 3,
-                      label: 'Print Preview',
-                      isActive: state.step == OrderLabelPrintStep.printPreview,
-                      isCompleted: false,
-                      onTap: state.items.isNotEmpty
-                          ? () => context.read<OrderLabelPrintCubit>().setStep(OrderLabelPrintStep.printPreview)
-                          : null,
-                    ),
-                  ],
+              child: FocusTraversalGroup(
+                descendantsAreFocusable: false,
+                child: Container(
+                  color: colorScheme.surfaceContainerLow,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: Row(
+                    children: [
+                      _StepIndicatorPill(
+                        stepNumber: 1,
+                        label: 'Template',
+                        isActive: state.step == OrderLabelPrintStep.templateSelection,
+                        isCompleted: state.step.index > OrderLabelPrintStep.templateSelection.index,
+                        onTap: () => context.read<OrderLabelPrintCubit>().setStep(OrderLabelPrintStep.templateSelection),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      _StepIndicatorPill(
+                        stepNumber: 2,
+                        label: 'Variants & Qty',
+                        isActive: state.step == OrderLabelPrintStep.variantSelection,
+                        isCompleted: state.step.index > OrderLabelPrintStep.variantSelection.index,
+                        onTap: state.selectedTemplate != null
+                            ? () => context.read<OrderLabelPrintCubit>().setStep(OrderLabelPrintStep.variantSelection)
+                            : null,
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      _StepIndicatorPill(
+                        stepNumber: 3,
+                        label: 'Print Preview',
+                        isActive: state.step == OrderLabelPrintStep.printPreview,
+                        isCompleted: false,
+                        onTap: state.items.isNotEmpty
+                            ? () => context.read<OrderLabelPrintCubit>().setStep(OrderLabelPrintStep.printPreview)
+                            : null,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

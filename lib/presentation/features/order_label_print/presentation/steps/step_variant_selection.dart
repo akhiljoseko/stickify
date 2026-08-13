@@ -964,35 +964,40 @@ class _Step2ActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<OrderLabelPrintCubit>();
 
-    return BlocBuilder<OrderLabelPrintCubit, OrderLabelPrintState>(
-      builder: (context, state) {
-        return Row(
-          children: [
-            OutlinedButton.icon(
-              onPressed: () => cubit.goToPreviousStep(),
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('Back'),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  minimumSize: const Size.fromHeight(48),
-                ),
-                onPressed: state.items.isEmpty
-                    ? null
-                    : () => cubit.goToNextStep(),
-                label: const Text(
-                  'Proceed to Print',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+    return FocusTraversalGroup(
+      descendantsAreFocusable: false,
+      child: BlocBuilder<OrderLabelPrintCubit, OrderLabelPrintState>(
+        builder: (context, state) {
+          return Row(
+            children: [
+              OutlinedButton.icon(
+                focusNode: FocusNode(canRequestFocus: false),
+                onPressed: () => cubit.goToPreviousStep(),
+                icon: const Icon(Icons.arrow_back),
+                label: const Text('Back'),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  focusNode: FocusNode(canRequestFocus: false),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                  onPressed: state.items.isEmpty
+                      ? null
+                      : () => cubit.goToNextStep(),
+                  label: const Text(
+                    'Proceed to Print',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 }

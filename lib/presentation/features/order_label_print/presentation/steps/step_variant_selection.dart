@@ -19,14 +19,44 @@ class StepVariantSelectionView extends StatefulWidget {
 }
 
 class _StepVariantSelectionViewState extends State<StepVariantSelectionView> {
-  final FocusNode _keyboardFocusNode = FocusNode();
   final FocusNode _searchFocusNode = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_onHardwareKey);
+  }
+
+  @override
   void dispose() {
-    _keyboardFocusNode.dispose();
+    HardwareKeyboard.instance.removeHandler(_onHardwareKey);
     _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  bool _onHardwareKey(KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return false;
+
+    final key = event.logicalKey;
+    final isCtrl = HardwareKeyboard.instance.isControlPressed ||
+        HardwareKeyboard.instance.isMetaPressed;
+    final isAlt = HardwareKeyboard.instance.isAltPressed;
+
+    // Ctrl + F / Ctrl + S / Slash (when not in search field)
+    if ((isCtrl && (key == LogicalKeyboardKey.keyF || key == LogicalKeyboardKey.keyS)) ||
+        (key == LogicalKeyboardKey.slash && !_searchFocusNode.hasFocus)) {
+      _handleFocusSearch();
+      return true;
+    }
+
+    // Ctrl + Enter / Alt + Enter: Proceed to Print Preview
+    if ((isCtrl || isAlt) &&
+        (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.numpadEnter)) {
+      _handleProceedToPrint();
+      return true;
+    }
+
+    return false;
   }
 
   void _handleFocusSearch() {
@@ -44,40 +74,13 @@ class _StepVariantSelectionViewState extends State<StepVariantSelectionView> {
   Widget build(BuildContext context) {
     final isMobile = ResponsiveBreakpoints.of(context).isMobile;
 
-    return Focus(
-      focusNode: _keyboardFocusNode,
-      autofocus: true,
-      onKeyEvent: (node, event) {
-        if (event is KeyDownEvent || event is KeyRepeatEvent) {
-          final key = event.logicalKey;
-          final isCtrl = HardwareKeyboard.instance.isControlPressed ||
-              HardwareKeyboard.instance.isMetaPressed;
-          final isAlt = HardwareKeyboard.instance.isAltPressed;
-
-          // Ctrl + F / Ctrl + S / Slash: Focus Search Field
-          if ((isCtrl && (key == LogicalKeyboardKey.keyF || key == LogicalKeyboardKey.keyS)) ||
-              (key == LogicalKeyboardKey.slash && !_searchFocusNode.hasFocus)) {
-            _handleFocusSearch();
-            return KeyEventResult.handled;
-          }
-
-          // Ctrl + Enter / Alt + Enter: Proceed to Print Preview
-          if ((isCtrl || isAlt) &&
-              (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.numpadEnter)) {
-            _handleProceedToPrint();
-            return KeyEventResult.handled;
-          }
+    return BlocBuilder<OrderLabelPrintCubit, OrderLabelPrintState>(
+      builder: (context, state) {
+        if (isMobile) {
+          return _MobileVariantSelectionLayout(searchFocusNode: _searchFocusNode);
         }
-        return KeyEventResult.ignored;
+        return _DesktopVariantSelectionLayout(searchFocusNode: _searchFocusNode);
       },
-      child: BlocBuilder<OrderLabelPrintCubit, OrderLabelPrintState>(
-        builder: (context, state) {
-          if (isMobile) {
-            return _MobileVariantSelectionLayout(searchFocusNode: _searchFocusNode);
-          }
-          return _DesktopVariantSelectionLayout(searchFocusNode: _searchFocusNode);
-        },
-      ),
     );
   }
 }
@@ -256,12 +259,24 @@ class _ProductSearchBarState extends State<_ProductSearchBar> {
     _controller = TextEditingController(
       text: context.read<OrderLabelPrintCubit>().state.searchQuery,
     );
+
+    widget.focusNode.addListener(_onFocusChange);
   }
 
   @override
   void dispose() {
+    widget.focusNode.removeListener(_onFocusChange);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (widget.focusNode.hasFocus) {
+      _controller.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _controller.text.length,
+      );
+    }
   }
 
   @override

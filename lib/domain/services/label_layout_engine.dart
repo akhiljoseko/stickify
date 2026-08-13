@@ -11,10 +11,8 @@ abstract interface class LabelLayoutEngine {
   /// for the job. When `null` or [PrintCoordinateContext.identity], the output
   /// is identical to the pre-1A behavior.
   Future<Uint8List> buildPdfBytes({
-    required Product product,
-    required ProductVariant variant,
+    required List<PrintableItem> items,
     required LabelTemplate template,
-    required int quantity,
     required Set<int> disabledSlots,
     bool printFromBottom = false,
     bool reverseSheetOrder = false,

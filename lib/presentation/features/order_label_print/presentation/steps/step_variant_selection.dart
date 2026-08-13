@@ -9,7 +9,7 @@ import 'package:stickify/presentation/features/order_label_print/cubits/order_la
 import 'package:stickify/presentation/features/order_label_print/presentation/widgets/variant_inline_quantity_tile.dart';
 import 'package:stickify/presentation/features/product/presentation/shared/edit_variant_dialog.dart';
 
-/// Step 2: Variant & Quantity Selection View (2-column layout on Desktop)
+/// Step 2: Variant & Quantity Selection View (2-column layout on Desktop with Keyboard Navigation)
 class StepVariantSelectionView extends StatefulWidget {
   /// Creates a [StepVariantSelectionView].
   const StepVariantSelectionView({super.key});
@@ -20,6 +20,9 @@ class StepVariantSelectionView extends StatefulWidget {
 
 class _StepVariantSelectionViewState extends State<StepVariantSelectionView> {
   final FocusNode _searchFocusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+  int _highlightedIndex = 0;
+  final Set<String> _expandedProductIds = {};
 
   @override
   void initState() {
@@ -31,18 +34,21 @@ class _StepVariantSelectionViewState extends State<StepVariantSelectionView> {
   void dispose() {
     HardwareKeyboard.instance.removeHandler(_onHardwareKey);
     _searchFocusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   bool _onHardwareKey(KeyEvent event) {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) return false;
 
+    final state = context.read<OrderLabelPrintCubit>().state;
+    final products = state.filteredProducts;
     final key = event.logicalKey;
     final isCtrl = HardwareKeyboard.instance.isControlPressed ||
         HardwareKeyboard.instance.isMetaPressed;
     final isAlt = HardwareKeyboard.instance.isAltPressed;
 
-    // Ctrl + F / Ctrl + S / Slash (when not in search field)
+    // Ctrl + F / Ctrl + S / Slash (when not focused on search)
     if ((isCtrl && (key == LogicalKeyboardKey.keyF || key == LogicalKeyboardKey.keyS)) ||
         (key == LogicalKeyboardKey.slash && !_searchFocusNode.hasFocus)) {
       _handleFocusSearch();
@@ -56,7 +62,91 @@ class _StepVariantSelectionViewState extends State<StepVariantSelectionView> {
       return true;
     }
 
+    if (products.isEmpty) return false;
+
+    // Arrow Down: Move selection down
+    if (key == LogicalKeyboardKey.arrowDown) {
+      setState(() {
+        _highlightedIndex = (_highlightedIndex + 1).clamp(0, products.length - 1);
+      });
+      _scrollToHighlightedIndex();
+      return true;
+    }
+
+    // Arrow Up: Move selection up
+    if (key == LogicalKeyboardKey.arrowUp) {
+      setState(() {
+        _highlightedIndex = (_highlightedIndex - 1).clamp(0, products.length - 1);
+      });
+      _scrollToHighlightedIndex();
+      return true;
+    }
+
+    // Enter / Right Arrow: Expand/Collapse highlighted product (if not typing in text field)
+    if ((key == LogicalKeyboardKey.enter ||
+            key == LogicalKeyboardKey.numpadEnter ||
+            key == LogicalKeyboardKey.arrowRight) &&
+        !_searchFocusNode.hasFocus) {
+      if (_highlightedIndex >= 0 && _highlightedIndex < products.length) {
+        final product = products[_highlightedIndex];
+        setState(() {
+          if (_expandedProductIds.contains(product.id)) {
+            _expandedProductIds.remove(product.id);
+          } else {
+            _expandedProductIds.add(product.id);
+          }
+        });
+      }
+      return true;
+    }
+
+    // Escape / Left Arrow: Collapse product or clear search query
+    if (key == LogicalKeyboardKey.escape ||
+        (key == LogicalKeyboardKey.arrowLeft && !_searchFocusNode.hasFocus)) {
+      if (_searchFocusNode.hasFocus) {
+        _searchFocusNode.unfocus();
+        return true;
+      }
+
+      if (_highlightedIndex >= 0 && _highlightedIndex < products.length) {
+        final product = products[_highlightedIndex];
+        if (_expandedProductIds.contains(product.id)) {
+          setState(() {
+            _expandedProductIds.remove(product.id);
+          });
+          return true;
+        }
+      }
+
+      if (state.searchQuery.isNotEmpty) {
+        context.read<OrderLabelPrintCubit>().updateSearchQuery('');
+        return true;
+      }
+    }
+
     return false;
+  }
+
+  void _scrollToHighlightedIndex() {
+    if (!_scrollController.hasClients) return;
+    const itemEstimateHeight = 76.0;
+    final targetOffset = _highlightedIndex * itemEstimateHeight;
+    final viewportHeight = _scrollController.position.viewportDimension;
+    final currentScroll = _scrollController.offset;
+
+    if (targetOffset + itemEstimateHeight > currentScroll + viewportHeight) {
+      _scrollController.animateTo(
+        targetOffset + itemEstimateHeight - viewportHeight,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+      );
+    } else if (targetOffset < currentScroll) {
+      _scrollController.animateTo(
+        targetOffset,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   void _handleFocusSearch() {
@@ -76,19 +166,64 @@ class _StepVariantSelectionViewState extends State<StepVariantSelectionView> {
 
     return BlocBuilder<OrderLabelPrintCubit, OrderLabelPrintState>(
       builder: (context, state) {
-        if (isMobile) {
-          return _MobileVariantSelectionLayout(searchFocusNode: _searchFocusNode);
+        if (_highlightedIndex >= state.filteredProducts.length && state.filteredProducts.isNotEmpty) {
+          _highlightedIndex = 0;
         }
-        return _DesktopVariantSelectionLayout(searchFocusNode: _searchFocusNode);
+
+        if (isMobile) {
+          return _MobileVariantSelectionLayout(
+            searchFocusNode: _searchFocusNode,
+            scrollController: _scrollController,
+            highlightedIndex: _highlightedIndex,
+            expandedProductIds: _expandedProductIds,
+            onProductTap: (index, productId) {
+              setState(() {
+                _highlightedIndex = index;
+                if (_expandedProductIds.contains(productId)) {
+                  _expandedProductIds.remove(productId);
+                } else {
+                  _expandedProductIds.add(productId);
+                }
+              });
+            },
+          );
+        }
+
+        return _DesktopVariantSelectionLayout(
+          searchFocusNode: _searchFocusNode,
+          scrollController: _scrollController,
+          highlightedIndex: _highlightedIndex,
+          expandedProductIds: _expandedProductIds,
+          onProductTap: (index, productId) {
+            setState(() {
+              _highlightedIndex = index;
+              if (_expandedProductIds.contains(productId)) {
+                _expandedProductIds.remove(productId);
+              } else {
+                _expandedProductIds.add(productId);
+              }
+            });
+          },
+        );
       },
     );
   }
 }
 
 class _DesktopVariantSelectionLayout extends StatelessWidget {
-  const _DesktopVariantSelectionLayout({required this.searchFocusNode});
+  const _DesktopVariantSelectionLayout({
+    required this.searchFocusNode,
+    required this.scrollController,
+    required this.highlightedIndex,
+    required this.expandedProductIds,
+    required this.onProductTap,
+  });
 
   final FocusNode searchFocusNode;
+  final ScrollController scrollController;
+  final int highlightedIndex;
+  final Set<String> expandedProductIds;
+  final void Function(int index, String productId) onProductTap;
 
   @override
   Widget build(BuildContext context) {
@@ -132,6 +267,8 @@ class _DesktopVariantSelectionLayout extends StatelessWidget {
                                 spacing: 6,
                                 children: [
                                   _ShortcutBadge(label: 'Ctrl+F', description: 'Search'),
+                                  _ShortcutBadge(label: '↑/↓', description: 'Navigate'),
+                                  _ShortcutBadge(label: 'Enter', description: 'Expand'),
                                   _ShortcutBadge(label: 'Ctrl+Enter', description: 'Proceed'),
                                 ],
                               ),
@@ -140,7 +277,14 @@ class _DesktopVariantSelectionLayout extends StatelessWidget {
                           const SizedBox(height: 12),
                           _ProductSearchBar(focusNode: searchFocusNode),
                           const SizedBox(height: 12),
-                          const Expanded(child: _ProductBrowserList()),
+                          Expanded(
+                            child: _ProductBrowserList(
+                              scrollController: scrollController,
+                              highlightedIndex: highlightedIndex,
+                              expandedProductIds: expandedProductIds,
+                              onProductTap: onProductTap,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -177,9 +321,19 @@ class _DesktopVariantSelectionLayout extends StatelessWidget {
 }
 
 class _MobileVariantSelectionLayout extends StatelessWidget {
-  const _MobileVariantSelectionLayout({required this.searchFocusNode});
+  const _MobileVariantSelectionLayout({
+    required this.searchFocusNode,
+    required this.scrollController,
+    required this.highlightedIndex,
+    required this.expandedProductIds,
+    required this.onProductTap,
+  });
 
   final FocusNode searchFocusNode;
+  final ScrollController scrollController;
+  final int highlightedIndex;
+  final Set<String> expandedProductIds;
+  final void Function(int index, String productId) onProductTap;
 
   @override
   Widget build(BuildContext context) {
@@ -189,7 +343,14 @@ class _MobileVariantSelectionLayout extends StatelessWidget {
         children: [
           _ProductSearchBar(focusNode: searchFocusNode),
           const SizedBox(height: 12),
-          const Expanded(child: _ProductBrowserList()),
+          Expanded(
+            child: _ProductBrowserList(
+              scrollController: scrollController,
+              highlightedIndex: highlightedIndex,
+              expandedProductIds: expandedProductIds,
+              onProductTap: onProductTap,
+            ),
+          ),
           const SizedBox(height: 12),
           const _RunningBatchHeader(),
           const SizedBox(height: 12),
@@ -307,7 +468,17 @@ class _ProductSearchBarState extends State<_ProductSearchBar> {
 }
 
 class _ProductBrowserList extends StatelessWidget {
-  const _ProductBrowserList();
+  const _ProductBrowserList({
+    required this.scrollController,
+    required this.highlightedIndex,
+    required this.expandedProductIds,
+    required this.onProductTap,
+  });
+
+  final ScrollController scrollController;
+  final int highlightedIndex;
+  final Set<String> expandedProductIds;
+  final void Function(int index, String productId) onProductTap;
 
   @override
   Widget build(BuildContext context) {
@@ -330,15 +501,40 @@ class _ProductBrowserList extends StatelessWidget {
         }
 
         return ListView.builder(
+          controller: scrollController,
           itemCount: state.filteredProducts.length,
           itemBuilder: (context, index) {
             final product = state.filteredProducts[index];
+            final isHighlighted = index == highlightedIndex;
+            final isExpanded = expandedProductIds.contains(product.id);
+
+            final cardBorderColor = isHighlighted
+                ? colorScheme.primary
+                : colorScheme.outlineVariant.withValues(alpha: 0.5);
+            final cardBackgroundColor = isHighlighted
+                ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+                : colorScheme.surface;
+
             return Card(
               margin: const EdgeInsets.only(bottom: 8),
+              color: cardBackgroundColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: cardBorderColor,
+                  width: isHighlighted ? 2.0 : 1.0,
+                ),
+              ),
               child: ExpansionTile(
+                key: ValueKey('expansion_${product.id}_$isExpanded'),
+                initiallyExpanded: isExpanded,
+                onExpansionChanged: (_) => onProductTap(index, product.id),
                 title: Text(
                   product.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isHighlighted ? colorScheme.primary : colorScheme.onSurface,
+                  ),
                 ),
                 subtitle: Text(
                   '${product.variants.length} variant(s) available',

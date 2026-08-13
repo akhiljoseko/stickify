@@ -25,11 +25,13 @@ class FirestoreProductRepository implements ProductRepository {
       if (data == null) return const Result.success(null);
       return Result.success(ProductFirestoreModel.fromMap(id, data).toDomain());
     } catch (e, stackTrace) {
-      return Result.failure(NetworkError(
-        message: 'Failed to retrieve product from remote server.',
-        originalError: e,
-        stackTrace: stackTrace,
-      ));
+      return Result.failure(
+        NetworkError(
+          message: 'Failed to retrieve product from remote server.',
+          originalError: e,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
@@ -38,15 +40,20 @@ class FirestoreProductRepository implements ProductRepository {
     try {
       final list = await remoteDb.getCollection(_collectionPath);
       final mapped = list.map((json) {
-        return ProductFirestoreModel.fromMap(json['id'] as String, json).toDomain();
+        return ProductFirestoreModel.fromMap(
+          json['id'] as String,
+          json,
+        ).toDomain();
       }).toList();
       return Result.success(mapped);
     } catch (e, stackTrace) {
-      return Result.failure(NetworkError(
-        message: 'Failed to retrieve products from remote server.',
-        originalError: e,
-        stackTrace: stackTrace,
-      ));
+      return Result.failure(
+        NetworkError(
+          message: 'Failed to retrieve products from remote server.',
+          originalError: e,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
@@ -63,16 +70,25 @@ class FirestoreProductRepository implements ProductRepository {
         case Success(value: final all):
           var filtered = all.toList();
           if (query != null && query.isNotEmpty) {
-            filtered = filtered.where((p) =>
-              p.name.toLowerCase().contains(query.toLowerCase()) ||
-              p.sku.toLowerCase().contains(query.toLowerCase()) ||
-              p.keywords.any((k) => k.toLowerCase().contains(query.toLowerCase()))
-            ).toList();
+            filtered = filtered
+                .where(
+                  (p) =>
+                      p.name.toLowerCase().contains(query.toLowerCase()) ||
+                      p.sku.toLowerCase().contains(query.toLowerCase()) ||
+                      p.keywords.any(
+                        (k) => k.toLowerCase().contains(query.toLowerCase()),
+                      ),
+                )
+                .toList();
           }
           if (category != null && category.isNotEmpty) {
-            filtered = filtered.where((p) =>
-              (p.category ?? '').toLowerCase() == category.toLowerCase()
-            ).toList();
+            filtered = filtered
+                .where(
+                  (p) =>
+                      (p.category ?? '').toLowerCase() ==
+                      category.toLowerCase(),
+                )
+                .toList();
           }
           filtered.sort((a, b) {
             final aDate = a.lastModified ?? DateTime(2000);
@@ -82,50 +98,25 @@ class FirestoreProductRepository implements ProductRepository {
           final start = page * pageSize;
           final end = (start + pageSize).clamp(0, filtered.length);
           final items = filtered.sublist(start, end);
-          return Result.success(PaginatedResult(
-            items: items,
-            totalCount: filtered.length,
-            hasMore: end < filtered.length,
-            currentPage: page,
-          ));
+          return Result.success(
+            PaginatedResult(
+              items: items,
+              totalCount: filtered.length,
+              hasMore: end < filtered.length,
+              currentPage: page,
+            ),
+          );
         case Failure(error: final err):
           return Result.failure(err);
       }
     } catch (e, stackTrace) {
-      return Result.failure(NetworkError(
-        message: 'Failed to retrieve filtered products from remote server.',
-        originalError: e,
-        stackTrace: stackTrace,
-      ));
-    }
-  }
-
-  @override
-  @Deprecated('Use getProducts instead')
-  Future<Result<List<Product>, AppError>> getFilteredProducts({String query = '', String category = ''}) async {
-    try {
-      final allResult = await getAllProducts();
-      switch (allResult) {
-        case Success(value: final all):
-          final filtered = all.where((product) {
-            final matchesQuery = query.isEmpty ||
-                product.name.toLowerCase().contains(query.toLowerCase()) ||
-                product.sku.toLowerCase().contains(query.toLowerCase()) ||
-                product.keywords.any((k) => k.toLowerCase().contains(query.toLowerCase()));
-            final matchesCategory = category.isEmpty ||
-                (product.category ?? '').toLowerCase() == category.toLowerCase();
-            return matchesQuery && matchesCategory;
-          }).toList();
-          return Result.success(filtered);
-        case Failure(error: final err):
-          return Result.failure(err);
-      }
-    } catch (e, stackTrace) {
-      return Result.failure(NetworkError(
-        message: 'Failed to retrieve filtered products from remote server.',
-        originalError: e,
-        stackTrace: stackTrace,
-      ));
+      return Result.failure(
+        NetworkError(
+          message: 'Failed to retrieve filtered products from remote server.',
+          originalError: e,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
@@ -138,11 +129,13 @@ class FirestoreProductRepository implements ProductRepository {
       );
       return const Result.success(null);
     } catch (e, stackTrace) {
-      return Result.failure(NetworkError(
-        message: 'Failed to save product to remote server.',
-        originalError: e,
-        stackTrace: stackTrace,
-      ));
+      return Result.failure(
+        NetworkError(
+          message: 'Failed to save product to remote server.',
+          originalError: e,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
@@ -152,11 +145,13 @@ class FirestoreProductRepository implements ProductRepository {
       await remoteDb.deleteData('$_collectionPath/$id');
       return const Result.success(null);
     } catch (e, stackTrace) {
-      return Result.failure(NetworkError(
-        message: 'Failed to delete product from remote server.',
-        originalError: e,
-        stackTrace: stackTrace,
-      ));
+      return Result.failure(
+        NetworkError(
+          message: 'Failed to delete product from remote server.',
+          originalError: e,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 }

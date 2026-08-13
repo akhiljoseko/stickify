@@ -57,7 +57,7 @@ void main() {
         );
 
         final pdfBytes = await engine.buildPdfBytes(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
           disabledSlots: {},
         );
@@ -113,7 +113,7 @@ void main() {
         );
 
         final pdfBytes = await engine.buildPdfBytes(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
           disabledSlots: {},
         );
@@ -174,7 +174,7 @@ void main() {
         );
 
         final pdfBytes = await engine.buildPdfBytes(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
           disabledSlots: {},
           coordinateContext: coordinateContext,
@@ -237,7 +237,7 @@ void main() {
         );
 
         final pdfBytesIdentity = await engine.buildPdfBytes(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
           disabledSlots: {},
           coordinateContext: const PrintCoordinateContext.identity(),
@@ -308,14 +308,14 @@ void main() {
 
         // 1. Without physical format margins (no shift)
         final pdfBytesNoShift = await engine.buildPdfBytes(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
           disabledSlots: {},
         );
 
         // 2. With physical format margins (shift should be applied)
         final pdfBytesWithShift = await engine.buildPdfBytes(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
           disabledSlots: {},
           physicalFormat: const PdfPageFormat(
@@ -398,7 +398,7 @@ void main() {
 
         // Physical spooled format is flipped portrait (180 x 208 mm)
         final pdfBytes = await engine.buildPdfBytes(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
           disabledSlots: {},
           physicalFormat: const PdfPageFormat(
@@ -482,7 +482,7 @@ void main() {
         // Helper to extract tx/ty translations of the positioned slot from PDF bytes
         Future<List<double>> getSlotTranslation(PrintCoordinateContext context) async {
           final pdfBytes = await engine.buildPdfBytes(
-            items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+            items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
             template: template,
             disabledSlots: {},
             coordinateContext: context,
@@ -676,7 +676,7 @@ void main() {
 
         // Quantity 10 stickers on 4 slots/sheet template -> 3 sheets (4 + 4 + 2 stickers)
         final pdfBytes = await engine.buildPdfBytes(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 10)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 10)],
           template: template,
           disabledSlots: {1}, // Slot 1 on Sheet 0 is disabled (partially used sheet)
           coordinateContext: coordinateContext,
@@ -747,7 +747,7 @@ void main() {
         // Sheet 0 has slots 2,3 disabled (2 available). Sheet 1 has slot 4 disabled (3 available).
         // Quantity 5 stickers -> Sheet 0 (2 stickers), Sheet 1 (3 stickers) -> total 2 sheets.
         final pdfBytes = await engine.buildPdfBytes(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 5)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 5)],
           template: template,
           disabledSlots: {2, 3, 4},
         );
@@ -786,13 +786,13 @@ void main() {
         );
 
         final pdfBytesNormal = await engine.buildPdfBytes(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 3)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 3)],
           template: template,
           disabledSlots: const {},
         );
 
         final pdfBytesReversed = await engine.buildPdfBytes(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 3)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 3)],
           template: template,
           disabledSlots: {},
           reverseSheetOrder: true,

@@ -89,7 +89,7 @@ class TemplateGridCard extends StatelessWidget {
                     Expanded(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: Container(
+                        child: ColoredBox(
                           color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.4),
                           child: _buildImageOrPreview(colorScheme),
                         ),
@@ -166,7 +166,7 @@ class TemplateGridCard extends StatelessWidget {
         return Image.network(
           imageUrl,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _MiniSheetPreview(sheetConfig: template.sheetConfig),
+          errorBuilder: (_, _, _) => _MiniSheetPreview(sheetConfig: template.sheetConfig),
         );
       } else {
         final file = File(imageUrl);
@@ -174,7 +174,7 @@ class TemplateGridCard extends StatelessWidget {
           return Image.file(
             file,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _MiniSheetPreview(sheetConfig: template.sheetConfig),
+            errorBuilder: (_, _, _) => _MiniSheetPreview(sheetConfig: template.sheetConfig),
           );
         }
       }

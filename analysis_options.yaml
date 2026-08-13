@@ -9,6 +9,7 @@ analyzer:
     one_member_abstracts: ignore
   exclude:
     - lib/l10n/gen/*
+    - lib/data/models/*/*.g.dart
     - build/**
 linter:
   rules:

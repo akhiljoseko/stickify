@@ -131,16 +131,16 @@ class _DesktopVariantSelectionLayout extends StatelessWidget {
                   flex: 4,
                   child: Card(
                     color: colorScheme.surfaceContainerLowest,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                    child: const Padding(
+                      padding: EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const _RunningBatchHeader(),
-                          const SizedBox(height: 12),
-                          const Expanded(child: _RunningBatchList()),
-                          const SizedBox(height: 16),
-                          const _Step2ActionButtons(),
+                          _RunningBatchHeader(),
+                          SizedBox(height: 12),
+                          Expanded(child: _RunningBatchList()),
+                          SizedBox(height: 16),
+                          _Step2ActionButtons(),
                         ],
                       ),
                     ),
@@ -578,7 +578,7 @@ class _Step2ActionButtons extends StatelessWidget {
         return Row(
           children: [
             OutlinedButton.icon(
-              onPressed: () => cubit.goToPreviousStep(),
+              onPressed: cubit.goToPreviousStep,
               icon: const Icon(Icons.arrow_back),
               label: const Text('Back'),
             ),
@@ -592,7 +592,7 @@ class _Step2ActionButtons extends StatelessWidget {
                 ),
                 onPressed: state.items.isEmpty
                     ? null
-                    : () => cubit.goToNextStep(),
+                    : cubit.goToNextStep,
                 label: const Text(
                   'Proceed to Print',
                   style: TextStyle(fontWeight: FontWeight.bold),

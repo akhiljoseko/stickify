@@ -62,7 +62,7 @@ void main() {
       );
 
       final result = await service.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -94,7 +94,7 @@ void main() {
       );
 
       final result = await service.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -135,7 +135,7 @@ void main() {
       );
 
       final result = await service.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -193,7 +193,7 @@ void main() {
       );
 
       final result = await service.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -252,7 +252,7 @@ void main() {
         );
 
         final result = await service.printLabels(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
           disabledSlots: {},
           printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -291,7 +291,7 @@ void main() {
         );
 
         final result = await service.printLabels(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
           disabledSlots: {},
           printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -349,7 +349,7 @@ void main() {
       );
 
       final result = await service.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -476,7 +476,7 @@ void main() {
         ).thenAnswer((_) async => Uint8List(0));
 
         final result = await calibrationService.printLabels(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
           disabledSlots: {},
           printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -514,7 +514,7 @@ void main() {
         ).thenAnswer((_) async => Uint8List(0));
 
         final result = await calibrationService.printLabels(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
           disabledSlots: {},
           printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -552,7 +552,7 @@ void main() {
       ).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -590,7 +590,7 @@ void main() {
       ).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -623,7 +623,7 @@ void main() {
 
     test('Unsupported paper configuration -> returns failure', () async {
       final result = await calibrationService.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -732,7 +732,7 @@ void main() {
           )).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -761,7 +761,7 @@ void main() {
           )).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -790,7 +790,7 @@ void main() {
           )).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -822,7 +822,7 @@ void main() {
           )).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
@@ -851,7 +851,7 @@ void main() {
 
     test('Unsupported paper configuration -> returns failure', () async {
       final result = await calibrationService.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),

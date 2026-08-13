@@ -251,7 +251,7 @@ class _StepPrintPreviewContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Step 4: Print Preview & Dispatch',
+                        'Step 3: Print Preview & Dispatch',
                         style: textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: colorScheme.primary,
@@ -267,7 +267,7 @@ class _StepPrintPreviewContent extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: () => context.read<OrderLabelPrintCubit>().goToPreviousStep(),
                     icon: const Icon(Icons.arrow_back),
-                    label: const Text('Back to Review'),
+                    label: const Text('Back to Variants & Qty'),
                   ),
                 ],
               ),

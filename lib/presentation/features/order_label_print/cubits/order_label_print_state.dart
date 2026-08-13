@@ -9,10 +9,7 @@ enum OrderLabelPrintStep {
   /// Step 2: Variant & quantity selection
   variantSelection,
 
-  /// Step 3: Order confirmation / review list
-  confirmation,
-
-  /// Step 4: Final print preview & printer parameters
+  /// Step 3: Final print preview & printer parameters
   printPreview,
 }
 

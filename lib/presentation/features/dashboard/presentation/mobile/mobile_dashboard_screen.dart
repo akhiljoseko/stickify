@@ -188,24 +188,19 @@ class _QuickActionsList extends StatelessWidget {
   static List<_QuickActionData> _actions(BuildContext context) => [
     _QuickActionData(
       icon: Icons.print_outlined,
-      title: 'New Print',
+      title: 'Single Print',
       isPrimary: true,
       onTap: () => ProductVariantSelectionDialog.show(context),
     ),
     _QuickActionData(
-      icon: Icons.view_comfortable_outlined,
-      title: 'Order Print',
+      icon: Icons.layers_outlined,
+      title: 'Batch Print',
       onTap: () => context.push('/order-label-print'),
     ),
     _QuickActionData(
       icon: Icons.add_circle_outline,
       title: 'Add Product',
       onTap: () => context.go('/products?subView=create'),
-    ),
-    _QuickActionData(
-      icon: Icons.dashboard_customize_outlined,
-      title: 'Template',
-      onTap: () => context.go('/templates?action=create'),
     ),
   ];
 
@@ -236,14 +231,6 @@ class _QuickActionsList extends StatelessWidget {
             icon: actions[2].icon,
             label: actions[2].title,
             onTap: actions[2].onTap,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _IconActionButton(
-            icon: actions[3].icon,
-            label: actions[3].title,
-            onTap: actions[3].onTap,
           ),
         ),
       ],

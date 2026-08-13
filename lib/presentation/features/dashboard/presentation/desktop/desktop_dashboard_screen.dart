@@ -134,15 +134,15 @@ class _QuickActionsGrid extends StatelessWidget {
   static List<_QuickActionData> _actions(BuildContext context) => [
     _QuickActionData(
       icon: Icons.print_outlined,
-      title: 'Start New Print',
-      subtitle: 'Select product & template',
+      title: 'Start Single Print',
+      subtitle: 'Single product label print',
       isPrimary: true,
       onTap: () => ProductVariantSelectionDialog.show(context),
     ),
     _QuickActionData(
-      icon: Icons.view_comfortable_outlined,
-      title: 'Order Label Print',
-      subtitle: 'Batch multi-item printing',
+      icon: Icons.layers_outlined,
+      title: 'Start Batch Print',
+      subtitle: 'Batch multi-item printing (Ctrl+O)',
       onTap: () => context.push('/order-label-print'),
     ),
     _QuickActionData(
@@ -150,12 +150,6 @@ class _QuickActionsGrid extends StatelessWidget {
       title: 'Add New Product',
       subtitle: 'Register SKU & Metadata',
       onTap: () => context.go('/products?subView=create'),
-    ),
-    _QuickActionData(
-      icon: Icons.dashboard_customize_outlined,
-      title: 'Create Template',
-      subtitle: 'Visual designer tool',
-      onTap: () => context.go('/templates?action=create'),
     ),
   ];
 
@@ -191,16 +185,6 @@ class _QuickActionsGrid extends StatelessWidget {
             subtitle: actions[2].subtitle,
             isPrimary: actions[2].isPrimary,
             onTap: actions[2].onTap,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: QuickActionCard(
-            icon: actions[3].icon,
-            title: actions[3].title,
-            subtitle: actions[3].subtitle,
-            isPrimary: actions[3].isPrimary,
-            onTap: actions[3].onTap,
           ),
         ),
       ],

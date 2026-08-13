@@ -1,48 +1,23 @@
-import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/order_label_print/cubits/order_label_print_state.dart';
 
-/// Drives the 4-step wizard for batch printing labels across multiple products/variants.
+/// Drives the wizard steps (1-3) for selecting templates, browsing products, and configuring the order batch.
 class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
   /// Creates an [OrderLabelPrintCubit].
   OrderLabelPrintCubit({
     required TemplateRepository templateRepository,
     required ProductRepository productRepository,
-    required PrintService printService,
     required PrinterDiscoveryService printerDiscoveryService,
-    required PrintJobRepository printJobRepository,
-    required VariantPrintStatsRepository variantPrintStatsRepository,
-    required PrintJobIdGenerator printJobIdGenerator,
-    required PrinterProfileRepository printerProfileRepository,
-    required PrinterCalibrationCoordinateResolver calibrationResolver,
-    required TemplatePrinterCompatibilityAnalyzer compatibilityAnalyzer,
-    required PrintPipelineOrchestrator printPipelineOrchestrator,
   })  : _templateRepository = templateRepository,
         _productRepository = productRepository,
-        _printService = printService,
         _printerDiscoveryService = printerDiscoveryService,
-        _printJobRepository = printJobRepository,
-        _variantPrintStatsRepository = variantPrintStatsRepository,
-        _printJobIdGenerator = printJobIdGenerator,
-        _printerProfileRepository = printerProfileRepository,
-        _calibrationResolver = calibrationResolver,
-        _compatibilityAnalyzer = compatibilityAnalyzer,
-        _printPipelineOrchestrator = printPipelineOrchestrator,
         super(const OrderLabelPrintState());
 
   final TemplateRepository _templateRepository;
   final ProductRepository _productRepository;
-  final PrintService _printService;
   final PrinterDiscoveryService _printerDiscoveryService;
-  final PrintJobRepository _printJobRepository;
-  final VariantPrintStatsRepository _variantPrintStatsRepository;
-  final PrintJobIdGenerator _printJobIdGenerator;
-  final PrinterProfileRepository _printerProfileRepository;
-  final PrinterCalibrationCoordinateResolver _calibrationResolver;
-  final TemplatePrinterCompatibilityAnalyzer _compatibilityAnalyzer;
-  final PrintPipelineOrchestrator _printPipelineOrchestrator;
 
   /// Initializes templates catalog, product catalog, and available printers.
   Future<void> init() async {
@@ -83,8 +58,6 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
         selectedPrinter: () => defaultPrinter,
       ),
     );
-
-    await _updatePrinterCalibrationAndCompatibility(defaultTemplate, defaultPrinter);
   }
 
   /// Refreshes product catalog from repository (e.g. after a variant detail edit) and updates running batch items.
@@ -121,71 +94,14 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
     }
   }
 
-  /// Sets the active label template and updates printer calibration checks.
-  Future<void> selectTemplate(LabelTemplate template) async {
+  /// Sets the active label template.
+  void selectTemplate(LabelTemplate template) {
     emit(state.copyWith(selectedTemplate: () => template));
-    await _updatePrinterCalibrationAndCompatibility(template, state.selectedPrinter);
   }
 
-  /// Updates active printer device and updates printer calibration checks.
-  Future<void> updatePrinter(PrinterDevice printer) async {
+  /// Updates active printer device.
+  void updatePrinter(PrinterDevice printer) {
     emit(state.copyWith(selectedPrinter: () => printer));
-    await _updatePrinterCalibrationAndCompatibility(state.selectedTemplate, printer);
-  }
-
-  Future<void> _updatePrinterCalibrationAndCompatibility(
-    LabelTemplate? template,
-    PrinterDevice? printer,
-  ) async {
-    if (printer == null) return;
-
-    final profilesResult = await _printerProfileRepository.getAllProfiles();
-    PrinterProfile? matchedProfile;
-    PrinterTrayProfile? matchedTray;
-    CompatibilityAnalysisResult? compatibilityResult;
-
-    if (profilesResult is Success<List<PrinterProfile>, AppError>) {
-      final profiles = profilesResult.value;
-      matchedProfile = profiles.firstWhereOrNull(
-        (p) => p.printerIdentity.systemPrinterName == printer.name,
-      );
-
-      if (matchedProfile != null && template != null && template.sheetConfig != null) {
-        matchedTray = matchedProfile.trays.firstWhereOrNull(
-          (t) => t.supportedPaperConfigurations.any((ref) => ref.id == template.id),
-        );
-
-        if (matchedTray != null) {
-          final calibrationResult = _calibrationResolver.resolve(
-            CalibrationRequest(
-              tray: matchedTray,
-              paperConfigId: template.id,
-              sheetConfig: template.sheetConfig!,
-            ),
-          );
-
-          final calibrationContext = switch (calibrationResult) {
-            Success(value: final context) => context,
-            Failure() => const PrintCoordinateContext.identity(),
-          };
-
-          compatibilityResult = _compatibilityAnalyzer.analyze(
-            template: template,
-            printer: matchedProfile,
-            tray: matchedTray,
-            calibrationContext: calibrationContext,
-          );
-        }
-      }
-    }
-
-    emit(
-      state.copyWith(
-        selectedPrinterProfile: () => matchedProfile,
-        selectedTrayProfile: () => matchedTray,
-        compatibilityResult: () => compatibilityResult,
-      ),
-    );
   }
 
   /// Sets active wizard step directly.
@@ -315,175 +231,5 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
     updatedItems.removeAt(index);
 
     emit(state.copyWith(items: updatedItems, disabledSlots: const {}, errorMessage: () => null));
-  }
-
-  /// Updates global manufacturing date.
-  void updateManufacturingDate(DateTime date) {
-    emit(state.copyWith(manufacturingDate: () => date));
-  }
-
-  /// Toggles slot state in disabledSlots set.
-  void toggleSlot(int slotIndex) {
-    final updated = Set<int>.from(state.disabledSlots);
-    if (updated.contains(slotIndex)) {
-      updated.remove(slotIndex);
-    } else {
-      updated.add(slotIndex);
-    }
-    emit(state.copyWith(disabledSlots: updated));
-  }
-
-  /// Toggles an entire row of slots on a given sheet.
-  void toggleRowSlots(int sheetIndex, int rowIndex, {required bool select}) {
-    final template = state.selectedTemplate;
-    final sheetConfig = template?.sheetConfig;
-    if (template == null || sheetConfig == null) return;
-
-    final columns = sheetConfig.columns;
-    final slotsPerSheet = columns * sheetConfig.rows;
-    final rowSlots = List.generate(
-      columns,
-      (c) => sheetIndex * slotsPerSheet + rowIndex * columns + c,
-    );
-
-    final updated = Set<int>.from(state.disabledSlots);
-    for (final slot in rowSlots) {
-      if (select) {
-        updated.remove(slot);
-      } else {
-        updated.add(slot);
-      }
-    }
-    emit(state.copyWith(disabledSlots: updated));
-  }
-
-  /// Selects (enables) all slots on the first sheet.
-  void selectAllFirstSheet() {
-    final template = state.selectedTemplate;
-    final sheetConfig = template?.sheetConfig;
-    if (template == null || sheetConfig == null) return;
-
-    final slotsPerSheet = sheetConfig.columns * sheetConfig.rows;
-    final firstSheetSlots = List.generate(slotsPerSheet, (i) => i);
-
-    final updated = Set<int>.from(state.disabledSlots)..removeAll(firstSheetSlots);
-    emit(state.copyWith(disabledSlots: updated));
-  }
-
-  /// Deselects (disables) all slots on the first sheet.
-  void deselectAllFirstSheet() {
-    final template = state.selectedTemplate;
-    final sheetConfig = template?.sheetConfig;
-    if (template == null || sheetConfig == null) return;
-
-    final slotsPerSheet = sheetConfig.columns * sheetConfig.rows;
-    final firstSheetSlots = List.generate(slotsPerSheet, (i) => i);
-
-    final updated = Set<int>.from(state.disabledSlots)..addAll(firstSheetSlots);
-    emit(state.copyWith(disabledSlots: updated));
-  }
-
-  /// Toggles print from bottom parameter.
-  void togglePrintFromBottom({bool? value}) {
-    emit(state.copyWith(printFromBottom: value ?? !state.printFromBottom));
-  }
-
-  /// Compiles and dispatches the batch print job to the physical printer, applying tray calibration and execution config.
-  Future<void> printOrderLabels() async {
-    final template = state.selectedTemplate;
-    final printer = state.selectedPrinter;
-
-    if (template == null) {
-      emit(state.copyWith(errorMessage: () => 'No template selected.'));
-      return;
-    }
-
-    if (printer == null) {
-      emit(state.copyWith(errorMessage: () => 'No printer selected.'));
-      return;
-    }
-
-    if (state.items.isEmpty) {
-      emit(state.copyWith(errorMessage: () => 'No items in order batch.'));
-      return;
-    }
-
-    emit(state.copyWith(isSubmitting: true, errorMessage: () => null));
-
-    PrintExecutionConfiguration? executionConfiguration;
-    if (state.selectedPrinterProfile != null && state.selectedTrayProfile != null) {
-      final orchestratorResult = _printPipelineOrchestrator.resolve(
-        template: template,
-        printer: state.selectedPrinterProfile!,
-        tray: state.selectedTrayProfile!,
-        paperConfigurationId: template.id,
-      );
-
-      switch (orchestratorResult) {
-        case Failure(error: final err):
-          emit(state.copyWith(isSubmitting: false, errorMessage: () => err.message));
-          return;
-        case Success(value: final coordinateContext):
-          executionConfiguration = PrintExecutionConfiguration(
-            selectedTray: state.selectedTrayProfile,
-            paperConfigurationId: template.id,
-            coordinateContext: coordinateContext,
-          );
-      }
-    }
-
-    final result = await _printService.printLabels(
-      items: state.items,
-      template: template,
-      printer: printer,
-      disabledSlots: state.disabledSlots,
-      printFromBottom: state.printFromBottom,
-      reverseSheetOrder: state.reverseSheetOrder,
-      executionConfiguration: executionConfiguration,
-      manufacturingDate: state.manufacturingDate,
-    );
-
-    switch (result) {
-      case Failure(error: final err):
-        emit(state.copyWith(isSubmitting: false, errorMessage: () => err.message));
-
-      case Success():
-        // Log print history and increment stats for each variant in the batch
-        final now = DateTime.now();
-        for (final item in state.items) {
-          final job = PrintJob(
-            id: _printJobIdGenerator.generateId(),
-            productId: item.product.id,
-            productName: item.product.name,
-            variantId: item.variant.sku,
-            variantName: item.variant.name,
-            variantSku: item.variant.sku,
-            templateId: template.id,
-            templateName: template.name,
-            printerStation: printer.name,
-            printedAt: now,
-            labelCount: item.quantity,
-            imageUrl: item.product.imageUrl,
-          );
-          await _printJobRepository.savePrintJob(job);
-          await _variantPrintStatsRepository.incrementCount(
-            variantSku: item.variant.sku,
-            productId: item.product.id,
-            productName: item.product.name,
-            variantName: item.variant.name,
-            labelCount: item.quantity,
-            printedAt: now,
-            imageUrl: item.product.imageUrl,
-          );
-        }
-
-        emit(
-          state.copyWith(
-            isSubmitting: false,
-            isPrintSuccess: true,
-            successMessage: () => 'Successfully sent order batch (${state.totalQuantity} labels) to printer ${printer.name}!',
-          ),
-        );
-    }
   }
 }

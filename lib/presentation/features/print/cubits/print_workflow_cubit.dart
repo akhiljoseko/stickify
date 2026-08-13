@@ -8,7 +8,7 @@ import 'package:stickify/presentation/features/print/cubits/print_workflow_state
 /// Cubit managing the multi-step printing workflow state.
 ///
 /// Handles template selection, quantity updates, slot toggling (for reuse),
-/// and print job submission.
+/// and print job submission for both single and batch printing modes.
 class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   /// Creates a [PrintWorkflowCubit] with the necessary repositories and services.
   PrintWorkflowCubit({
@@ -62,10 +62,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   /// Orchestration service for composed calibration + optimization pipelines.
   final PrintPipelineOrchestrator _printPipelineOrchestrator;
 
-  /// Loads the initial metadata needed to configure the print job.
-  ///
-  /// Fetches [productId], locates the variant by [variantSku], and optionally
-  /// sets the initial active layout template by [templateId].
+  /// Loads the initial metadata needed to configure a single product print job.
   Future<void> loadWorkflow(String productId, String variantSku, [String? templateId, int? initialQuantity]) async {
     emit(const PrintWorkflowLoading());
     try {
@@ -129,17 +126,6 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                   (p) => p.printerIdentity.systemPrinterName == defaultPrinter.name,
                 );
 
-                if (matchedProfile != null) {
-                  Log.debug(
-                    'PrintWorkflow: matched profile "${matchedProfile.displayName}" '
-                    '(id: ${matchedProfile.id}) for default printer "${defaultPrinter.name}". '
-                    'Trays: ${matchedProfile.trays.length}. '
-                    'Profile trays calibration: '
-                    '${matchedProfile.trays.map((t) => "${t.trayIdentifier}(enabled=${t.calibration.enabled}, rules=${t.calibration.calibrationRules.length})").join(", ")}.',
-                    tag: 'PrintPipeline',
-                  );
-                }
-
                 if (matchedProfile != null && selected != null && selected.sheetConfig != null) {
                   matchedTray = matchedProfile.trays.firstWhereOrNull(
                     (t) => t.supportedPaperConfigurations.any((ref) => ref.id == selected!.id),
@@ -192,6 +178,88 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     }
   }
 
+  /// Loads initial metadata and printer configuration for batch multi-product printing.
+  Future<void> initForBatch({
+    required List<PrintableItem> items,
+    required LabelTemplate template,
+    PrinterDevice? selectedPrinter,
+  }) async {
+    emit(const PrintWorkflowLoading());
+    try {
+      final templatesResult = await _templateRepository.fetchTemplates();
+      List<LabelTemplate> templates = [];
+      if (templatesResult is Success<List<LabelTemplate>, AppError>) {
+        templates = templatesResult.value;
+      }
+
+      final printers = await _printerDiscoveryService.getAvailablePrinters();
+      final targetPrinter = selectedPrinter ??
+          printers.firstWhere(
+            (p) => p.isDefault,
+            orElse: () => printers.isNotEmpty ? printers.first : const PrinterDevice(name: 'No Printer Found', url: ''),
+          );
+
+      final cachedBottom = await _localDatabase.get<bool>('settings', 'print_from_bottom') ?? false;
+
+      final profilesResult = await _printerProfileRepository.getAllProfiles();
+      PrinterProfile? matchedProfile;
+      PrinterTrayProfile? matchedTray;
+      CompatibilityAnalysisResult? compatibilityResult;
+
+      if (profilesResult is Success<List<PrinterProfile>, AppError>) {
+        final profiles = profilesResult.value;
+        matchedProfile = profiles.firstWhereOrNull(
+          (p) => p.printerIdentity.systemPrinterName == targetPrinter.name,
+        );
+
+        if (matchedProfile != null && template.sheetConfig != null) {
+          matchedTray = matchedProfile.trays.firstWhereOrNull(
+            (t) => t.supportedPaperConfigurations.any((ref) => ref.id == template.id),
+          );
+
+          if (matchedTray != null) {
+            final calibrationResult = _calibrationResolver.resolve(
+              CalibrationRequest(
+                tray: matchedTray,
+                paperConfigId: template.id,
+                sheetConfig: template.sheetConfig!,
+              ),
+            );
+
+            final calibrationContext = switch (calibrationResult) {
+              Success(value: final context) => context,
+              Failure() => const PrintCoordinateContext.identity(),
+            };
+
+            compatibilityResult = _compatibilityAnalyzer.analyze(
+              template: template,
+              printer: matchedProfile,
+              tray: matchedTray,
+              calibrationContext: calibrationContext,
+            );
+          }
+        }
+      }
+
+      final loaded = PrintWorkflowLoaded(
+        items: items,
+        templates: templates.isNotEmpty ? templates : [template],
+        selectedTemplate: template,
+        availablePrinters: printers,
+        selectedPrinter: targetPrinter,
+        quantity: items.fold<int>(0, (sum, i) => sum + i.quantity),
+        printFromBottom: cachedBottom,
+        reverseSheetOrder: matchedProfile?.capabilities.reverseSheetOrder ?? false,
+        selectedPrinterProfile: matchedProfile,
+        selectedTrayProfile: matchedTray,
+        compatibilityResult: compatibilityResult,
+      );
+      emit(loaded);
+    } on Object catch (e) {
+      emit(PrintWorkflowError(message: e.toString()));
+    }
+  }
+
   /// Updates the active label template layout.
   void selectTemplate(LabelTemplate template) {
     final s = state;
@@ -203,36 +271,64 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         qty = s.quantity;
       }
 
-      final updated = s.copyWith(
-        selectedTemplate: () => template,
-        quantity: qty,
-        disabledSlots: const {}, // reset skipped slots when template changes
+      PrinterTrayProfile? matchedTray;
+      CompatibilityAnalysisResult? compatibilityResult;
+
+      if (s.selectedPrinterProfile != null && template.sheetConfig != null) {
+        matchedTray = s.selectedPrinterProfile!.trays.firstWhereOrNull(
+          (t) => t.supportedPaperConfigurations.any((ref) => ref.id == template.id),
+        );
+
+        if (matchedTray != null) {
+          final calibrationResult = _calibrationResolver.resolve(
+            CalibrationRequest(
+              tray: matchedTray,
+              paperConfigId: template.id,
+              sheetConfig: template.sheetConfig!,
+            ),
+          );
+
+          final calibrationContext = switch (calibrationResult) {
+            Success(value: final context) => context,
+            Failure() => const PrintCoordinateContext.identity(),
+          };
+
+          compatibilityResult = _compatibilityAnalyzer.analyze(
+            template: template,
+            printer: s.selectedPrinterProfile!,
+            tray: matchedTray,
+            calibrationContext: calibrationContext,
+          );
+        }
+      }
+
+      emit(
+        s.copyWith(
+          selectedTemplate: () => template,
+          quantity: qty,
+          selectedTrayProfile: () => matchedTray,
+          compatibilityResult: () => compatibilityResult,
+        ),
       );
-      emit(updated);
-      _updatePrinterAndTrayProfile(s.selectedPrinter ?? const PrinterDevice(name: 'No Printer Found', url: ''), template);
     }
   }
 
-  /// Updates the target label print quantity.
-  void updateQuantity(int qty) {
+  /// Updates quantity to print.
+  void updateQuantity(int newQuantity) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
-      emit(s.copyWith(
-        quantity: qty,
-        isQuantityManuallyEdited: true,
-      ));
+      final validQuantity = newQuantity < 1 ? 1 : newQuantity;
+      emit(
+        s.copyWith(
+          quantity: validQuantity,
+          isQuantityManuallyEdited: true,
+        ),
+      );
     }
   }
 
-  /// Updates the selected destination printer.
-  void updatePrinter(PrinterDevice printer) {
-    final s = state;
-    if (s is PrintWorkflowLoaded) {
-      _updatePrinterAndTrayProfile(printer, s.selectedTemplate);
-    }
-  }
-
-  Future<void> _updatePrinterAndTrayProfile(PrinterDevice printer, LabelTemplate? template) async {
+  /// Updates active printer device and resolves capabilities and tray calibration context.
+  Future<void> updatePrinter(PrinterDevice printer) async {
     final s = state;
     if (s is PrintWorkflowLoaded) {
       final profilesResult = await _printerProfileRepository.getAllProfiles();
@@ -246,17 +342,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
           (p) => p.printerIdentity.systemPrinterName == printer.name,
         );
 
-        if (matchedProfile != null) {
-          Log.debug(
-            'PrintWorkflow(_updatePrinterAndTrayProfile): matched '
-            '"${matchedProfile.displayName}" for printer "${printer.name}". '
-            'Trays: ${matchedProfile.trays.length}. '
-            'Calibration status: '
-            '${matchedProfile.trays.map((t) => "${t.trayIdentifier}(enabled=${t.calibration.enabled}, rules=${t.calibration.calibrationRules.length})").join(", ")}.',
-            tag: 'PrintPipeline',
-          );
-        }
-
+        final template = s.selectedTemplate;
         if (matchedProfile != null && template != null && template.sheetConfig != null) {
           matchedTray = matchedProfile.trays.firstWhereOrNull(
             (t) => t.supportedPaperConfigurations.any((ref) => ref.id == template.id),
@@ -286,20 +372,19 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         }
       }
 
-      emit(s.copyWith(
-        selectedPrinter: () => printer,
-        selectedTemplate: template != null ? () => template : null,
-        selectedPrinterProfile: () => matchedProfile,
-        selectedTrayProfile: () => matchedTray,
-        compatibilityResult: () => compatibilityResult,
-        reverseSheetOrder: matchedProfile?.capabilities.reverseSheetOrder ?? s.reverseSheetOrder,
-      ));
+      emit(
+        s.copyWith(
+          selectedPrinter: () => printer,
+          selectedPrinterProfile: () => matchedProfile,
+          selectedTrayProfile: () => matchedTray,
+          compatibilityResult: () => compatibilityResult,
+          reverseSheetOrder: matchedProfile?.capabilities.reverseSheetOrder ?? s.reverseSheetOrder,
+        ),
+      );
     }
   }
 
   /// Toggles a specific slot index on the printing grid sheet.
-  ///
-  /// Toggled slots will be skipped/ignored during PDF page layout compilation.
   void toggleSlot(int absoluteSlotIndex) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
@@ -345,7 +430,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
       final template = s.selectedTemplate;
       if (template?.sheetConfig == null) return;
       final slotsPerSheet = template!.sheetConfig!.columns * template.sheetConfig!.rows;
-      
+
       final updated = Set<int>.from(s.disabledSlots);
       for (var i = 0; i < slotsPerSheet; i++) {
         updated.remove(i);
@@ -370,45 +455,41 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     }
   }
 
-  /// Selects or deselects all slots in a specific row of a sheet.
+  /// Toggles an entire row of slots on a given sheet.
   void toggleRowSlots(int sheetIndex, int rowIndex, {required bool select}) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
       final template = s.selectedTemplate;
       if (template?.sheetConfig == null) return;
-      final config = template!.sheetConfig!;
-      final columns = config.columns;
-      final slotsPerSheet = config.columns * config.rows;
+
+      final columns = template!.sheetConfig!.columns;
+      final slotsPerSheet = columns * template.sheetConfig!.rows;
+      final rowSlots = List.generate(
+        columns,
+        (c) => sheetIndex * slotsPerSheet + rowIndex * columns + c,
+      );
 
       final updated = Set<int>.from(s.disabledSlots);
-      final rowStart = sheetIndex * slotsPerSheet + rowIndex * columns;
-      for (var c = 0; c < columns; c++) {
-        final absIndex = rowStart + c;
+      for (final slot in rowSlots) {
         if (select) {
-          updated.remove(absIndex);
+          updated.remove(slot);
         } else {
-          updated.add(absIndex);
+          updated.add(slot);
         }
       }
       emit(s.copyWith(disabledSlots: updated));
     }
   }
 
-  /// Compiles the dynamic layout and dispatches the print job.
-  ///
-  /// Generates the PDF, calls the system printer, and appends a record
-  /// to the printed job history repository.
+  /// Compiles the PDF and sends the layout job to the print service.
   Future<void> startPrintJob() async {
     final s = state;
     if (s is PrintWorkflowLoaded) {
       final template = s.selectedTemplate;
-      if (template == null) {
-        emit(const PrintWorkflowError(message: 'No label template selected.'));
-        return;
-      }
       final printer = s.selectedPrinter;
-      if (printer == null) {
-        emit(const PrintWorkflowError(message: 'No printer selected.'));
+
+      if (template == null || printer == null) {
+        emit(const PrintWorkflowError(message: 'Invalid print configuration.'));
         return;
       }
 
@@ -436,14 +517,10 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         }
       }
 
+      final itemsToPrint = s.printableItems;
+
       final printResult = await _printService.printLabels(
-        items: [
-          PrintableItem(
-            product: s.product,
-            variant: s.variant,
-            quantity: s.quantity,
-          ),
-        ],
+        items: itemsToPrint,
         template: template,
         disabledSlots: s.disabledSlots,
         printer: printer,
@@ -457,38 +534,38 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         case Failure(error: final err):
           emit(PrintWorkflowError(message: err.message));
         case Success():
-          final jobId = _printJobIdGenerator.generateId();
-          final job = PrintJob(
-            id: jobId,
-            productId: s.product.id,
-            productName: s.product.name,
-            variantId: s.variant.sku,
-            variantName: s.variant.name,
-            variantSku: s.variant.sku,
-            templateId: template.id,
-            templateName: template.name,
-            printerStation: printer.name,
-            printedAt: DateTime.now(),
-            labelCount: s.quantity,
-            imageUrl: s.product.imageUrl,
-          );
-
-          final saveResult = await _printJobRepository.savePrintJob(job);
-          switch (saveResult) {
-            case Failure(error: final saveErr):
-              emit(PrintWorkflowError(message: saveErr.message));
-            case Success():
-              await _variantPrintStatsRepository.incrementCount(
-                variantSku: s.variant.sku,
-                productId: s.product.id,
-                productName: s.product.name,
-                variantName: s.variant.name,
-                labelCount: s.quantity,
-                printedAt: DateTime.now(),
-                imageUrl: s.product.imageUrl,
-              );
-              emit(PrintWorkflowSuccess(printJob: job));
+          final now = DateTime.now();
+          PrintJob? lastJob;
+          for (final item in itemsToPrint) {
+            final jobId = _printJobIdGenerator.generateId();
+            final job = PrintJob(
+              id: jobId,
+              productId: item.product.id,
+              productName: item.product.name,
+              variantId: item.variant.sku,
+              variantName: item.variant.name,
+              variantSku: item.variant.sku,
+              templateId: template.id,
+              templateName: template.name,
+              printerStation: printer.name,
+              printedAt: now,
+              labelCount: item.quantity,
+              imageUrl: item.product.imageUrl,
+            );
+            await _printJobRepository.savePrintJob(job);
+            await _variantPrintStatsRepository.incrementCount(
+              variantSku: item.variant.sku,
+              productId: item.product.id,
+              productName: item.product.name,
+              variantName: item.variant.name,
+              labelCount: item.quantity,
+              printedAt: now,
+              imageUrl: item.product.imageUrl,
+            );
+            lastJob = job;
           }
+
+          emit(PrintWorkflowSuccess(printJob: lastJob!));
       }
     }
   }

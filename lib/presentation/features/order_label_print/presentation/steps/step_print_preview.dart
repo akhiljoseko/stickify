@@ -2,10 +2,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stickify/app/app_service_locator.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/order_label_print/cubits/order_label_print_cubit.dart';
-import 'package:stickify/presentation/features/order_label_print/cubits/order_label_print_state.dart';
+import 'package:stickify/presentation/features/print/cubits/print_workflow_cubit.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_state.dart';
 import 'package:stickify/presentation/features/print/presentation/shared/print_setup_widgets.dart';
 
@@ -13,6 +14,38 @@ import 'package:stickify/presentation/features/print/presentation/shared/print_s
 class StepPrintPreviewView extends StatelessWidget {
   /// Creates a [StepPrintPreviewView].
   const StepPrintPreviewView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final locator = context.read<AppServiceLocator>();
+    final orderState = context.watch<OrderLabelPrintCubit>().state;
+
+    return BlocProvider<PrintWorkflowCubit>(
+      create: (context) => PrintWorkflowCubit(
+        productRepository: locator.productRepository,
+        templateRepository: locator.templateRepository,
+        printService: locator.printService,
+        printerDiscoveryService: locator.printerDiscoveryService,
+        localDatabase: locator.database,
+        printJobRepository: locator.printJobRepository,
+        variantPrintStatsRepository: locator.variantPrintStatsRepository,
+        printJobIdGenerator: locator.printJobIdGenerator,
+        printerProfileRepository: locator.printerProfileRepository,
+        calibrationResolver: locator.printerCalibrationCoordinateResolver,
+        compatibilityAnalyzer: locator.templatePrinterCompatibilityAnalyzer,
+        printPipelineOrchestrator: locator.printPipelineOrchestrator,
+      )..initForBatch(
+          items: orderState.items,
+          template: orderState.selectedTemplate!,
+          selectedPrinter: orderState.selectedPrinter,
+        ),
+      child: const _StepPrintPreviewContent(),
+    );
+  }
+}
+
+class _StepPrintPreviewContent extends StatelessWidget {
+  const _StepPrintPreviewContent();
 
   Set<int> _getActivePositions({
     required int qty,
@@ -88,34 +121,52 @@ class StepPrintPreviewView extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return BlocConsumer<OrderLabelPrintCubit, OrderLabelPrintState>(
+    return BlocConsumer<PrintWorkflowCubit, PrintWorkflowState>(
       listener: (context, state) {
-        if (state.isPrintSuccess) {
-          final message = state.successMessage ?? 'Order label batch sent to printer successfully!';
+        if (state is PrintWorkflowSuccess) {
+          const message = 'Successfully sent order batch to printer!';
           try {
             context.read<NotificationService>().showSuccess(message);
           } catch (_) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
+              const SnackBar(
                 content: Text(message),
                 backgroundColor: Colors.green,
               ),
             );
           }
           context.go('/dashboard');
-        } else if (state.errorMessage != null) {
+        } else if (state is PrintWorkflowError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage!),
+              content: Text(state.message),
               backgroundColor: Colors.red,
             ),
           );
         }
       },
       builder: (context, state) {
-        final cubit = context.read<OrderLabelPrintCubit>();
-        final template = state.selectedTemplate!;
-        final firstItem = state.items.first;
+        if (state is PrintWorkflowLoading || state is PrintWorkflowInitial) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(48),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        final loadedState = switch (state) {
+          PrintWorkflowLoaded s => s,
+          PrintWorkflowSubmitting s => s.loadedState,
+          _ => null,
+        };
+
+        if (loadedState == null || loadedState.selectedTemplate == null) {
+          return const Center(child: Text('Invalid print preview configuration.'));
+        }
+
+        final cubit = context.read<PrintWorkflowCubit>();
+        final template = loadedState.selectedTemplate!;
 
         final sheetConfig = template.sheetConfig ??
             const SheetConfig(
@@ -138,57 +189,54 @@ class StepPrintPreviewView extends StatelessWidget {
               printableArea: [],
             );
         final slotsPerSheet = sheetConfig.columns * sheetConfig.rows;
-        final totalSheets = state.totalSheets;
-        final activePositions = _getActivePositions(
-          qty: state.totalQuantity,
-          slotsPerSheet: slotsPerSheet,
-          disabledSlots: state.disabledSlots,
-          printFromBottom: state.printFromBottom,
-        );
 
-        final loadedStateStub = PrintWorkflowLoaded(
-          product: firstItem.product,
-          variant: firstItem.variant,
-          templates: state.templates,
-          selectedTemplate: template,
-          quantity: state.totalQuantity,
-          availablePrinters: state.availablePrinters,
-          selectedPrinter: state.selectedPrinter,
-          disabledSlots: state.disabledSlots,
-          printFromBottom: state.printFromBottom,
-          manufacturingDate: state.manufacturingDate,
-          selectedPrinterProfile: state.selectedPrinterProfile,
-          selectedTrayProfile: state.selectedTrayProfile,
-          compatibilityResult: state.compatibilityResult,
+        var currentSlot = 0;
+        var printedCount = 0;
+        final totalQuantity = loadedState.totalQuantity;
+
+        while (printedCount < totalQuantity) {
+          if (!loadedState.disabledSlots.contains(currentSlot)) {
+            printedCount++;
+          }
+          currentSlot++;
+        }
+        final totalSheets = (currentSlot / slotsPerSheet).ceil();
+
+        final activePositions = _getActivePositions(
+          qty: totalQuantity,
+          slotsPerSheet: slotsPerSheet,
+          disabledSlots: loadedState.disabledSlots,
+          printFromBottom: loadedState.printFromBottom,
         );
 
         final parametersPanel = ParametersPanel(
-          loadedState: loadedStateStub,
+          loadedState: loadedState,
           totalSheets: totalSheets,
           template: template,
           sheetConfig: sheetConfig,
-          state: state.isSubmitting ? PrintWorkflowSubmitting(loadedState: loadedStateStub) : loadedStateStub,
+          state: state,
           showQuantityField: false,
           showTemplateSelector: false,
-          isSubmitting: state.isSubmitting,
+          isSubmitting: state is PrintWorkflowSubmitting,
           onPrinterChanged: cubit.updatePrinter,
           onManufacturingDateChanged: cubit.updateManufacturingDate,
-          onPrint: cubit.printOrderLabels,
+          onPrint: cubit.startPrintJob,
         );
 
         final sheetsPreview = SheetsPreview(
-          loadedState: loadedStateStub,
+          loadedState: loadedState,
           totalSheets: totalSheets,
           slotsPerSheet: slotsPerSheet,
           activePositions: activePositions,
           sheetConfig: sheetConfig,
           sticker: sticker,
           template: template,
-          items: state.items,
+          items: loadedState.printableItems,
           onToggleSlot: cubit.toggleSlot,
           onToggleRowSlots: (sheetIndex, rowIndex, select) => cubit.toggleRowSlots(sheetIndex, rowIndex, select: select),
           onToggleAllFirstSheet: (select) => select ? cubit.selectAllFirstSheet() : cubit.deselectAllFirstSheet(),
           onTogglePrintFromBottom: (val) => cubit.togglePrintFromBottom(value: val),
+          onToggleReverseSheetOrder: (val) => cubit.toggleReverseSheetOrder(value: val),
         );
 
         return SingleChildScrollView(
@@ -211,13 +259,13 @@ class StepPrintPreviewView extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Batch printing ${state.items.length} variant(s) across ${state.totalQuantity} total labels on "${template.name}".',
+                        'Batch printing ${loadedState.printableItems.length} variant(s) across $totalQuantity total labels on "${template.name}".',
                         style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
                   OutlinedButton.icon(
-                    onPressed: () => cubit.goToPreviousStep(),
+                    onPressed: () => context.read<OrderLabelPrintCubit>().goToPreviousStep(),
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('Back to Review'),
                   ),

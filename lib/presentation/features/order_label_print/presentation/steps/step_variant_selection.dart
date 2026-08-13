@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:stickify/core/core.dart';
@@ -9,27 +10,82 @@ import 'package:stickify/presentation/features/order_label_print/presentation/wi
 import 'package:stickify/presentation/features/product/presentation/shared/edit_variant_dialog.dart';
 
 /// Step 2: Variant & Quantity Selection View (2-column layout on Desktop)
-class StepVariantSelectionView extends StatelessWidget {
+class StepVariantSelectionView extends StatefulWidget {
   /// Creates a [StepVariantSelectionView].
   const StepVariantSelectionView({super.key});
+
+  @override
+  State<StepVariantSelectionView> createState() => _StepVariantSelectionViewState();
+}
+
+class _StepVariantSelectionViewState extends State<StepVariantSelectionView> {
+  final FocusNode _keyboardFocusNode = FocusNode();
+  final FocusNode _searchFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _keyboardFocusNode.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _handleFocusSearch() {
+    _searchFocusNode.requestFocus();
+  }
+
+  void _handleProceedToPrint() {
+    final cubit = context.read<OrderLabelPrintCubit>();
+    if (cubit.state.items.isNotEmpty) {
+      cubit.goToNextStep();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isMobile = ResponsiveBreakpoints.of(context).isMobile;
 
-    return BlocBuilder<OrderLabelPrintCubit, OrderLabelPrintState>(
-      builder: (context, state) {
-        if (isMobile) {
-          return const _MobileVariantSelectionLayout();
+    return Focus(
+      focusNode: _keyboardFocusNode,
+      autofocus: true,
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent || event is KeyRepeatEvent) {
+          final key = event.logicalKey;
+          final isCtrl = HardwareKeyboard.instance.isControlPressed ||
+              HardwareKeyboard.instance.isMetaPressed;
+          final isAlt = HardwareKeyboard.instance.isAltPressed;
+
+          // Ctrl + F / Ctrl + S / Slash: Focus Search Field
+          if ((isCtrl && (key == LogicalKeyboardKey.keyF || key == LogicalKeyboardKey.keyS)) ||
+              (key == LogicalKeyboardKey.slash && !_searchFocusNode.hasFocus)) {
+            _handleFocusSearch();
+            return KeyEventResult.handled;
+          }
+
+          // Ctrl + Enter / Alt + Enter: Proceed to Print Preview
+          if ((isCtrl || isAlt) &&
+              (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.numpadEnter)) {
+            _handleProceedToPrint();
+            return KeyEventResult.handled;
+          }
         }
-        return const _DesktopVariantSelectionLayout();
+        return KeyEventResult.ignored;
       },
+      child: BlocBuilder<OrderLabelPrintCubit, OrderLabelPrintState>(
+        builder: (context, state) {
+          if (isMobile) {
+            return _MobileVariantSelectionLayout(searchFocusNode: _searchFocusNode);
+          }
+          return _DesktopVariantSelectionLayout(searchFocusNode: _searchFocusNode);
+        },
+      ),
     );
   }
 }
 
 class _DesktopVariantSelectionLayout extends StatelessWidget {
-  const _DesktopVariantSelectionLayout();
+  const _DesktopVariantSelectionLayout({required this.searchFocusNode});
+
+  final FocusNode searchFocusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -54,20 +110,32 @@ class _DesktopVariantSelectionLayout extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Icon(Icons.search, color: colorScheme.primary),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Select Products & Variants',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                ),
+                              Row(
+                                children: [
+                                  Icon(Icons.search, color: colorScheme.primary),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Select Products & Variants',
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Wrap(
+                                spacing: 6,
+                                children: [
+                                  _ShortcutBadge(label: 'Ctrl+F', description: 'Search'),
+                                  _ShortcutBadge(label: 'Ctrl+Enter', description: 'Proceed'),
+                                ],
                               ),
                             ],
                           ),
                           const SizedBox(height: 12),
-                          const _ProductSearchBar(),
+                          _ProductSearchBar(focusNode: searchFocusNode),
                           const SizedBox(height: 12),
                           const Expanded(child: _ProductBrowserList()),
                         ],
@@ -106,7 +174,9 @@ class _DesktopVariantSelectionLayout extends StatelessWidget {
 }
 
 class _MobileVariantSelectionLayout extends StatelessWidget {
-  const _MobileVariantSelectionLayout();
+  const _MobileVariantSelectionLayout({required this.searchFocusNode});
+
+  final FocusNode searchFocusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +184,7 @@ class _MobileVariantSelectionLayout extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const _ProductSearchBar(),
+          _ProductSearchBar(focusNode: searchFocusNode),
           const SizedBox(height: 12),
           const Expanded(child: _ProductBrowserList()),
           const SizedBox(height: 12),
@@ -127,8 +197,51 @@ class _MobileVariantSelectionLayout extends StatelessWidget {
   }
 }
 
+class _ShortcutBadge extends StatelessWidget {
+  const _ShortcutBadge({required this.label, required this.description});
+
+  final String label;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 11,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ProductSearchBar extends StatefulWidget {
-  const _ProductSearchBar();
+  const _ProductSearchBar({required this.focusNode});
+
+  final FocusNode focusNode;
 
   @override
   State<_ProductSearchBar> createState() => _ProductSearchBarState();
@@ -155,8 +268,9 @@ class _ProductSearchBarState extends State<_ProductSearchBar> {
   Widget build(BuildContext context) {
     return TextField(
       controller: _controller,
+      focusNode: widget.focusNode,
       decoration: InputDecoration(
-        hintText: 'Search products or SKUs...',
+        hintText: 'Search products or SKUs... (Ctrl + F)',
         prefixIcon: const Icon(Icons.search),
         suffixIcon: _controller.text.isNotEmpty
             ? IconButton(

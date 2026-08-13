@@ -62,10 +62,8 @@ void main() {
       );
 
       final result = await service.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
@@ -96,10 +94,8 @@ void main() {
       );
 
       final result = await service.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
@@ -139,10 +135,8 @@ void main() {
       );
 
       final result = await service.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
@@ -199,10 +193,8 @@ void main() {
       );
 
       final result = await service.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
@@ -260,10 +252,8 @@ void main() {
         );
 
         final result = await service.printLabels(
-          product: testProduct,
-          variant: testVariant,
+          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
-          quantity: 1,
           disabledSlots: {},
           printer: const PrinterDevice(name: 'Zebra', url: ''),
         );
@@ -301,10 +291,8 @@ void main() {
         );
 
         final result = await service.printLabels(
-          product: testProduct,
-          variant: testVariant,
+          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
-          quantity: 1,
           disabledSlots: {},
           printer: const PrinterDevice(name: 'Zebra', url: ''),
         );
@@ -361,10 +349,8 @@ void main() {
       );
 
       final result = await service.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
       );
@@ -481,10 +467,8 @@ void main() {
       () async {
         when(
           () => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: any(named: 'coordinateContext'),
@@ -492,10 +476,8 @@ void main() {
         ).thenAnswer((_) async => Uint8List(0));
 
         final result = await calibrationService.printLabels(
-          product: testProduct,
-          variant: testVariant,
+          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
-          quantity: 1,
           disabledSlots: {},
           printer: const PrinterDevice(name: 'Zebra', url: ''),
           executionConfiguration: null,
@@ -505,10 +487,8 @@ void main() {
         final capturedContext =
             verify(
                   () => mockLayoutEngine.buildPdfBytes(
-                    product: any(named: 'product'),
-                    variant: any(named: 'variant'),
+                    items: any(named: 'items'),
                     template: any(named: 'template'),
-                    quantity: any(named: 'quantity'),
                     disabledSlots: any(named: 'disabledSlots'),
                     printFromBottom: any(named: 'printFromBottom'),
                     coordinateContext: captureAny(named: 'coordinateContext'),
@@ -525,10 +505,8 @@ void main() {
       () async {
         when(
           () => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: any(named: 'coordinateContext'),
@@ -536,10 +514,8 @@ void main() {
         ).thenAnswer((_) async => Uint8List(0));
 
         final result = await calibrationService.printLabels(
-          product: testProduct,
-          variant: testVariant,
+          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: template,
-          quantity: 1,
           disabledSlots: {},
           printer: const PrinterDevice(name: 'Zebra', url: ''),
           executionConfiguration: const PrintExecutionConfiguration(
@@ -551,10 +527,8 @@ void main() {
         final capturedContext =
             verify(
                   () => mockLayoutEngine.buildPdfBytes(
-                    product: any(named: 'product'),
-                    variant: any(named: 'variant'),
+                    items: any(named: 'items'),
                     template: any(named: 'template'),
-                    quantity: any(named: 'quantity'),
                     disabledSlots: any(named: 'disabledSlots'),
                     printFromBottom: any(named: 'printFromBottom'),
                     coordinateContext: captureAny(named: 'coordinateContext'),
@@ -569,10 +543,8 @@ void main() {
     test('Calibration disabled -> identity context', () async {
       when(
         () => mockLayoutEngine.buildPdfBytes(
-          product: any(named: 'product'),
-          variant: any(named: 'variant'),
+          items: any(named: 'items'),
           template: any(named: 'template'),
-          quantity: any(named: 'quantity'),
           disabledSlots: any(named: 'disabledSlots'),
           printFromBottom: any(named: 'printFromBottom'),
           coordinateContext: any(named: 'coordinateContext'),
@@ -580,10 +552,8 @@ void main() {
       ).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
         executionConfiguration: PrintExecutionConfiguration(
@@ -596,10 +566,8 @@ void main() {
       final capturedContext =
           verify(
                 () => mockLayoutEngine.buildPdfBytes(
-                  product: any(named: 'product'),
-                  variant: any(named: 'variant'),
+                  items: any(named: 'items'),
                   template: any(named: 'template'),
-                  quantity: any(named: 'quantity'),
                   disabledSlots: any(named: 'disabledSlots'),
                   printFromBottom: any(named: 'printFromBottom'),
                   coordinateContext: captureAny(named: 'coordinateContext'),
@@ -613,10 +581,8 @@ void main() {
     test('Valid calibration -> applies rules and matches parameters', () async {
       when(
         () => mockLayoutEngine.buildPdfBytes(
-          product: any(named: 'product'),
-          variant: any(named: 'variant'),
+          items: any(named: 'items'),
           template: any(named: 'template'),
-          quantity: any(named: 'quantity'),
           disabledSlots: any(named: 'disabledSlots'),
           printFromBottom: any(named: 'printFromBottom'),
           coordinateContext: any(named: 'coordinateContext'),
@@ -624,10 +590,8 @@ void main() {
       ).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
         executionConfiguration: PrintExecutionConfiguration(
@@ -640,10 +604,8 @@ void main() {
       final capturedContext =
           verify(
                 () => mockLayoutEngine.buildPdfBytes(
-                  product: any(named: 'product'),
-                  variant: any(named: 'variant'),
+                  items: any(named: 'items'),
                   template: any(named: 'template'),
-                  quantity: any(named: 'quantity'),
                   disabledSlots: any(named: 'disabledSlots'),
                   printFromBottom: any(named: 'printFromBottom'),
                   coordinateContext: captureAny(named: 'coordinateContext'),
@@ -661,10 +623,8 @@ void main() {
 
     test('Unsupported paper configuration -> returns failure', () async {
       final result = await calibrationService.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
         executionConfiguration: PrintExecutionConfiguration(
@@ -758,25 +718,22 @@ void main() {
       registerFallbackValue(testProduct);
       registerFallbackValue(testVariant);
       registerFallbackValue(template);
+      registerFallbackValue(const PrintableItem(product: testProduct, variant: testVariant, quantity: 1));
       registerFallbackValue(const PrintCoordinateContext.identity());
     });
 
     test('No printer configuration (null configuration) -> identity context', () async {
       when(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: any(named: 'coordinateContext'),
           )).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
         executionConfiguration: null,
@@ -784,10 +741,8 @@ void main() {
 
       expect(result, isA<Success<void, AppError>>());
       final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: captureAny(named: 'coordinateContext'),
@@ -798,20 +753,16 @@ void main() {
 
     test('No selected tray (PrintExecutionConfiguration with null selectedTray) -> identity context', () async {
       when(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: any(named: 'coordinateContext'),
           )).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
         executionConfiguration: const PrintExecutionConfiguration(selectedTray: null),
@@ -819,10 +770,8 @@ void main() {
 
       expect(result, isA<Success<void, AppError>>());
       final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: captureAny(named: 'coordinateContext'),
@@ -833,20 +782,16 @@ void main() {
 
     test('Calibration disabled -> identity context', () async {
       when(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: any(named: 'coordinateContext'),
           )).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
         executionConfiguration: PrintExecutionConfiguration(
@@ -857,10 +802,8 @@ void main() {
 
       expect(result, isA<Success<void, AppError>>());
       final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: captureAny(named: 'coordinateContext'),
@@ -871,20 +814,16 @@ void main() {
 
     test('Valid calibration -> applies rules and matches parameters', () async {
       when(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: any(named: 'coordinateContext'),
           )).thenAnswer((_) async => Uint8List(0));
 
       final result = await calibrationService.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
         executionConfiguration: PrintExecutionConfiguration(
@@ -895,10 +834,8 @@ void main() {
 
       expect(result, isA<Success<void, AppError>>());
       final capturedContext = verify(() => mockLayoutEngine.buildPdfBytes(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printFromBottom: any(named: 'printFromBottom'),
             coordinateContext: captureAny(named: 'coordinateContext'),
@@ -914,10 +851,8 @@ void main() {
 
     test('Unsupported paper configuration -> returns failure', () async {
       final result = await calibrationService.printLabels(
-        product: testProduct,
-        variant: testVariant,
+        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra', url: ''),
         executionConfiguration: PrintExecutionConfiguration(

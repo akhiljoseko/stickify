@@ -164,10 +164,8 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
 
   @override
   Future<Result<void, AppError>> printLabels({
-    required Product product,
-    required ProductVariant variant,
+    required List<PrintableItem> items,
     required LabelTemplate template,
-    required int quantity,
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,
@@ -177,14 +175,16 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
   }) async {
     String? backupToken;
     try {
-      // 1. Pre-print validation (delegated to PrintPreFlightValidator)
-      final validationResult = _preFlightValidator.validate(
-        template: template,
-        quantity: quantity,
-        disabledSlots: disabledSlots,
-      );
-      if (validationResult case Failure(error: final err)) {
-        return Result.failure(err);
+      // 1. Pre-print validation (delegated to PrintPreFlightValidator per item)
+      for (final item in items) {
+        final validationResult = _preFlightValidator.validate(
+          template: template,
+          quantity: item.quantity,
+          disabledSlots: disabledSlots,
+        );
+        if (validationResult case Failure(error: final err)) {
+          return Result.failure(err);
+        }
       }
 
       final sheetConfig = template.sheetConfig!;
@@ -240,10 +240,8 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
         printer: resolvedPrinter,
         onLayout: (format) async {
           return _layoutEngine.buildPdfBytes(
-            product: product,
-            variant: variant,
+            items: items,
             template: template,
-            quantity: quantity,
             disabledSlots: disabledSlots,
             printFromBottom: printFromBottom,
             reverseSheetOrder: reverseSheetOrder,

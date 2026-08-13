@@ -18,6 +18,14 @@ class ParametersPanel extends StatefulWidget {
     required this.template,
     required this.sheetConfig,
     required this.state,
+    this.onQuantityChanged,
+    this.onPrinterChanged,
+    this.onManufacturingDateChanged,
+    this.onTemplateChanged,
+    this.onPrint,
+    this.showQuantityField = true,
+    this.showTemplateSelector = true,
+    this.isSubmitting = false,
     super.key,
   });
 
@@ -35,6 +43,30 @@ class ParametersPanel extends StatefulWidget {
 
   /// The overall bloc state.
   final PrintWorkflowState state;
+
+  /// Callback when quantity field changes.
+  final ValueChanged<int>? onQuantityChanged;
+
+  /// Callback when target printer is selected.
+  final ValueChanged<PrinterDevice>? onPrinterChanged;
+
+  /// Callback when manufacturing date changes.
+  final ValueChanged<DateTime>? onManufacturingDateChanged;
+
+  /// Callback when label template is changed.
+  final ValueChanged<LabelTemplate>? onTemplateChanged;
+
+  /// Callback when print action is triggered.
+  final VoidCallback? onPrint;
+
+  /// Whether to display the quantity text field.
+  final bool showQuantityField;
+
+  /// Whether to display the template selector dropdown.
+  final bool showTemplateSelector;
+
+  /// Whether a print job is currently compiling or submitting.
+  final bool isSubmitting;
 
   @override
   State<ParametersPanel> createState() => _ParametersPanelState();
@@ -60,7 +92,7 @@ class _ParametersPanelState extends State<ParametersPanel> {
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
+      if (mounted && widget.showQuantityField) {
         _focusNode.requestFocus();
       }
     });
@@ -87,6 +119,8 @@ class _ParametersPanelState extends State<ParametersPanel> {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
+    final submitting = widget.isSubmitting || widget.state is PrintWorkflowSubmitting;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -98,22 +132,28 @@ class _ParametersPanelState extends State<ParametersPanel> {
               style: textTheme.titleSmall?.copyWith(color: colorScheme.primary),
             ),
             const SizedBox(height: 20),
-            // Quantity
-            TextFormField(
-              controller: _qtyController,
-              focusNode: _focusNode,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
-                labelText: 'Quantity to Print',
-                border: OutlineInputBorder(),
+            // Quantity (conditional)
+            if (widget.showQuantityField) ...[
+              TextFormField(
+                controller: _qtyController,
+                focusNode: _focusNode,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: const InputDecoration(
+                  labelText: 'Quantity to Print',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (val) {
+                  final parsed = int.tryParse(val) ?? 0;
+                  if (widget.onQuantityChanged != null) {
+                    widget.onQuantityChanged!(parsed);
+                  } else {
+                    context.read<PrintWorkflowCubit>().updateQuantity(parsed);
+                  }
+                },
               ),
-              onChanged: (val) {
-                final parsed = int.tryParse(val) ?? 0;
-                context.read<PrintWorkflowCubit>().updateQuantity(parsed);
-              },
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
+            ],
             // Printer Selection
             DropdownButtonFormField<PrinterDevice>(
               isExpanded: true,
@@ -132,7 +172,11 @@ class _ParametersPanelState extends State<ParametersPanel> {
                   .toList(),
               onChanged: (val) {
                 if (val != null) {
-                  context.read<PrintWorkflowCubit>().updatePrinter(val);
+                  if (widget.onPrinterChanged != null) {
+                    widget.onPrinterChanged!(val);
+                  } else {
+                    context.read<PrintWorkflowCubit>().updatePrinter(val);
+                  }
                 }
               },
             ),
@@ -140,26 +184,36 @@ class _ParametersPanelState extends State<ParametersPanel> {
             ManufacturingDatePicker(
               selectedDate: widget.loadedState.manufacturingDate,
               onDateChanged: (date) {
-                context.read<PrintWorkflowCubit>().updateManufacturingDate(date);
+                if (widget.onManufacturingDateChanged != null) {
+                  widget.onManufacturingDateChanged!(date);
+                } else {
+                  context.read<PrintWorkflowCubit>().updateManufacturingDate(date);
+                }
               },
             ),
-            const SizedBox(height: 20),
-            const Divider(),
-            const SizedBox(height: 16),
-            // Template selection dropdown
-            TemplateSelectorField(
-              templates: widget.loadedState.templates,
-              selectedTemplateId: widget.loadedState.selectedTemplate?.id,
-              labelText: 'Label Template',
-              onChanged: widget.loadedState.templates.isEmpty
-                  ? (_) {}
-                  : (val) {
-                      if (val != null) {
-                        final template = widget.loadedState.templates.firstWhere((t) => t.id == val);
-                        context.read<PrintWorkflowCubit>().selectTemplate(template);
-                      }
-                    },
-            ),
+            if (widget.showTemplateSelector) ...[
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 16),
+              // Template selection dropdown
+              TemplateSelectorField(
+                templates: widget.loadedState.templates,
+                selectedTemplateId: widget.loadedState.selectedTemplate?.id,
+                labelText: 'Label Template',
+                onChanged: widget.loadedState.templates.isEmpty
+                    ? (_) {}
+                    : (val) {
+                        if (val != null) {
+                          final template = widget.loadedState.templates.firstWhere((t) => t.id == val);
+                          if (widget.onTemplateChanged != null) {
+                            widget.onTemplateChanged!(template);
+                          } else {
+                            context.read<PrintWorkflowCubit>().selectTemplate(template);
+                          }
+                        }
+                      },
+              ),
+            ],
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -249,10 +303,16 @@ class _ParametersPanelState extends State<ParametersPanel> {
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
                 ),
-                onPressed: widget.state is PrintWorkflowSubmitting
+                onPressed: submitting
                     ? null
-                    : () => context.read<PrintWorkflowCubit>().startPrintJob(),
-                icon: widget.state is PrintWorkflowSubmitting
+                    : () {
+                        if (widget.onPrint != null) {
+                          widget.onPrint!();
+                        } else {
+                          context.read<PrintWorkflowCubit>().startPrintJob();
+                        }
+                      },
+                icon: submitting
                     ? const SizedBox(
                         width: 18,
                         height: 18,
@@ -263,7 +323,7 @@ class _ParametersPanelState extends State<ParametersPanel> {
                       )
                     : const Icon(Icons.print),
                 label: Text(
-                  widget.state is PrintWorkflowSubmitting
+                  submitting
                       ? 'Sending to Printer...'
                       : 'Print',
                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -288,12 +348,18 @@ class SheetsPreview extends StatelessWidget {
     required this.sheetConfig,
     required this.sticker,
     required this.template,
-    required this.product,
-    required this.variant,
+    required this.items,
+    this.product,
+    this.variant,
+    this.onToggleSlot,
+    this.onToggleRowSlots,
+    this.onToggleAllFirstSheet,
+    this.onTogglePrintFromBottom,
+    this.onToggleReverseSheetOrder,
     super.key,
   });
 
-  /// The active loaded workflow state.
+  /// The active loaded workflow state metadata.
   final PrintWorkflowLoaded loadedState;
 
   /// Total calculated sheets.
@@ -314,11 +380,29 @@ class SheetsPreview extends StatelessWidget {
   /// Label template.
   final LabelTemplate template;
 
-  /// Product entity.
-  final Product product;
+  /// Items list designated for slot filling.
+  final List<PrintableItem> items;
 
-  /// Product variant entity.
-  final ProductVariant variant;
+  /// Optional fallback product entity.
+  final Product? product;
+
+  /// Optional fallback product variant entity.
+  final ProductVariant? variant;
+
+  /// Callback when a slot grid index toggle action is triggered.
+  final ValueChanged<int>? onToggleSlot;
+
+  /// Callback when a row checkbox toggle action is triggered.
+  final void Function(int sheetIndex, int rowIndex, bool select)? onToggleRowSlots;
+
+  /// Callback when select/deselect all first sheet action is triggered.
+  final ValueChanged<bool>? onToggleAllFirstSheet;
+
+  /// Callback when print from bottom toggle changes.
+  final ValueChanged<bool>? onTogglePrintFromBottom;
+
+  /// Callback when reverse sheet order toggle changes.
+  final ValueChanged<bool>? onToggleReverseSheetOrder;
 
   /// Maximum number of sheet previews to render (prevents OOM for large jobs).
   static const int maxPreviewSheets = 15;
@@ -328,6 +412,24 @@ class SheetsPreview extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+
+    // Map active slots sequentially to items in the list
+    final sortedActivePositions = activePositions.toList()..sort();
+    final slotItemMap = <int, PrintableItem>{};
+    var currentItemIndex = 0;
+    var currentItemUsedQty = 0;
+
+    for (final absIndex in sortedActivePositions) {
+      while (currentItemIndex < items.length &&
+          currentItemUsedQty >= items[currentItemIndex].quantity) {
+        currentItemIndex++;
+        currentItemUsedQty = 0;
+      }
+      if (currentItemIndex < items.length) {
+        slotItemMap[absIndex] = items[currentItemIndex];
+        currentItemUsedQty++;
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,11 +516,16 @@ class SheetsPreview extends StatelessWidget {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   onPressed: () {
-                    final cubit = context.read<PrintWorkflowCubit>();
-                    if (allFirstSheetSelected) {
-                      cubit.deselectAllFirstSheet();
+                    final select = !allFirstSheetSelected;
+                    if (onToggleAllFirstSheet != null) {
+                      onToggleAllFirstSheet!(select);
                     } else {
-                      cubit.selectAllFirstSheet();
+                      final cubit = context.read<PrintWorkflowCubit>();
+                      if (allFirstSheetSelected) {
+                        cubit.deselectAllFirstSheet();
+                      } else {
+                        cubit.selectAllFirstSheet();
+                      }
                     }
                   },
                   icon: Icon(
@@ -442,7 +549,31 @@ class SheetsPreview extends StatelessWidget {
                 Switch(
                   value: loadedState.printFromBottom,
                   onChanged: (val) {
-                    context.read<PrintWorkflowCubit>().togglePrintFromBottom(value: val);
+                    if (onTogglePrintFromBottom != null) {
+                      onTogglePrintFromBottom!(val);
+                    } else {
+                      context.read<PrintWorkflowCubit>().togglePrintFromBottom(value: val);
+                    }
+                  },
+                ),
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Reverse sheet order',
+                  style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 8),
+                Switch(
+                  value: loadedState.reverseSheetOrder,
+                  onChanged: (val) {
+                    if (onToggleReverseSheetOrder != null) {
+                      onToggleReverseSheetOrder!(val);
+                    } else {
+                      context.read<PrintWorkflowCubit>().toggleReverseSheetOrder(value: val);
+                    }
                   },
                 ),
               ],
@@ -451,13 +582,13 @@ class SheetsPreview extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-          // Sheets scrollable container — capped to prevent OOM for large jobs
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: totalSheets > maxPreviewSheets
-                ? maxPreviewSheets
-                : totalSheets,
+        // Sheets scrollable container — capped to prevent OOM for large jobs
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: totalSheets > maxPreviewSheets
+              ? maxPreviewSheets
+              : totalSheets,
           separatorBuilder: (context, index) => const SizedBox(height: 24),
           itemBuilder: (context, sheetIndex) {
             final disabledOnSheet = loadedState.disabledSlots
@@ -603,11 +734,15 @@ class SheetsPreview extends StatelessWidget {
                                                 activeColor: colorScheme.primary,
                                                 onChanged: (val) {
                                                   final select = val == true;
-                                                  context.read<PrintWorkflowCubit>().toggleRowSlots(
-                                                    sheetIndex,
-                                                    rowIndex,
-                                                    select: select,
-                                                  );
+                                                  if (onToggleRowSlots != null) {
+                                                    onToggleRowSlots!(sheetIndex, rowIndex, select);
+                                                  } else {
+                                                    context.read<PrintWorkflowCubit>().toggleRowSlots(
+                                                      sheetIndex,
+                                                      rowIndex,
+                                                      select: select,
+                                                    );
+                                                  }
                                                 },
                                               ),
                                             ),
@@ -647,9 +782,15 @@ class SheetsPreview extends StatelessWidget {
       
                                           if (isDisabled) {
                                             return InkWell(
-                                              onTap: () => context
-                                                  .read<PrintWorkflowCubit>()
-                                                  .toggleSlot(absIndex),
+                                              onTap: () {
+                                                if (onToggleSlot != null) {
+                                                  onToggleSlot!(absIndex);
+                                                } else {
+                                                  context
+                                                      .read<PrintWorkflowCubit>()
+                                                      .toggleSlot(absIndex);
+                                                }
+                                              },
                                               child: Container(
                                                 decoration: BoxDecoration(
                                                   color:
@@ -672,10 +813,21 @@ class SheetsPreview extends StatelessWidget {
                                           }
       
                                           if (isActive) {
+                                            final activeItem = slotItemMap[absIndex] ??
+                                                (items.isNotEmpty ? items.first : null);
+                                            final activeProduct = activeItem?.product ?? product!;
+                                            final activeVariant = activeItem?.variant ?? variant!;
+
                                             return InkWell(
-                                              onTap: () => context
-                                                  .read<PrintWorkflowCubit>()
-                                                  .toggleSlot(absIndex),
+                                              onTap: () {
+                                                if (onToggleSlot != null) {
+                                                  onToggleSlot!(absIndex);
+                                                } else {
+                                                  context
+                                                      .read<PrintWorkflowCubit>()
+                                                      .toggleSlot(absIndex);
+                                                }
+                                              },
                                               child: Container(
                                                 decoration: BoxDecoration(
                                                   border: Border.all(
@@ -710,8 +862,8 @@ class SheetsPreview extends StatelessWidget {
                                                               ).render(
                                                                 context,
                                                                 bp,
-                                                                product: product,
-                                                                variant: variant,
+                                                                product: activeProduct,
+                                                                variant: activeVariant,
                                                                 manufacturingDate: loadedState.manufacturingDate,
                                                               );
       

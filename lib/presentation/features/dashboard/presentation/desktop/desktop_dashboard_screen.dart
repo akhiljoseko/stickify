@@ -134,22 +134,22 @@ class _QuickActionsGrid extends StatelessWidget {
   static List<_QuickActionData> _actions(BuildContext context) => [
     _QuickActionData(
       icon: Icons.print_outlined,
-      title: 'Start New Print',
-      subtitle: 'Select product & template',
+      title: 'Start Single Print',
+      subtitle: 'Single product label print',
       isPrimary: true,
       onTap: () => ProductVariantSelectionDialog.show(context),
+    ),
+    _QuickActionData(
+      icon: Icons.layers_outlined,
+      title: 'Start Batch Print',
+      subtitle: 'Batch multi-item printing (Ctrl+O)',
+      onTap: () => context.push('/order-label-print'),
     ),
     _QuickActionData(
       icon: Icons.add_circle_outline,
       title: 'Add New Product',
       subtitle: 'Register SKU & Metadata',
       onTap: () => context.go('/products?subView=create'),
-    ),
-    _QuickActionData(
-      icon: Icons.dashboard_customize_outlined,
-      title: 'Create Template',
-      subtitle: 'Visual designer tool',
-      onTap: () => context.go('/templates?action=create'),
     ),
   ];
 

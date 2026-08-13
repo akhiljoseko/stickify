@@ -262,10 +262,8 @@ void main() {
       );
 
       final pdfBytes = await engine.buildPdfBytes(
-        product: product,
-        variant: variant,
+        items: [const PrintableItem(product: product, variant: variant, quantity: 1)],
         template: template,
-        quantity: 1,
         disabledSlots: {},
       );
 

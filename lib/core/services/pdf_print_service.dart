@@ -43,10 +43,8 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
 
   @override
   Future<Result<void, AppError>> printLabels({
-    required Product product,
-    required ProductVariant variant,
+    required List<PrintableItem> items,
     required LabelTemplate template,
-    required int quantity,
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,
@@ -55,14 +53,16 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
     DateTime? manufacturingDate,
   }) async {
     try {
-      // 1. Pre-print validation (delegated to PrintPreFlightValidator)
-      final validationResult = _preFlightValidator.validate(
-        template: template,
-        quantity: quantity,
-        disabledSlots: disabledSlots,
-      );
-      if (validationResult case Failure(error: final err)) {
-        return Result.failure(err);
+      // 1. Pre-print validation (delegated to PrintPreFlightValidator per item)
+      for (final item in items) {
+        final validationResult = _preFlightValidator.validate(
+          template: template,
+          quantity: item.quantity,
+          disabledSlots: disabledSlots,
+        );
+        if (validationResult case Failure(error: final err)) {
+          return Result.failure(err);
+        }
       }
 
       final sheetConfig = template.sheetConfig!;
@@ -79,10 +79,8 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
 
       // 3. Generate PDF bytes using the layout engine.
       final pdfBytes = await _layoutEngine.buildPdfBytes(
-        product: product,
-        variant: variant,
+        items: items,
         template: template,
-        quantity: quantity,
         disabledSlots: disabledSlots,
         printFromBottom: printFromBottom,
         reverseSheetOrder: reverseSheetOrder,
@@ -96,9 +94,13 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
         marginAll: 0,
       );
 
+      final docName = items.length == 1
+          ? '${items.first.product.name}_${items.first.variant.name}_labels'
+          : 'order_batch_labels_${DateTime.now().millisecondsSinceEpoch}';
+
       // 4. Dispatch to printing framework
       await Printing.layoutPdf(
-        name: '${product.name}_${variant.name}_labels',
+        name: docName,
         onLayout: (format) async => pdfBytes,
         format: targetFormat,
         dynamicLayout: false,

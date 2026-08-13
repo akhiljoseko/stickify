@@ -31,11 +31,7 @@ class SyncingProductRepository with SyncableRepository<Product> implements Synca
     return local.getAllProducts();
   }
 
-  @override
-  @Deprecated('Use getProducts with pagination instead.')
-  Future<Result<List<Product>, AppError>> getFilteredProducts({String query = '', String category = ''}) async {
-    return local.getFilteredProducts(query: query, category: category);
-  }
+
 
   @override
   Future<Result<PaginatedResult<Product>, AppError>> getProducts({

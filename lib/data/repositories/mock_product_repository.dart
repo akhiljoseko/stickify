@@ -137,19 +137,7 @@ class MockProductRepository implements ProductRepository {
     return Result.success(List.unmodifiable(_mockProducts));
   }
 
-  @override
-  Future<Result<List<Product>, AppError>> getFilteredProducts({String query = '', String category = ''}) async {
-    await Future<void>.delayed(const Duration(milliseconds: 150));
-    final filtered = _mockProducts.where((product) {
-      final matchesQuery = query.isEmpty ||
-          product.name.toLowerCase().contains(query.toLowerCase()) ||
-          product.sku.toLowerCase().contains(query.toLowerCase());
-      final matchesCategory = category.isEmpty ||
-          (product.category ?? '').toLowerCase() == category.toLowerCase();
-      return matchesQuery && matchesCategory;
-    }).toList();
-    return Result.success(filtered);
-  }
+
 
   @override
   Future<Result<PaginatedResult<Product>, AppError>> getProducts({

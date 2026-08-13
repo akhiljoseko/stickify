@@ -11,10 +11,8 @@ import 'package:stickify/domain/domain.dart';
 abstract interface class PrintService {
   /// Generates a PDF document for the label sheet grids and sends it to the system printer.
   Future<Result<void, AppError>> printLabels({
-    required Product product,
-    required ProductVariant variant,
+    required List<PrintableItem> items,
     required LabelTemplate template,
-    required int quantity,
     required Set<int> disabledSlots,
     required PrinterDevice printer,
     bool printFromBottom = false,

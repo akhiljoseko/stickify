@@ -9,4 +9,5 @@ library;
 export 'adaptive_layout_switcher.dart';
 export 'adaptive_scroll_wrapper.dart';
 export 'app_image.dart';
+export 'template_grid_card.dart';
 export 'template_selector.dart';

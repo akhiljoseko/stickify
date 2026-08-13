@@ -13,19 +13,40 @@ import 'package:stickify/presentation/features/print/presentation/print_setup_en
 import 'package:stickify/presentation/features/template_editor/renderers/text_element_renderer.dart';
 import '../../../../helpers/pump_app.dart';
 
-class MockSyncableProductRepository extends Mock implements SyncableProductRepository {}
-class MockSyncableTemplateRepository extends Mock implements SyncableTemplateRepository {}
+class MockSyncableProductRepository extends Mock
+    implements SyncableProductRepository {}
+
+class MockSyncableTemplateRepository extends Mock
+    implements SyncableTemplateRepository {}
+
 class MockPrintJobRepository extends Mock implements PrintJobRepository {}
+
 class MockPrintService extends Mock implements PrintService {}
-class MockPrinterDiscoveryService extends Mock implements PrinterDiscoveryService {}
+
+class MockPrinterDiscoveryService extends Mock
+    implements PrinterDiscoveryService {}
+
 class MockPrintJobIdGenerator extends Mock implements PrintJobIdGenerator {}
-class MockVariantPrintStatsRepository extends Mock implements VariantPrintStatsRepository {}
+
+class MockVariantPrintStatsRepository extends Mock
+    implements VariantPrintStatsRepository {}
+
 class MockLocalDatabase extends Mock implements LocalDatabase {}
-class MockSyncablePrinterProfileRepository extends Mock implements SyncablePrinterProfileRepository {}
-class MockPrinterCalibrationCoordinateResolver extends Mock implements PrinterCalibrationCoordinateResolver {}
-class MockTemplatePrinterCompatibilityAnalyzer extends Mock implements TemplatePrinterCompatibilityAnalyzer {}
-class MockPrintPipelineOrchestrator extends Mock implements PrintPipelineOrchestrator {}
+
+class MockSyncablePrinterProfileRepository extends Mock
+    implements SyncablePrinterProfileRepository {}
+
+class MockPrinterCalibrationCoordinateResolver extends Mock
+    implements PrinterCalibrationCoordinateResolver {}
+
+class MockTemplatePrinterCompatibilityAnalyzer extends Mock
+    implements TemplatePrinterCompatibilityAnalyzer {}
+
+class MockPrintPipelineOrchestrator extends Mock
+    implements PrintPipelineOrchestrator {}
+
 class MockAppServiceLocator extends Mock implements AppServiceLocator {}
+
 class MockGoRouter extends Mock implements GoRouter {}
 
 void main() {
@@ -176,13 +197,17 @@ void main() {
 
   group('Token Resolution Tests', () {
     test('resolves product and variant tokens correctly', () {
-      const input = 'Product: {{product.name}}, Variant SKU: {{variant.sku}}, MRP: ₹{{variant.mrp}}';
+      const input =
+          'Product: {{product.name}}, Variant SKU: {{variant.sku}}, MRP: ₹{{variant.mrp}}';
       final resolved = TextElementRenderer.resolveToken(
         input,
         testProduct,
         testProduct.variants.first,
       );
-      expect(resolved, 'Product: Dynamic Product, Variant SKU: PROD-VAR-SKU, MRP: ₹200.00');
+      expect(
+        resolved,
+        'Product: Dynamic Product, Variant SKU: PROD-VAR-SKU, MRP: ₹200.00',
+      );
     });
   });
 
@@ -202,55 +227,89 @@ void main() {
       printPipelineOrchestrator = MockPrintPipelineOrchestrator();
       serviceLocator = MockAppServiceLocator();
 
-      when(() => localDatabase.get<bool>(any(), any())).thenAnswer((_) async => false);
-      when(() => localDatabase.save<bool>(any(), any(), any())).thenAnswer((_) async {});
+      when(
+        () => localDatabase.get<bool>(any(), any()),
+      ).thenAnswer((_) async => false);
+      when(
+        () => localDatabase.save<bool>(any(), any(), any()),
+      ).thenAnswer((_) async {});
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
-      when(() => productRepository.getProductById('prod-test'))
-          .thenAnswer((_) async => const Result.success(testProduct));
-      when(() => templateRepository.fetchTemplates())
-          .thenAnswer((_) async => const Result.success([testTemplate]));
-      when(() => printJobRepository.savePrintJob(any()))
-          .thenAnswer((_) async => const Result.success(null));
-      when(() => variantPrintStatsRepository.incrementCount(
-            variantSku: any(named: 'variantSku'),
-            productId: any(named: 'productId'),
-            productName: any(named: 'productName'),
-            variantName: any(named: 'variantName'),
-            labelCount: any(named: 'labelCount'),
-            printedAt: any(named: 'printedAt'),
-          )).thenAnswer((_) async => const Result.success(null));
+      when(
+        () => productRepository.getProductById('prod-test'),
+      ).thenAnswer((_) async => const Result.success(testProduct));
+      when(
+        () => templateRepository.fetchTemplates(),
+      ).thenAnswer((_) async => const Result.success([testTemplate]));
+      when(
+        () => printJobRepository.savePrintJob(any()),
+      ).thenAnswer((_) async => const Result.success(null));
+      when(
+        () => variantPrintStatsRepository.incrementCount(
+          variantSku: any(named: 'variantSku'),
+          productId: any(named: 'productId'),
+          productName: any(named: 'productName'),
+          variantName: any(named: 'variantName'),
+          labelCount: any(named: 'labelCount'),
+          printedAt: any(named: 'printedAt'),
+        ),
+      ).thenAnswer((_) async => const Result.success(null));
       when(() => printJobRepository.onPrintJobCreated).thenAnswer(
         (_) => const Stream.empty(),
       );
       when(() => printerDiscoveryService.getAvailablePrinters()).thenAnswer(
         (_) async => const [
-          PrinterDevice(name: 'Zebra ZT411-A', url: 'zebra-url', isDefault: true),
+          PrinterDevice(
+            name: 'Zebra ZT411-A',
+            url: 'zebra-url',
+            isDefault: true,
+          ),
         ],
       );
-      when(() => printService.printLabels(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
-            template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
-            disabledSlots: any(named: 'disabledSlots'),
-            printer: any(named: 'printer'),
-            printFromBottom: any(named: 'printFromBottom'),
-            executionConfiguration: any(named: 'executionConfiguration'),
-          )).thenAnswer((_) async => const Result.success(null));
-      when(() => printerProfileRepository.getAllProfiles())
-          .thenAnswer((_) async => const Result.success([]));
-      when(() => serviceLocator.productRepository).thenReturn(productRepository);
-      when(() => serviceLocator.templateRepository).thenReturn(templateRepository);
-      when(() => serviceLocator.printJobRepository).thenReturn(printJobRepository);
-      when(() => serviceLocator.variantPrintStatsRepository).thenReturn(variantPrintStatsRepository);
+      when(
+        () => printService.printLabels(
+          items: any(named: 'items'),
+          template: any(named: 'template'),
+          disabledSlots: any(named: 'disabledSlots'),
+          printer: any(named: 'printer'),
+          printFromBottom: any(named: 'printFromBottom'),
+          executionConfiguration: any(named: 'executionConfiguration'),
+        ),
+      ).thenAnswer((_) async => const Result.success(null));
+      when(
+        () => printerProfileRepository.getAllProfiles(),
+      ).thenAnswer((_) async => const Result.success([]));
+      when(
+        () => serviceLocator.productRepository,
+      ).thenReturn(productRepository);
+      when(
+        () => serviceLocator.templateRepository,
+      ).thenReturn(templateRepository);
+      when(
+        () => serviceLocator.printJobRepository,
+      ).thenReturn(printJobRepository);
+      when(
+        () => serviceLocator.variantPrintStatsRepository,
+      ).thenReturn(variantPrintStatsRepository);
       when(() => serviceLocator.printService).thenReturn(printService);
-      when(() => serviceLocator.printerDiscoveryService).thenReturn(printerDiscoveryService);
-      when(() => serviceLocator.printJobIdGenerator).thenReturn(printJobIdGenerator);
+      when(
+        () => serviceLocator.printerDiscoveryService,
+      ).thenReturn(printerDiscoveryService);
+      when(
+        () => serviceLocator.printJobIdGenerator,
+      ).thenReturn(printJobIdGenerator);
       when(() => serviceLocator.database).thenReturn(localDatabase);
-      when(() => serviceLocator.printerProfileRepository).thenReturn(printerProfileRepository);
-      when(() => serviceLocator.printerCalibrationCoordinateResolver).thenReturn(calibrationResolver);
-      when(() => serviceLocator.templatePrinterCompatibilityAnalyzer).thenReturn(compatibilityAnalyzer);
-      when(() => serviceLocator.printPipelineOrchestrator).thenReturn(printPipelineOrchestrator);
+      when(
+        () => serviceLocator.printerProfileRepository,
+      ).thenReturn(printerProfileRepository);
+      when(
+        () => serviceLocator.printerCalibrationCoordinateResolver,
+      ).thenReturn(calibrationResolver);
+      when(
+        () => serviceLocator.templatePrinterCompatibilityAnalyzer,
+      ).thenReturn(compatibilityAnalyzer);
+      when(
+        () => serviceLocator.printPipelineOrchestrator,
+      ).thenReturn(printPipelineOrchestrator);
     });
 
     test('loads workflow successfully and sets initial state', () async {
@@ -275,8 +334,8 @@ void main() {
 
       expect(cubit.state, isA<PrintWorkflowLoaded>());
       final s = cubit.state as PrintWorkflowLoaded;
-      expect(s.product.id, 'prod-test');
-      expect(s.variant.sku, 'PROD-VAR-SKU');
+      expect(s.product!.id, 'prod-test');
+      expect(s.variant!.sku, 'PROD-VAR-SKU');
       expect(s.selectedTemplate?.id, 'temp-test');
       expect(s.quantity, 10);
       expect(s.disabledSlots, isEmpty);
@@ -303,52 +362,74 @@ void main() {
       cubit.updateQuantity(35);
       expect((cubit.state as PrintWorkflowLoaded).quantity, 35);
 
-      cubit.updatePrinter(const PrinterDevice(name: 'Industrial Master B3', url: 'industrial-url'));
+      await cubit.updatePrinter(
+        const PrinterDevice(
+          name: 'Industrial Master B3',
+          url: 'industrial-url',
+        ),
+      );
       await pumpEventQueue();
-      expect((cubit.state as PrintWorkflowLoaded).selectedPrinter?.name, 'Industrial Master B3');
+      expect(
+        (cubit.state as PrintWorkflowLoaded).selectedPrinter?.name,
+        'Industrial Master B3',
+      );
 
       cubit.toggleSlot(3);
       expect((cubit.state as PrintWorkflowLoaded).disabledSlots, contains(3));
 
       cubit.toggleSlot(3);
-      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, isNot(contains(3)));
-    });
-
-    test('selectAllFirstSheet, deselectAllFirstSheet and togglePrintFromBottom work', () async {
-      final cubit = PrintWorkflowCubit(
-        productRepository: productRepository,
-        templateRepository: templateRepository,
-        printJobRepository: printJobRepository,
-        variantPrintStatsRepository: variantPrintStatsRepository,
-        printService: printService,
-        printerDiscoveryService: printerDiscoveryService,
-        printJobIdGenerator: printJobIdGenerator,
-        localDatabase: localDatabase,
-        printerProfileRepository: printerProfileRepository,
-        calibrationResolver: calibrationResolver,
-        compatibilityAnalyzer: compatibilityAnalyzer,
-        printPipelineOrchestrator: printPipelineOrchestrator,
+      expect(
+        (cubit.state as PrintWorkflowLoaded).disabledSlots,
+        isNot(contains(3)),
       );
-
-      await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
-
-      // Originally, disabledSlots is empty
-      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, isEmpty);
-
-      // Deselect all on first sheet (10 slots)
-      cubit.deselectAllFirstSheet();
-      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, hasLength(10));
-      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, containsAll(Iterable<int>.generate(10)));
-
-      // Select all on first sheet
-      cubit.selectAllFirstSheet();
-      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, isEmpty);
-
-      // Toggle print from bottom
-      await cubit.togglePrintFromBottom(value: true);
-      expect((cubit.state as PrintWorkflowLoaded).printFromBottom, isTrue);
-      verify(() => localDatabase.save<bool>('settings', 'print_from_bottom', true)).called(1);
     });
+
+    test(
+      'selectAllFirstSheet, deselectAllFirstSheet and togglePrintFromBottom work',
+      () async {
+        final cubit = PrintWorkflowCubit(
+          productRepository: productRepository,
+          templateRepository: templateRepository,
+          printJobRepository: printJobRepository,
+          variantPrintStatsRepository: variantPrintStatsRepository,
+          printService: printService,
+          printerDiscoveryService: printerDiscoveryService,
+          printJobIdGenerator: printJobIdGenerator,
+          localDatabase: localDatabase,
+          printerProfileRepository: printerProfileRepository,
+          calibrationResolver: calibrationResolver,
+          compatibilityAnalyzer: compatibilityAnalyzer,
+          printPipelineOrchestrator: printPipelineOrchestrator,
+        );
+
+        await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
+
+        // Originally, disabledSlots is empty
+        expect((cubit.state as PrintWorkflowLoaded).disabledSlots, isEmpty);
+
+        // Deselect all on first sheet (10 slots)
+        cubit.deselectAllFirstSheet();
+        expect(
+          (cubit.state as PrintWorkflowLoaded).disabledSlots,
+          hasLength(10),
+        );
+        expect(
+          (cubit.state as PrintWorkflowLoaded).disabledSlots,
+          containsAll(Iterable<int>.generate(10)),
+        );
+
+        // Select all on first sheet
+        cubit.selectAllFirstSheet();
+        expect((cubit.state as PrintWorkflowLoaded).disabledSlots, isEmpty);
+
+        // Toggle print from bottom
+        await cubit.togglePrintFromBottom(value: true);
+        expect((cubit.state as PrintWorkflowLoaded).printFromBottom, isTrue);
+        verify(
+          () => localDatabase.save<bool>('settings', 'print_from_bottom', true),
+        ).called(1);
+      },
+    );
 
     test('toggleRowSlots selects and deselects entire row correctly', () async {
       final cubit = PrintWorkflowCubit(
@@ -373,7 +454,10 @@ void main() {
 
       // Deselect row 1 of sheet 0 (columns = 2, so slots 2 and 3 are row 1)
       cubit.toggleRowSlots(0, 1, select: false);
-      expect((cubit.state as PrintWorkflowLoaded).disabledSlots, containsAll([2, 3]));
+      expect(
+        (cubit.state as PrintWorkflowLoaded).disabledSlots,
+        containsAll([2, 3]),
+      );
       expect((cubit.state as PrintWorkflowLoaded).disabledSlots.length, 2);
 
       // Select row 1 back
@@ -381,45 +465,50 @@ void main() {
       expect((cubit.state as PrintWorkflowLoaded).disabledSlots, isEmpty);
     });
 
-    test('starting print job successfully dispatches and saves print job', () async {
-      final cubit = PrintWorkflowCubit(
-        productRepository: productRepository,
-        templateRepository: templateRepository,
-        printJobRepository: printJobRepository,
-        variantPrintStatsRepository: variantPrintStatsRepository,
-        printService: printService,
-        printerDiscoveryService: printerDiscoveryService,
-        printJobIdGenerator: printJobIdGenerator,
-        localDatabase: localDatabase,
-        printerProfileRepository: printerProfileRepository,
-        calibrationResolver: calibrationResolver,
-        compatibilityAnalyzer: compatibilityAnalyzer,
-        printPipelineOrchestrator: printPipelineOrchestrator,
-      );
+    test(
+      'starting print job successfully dispatches and saves print job',
+      () async {
+        final cubit = PrintWorkflowCubit(
+          productRepository: productRepository,
+          templateRepository: templateRepository,
+          printJobRepository: printJobRepository,
+          variantPrintStatsRepository: variantPrintStatsRepository,
+          printService: printService,
+          printerDiscoveryService: printerDiscoveryService,
+          printJobIdGenerator: printJobIdGenerator,
+          localDatabase: localDatabase,
+          printerProfileRepository: printerProfileRepository,
+          calibrationResolver: calibrationResolver,
+          compatibilityAnalyzer: compatibilityAnalyzer,
+          printPipelineOrchestrator: printPipelineOrchestrator,
+        );
 
-      await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
-      await cubit.startPrintJob();
+        await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
+        await cubit.startPrintJob();
 
-      expect(cubit.state, isA<PrintWorkflowSuccess>());
-      verify(() => printJobRepository.savePrintJob(any())).called(1);
-      verify(() => variantPrintStatsRepository.incrementCount(
+        expect(cubit.state, isA<PrintWorkflowSuccess>());
+        verify(() => printJobRepository.savePrintJob(any())).called(1);
+        verify(
+          () => variantPrintStatsRepository.incrementCount(
             variantSku: any(named: 'variantSku'),
             productId: any(named: 'productId'),
             productName: any(named: 'productName'),
             variantName: any(named: 'variantName'),
             labelCount: any(named: 'labelCount'),
             printedAt: any(named: 'printedAt'),
-          )).called(1);
-      verify(() => printService.printLabels(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+          ),
+        ).called(1);
+        verify(
+          () => printService.printLabels(
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printer: any(named: 'printer'),
             printFromBottom: any(named: 'printFromBottom'),
-          )).called(1);
-    });
+          ),
+        ).called(1);
+      },
+    );
   });
 
   group('PrintSetupPage Widget Tests', () {
@@ -441,58 +530,92 @@ void main() {
       printPipelineOrchestrator = MockPrintPipelineOrchestrator();
       serviceLocator = MockAppServiceLocator();
 
-      when(() => localDatabase.get<bool>(any(), any())).thenAnswer((_) async => false);
-      when(() => localDatabase.save<bool>(any(), any(), any())).thenAnswer((_) async {});
+      when(
+        () => localDatabase.get<bool>(any(), any()),
+      ).thenAnswer((_) async => false);
+      when(
+        () => localDatabase.save<bool>(any(), any(), any()),
+      ).thenAnswer((_) async {});
 
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
-      when(() => productRepository.getProductById('prod-test'))
-          .thenAnswer((_) async => const Result.success(testProduct));
-      when(() => templateRepository.fetchTemplates())
-          .thenAnswer((_) async => const Result.success([testTemplate]));
+      when(
+        () => productRepository.getProductById('prod-test'),
+      ).thenAnswer((_) async => const Result.success(testProduct));
+      when(
+        () => templateRepository.fetchTemplates(),
+      ).thenAnswer((_) async => const Result.success([testTemplate]));
       when(() => printJobRepository.onPrintJobCreated).thenAnswer(
         (_) => const Stream.empty(),
       );
-      when(() => printJobRepository.savePrintJob(any()))
-          .thenAnswer((_) async => const Result.success(null));
-      when(() => variantPrintStatsRepository.incrementCount(
-            variantSku: any(named: 'variantSku'),
-            productId: any(named: 'productId'),
-            productName: any(named: 'productName'),
-            variantName: any(named: 'variantName'),
-            labelCount: any(named: 'labelCount'),
-            printedAt: any(named: 'printedAt'),
-          )).thenAnswer((_) async => const Result.success(null));
+      when(
+        () => printJobRepository.savePrintJob(any()),
+      ).thenAnswer((_) async => const Result.success(null));
+      when(
+        () => variantPrintStatsRepository.incrementCount(
+          variantSku: any(named: 'variantSku'),
+          productId: any(named: 'productId'),
+          productName: any(named: 'productName'),
+          variantName: any(named: 'variantName'),
+          labelCount: any(named: 'labelCount'),
+          printedAt: any(named: 'printedAt'),
+        ),
+      ).thenAnswer((_) async => const Result.success(null));
       when(() => printerDiscoveryService.getAvailablePrinters()).thenAnswer(
         (_) async => const [
-          PrinterDevice(name: 'Zebra ZT411-A (Default)', url: 'zebra-url', isDefault: true),
+          PrinterDevice(
+            name: 'Zebra ZT411-A (Default)',
+            url: 'zebra-url',
+            isDefault: true,
+          ),
           PrinterDevice(name: 'Brother QL-820NWB', url: 'brother-url'),
           PrinterDevice(name: 'Industrial Master B3', url: 'industrial-url'),
         ],
       );
-      when(() => printService.printLabels(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
-            template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
-            disabledSlots: any(named: 'disabledSlots'),
-            printer: any(named: 'printer'),
-            printFromBottom: any(named: 'printFromBottom'),
-            executionConfiguration: any(named: 'executionConfiguration'),
-          )).thenAnswer((_) async => const Result.success(null));
-      when(() => printerProfileRepository.getAllProfiles())
-          .thenAnswer((_) async => const Result.success([]));
-      when(() => serviceLocator.productRepository).thenReturn(productRepository);
-      when(() => serviceLocator.templateRepository).thenReturn(templateRepository);
-      when(() => serviceLocator.printJobRepository).thenReturn(printJobRepository);
-      when(() => serviceLocator.variantPrintStatsRepository).thenReturn(variantPrintStatsRepository);
+      when(
+        () => printService.printLabels(
+          items: any(named: 'items'),
+          template: any(named: 'template'),
+          disabledSlots: any(named: 'disabledSlots'),
+          printer: any(named: 'printer'),
+          printFromBottom: any(named: 'printFromBottom'),
+          executionConfiguration: any(named: 'executionConfiguration'),
+        ),
+      ).thenAnswer((_) async => const Result.success(null));
+      when(
+        () => printerProfileRepository.getAllProfiles(),
+      ).thenAnswer((_) async => const Result.success([]));
+      when(
+        () => serviceLocator.productRepository,
+      ).thenReturn(productRepository);
+      when(
+        () => serviceLocator.templateRepository,
+      ).thenReturn(templateRepository);
+      when(
+        () => serviceLocator.printJobRepository,
+      ).thenReturn(printJobRepository);
+      when(
+        () => serviceLocator.variantPrintStatsRepository,
+      ).thenReturn(variantPrintStatsRepository);
       when(() => serviceLocator.printService).thenReturn(printService);
-      when(() => serviceLocator.printerDiscoveryService).thenReturn(printerDiscoveryService);
-      when(() => serviceLocator.printJobIdGenerator).thenReturn(printJobIdGenerator);
+      when(
+        () => serviceLocator.printerDiscoveryService,
+      ).thenReturn(printerDiscoveryService);
+      when(
+        () => serviceLocator.printJobIdGenerator,
+      ).thenReturn(printJobIdGenerator);
       when(() => serviceLocator.database).thenReturn(localDatabase);
-      when(() => serviceLocator.printerProfileRepository).thenReturn(printerProfileRepository);
-      when(() => serviceLocator.printerCalibrationCoordinateResolver).thenReturn(calibrationResolver);
-      when(() => serviceLocator.templatePrinterCompatibilityAnalyzer).thenReturn(compatibilityAnalyzer);
-      when(() => serviceLocator.printPipelineOrchestrator).thenReturn(printPipelineOrchestrator);
+      when(
+        () => serviceLocator.printerProfileRepository,
+      ).thenReturn(printerProfileRepository);
+      when(
+        () => serviceLocator.printerCalibrationCoordinateResolver,
+      ).thenReturn(calibrationResolver);
+      when(
+        () => serviceLocator.templatePrinterCompatibilityAnalyzer,
+      ).thenReturn(compatibilityAnalyzer);
+      when(
+        () => serviceLocator.printPipelineOrchestrator,
+      ).thenReturn(printPipelineOrchestrator);
     });
 
     Widget buildTestableWidget({int? quantity}) {
@@ -520,63 +643,89 @@ void main() {
       );
     }
 
-    testWidgets('renders configuration page elements with dynamic tokens resolved', (tester) async {
-      await tester.pumpApp(buildTestableWidget(quantity: 20), size: const Size(1200, 1000));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'renders configuration page elements with dynamic tokens resolved',
+      (tester) async {
+        await tester.pumpApp(
+          buildTestableWidget(quantity: 20),
+          size: const Size(1200, 1000),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('Dynamic Product'), findsAtLeast(1));
-      expect(find.textContaining('PROD-VAR-SKU'), findsAtLeast(1));
-      expect(find.textContaining('A4 Shipping Label'), findsAtLeast(1));
+        expect(find.text('Dynamic Product'), findsAtLeast(1));
+        expect(find.textContaining('PROD-VAR-SKU'), findsAtLeast(1));
+        expect(find.textContaining('A4 Shipping Label'), findsAtLeast(1));
 
-      expect(find.text('Quantity to Print'), findsOneWidget);
-      expect(find.text('Printer Selection'), findsOneWidget);
+        expect(find.text('Quantity to Print'), findsOneWidget);
+        expect(find.text('Printer Selection'), findsOneWidget);
 
-      expect(find.text('Sheets Required'), findsOneWidget);
-      expect(find.text('2'), findsOneWidget);
-    });
+        expect(find.text('Sheets Required'), findsOneWidget);
+        expect(find.text('2'), findsOneWidget);
+      },
+    );
 
-    testWidgets('toggling slot reflows downstream labels and updates required sheets', (tester) async {
-      await tester.pumpApp(buildTestableWidget(quantity: 20), size: const Size(1200, 1000));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'toggling slot reflows downstream labels and updates required sheets',
+      (tester) async {
+        await tester.pumpApp(
+          buildTestableWidget(quantity: 20),
+          size: const Size(1200, 1000),
+        );
+        await tester.pumpAndSettle();
 
-      final firstSlotInkWell = find.descendant(
-        of: find.byType(GridView),
-        matching: find.byType(InkWell),
-      ).first;
+        final firstSlotInkWell = find
+            .descendant(
+              of: find.byType(GridView),
+              matching: find.byType(InkWell),
+            )
+            .first;
 
-      await tester.tap(firstSlotInkWell);
-      await tester.pumpAndSettle();
+        await tester.tap(firstSlotInkWell);
+        await tester.pumpAndSettle();
 
-      expect(find.text('3'), findsOneWidget);
-    });
+        expect(find.text('3'), findsOneWidget);
+      },
+    );
 
-    testWidgets('tapping template selector opens dialog and allows template change', (tester) async {
-      await tester.pumpApp(buildTestableWidget(quantity: 20), size: const Size(1200, 1000));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'tapping template selector opens dialog and allows template change',
+      (tester) async {
+        await tester.pumpApp(
+          buildTestableWidget(quantity: 20),
+          size: const Size(1200, 1000),
+        );
+        await tester.pumpAndSettle();
 
-      // Find the template selector field
-      final templateSelector = find.text('A4 Shipping Label (10 labels)');
-      expect(templateSelector, findsOneWidget);
+        // Find the template selector field
+        final templateSelector = find.text('A4 Shipping Label (10 labels)');
+        expect(templateSelector, findsOneWidget);
 
-      // Tap on it to open the selection dialog
-      await tester.tap(templateSelector);
-      await tester.pumpAndSettle();
+        // Tap on it to open the selection dialog
+        await tester.tap(templateSelector);
+        await tester.pumpAndSettle();
 
-      // Check that the dialog is open
-      expect(find.text('Select Label Template'), findsOneWidget);
-      expect(find.textContaining('90x50 mm | 10 stickers/sheet'), findsOneWidget);
+        // Check that the dialog is open
+        expect(find.text('Select Label Template'), findsOneWidget);
+        expect(find.text('2 × 5 Grid'), findsOneWidget);
+        expect(find.text('10 Stickers / Sheet'), findsOneWidget);
 
-      // Tap cancel to close dialog
-      final cancelButton = find.text('Cancel');
-      expect(cancelButton, findsOneWidget);
-      await tester.tap(cancelButton);
-      await tester.pumpAndSettle();
+        // Tap cancel to close dialog
+        final cancelButton = find.text('Cancel');
+        expect(cancelButton, findsOneWidget);
+        await tester.tap(cancelButton);
+        await tester.pumpAndSettle();
 
-      expect(find.text('Select Label Template'), findsNothing);
-    });
+        expect(find.text('Select Label Template'), findsNothing);
+      },
+    );
 
-    testWidgets('toggling row checkbox toggles all slots in that row', (tester) async {
-      await tester.pumpApp(buildTestableWidget(quantity: 20), size: const Size(1200, 1000));
+    testWidgets('toggling row checkbox toggles all slots in that row', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        buildTestableWidget(quantity: 20),
+        size: const Size(1200, 1000),
+      );
       await tester.pumpAndSettle();
 
       // Verify checkboxes are rendered.
@@ -594,20 +743,23 @@ void main() {
     });
 
     testWidgets('pressing Ctrl + P triggers printing', (tester) async {
-      await tester.pumpApp(buildTestableWidget(quantity: 20), size: const Size(1200, 1000));
+      await tester.pumpApp(
+        buildTestableWidget(quantity: 20),
+        size: const Size(1200, 1000),
+      );
       await tester.pumpAndSettle();
 
       // Verify print service was not called initially
-      verifyNever(() => printService.printLabels(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
-            template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
-            disabledSlots: any(named: 'disabledSlots'),
-            printer: any(named: 'printer'),
-            printFromBottom: any(named: 'printFromBottom'),
-            executionConfiguration: any(named: 'executionConfiguration'),
-          ));
+      verifyNever(
+        () => printService.printLabels(
+          items: any(named: 'items'),
+          template: any(named: 'template'),
+          disabledSlots: any(named: 'disabledSlots'),
+          printer: any(named: 'printer'),
+          printFromBottom: any(named: 'printFromBottom'),
+          executionConfiguration: any(named: 'executionConfiguration'),
+        ),
+      );
 
       // Simulate Ctrl + P
       await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
@@ -616,16 +768,16 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify printing was triggered
-      verify(() => printService.printLabels(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
-            template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
-            disabledSlots: any(named: 'disabledSlots'),
-            printer: any(named: 'printer'),
-            printFromBottom: any(named: 'printFromBottom'),
-            executionConfiguration: any(named: 'executionConfiguration'),
-          )).called(1);
+      verify(
+        () => printService.printLabels(
+          items: any(named: 'items'),
+          template: any(named: 'template'),
+          disabledSlots: any(named: 'disabledSlots'),
+          printer: any(named: 'printer'),
+          printFromBottom: any(named: 'printFromBottom'),
+          executionConfiguration: any(named: 'executionConfiguration'),
+        ),
+      ).called(1);
     });
   });
 }

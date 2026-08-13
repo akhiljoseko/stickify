@@ -37,6 +37,7 @@ export 'entities/print_coordinate_context.dart';
 export 'entities/print_execution_configuration.dart';
 export 'entities/print_job.dart';
 export 'entities/print_region_conflict.dart';
+export 'entities/printable_item.dart';
 export 'entities/printer_calibration.dart';
 export 'entities/printer_capabilities.dart';
 export 'entities/printer_device.dart';

@@ -32,7 +32,9 @@ class DatabaseProductRepository implements ProductRepository {
   Future<Result<List<Product>, AppError>> getAllProducts() async {
     try {
       final allModels = await _db.getAll<ProductHiveModel>(_collection);
-      return Result.success(allModels.map((m) => m.toDomain()).toList());
+      final products = allModels.map((m) => m.toDomain()).toList()
+        ..sort((a, b) => a.name.compareTo(b.name));
+      return Result.success(products);
     } on AppError catch (e) {
       return Result.failure(e);
     } catch (e, stackTrace) {
@@ -44,34 +46,7 @@ class DatabaseProductRepository implements ProductRepository {
     }
   }
 
-  @override
-  Future<Result<List<Product>, AppError>> getFilteredProducts({String query = '', String category = ''}) async {
-    try {
-      final allResult = await getAllProducts();
-      switch (allResult) {
-        case Success(value: final all):
-          final filtered = all.where((product) {
-            final matchesQuery = query.isEmpty ||
-                product.name.toLowerCase().contains(query.toLowerCase()) ||
-                product.sku.toLowerCase().contains(query.toLowerCase());
-            final matchesCategory = category.isEmpty ||
-                (product.category ?? '').toLowerCase() == category.toLowerCase();
-            return matchesQuery && matchesCategory;
-          }).toList();
-          return Result.success(filtered);
-        case Failure(error: final err):
-          return Result.failure(err);
-      }
-    } on AppError catch (e) {
-      return Result.failure(e);
-    } catch (e, stackTrace) {
-      return Result.failure(DatabaseError(
-        message: 'Failed to retrieve filtered products from database.',
-        originalError: e,
-        stackTrace: stackTrace,
-      ));
-    }
-  }
+
 
   @override
   Future<Result<PaginatedResult<Product>, AppError>> getProducts({

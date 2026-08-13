@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:stickify/app/routing/app_shell.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/presentation/features/dashboard/presentation/dashboard_entry.dart';
+import 'package:stickify/presentation/features/order_label_print/presentation/order_label_print_page.dart';
 import 'package:stickify/presentation/features/print/presentation/print_setup_entry.dart';
 import 'package:stickify/presentation/features/print/presentation/template_selection_page.dart';
 import 'package:stickify/presentation/features/print_history/presentation/print_history_screen.dart';
@@ -93,6 +94,20 @@ class ForgotPasswordRoute extends GoRouteData with $ForgotPasswordRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return const ForgotPasswordScreen();
+  }
+}
+
+/// Order label printing wizard route — full-screen overlay outside the shell.
+@TypedGoRoute<OrderLabelPrintRoute>(path: '/order-label-print')
+@immutable
+class OrderLabelPrintRoute extends GoRouteData with $OrderLabelPrintRoute {
+  const OrderLabelPrintRoute();
+
+  static final GlobalKey<NavigatorState> $parentNavigatorKey = rootNavigatorKey;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const OrderLabelPrintPage();
   }
 }
 

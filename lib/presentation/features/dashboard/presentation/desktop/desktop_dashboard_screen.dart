@@ -140,6 +140,12 @@ class _QuickActionsGrid extends StatelessWidget {
       onTap: () => ProductVariantSelectionDialog.show(context),
     ),
     _QuickActionData(
+      icon: Icons.view_comfortable_outlined,
+      title: 'Order Label Print',
+      subtitle: 'Batch multi-item printing',
+      onTap: () => context.push('/order-label-print'),
+    ),
+    _QuickActionData(
       icon: Icons.add_circle_outline,
       title: 'Add New Product',
       subtitle: 'Register SKU & Metadata',
@@ -185,6 +191,16 @@ class _QuickActionsGrid extends StatelessWidget {
             subtitle: actions[2].subtitle,
             isPrimary: actions[2].isPrimary,
             onTap: actions[2].onTap,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: QuickActionCard(
+            icon: actions[3].icon,
+            title: actions[3].title,
+            subtitle: actions[3].subtitle,
+            isPrimary: actions[3].isPrimary,
+            onTap: actions[3].onTap,
           ),
         ),
       ],

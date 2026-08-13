@@ -11,6 +11,7 @@ List<RouteBase> get $appRoutes => [
   $loginRoute,
   $registerRoute,
   $forgotPasswordRoute,
+  $orderLabelPrintRoute,
   $printHistoryRoute,
   $printTemplateSelectRoute,
   $printSetupRoute,
@@ -100,6 +101,33 @@ mixin $ForgotPasswordRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/forgot-password');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $orderLabelPrintRoute => GoRouteData.$route(
+  path: '/order-label-print',
+  parentNavigatorKey: OrderLabelPrintRoute.$parentNavigatorKey,
+  factory: $OrderLabelPrintRoute._fromState,
+);
+
+mixin $OrderLabelPrintRoute on GoRouteData {
+  static OrderLabelPrintRoute _fromState(GoRouterState state) =>
+      const OrderLabelPrintRoute();
+
+  @override
+  String get location => GoRouteData.$location('/order-label-print');
 
   @override
   void go(BuildContext context) => context.go(location);

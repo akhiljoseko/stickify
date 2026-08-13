@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:stickify/domain/domain.dart';
 
 /// A self-contained tile widget for displaying a [ProductVariant] in the order batch wizard,
-/// featuring inline quantity input with local validation and an edit action.
+/// featuring inline quantity input with local validation, keyboard navigation, and an edit action.
 class VariantInlineQuantityTile extends StatefulWidget {
   /// Creates a [VariantInlineQuantityTile].
   const VariantInlineQuantityTile({
@@ -12,6 +12,10 @@ class VariantInlineQuantityTile extends StatefulWidget {
     required this.onAdd,
     required this.onEdit,
     this.currentAddedQuantity = 0,
+    this.isHighlighted = false,
+    this.qtyFocusNode,
+    this.onSubmitted,
+    this.onCancel,
     super.key,
   });
 
@@ -30,6 +34,18 @@ class VariantInlineQuantityTile extends StatefulWidget {
   /// Currently added quantity in batch (if any).
   final int currentAddedQuantity;
 
+  /// Whether this variant tile is currently highlighted by keyboard navigation.
+  final bool isHighlighted;
+
+  /// Optional focus node for the inline quantity text field.
+  final FocusNode? qtyFocusNode;
+
+  /// Callback when quantity is submitted via Enter key.
+  final VoidCallback? onSubmitted;
+
+  /// Callback when quantity input is cancelled via Escape or Left Arrow.
+  final VoidCallback? onCancel;
+
   @override
   State<VariantInlineQuantityTile> createState() => _VariantInlineQuantityTileState();
 }
@@ -42,13 +58,33 @@ class _VariantInlineQuantityTileState extends State<VariantInlineQuantityTile> {
     super.initState();
     _controller = TextEditingController(text: '0');
     _controller.addListener(_onTextChanged);
+    widget.qtyFocusNode?.addListener(_onFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(covariant VariantInlineQuantityTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.qtyFocusNode != widget.qtyFocusNode) {
+      oldWidget.qtyFocusNode?.removeListener(_onFocusChange);
+      widget.qtyFocusNode?.addListener(_onFocusChange);
+    }
   }
 
   @override
   void dispose() {
+    widget.qtyFocusNode?.removeListener(_onFocusChange);
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (widget.qtyFocusNode?.hasFocus == true) {
+      _controller.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _controller.text.length,
+      );
+    }
   }
 
   void _onTextChanged() {
@@ -72,11 +108,22 @@ class _VariantInlineQuantityTileState extends State<VariantInlineQuantityTile> {
     final textTheme = theme.textTheme;
 
     final isAdded = widget.currentAddedQuantity > 0;
+    final isHighlighted = widget.isHighlighted;
+
+    final backgroundColor = isHighlighted
+        ? colorScheme.primaryContainer.withValues(alpha: 0.25)
+        : (isAdded ? colorScheme.primaryContainer.withValues(alpha: 0.12) : null);
 
     return Container(
       decoration: BoxDecoration(
-        color: isAdded ? colorScheme.primaryContainer.withValues(alpha: 0.15) : null,
-        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.5)),
+        color: backgroundColor,
+        border: Border(
+          left: BorderSide(
+            color: isHighlighted ? colorScheme.primary : Colors.transparent,
+            width: 4,
+          ),
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
@@ -91,6 +138,7 @@ class _VariantInlineQuantityTileState extends State<VariantInlineQuantityTile> {
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
+                    color: isHighlighted ? colorScheme.primary : colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -126,18 +174,37 @@ class _VariantInlineQuantityTileState extends State<VariantInlineQuantityTile> {
             mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(
-                width: 70,
-                child: TextField(
-                  controller: _controller,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                  decoration: const InputDecoration(
-                    labelText: 'Qty',
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                width: 75,
+                child: KeyboardListener(
+                  focusNode: FocusNode(),
+                  onKeyEvent: (event) {
+                    if (event is KeyDownEvent) {
+                      if (event.logicalKey == LogicalKeyboardKey.escape ||
+                          event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                        widget.qtyFocusNode?.unfocus();
+                        widget.onCancel?.call();
+                      }
+                    }
+                  },
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: widget.qtyFocusNode,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    decoration: const InputDecoration(
+                      labelText: 'Qty',
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                    ),
+                    onSubmitted: (_) {
+                      if (_isValidQuantity) {
+                        _handleAdd();
+                      }
+                      widget.onSubmitted?.call();
+                    },
                   ),
                 ),
               ),
@@ -147,7 +214,12 @@ class _VariantInlineQuantityTileState extends State<VariantInlineQuantityTile> {
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
-                onPressed: _isValidQuantity ? _handleAdd : null,
+                onPressed: _isValidQuantity
+                    ? () {
+                        _handleAdd();
+                        widget.onSubmitted?.call();
+                      }
+                    : null,
                 icon: const Icon(Icons.add, size: 16),
                 label: const Text('Add'),
               ),

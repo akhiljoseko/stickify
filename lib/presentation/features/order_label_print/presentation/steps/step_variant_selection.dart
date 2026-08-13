@@ -433,7 +433,7 @@ class _Step2ActionButtons extends StatelessWidget {
                 ),
                 onPressed: state.items.isEmpty ? null : () => cubit.goToNextStep(),
                 icon: const Icon(Icons.check),
-                label: const Text('Done Adding (Review Order)', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text('Done Adding (Proceed to Print Preview)', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],

@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:stickify/app/app_service_locator.dart';
 import 'package:stickify/presentation/features/order_label_print/cubits/order_label_print_cubit.dart';
 import 'package:stickify/presentation/features/order_label_print/cubits/order_label_print_state.dart';
-import 'package:stickify/presentation/features/order_label_print/presentation/steps/step_confirmation.dart';
 import 'package:stickify/presentation/features/order_label_print/presentation/steps/step_print_preview.dart';
 import 'package:stickify/presentation/features/order_label_print/presentation/steps/step_template_selection.dart';
 import 'package:stickify/presentation/features/order_label_print/presentation/steps/step_variant_selection.dart';
@@ -84,18 +83,6 @@ class _OrderLabelPrintView extends StatelessWidget {
                     const SizedBox(width: 8),
                     _StepIndicatorPill(
                       stepNumber: 3,
-                      label: 'Review Order',
-                      isActive: state.step == OrderLabelPrintStep.confirmation,
-                      isCompleted: state.step.index > OrderLabelPrintStep.confirmation.index,
-                      onTap: state.items.isNotEmpty
-                          ? () => context.read<OrderLabelPrintCubit>().setStep(OrderLabelPrintStep.confirmation)
-                          : null,
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-                    const SizedBox(width: 8),
-                    _StepIndicatorPill(
-                      stepNumber: 4,
                       label: 'Print Preview',
                       isActive: state.step == OrderLabelPrintStep.printPreview,
                       isCompleted: false,
@@ -113,7 +100,6 @@ class _OrderLabelPrintView extends StatelessWidget {
             child: switch (state.step) {
               OrderLabelPrintStep.templateSelection => const StepTemplateSelectionView(),
               OrderLabelPrintStep.variantSelection => const StepVariantSelectionView(),
-              OrderLabelPrintStep.confirmation => const StepConfirmationView(),
               OrderLabelPrintStep.printPreview => const StepPrintPreviewView(),
             },
           ),

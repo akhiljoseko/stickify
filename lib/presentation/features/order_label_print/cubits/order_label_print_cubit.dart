@@ -125,14 +125,6 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
           emit(state.copyWith(errorMessage: () => 'Please add at least one product variant to your order batch.'));
           return false;
         }
-        emit(state.copyWith(step: OrderLabelPrintStep.confirmation, errorMessage: () => null));
-        return true;
-
-      case OrderLabelPrintStep.confirmation:
-        if (state.items.isEmpty) {
-          emit(state.copyWith(errorMessage: () => 'Order batch cannot be empty.'));
-          return false;
-        }
         emit(state.copyWith(step: OrderLabelPrintStep.printPreview, errorMessage: () => null));
         return true;
 
@@ -148,10 +140,8 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
         break;
       case OrderLabelPrintStep.variantSelection:
         emit(state.copyWith(step: OrderLabelPrintStep.templateSelection, errorMessage: () => null));
-      case OrderLabelPrintStep.confirmation:
-        emit(state.copyWith(step: OrderLabelPrintStep.variantSelection, errorMessage: () => null));
       case OrderLabelPrintStep.printPreview:
-        emit(state.copyWith(step: OrderLabelPrintStep.confirmation, errorMessage: () => null));
+        emit(state.copyWith(step: OrderLabelPrintStep.variantSelection, errorMessage: () => null));
     }
   }
 

@@ -149,10 +149,28 @@ void main() {
         // Select template -> advances to step 2
         c.selectTemplate(testTemplate);
         c.goToNextStep();
+        // Step 2 without items fails
+        c.goToNextStep();
+        // Add item -> advances directly to print preview (Step 3)
+        c.addOrUpdateItem(testProduct, testVariant, 5);
+        c.goToNextStep();
       },
       expect: () => [
         isA<OrderLabelPrintState>().having((s) => s.errorMessage, 'errorMessage', contains('select a label template')),
         isA<OrderLabelPrintState>().having((s) => s.selectedTemplate, 'selectedTemplate', testTemplate),
+        isA<OrderLabelPrintState>().having((s) => s.step, 'step', OrderLabelPrintStep.variantSelection),
+        isA<OrderLabelPrintState>().having((s) => s.errorMessage, 'errorMessage', contains('add at least one product variant')),
+        isA<OrderLabelPrintState>().having((s) => s.items.length, 'items.length', 1),
+        isA<OrderLabelPrintState>().having((s) => s.step, 'step', OrderLabelPrintStep.printPreview),
+      ],
+    );
+
+    blocTest<OrderLabelPrintCubit, OrderLabelPrintState>(
+      'goToPreviousStep steps backward from printPreview directly to variantSelection',
+      build: () => cubit,
+      seed: () => const OrderLabelPrintState(step: OrderLabelPrintStep.printPreview),
+      act: (c) => c.goToPreviousStep(),
+      expect: () => [
         isA<OrderLabelPrintState>().having((s) => s.step, 'step', OrderLabelPrintStep.variantSelection),
       ],
     );

@@ -273,8 +273,8 @@ void main() {
 
       expect(cubit.state, isA<PrintWorkflowLoaded>());
       final s = cubit.state as PrintWorkflowLoaded;
-      expect(s.product.id, 'prod-test');
-      expect(s.variant.sku, 'PROD-VAR-SKU');
+      expect(s.product!.id, 'prod-test');
+      expect(s.variant!.sku, 'PROD-VAR-SKU');
       expect(s.selectedTemplate?.id, 'temp-test');
       expect(s.quantity, 10);
       expect(s.disabledSlots, isEmpty);

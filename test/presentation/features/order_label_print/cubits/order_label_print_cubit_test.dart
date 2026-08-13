@@ -8,30 +8,14 @@ import 'package:stickify/presentation/features/order_label_print/cubits/order_la
 
 class MockTemplateRepository extends Mock implements TemplateRepository {}
 class MockProductRepository extends Mock implements ProductRepository {}
-class MockPrintService extends Mock implements PrintService {}
 class MockPrinterDiscoveryService extends Mock implements PrinterDiscoveryService {}
-class MockPrintJobRepository extends Mock implements PrintJobRepository {}
-class MockVariantPrintStatsRepository extends Mock implements VariantPrintStatsRepository {}
-class MockPrintJobIdGenerator extends Mock implements PrintJobIdGenerator {}
-class MockPrinterProfileRepository extends Mock implements PrinterProfileRepository {}
-class MockPrinterCalibrationCoordinateResolver extends Mock implements PrinterCalibrationCoordinateResolver {}
-class MockTemplatePrinterCompatibilityAnalyzer extends Mock implements TemplatePrinterCompatibilityAnalyzer {}
-class MockPrintPipelineOrchestrator extends Mock implements PrintPipelineOrchestrator {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late MockTemplateRepository mockTemplateRepo;
   late MockProductRepository mockProductRepo;
-  late MockPrintService mockPrintService;
   late MockPrinterDiscoveryService mockPrinterDiscoveryService;
-  late MockPrintJobRepository mockPrintJobRepo;
-  late MockVariantPrintStatsRepository mockVariantPrintStatsRepo;
-  late MockPrintJobIdGenerator mockJobIdGen;
-  late MockPrinterProfileRepository mockPrinterProfileRepo;
-  late MockPrinterCalibrationCoordinateResolver mockCalibrationResolver;
-  late MockTemplatePrinterCompatibilityAnalyzer mockCompatibilityAnalyzer;
-  late MockPrintPipelineOrchestrator mockOrchestrator;
   late OrderLabelPrintCubit cubit;
 
   const testProduct = Product(
@@ -83,67 +67,21 @@ void main() {
     registerFallbackValue(testVariant);
     registerFallbackValue(testTemplate);
     registerFallbackValue(testPrinter);
-    registerFallbackValue(const PrintableItem(product: testProduct, variant: testVariant, quantity: 1));
-    registerFallbackValue(
-      PrintJob(
-        id: 'job-1',
-        productId: 'prod-1',
-        productName: 'P',
-        variantId: 'VAR-1',
-        variantName: 'V',
-        variantSku: 'VAR-1',
-        templateId: 'temp-1',
-        templateName: 'T',
-        printerStation: 'Pr',
-        printedAt: DateTime.now(),
-        labelCount: 1,
-      ),
-    );
   });
 
   setUp(() {
     mockTemplateRepo = MockTemplateRepository();
     mockProductRepo = MockProductRepository();
-    mockPrintService = MockPrintService();
     mockPrinterDiscoveryService = MockPrinterDiscoveryService();
-    mockPrintJobRepo = MockPrintJobRepository();
-    mockVariantPrintStatsRepo = MockVariantPrintStatsRepository();
-    mockJobIdGen = MockPrintJobIdGenerator();
-    mockPrinterProfileRepo = MockPrinterProfileRepository();
-    mockCalibrationResolver = MockPrinterCalibrationCoordinateResolver();
-    mockCompatibilityAnalyzer = MockTemplatePrinterCompatibilityAnalyzer();
-    mockOrchestrator = MockPrintPipelineOrchestrator();
 
     when(() => mockTemplateRepo.fetchTemplates()).thenAnswer((_) async => const Success([testTemplate]));
     when(() => mockProductRepo.getAllProducts()).thenAnswer((_) async => const Success([testProduct]));
     when(() => mockPrinterDiscoveryService.getAvailablePrinters()).thenAnswer((_) async => [testPrinter]);
-    when(() => mockPrinterProfileRepo.getAllProfiles()).thenAnswer((_) async => const Success([]));
-    when(() => mockJobIdGen.generateId()).thenReturn('job-100');
-    when(() => mockPrintJobRepo.savePrintJob(any())).thenAnswer((_) async => const Success(null));
-    when(
-      () => mockVariantPrintStatsRepo.incrementCount(
-        variantSku: any(named: 'variantSku'),
-        productId: any(named: 'productId'),
-        productName: any(named: 'productName'),
-        variantName: any(named: 'variantName'),
-        labelCount: any(named: 'labelCount'),
-        printedAt: any(named: 'printedAt'),
-        imageUrl: any(named: 'imageUrl'),
-      ),
-    ).thenAnswer((_) async => const Success(null));
 
     cubit = OrderLabelPrintCubit(
       templateRepository: mockTemplateRepo,
       productRepository: mockProductRepo,
-      printService: mockPrintService,
       printerDiscoveryService: mockPrinterDiscoveryService,
-      printJobRepository: mockPrintJobRepo,
-      variantPrintStatsRepository: mockVariantPrintStatsRepo,
-      printJobIdGenerator: mockJobIdGen,
-      printerProfileRepository: mockPrinterProfileRepo,
-      calibrationResolver: mockCalibrationResolver,
-      compatibilityAnalyzer: mockCompatibilityAnalyzer,
-      printPipelineOrchestrator: mockOrchestrator,
     );
   });
 
@@ -172,7 +110,7 @@ void main() {
     );
 
     blocTest<OrderLabelPrintCubit, OrderLabelPrintState>(
-      'addOrUpdateItem adds new item or updates existing variant quantity',
+      'addOrUpdateItem adds new item or accumulates existing variant quantity',
       build: () => cubit,
       act: (c) {
         c
@@ -217,59 +155,6 @@ void main() {
         isA<OrderLabelPrintState>().having((s) => s.selectedTemplate, 'selectedTemplate', testTemplate),
         isA<OrderLabelPrintState>().having((s) => s.step, 'step', OrderLabelPrintStep.variantSelection),
       ],
-    );
-
-    blocTest<OrderLabelPrintCubit, OrderLabelPrintState>(
-      'printOrderLabels executes print service and sets isPrintSuccess to true on completion',
-      build: () => cubit,
-      setUp: () {
-        when(
-          () => mockPrintService.printLabels(
-            items: any(named: 'items'),
-            template: any(named: 'template'),
-            printer: any(named: 'printer'),
-            disabledSlots: any(named: 'disabledSlots'),
-            printFromBottom: any(named: 'printFromBottom'),
-          ),
-        ).thenAnswer((_) async => const Success(null));
-      },
-      seed: () => const OrderLabelPrintState(
-        step: OrderLabelPrintStep.printPreview,
-        selectedTemplate: testTemplate,
-        selectedPrinter: testPrinter,
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 5)],
-      ),
-      act: (c) => c.printOrderLabels(),
-      expect: () => [
-        isA<OrderLabelPrintState>().having((s) => s.isSubmitting, 'isSubmitting', isTrue),
-        isA<OrderLabelPrintState>()
-            .having((s) => s.isSubmitting, 'isSubmitting', isFalse)
-            .having((s) => s.isPrintSuccess, 'isPrintSuccess', isTrue)
-            .having((s) => s.successMessage, 'successMessage', contains('Successfully sent order batch')),
-      ],
-      verify: (_) {
-        verify(
-          () => mockPrintService.printLabels(
-            items: any(named: 'items'),
-            template: testTemplate,
-            printer: testPrinter,
-            disabledSlots: any(named: 'disabledSlots'),
-            printFromBottom: any(named: 'printFromBottom'),
-          ),
-        ).called(1);
-        verify(() => mockPrintJobRepo.savePrintJob(any())).called(1);
-        verify(
-          () => mockVariantPrintStatsRepo.incrementCount(
-            variantSku: testVariant.sku,
-            productId: testProduct.id,
-            productName: testProduct.name,
-            variantName: testVariant.name,
-            labelCount: 5,
-            printedAt: any(named: 'printedAt'),
-            imageUrl: testProduct.imageUrl,
-          ),
-        ).called(1);
-      },
     );
   });
 }

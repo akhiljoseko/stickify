@@ -22,15 +22,7 @@ class OrderLabelPrintPage extends StatelessWidget {
         return OrderLabelPrintCubit(
           templateRepository: locator.templateRepository,
           productRepository: locator.productRepository,
-          printService: locator.printService,
           printerDiscoveryService: locator.printerDiscoveryService,
-          printJobRepository: locator.printJobRepository,
-          variantPrintStatsRepository: locator.variantPrintStatsRepository,
-          printJobIdGenerator: locator.printJobIdGenerator,
-          printerProfileRepository: locator.printerProfileRepository,
-          calibrationResolver: locator.printerCalibrationCoordinateResolver,
-          compatibilityAnalyzer: locator.templatePrinterCompatibilityAnalyzer,
-          printPipelineOrchestrator: locator.printPipelineOrchestrator,
         )..init();
       },
       child: const _OrderLabelPrintView(),

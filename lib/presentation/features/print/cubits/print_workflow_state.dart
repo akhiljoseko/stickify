@@ -26,9 +26,10 @@ class PrintWorkflowLoading extends PrintWorkflowState {
 class PrintWorkflowLoaded extends PrintWorkflowState {
   /// Creates a [PrintWorkflowLoaded] state.
   const PrintWorkflowLoaded({
-    required this.product,
-    required this.variant,
     required this.templates,
+    this.product,
+    this.variant,
+    this.items = const [],
     this.selectedTemplate,
     this.quantity = 20,
     this.availablePrinters = const [],
@@ -43,11 +44,14 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     this.manufacturingDate,
   });
 
-  /// The active product.
-  final Product product;
+  /// The active product (if single product print mode).
+  final Product? product;
 
-  /// The active variant of the product.
-  final ProductVariant variant;
+  /// The active variant of the product (if single product print mode).
+  final ProductVariant? variant;
+
+  /// List of items designated for batch printing (if batch print mode).
+  final List<PrintableItem> items;
 
   /// List of available label templates.
   final List<LabelTemplate> templates;
@@ -55,7 +59,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
   /// The currently selected template.
   final LabelTemplate? selectedTemplate;
 
-  /// Label sheet slot index count or quantity to print.
+  /// Label sheet slot index count or quantity to print (in single mode).
   final int quantity;
 
   /// List of available system printers.
@@ -88,10 +92,28 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
   /// Optional custom manufacturing date for token resolution.
   final DateTime? manufacturingDate;
 
+  /// Resolves effective items array (batch items if present, otherwise single item).
+  List<PrintableItem> get printableItems {
+    if (items.isNotEmpty) return items;
+    if (product != null && variant != null) {
+      return [PrintableItem(product: product!, variant: variant!, quantity: quantity)];
+    }
+    return const [];
+  }
+
+  /// Calculates total quantity of labels across single or batch print mode.
+  int get totalQuantity {
+    if (items.isNotEmpty) {
+      return items.fold<int>(0, (sum, i) => sum + i.quantity);
+    }
+    return quantity;
+  }
+
   /// Returns a copy of the state with modified fields.
   PrintWorkflowLoaded copyWith({
     Product? product,
     ProductVariant? variant,
+    List<PrintableItem>? items,
     List<LabelTemplate>? templates,
     LabelTemplate? Function()? selectedTemplate,
     int? quantity,
@@ -109,6 +131,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     return PrintWorkflowLoaded(
       product: product ?? this.product,
       variant: variant ?? this.variant,
+      items: items ?? this.items,
       templates: templates ?? this.templates,
       selectedTemplate: selectedTemplate != null ? selectedTemplate() : this.selectedTemplate,
       quantity: quantity ?? this.quantity,
@@ -129,6 +152,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
   List<Object?> get props => [
         product,
         variant,
+        items,
         templates,
         selectedTemplate,
         quantity,

@@ -257,13 +257,7 @@ class _PrintSetupViewState extends State<_PrintSetupView> {
             sheetConfig: sheetConfig,
             sticker: sticker,
             template: template,
-            items: [
-              PrintableItem(
-                product: product,
-                variant: variant,
-                quantity: loadedState.quantity,
-              ),
-            ],
+            items: loadedState.printableItems,
             product: product,
             variant: variant,
           );
@@ -311,10 +305,15 @@ class _PrintSetupViewState extends State<_PrintSetupView> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(product.name, style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                    Text(
+                                      product?.name ?? 'Batch Order Print',
+                                      style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                                    ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'Variant: ${variant.name} | SKU: ${variant.sku} | Template: ${template.name}',
+                                      variant != null
+                                          ? 'Variant: ${variant.name} | SKU: ${variant.sku} | Template: ${template.name}'
+                                          : 'Batch Items: ${loadedState.printableItems.length} variant(s) | Template: ${template.name}',
                                       style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                                     ),
                                   ],

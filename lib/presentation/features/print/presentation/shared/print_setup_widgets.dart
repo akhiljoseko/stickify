@@ -558,6 +558,26 @@ class SheetsPreview extends StatelessWidget {
                 ),
               ],
             ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Reverse sheet order',
+                  style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 8),
+                Switch(
+                  value: loadedState.reverseSheetOrder,
+                  onChanged: (val) {
+                    if (onToggleReverseSheetOrder != null) {
+                      onToggleReverseSheetOrder!(val);
+                    } else {
+                      context.read<PrintWorkflowCubit>().toggleReverseSheetOrder(value: val);
+                    }
+                  },
+                ),
+              ],
+            ),
           ],
         ),
         const SizedBox(height: 16),

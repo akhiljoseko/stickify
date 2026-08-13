@@ -187,7 +187,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     emit(const PrintWorkflowLoading());
     try {
       final templatesResult = await _templateRepository.fetchTemplates();
-      List<LabelTemplate> templates = [];
+      var templates = <LabelTemplate>[];
       if (templatesResult is Success<List<LabelTemplate>, AppError>) {
         templates = templatesResult.value;
       }

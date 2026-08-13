@@ -31,7 +31,8 @@ class VariantInlineQuantityTile extends StatefulWidget {
   final int currentAddedQuantity;
 
   @override
-  State<VariantInlineQuantityTile> createState() => _VariantInlineQuantityTileState();
+  State<VariantInlineQuantityTile> createState() =>
+      _VariantInlineQuantityTileState();
 }
 
 class _VariantInlineQuantityTileState extends State<VariantInlineQuantityTile> {
@@ -46,8 +47,9 @@ class _VariantInlineQuantityTileState extends State<VariantInlineQuantityTile> {
 
   @override
   void dispose() {
-    _controller.removeListener(_onTextChanged);
-    _controller.dispose();
+    _controller
+      ..removeListener(_onTextChanged)
+      ..dispose();
     super.dispose();
   }
 
@@ -75,8 +77,12 @@ class _VariantInlineQuantityTileState extends State<VariantInlineQuantityTile> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isAdded ? colorScheme.primaryContainer.withValues(alpha: 0.15) : null,
-        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.5)),
+        color: isAdded
+            ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+            : null,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
@@ -103,7 +109,10 @@ class _VariantInlineQuantityTileState extends State<VariantInlineQuantityTile> {
                 if (isAdded) ...[
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(12),
@@ -137,7 +146,10 @@ class _VariantInlineQuantityTileState extends State<VariantInlineQuantityTile> {
                     labelText: 'Qty',
                     isDense: true,
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 10,
+                    ),
                   ),
                   onSubmitted: (_) => _handleAdd(),
                 ),
@@ -146,7 +158,10 @@ class _VariantInlineQuantityTileState extends State<VariantInlineQuantityTile> {
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                 ),
                 onPressed: _isValidQuantity ? _handleAdd : null,
                 icon: const Icon(Icons.add, size: 16),

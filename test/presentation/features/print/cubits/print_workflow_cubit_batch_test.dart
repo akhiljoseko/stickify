@@ -103,7 +103,7 @@ void main() {
         displayName: 'Tray 1',
         trayIdentifier: 'T1',
         supportedPaperConfigurations: const [PaperConfigurationReference(id: 'temp-1', displayName: 'T1')],
-        calibration: PrinterCalibration(enabled: false, calibrationRules: []),
+        calibration: PrinterCalibration(enabled: false, calibrationRules: const []),
       ),
     ],
     createdAt: DateTime(2026),

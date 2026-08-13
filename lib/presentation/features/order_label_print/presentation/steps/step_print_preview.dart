@@ -182,8 +182,8 @@ class _StepPrintPreviewContentState extends State<_StepPrintPreviewContent> {
         }
 
         final loadedState = switch (state) {
-          PrintWorkflowLoaded s => s,
-          PrintWorkflowSubmitting s => s.loadedState,
+          final PrintWorkflowLoaded s => s,
+          final PrintWorkflowSubmitting s => s.loadedState,
           _ => null,
         };
 
@@ -242,7 +242,6 @@ class _StepPrintPreviewContentState extends State<_StepPrintPreviewContent> {
           sheetConfig: sheetConfig,
           state: state,
           showQuantityField: false,
-          showTemplateSelector: true,
           isSubmitting: state is PrintWorkflowSubmitting,
           onPrinterChanged: cubit.updatePrinter,
           onManufacturingDateChanged: cubit.updateManufacturingDate,

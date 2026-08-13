@@ -257,7 +257,7 @@ void main() {
       ).thenAnswer((_) async => false);
 
       final result = await service.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: testTemplate,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra ZT411-A', url: 'url'),
@@ -285,7 +285,7 @@ void main() {
       fakePrintingPlatform.printersList = [];
 
       final result = await service.printLabels(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+        items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
         template: testTemplate,
         disabledSlots: {},
         printer: const PrinterDevice(name: 'Zebra ZT411-A', url: 'url'),
@@ -323,7 +323,7 @@ void main() {
         ];
 
         final result = await service.printLabels(
-          items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
+          items: [const PrintableItem(product: testProduct, variant: testVariant, quantity: 1)],
           template: testTemplate,
           disabledSlots: {},
           printer: const PrinterDevice(name: 'Zebra ZT411-A', url: 'zebra-url'),

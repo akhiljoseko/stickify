@@ -7,8 +7,11 @@ import 'package:stickify/presentation/features/order_label_print/cubits/order_la
 import 'package:stickify/presentation/features/order_label_print/cubits/order_label_print_state.dart';
 
 class MockTemplateRepository extends Mock implements TemplateRepository {}
+
 class MockProductRepository extends Mock implements ProductRepository {}
-class MockPrinterDiscoveryService extends Mock implements PrinterDiscoveryService {}
+
+class MockPrinterDiscoveryService extends Mock
+    implements PrinterDiscoveryService {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -60,7 +63,11 @@ void main() {
     ),
   );
 
-  const testPrinter = PrinterDevice(name: 'Test Printer', url: 'test-url', isDefault: true);
+  const testPrinter = PrinterDevice(
+    name: 'Test Printer',
+    url: 'test-url',
+    isDefault: true,
+  );
 
   setUpAll(() {
     registerFallbackValue(testProduct);
@@ -74,7 +81,9 @@ void main() {
     mockProductRepo = MockProductRepository();
     mockPrinterDiscoveryService = MockPrinterDiscoveryService();
 
-    when(() => mockTemplateRepo.fetchTemplates()).thenAnswer((_) async => const Success([testTemplate]));
+    when(
+      () => mockTemplateRepo.fetchTemplates(),
+    ).thenAnswer((_) async => const Success([testTemplate]));
     when(
       () => mockProductRepo.getProducts(
         page: any(named: 'page'),
@@ -92,7 +101,9 @@ void main() {
         ),
       ),
     );
-    when(() => mockPrinterDiscoveryService.getAvailablePrinters()).thenAnswer((_) async => [testPrinter]);
+    when(
+      () => mockPrinterDiscoveryService.getAvailablePrinters(),
+    ).thenAnswer((_) async => [testPrinter]);
 
     cubit = OrderLabelPrintCubit(
       templateRepository: mockTemplateRepo,
@@ -115,7 +126,11 @@ void main() {
       build: () => cubit,
       act: (c) => c.init(),
       expect: () => [
-        isA<OrderLabelPrintState>().having((s) => s.isLoading, 'isLoading', isTrue),
+        isA<OrderLabelPrintState>().having(
+          (s) => s.isLoading,
+          'isLoading',
+          isTrue,
+        ),
         isA<OrderLabelPrintState>()
             .having((s) => s.isLoading, 'isLoading', isFalse)
             .having((s) => s.templates.length, 'templates.length', 1)
@@ -134,8 +149,12 @@ void main() {
           ..addOrUpdateItem(testProduct, testVariant, 10);
       },
       expect: () => [
-        isA<OrderLabelPrintState>().having((s) => s.items.length, 'items.length', 1).having((s) => s.items.first.quantity, 'quantity', 5),
-        isA<OrderLabelPrintState>().having((s) => s.items.length, 'items.length', 1).having((s) => s.items.first.quantity, 'quantity', 15),
+        isA<OrderLabelPrintState>()
+            .having((s) => s.items.length, 'items.length', 1)
+            .having((s) => s.items.first.quantity, 'quantity', 5),
+        isA<OrderLabelPrintState>()
+            .having((s) => s.items.length, 'items.length', 1)
+            .having((s) => s.items.first.quantity, 'quantity', 15),
       ],
     );
 
@@ -143,7 +162,13 @@ void main() {
       'updateItemQuantity updates item quantity or removes if qty <= 0',
       build: () => cubit,
       seed: () => const OrderLabelPrintState(
-        items: [PrintableItem(product: testProduct, variant: testVariant, quantity: 5)],
+        items: [
+          PrintableItem(
+            product: testProduct,
+            variant: testVariant,
+            quantity: 5,
+          ),
+        ],
       ),
       act: (c) {
         c
@@ -151,8 +176,16 @@ void main() {
           ..updateItemQuantity(0, 0);
       },
       expect: () => [
-        isA<OrderLabelPrintState>().having((s) => s.items.first.quantity, 'quantity', 8),
-        isA<OrderLabelPrintState>().having((s) => s.items.isEmpty, 'items.isEmpty', isTrue),
+        isA<OrderLabelPrintState>().having(
+          (s) => s.items.first.quantity,
+          'quantity',
+          8,
+        ),
+        isA<OrderLabelPrintState>().having(
+          (s) => s.items.isEmpty,
+          'items.isEmpty',
+          isTrue,
+        ),
       ],
     );
 
@@ -161,33 +194,63 @@ void main() {
       build: () => cubit,
       act: (c) {
         // Step 1 without template fails
-        c.goToNextStep();
-        // Select template -> advances to step 2
-        c.selectTemplate(testTemplate);
-        c.goToNextStep();
-        // Step 2 without items fails
-        c.goToNextStep();
-        // Add item -> advances directly to print preview (Step 3)
-        c.addOrUpdateItem(testProduct, testVariant, 5);
-        c.goToNextStep();
+        c
+          ..goToNextStep()
+          // Select template -> advances to step 2
+          ..selectTemplate(testTemplate)
+          ..goToNextStep()
+          // Step 2 without items fails
+          ..goToNextStep()
+          // Add item -> advances directly to print preview (Step 3)
+          ..addOrUpdateItem(testProduct, testVariant, 5)
+          ..goToNextStep();
       },
       expect: () => [
-        isA<OrderLabelPrintState>().having((s) => s.errorMessage, 'errorMessage', contains('select a label template')),
-        isA<OrderLabelPrintState>().having((s) => s.selectedTemplate, 'selectedTemplate', testTemplate),
-        isA<OrderLabelPrintState>().having((s) => s.step, 'step', OrderLabelPrintStep.variantSelection),
-        isA<OrderLabelPrintState>().having((s) => s.errorMessage, 'errorMessage', contains('add at least one product variant')),
-        isA<OrderLabelPrintState>().having((s) => s.items.length, 'items.length', 1),
-        isA<OrderLabelPrintState>().having((s) => s.step, 'step', OrderLabelPrintStep.printPreview),
+        isA<OrderLabelPrintState>().having(
+          (s) => s.errorMessage,
+          'errorMessage',
+          contains('select a label template'),
+        ),
+        isA<OrderLabelPrintState>().having(
+          (s) => s.selectedTemplate,
+          'selectedTemplate',
+          testTemplate,
+        ),
+        isA<OrderLabelPrintState>().having(
+          (s) => s.step,
+          'step',
+          OrderLabelPrintStep.variantSelection,
+        ),
+        isA<OrderLabelPrintState>().having(
+          (s) => s.errorMessage,
+          'errorMessage',
+          contains('add at least one product variant'),
+        ),
+        isA<OrderLabelPrintState>().having(
+          (s) => s.items.length,
+          'items.length',
+          1,
+        ),
+        isA<OrderLabelPrintState>().having(
+          (s) => s.step,
+          'step',
+          OrderLabelPrintStep.printPreview,
+        ),
       ],
     );
 
     blocTest<OrderLabelPrintCubit, OrderLabelPrintState>(
       'goToPreviousStep steps backward from printPreview directly to variantSelection',
       build: () => cubit,
-      seed: () => const OrderLabelPrintState(step: OrderLabelPrintStep.printPreview),
+      seed: () =>
+          const OrderLabelPrintState(step: OrderLabelPrintStep.printPreview),
       act: (c) => c.goToPreviousStep(),
       expect: () => [
-        isA<OrderLabelPrintState>().having((s) => s.step, 'step', OrderLabelPrintStep.variantSelection),
+        isA<OrderLabelPrintState>().having(
+          (s) => s.step,
+          'step',
+          OrderLabelPrintStep.variantSelection,
+        ),
       ],
     );
   });

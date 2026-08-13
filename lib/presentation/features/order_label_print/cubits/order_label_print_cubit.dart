@@ -7,13 +7,10 @@ import 'package:stickify/presentation/features/order_label_print/cubits/order_la
 class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
   /// Creates an [OrderLabelPrintCubit].
   OrderLabelPrintCubit({
-    required TemplateRepository templateRepository,
-    required ProductRepository productRepository,
-    required PrinterDiscoveryService printerDiscoveryService,
-  })  : _templateRepository = templateRepository,
-        _productRepository = productRepository,
-        _printerDiscoveryService = printerDiscoveryService,
-        super(const OrderLabelPrintState());
+    required this._templateRepository,
+    required this._productRepository,
+    required this._printerDiscoveryService,
+  }) : super(const OrderLabelPrintState());
 
   final TemplateRepository _templateRepository;
   final ProductRepository _productRepository;
@@ -32,19 +29,21 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
     );
     final printers = await _printerDiscoveryService.getAvailablePrinters();
 
-    List<LabelTemplate> templates = [];
+    var templates = <LabelTemplate>[];
     if (templatesResult is Success<List<LabelTemplate>, AppError>) {
       templates = templatesResult.value;
     }
 
-    List<Product> products = [];
+    var products = <Product>[];
     if (productsResult is Success<PaginatedResult<Product>, AppError>) {
       products = productsResult.value.items;
     }
 
     final defaultPrinter = printers.firstWhere(
       (p) => p.isDefault,
-      orElse: () => printers.isNotEmpty ? printers.first : const PrinterDevice(name: 'No Printer Found', url: ''),
+      orElse: () => printers.isNotEmpty
+          ? printers.first
+          : const PrinterDevice(name: 'No Printer Found', url: ''),
     );
 
     LabelTemplate? defaultTemplate;
@@ -66,7 +65,11 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
   }
 
   /// Refreshes product catalog from repository using search query and updates running batch items.
-  Future<void> refreshProductCatalog([Product? updatedProduct, ProductVariant? oldVariant, ProductVariant? updatedVariant]) async {
+  Future<void> refreshProductCatalog([
+    Product? updatedProduct,
+    ProductVariant? oldVariant,
+    ProductVariant? updatedVariant,
+  ]) async {
     final query = state.searchQuery.trim();
     final productsResult = await _productRepository.getProducts(
       page: 0,
@@ -77,11 +80,13 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
     if (productsResult is Success<PaginatedResult<Product>, AppError>) {
       final products = productsResult.value.items;
 
-      List<PrintableItem> updatedItems = List<PrintableItem>.from(state.items);
+      final updatedItems = List<PrintableItem>.from(state.items);
       if (updatedProduct != null && updatedVariant != null) {
         final targetSku = oldVariant?.sku ?? updatedVariant.sku;
         final existingIndex = updatedItems.indexWhere(
-          (item) => item.product.id == updatedProduct.id && item.variant.sku == targetSku,
+          (item) =>
+              item.product.id == updatedProduct.id &&
+              item.variant.sku == targetSku,
         );
 
         if (existingIndex >= 0) {
@@ -124,18 +129,37 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
     switch (state.step) {
       case OrderLabelPrintStep.templateSelection:
         if (state.selectedTemplate == null) {
-          emit(state.copyWith(errorMessage: () => 'Please select a label template to continue.'));
+          emit(
+            state.copyWith(
+              errorMessage: () => 'Please select a label template to continue.',
+            ),
+          );
           return false;
         }
-        emit(state.copyWith(step: OrderLabelPrintStep.variantSelection, errorMessage: () => null));
+        emit(
+          state.copyWith(
+            step: OrderLabelPrintStep.variantSelection,
+            errorMessage: () => null,
+          ),
+        );
         return true;
 
       case OrderLabelPrintStep.variantSelection:
         if (state.items.isEmpty) {
-          emit(state.copyWith(errorMessage: () => 'Please add at least one product variant to your order batch.'));
+          emit(
+            state.copyWith(
+              errorMessage: () =>
+                  'Please add at least one product variant to your order batch.',
+            ),
+          );
           return false;
         }
-        emit(state.copyWith(step: OrderLabelPrintStep.printPreview, errorMessage: () => null));
+        emit(
+          state.copyWith(
+            step: OrderLabelPrintStep.printPreview,
+            errorMessage: () => null,
+          ),
+        );
         return true;
 
       case OrderLabelPrintStep.printPreview:
@@ -149,9 +173,19 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
       case OrderLabelPrintStep.templateSelection:
         break;
       case OrderLabelPrintStep.variantSelection:
-        emit(state.copyWith(step: OrderLabelPrintStep.templateSelection, errorMessage: () => null));
+        emit(
+          state.copyWith(
+            step: OrderLabelPrintStep.templateSelection,
+            errorMessage: () => null,
+          ),
+        );
       case OrderLabelPrintStep.printPreview:
-        emit(state.copyWith(step: OrderLabelPrintStep.variantSelection, errorMessage: () => null));
+        emit(
+          state.copyWith(
+            step: OrderLabelPrintStep.variantSelection,
+            errorMessage: () => null,
+          ),
+        );
     }
   }
 
@@ -164,7 +198,7 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
       query: trimmed.isEmpty ? null : trimmed,
     );
 
-    List<Product> products = [];
+    var products = <Product>[];
     if (productsResult is Success<PaginatedResult<Product>, AppError>) {
       products = productsResult.value.items;
     }
@@ -177,7 +211,8 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
     if (quantity <= 0) return;
 
     final existingIndex = state.items.indexWhere(
-      (item) => item.product.id == product.id && item.variant.sku == variant.sku,
+      (item) =>
+          item.product.id == product.id && item.variant.sku == variant.sku,
     );
 
     final updatedItems = List<PrintableItem>.from(state.items);
@@ -198,7 +233,13 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
       );
     }
 
-    emit(state.copyWith(items: updatedItems, disabledSlots: const {}, errorMessage: () => null));
+    emit(
+      state.copyWith(
+        items: updatedItems,
+        disabledSlots: const {},
+        errorMessage: () => null,
+      ),
+    );
   }
 
   /// Updates quantity of an item at [index]. If quantity <= 0, removes the item.
@@ -217,16 +258,27 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
       );
     }
 
-    emit(state.copyWith(items: updatedItems, disabledSlots: const {}, errorMessage: () => null));
+    emit(
+      state.copyWith(
+        items: updatedItems,
+        disabledSlots: const {},
+        errorMessage: () => null,
+      ),
+    );
   }
 
   /// Removes an item at [index].
   void removeItem(int index) {
     if (index < 0 || index >= state.items.length) return;
 
-    final updatedItems = List<PrintableItem>.from(state.items);
-    updatedItems.removeAt(index);
+    final updatedItems = List<PrintableItem>.from(state.items)..removeAt(index);
 
-    emit(state.copyWith(items: updatedItems, disabledSlots: const {}, errorMessage: () => null));
+    emit(
+      state.copyWith(
+        items: updatedItems,
+        disabledSlots: const {},
+        errorMessage: () => null,
+      ),
+    );
   }
 }

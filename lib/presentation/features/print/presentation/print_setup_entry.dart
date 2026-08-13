@@ -257,6 +257,13 @@ class _PrintSetupViewState extends State<_PrintSetupView> {
             sheetConfig: sheetConfig,
             sticker: sticker,
             template: template,
+            items: [
+              PrintableItem(
+                product: product,
+                variant: variant,
+                quantity: loadedState.quantity,
+              ),
+            ],
             product: product,
             variant: variant,
           );

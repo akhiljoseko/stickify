@@ -228,10 +228,8 @@ void main() {
         ],
       );
       when(() => printService.printLabels(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printer: any(named: 'printer'),
             printFromBottom: any(named: 'printFromBottom'),
@@ -411,10 +409,8 @@ void main() {
             printedAt: any(named: 'printedAt'),
           )).called(1);
       verify(() => printService.printLabels(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printer: any(named: 'printer'),
             printFromBottom: any(named: 'printFromBottom'),
@@ -470,10 +466,8 @@ void main() {
         ],
       );
       when(() => printService.printLabels(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printer: any(named: 'printer'),
             printFromBottom: any(named: 'printFromBottom'),
@@ -599,10 +593,8 @@ void main() {
 
       // Verify print service was not called initially
       verifyNever(() => printService.printLabels(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printer: any(named: 'printer'),
             printFromBottom: any(named: 'printFromBottom'),
@@ -617,10 +609,8 @@ void main() {
 
       // Verify printing was triggered
       verify(() => printService.printLabels(
-            product: any(named: 'product'),
-            variant: any(named: 'variant'),
+            items: any(named: 'items'),
             template: any(named: 'template'),
-            quantity: any(named: 'quantity'),
             disabledSlots: any(named: 'disabledSlots'),
             printer: any(named: 'printer'),
             printFromBottom: any(named: 'printFromBottom'),

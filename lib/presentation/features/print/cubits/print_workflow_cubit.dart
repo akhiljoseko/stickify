@@ -437,10 +437,14 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
       }
 
       final printResult = await _printService.printLabels(
-        product: s.product,
-        variant: s.variant,
+        items: [
+          PrintableItem(
+            product: s.product,
+            variant: s.variant,
+            quantity: s.quantity,
+          ),
+        ],
         template: template,
-        quantity: s.quantity,
         disabledSlots: s.disabledSlots,
         printer: printer,
         printFromBottom: s.printFromBottom,

@@ -10,10 +10,6 @@ abstract interface class ProductRepository {
   /// Returns all products in the catalogue.
   Future<Result<List<Product>, AppError>> getAllProducts();
 
-  /// Returns products matching [query] and/or [category] filters.
-  @Deprecated('Use getProducts with pagination instead.')
-  Future<Result<List<Product>, AppError>> getFilteredProducts({String query = '', String category = ''});
-
   /// Returns a paginated, filtered list of products.
   Future<Result<PaginatedResult<Product>, AppError>> getProducts({
     required int page,

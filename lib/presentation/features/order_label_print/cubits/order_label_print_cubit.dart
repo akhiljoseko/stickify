@@ -19,12 +19,17 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
   final ProductRepository _productRepository;
   final PrinterDiscoveryService _printerDiscoveryService;
 
+  static const int _pageSize = 100;
+
   /// Initializes templates catalog, product catalog, and available printers.
   Future<void> init() async {
     emit(state.copyWith(isLoading: true, errorMessage: () => null));
 
     final templatesResult = await _templateRepository.fetchTemplates();
-    final productsResult = await _productRepository.getAllProducts();
+    final productsResult = await _productRepository.getProducts(
+      page: 0,
+      pageSize: _pageSize,
+    );
     final printers = await _printerDiscoveryService.getAvailablePrinters();
 
     List<LabelTemplate> templates = [];
@@ -33,8 +38,8 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
     }
 
     List<Product> products = [];
-    if (productsResult is Success<List<Product>, AppError>) {
-      products = productsResult.value;
+    if (productsResult is Success<PaginatedResult<Product>, AppError>) {
+      products = productsResult.value.items;
     }
 
     final defaultPrinter = printers.firstWhere(
@@ -60,12 +65,17 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
     );
   }
 
-  /// Refreshes product catalog from repository (e.g. after a variant detail edit) and updates running batch items.
+  /// Refreshes product catalog from repository using search query and updates running batch items.
   Future<void> refreshProductCatalog([Product? updatedProduct, ProductVariant? oldVariant, ProductVariant? updatedVariant]) async {
-    final productsResult = await _productRepository.getAllProducts();
-    if (productsResult is Success<List<Product>, AppError>) {
-      final products = productsResult.value;
-      final filtered = _filterProductsList(products, state.searchQuery);
+    final query = state.searchQuery.trim();
+    final productsResult = await _productRepository.getProducts(
+      page: 0,
+      pageSize: _pageSize,
+      query: query.isEmpty ? null : query,
+    );
+
+    if (productsResult is Success<PaginatedResult<Product>, AppError>) {
+      final products = productsResult.value.items;
 
       List<PrintableItem> updatedItems = List<PrintableItem>.from(state.items);
       if (updatedProduct != null && updatedVariant != null) {
@@ -87,7 +97,7 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
       emit(
         state.copyWith(
           products: products,
-          filteredProducts: filtered,
+          filteredProducts: products,
           items: updatedItems,
         ),
       );
@@ -145,24 +155,21 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
     }
   }
 
-  /// Filters product catalog by name, SKU, or keywords.
-  void updateSearchQuery(String query) {
-    final filtered = _filterProductsList(state.products, query);
-    emit(state.copyWith(searchQuery: query, filteredProducts: filtered));
-  }
+  /// Updates search query and fetches filtered products from repository.
+  Future<void> updateSearchQuery(String query) async {
+    final trimmed = query.trim();
+    final productsResult = await _productRepository.getProducts(
+      page: 0,
+      pageSize: _pageSize,
+      query: trimmed.isEmpty ? null : trimmed,
+    );
 
-  List<Product> _filterProductsList(List<Product> products, String query) {
-    final trimmed = query.trim().toLowerCase();
-    if (trimmed.isEmpty) return products;
+    List<Product> products = [];
+    if (productsResult is Success<PaginatedResult<Product>, AppError>) {
+      products = productsResult.value.items;
+    }
 
-    return products.where((p) {
-      final nameMatch = p.name.toLowerCase().contains(trimmed);
-      final skuMatch = p.sku.toLowerCase().contains(trimmed);
-      final variantMatch = p.variants.any(
-        (v) => v.name.toLowerCase().contains(trimmed) || v.sku.toLowerCase().contains(trimmed),
-      );
-      return nameMatch || skuMatch || variantMatch;
-    }).toList();
+    emit(state.copyWith(searchQuery: query, filteredProducts: products));
   }
 
   /// Adds a variant to running batch or accumulates quantity if already added.

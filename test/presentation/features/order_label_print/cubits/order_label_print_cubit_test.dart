@@ -141,7 +141,7 @@ void main() {
     );
 
     blocTest<OrderLabelPrintCubit, OrderLabelPrintState>(
-      'addOrUpdateItem adds new item or accumulates existing variant quantity',
+      'addOrUpdateItem appends a new row entry for each variant addition',
       build: () => cubit,
       act: (c) {
         c
@@ -153,8 +153,8 @@ void main() {
             .having((s) => s.items.length, 'items.length', 1)
             .having((s) => s.items.first.quantity, 'quantity', 5),
         isA<OrderLabelPrintState>()
-            .having((s) => s.items.length, 'items.length', 1)
-            .having((s) => s.items.first.quantity, 'quantity', 15),
+            .having((s) => s.items.length, 'items.length', 2)
+            .having((s) => s.items.last.quantity, 'quantity', 10),
       ],
     );
 

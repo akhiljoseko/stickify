@@ -22,6 +22,9 @@ class ParametersPanel extends StatefulWidget {
     this.onPrinterChanged,
     this.onManufacturingDateChanged,
     this.onTemplateChanged,
+    this.onToggleAllFirstSheet,
+    this.onTogglePrintFromBottom,
+    this.onToggleReverseSheetOrder,
     this.onPrint,
     this.showQuantityField = true,
     this.showTemplateSelector = true,
@@ -55,6 +58,15 @@ class ParametersPanel extends StatefulWidget {
 
   /// Callback when label template is changed.
   final ValueChanged<LabelTemplate>? onTemplateChanged;
+
+  /// Callback when select/deselect all first sheet action is triggered.
+  final ValueChanged<bool>? onToggleAllFirstSheet;
+
+  /// Callback when print from bottom toggle changes.
+  final ValueChanged<bool>? onTogglePrintFromBottom;
+
+  /// Callback when reverse sheet order toggle changes.
+  final ValueChanged<bool>? onToggleReverseSheetOrder;
 
   /// Callback when print action is triggered.
   final VoidCallback? onPrint;
@@ -119,7 +131,9 @@ class _ParametersPanelState extends State<ParametersPanel> {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    final submitting = widget.isSubmitting || widget.state is PrintWorkflowSubmitting;
+    final slotsPerSheet = widget.sheetConfig.columns * widget.sheetConfig.rows;
+    final allFirstSheetSelected = Iterable<int>.generate(slotsPerSheet)
+        .every((slot) => !widget.loadedState.disabledSlots.contains(slot));
 
     return Card(
       child: Padding(
@@ -129,7 +143,7 @@ class _ParametersPanelState extends State<ParametersPanel> {
           children: [
             Text(
               'Print Parameters',
-              style: textTheme.titleSmall?.copyWith(color: colorScheme.primary),
+              style: textTheme.titleSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
             // Quantity (conditional)
@@ -237,115 +251,81 @@ class _ParametersPanelState extends State<ParametersPanel> {
                 ),
               ],
             ),
-            if (widget.loadedState.isResumingPartialSheet || widget.loadedState.disabledSlots.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: colorScheme.error,
-                  side: BorderSide(color: colorScheme.error.withValues(alpha: 0.5)),
-                  minimumSize: const Size(double.infinity, 44),
-                ),
-                onPressed: () {
-                  context.read<PrintWorkflowCubit>().resetPartialSheet();
-                },
-                icon: const Icon(Icons.restart_alt, size: 18),
-                label: const Text('Reset to Fresh Sheet'),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 12),
+            Text(
+              'Sheet Controls',
+              style: textTheme.titleSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 42),
               ),
-            ],
-            const SizedBox(height: 24),
-            // Summary Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(8),
+              onPressed: () {
+                final select = !allFirstSheetSelected;
+                if (widget.onToggleAllFirstSheet != null) {
+                  widget.onToggleAllFirstSheet!(select);
+                } else {
+                  final cubit = context.read<PrintWorkflowCubit>();
+                  if (allFirstSheetSelected) {
+                    cubit.deselectAllFirstSheet();
+                  } else {
+                    cubit.selectAllFirstSheet();
+                  }
+                }
+              },
+              icon: Icon(
+                allFirstSheetSelected ? Icons.deselect : Icons.select_all,
+                size: 18,
               ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Total Labels',
-                          style: textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.loadedState.totalQuantity.toString(),
-                        style: textTheme.headlineMedium?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Sheets Required',
-                          style: textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.totalSheets.toString(),
-                        style: textTheme.headlineMedium?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              label: Text(
+                allFirstSheetSelected ? 'Deselect All First Sheet' : 'Select All First Sheet',
               ),
             ),
-            const SizedBox(height: 24),
-            // Print button
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Print from bottom',
+                    style: textTheme.bodyMedium,
+                  ),
                 ),
-                onPressed: submitting
-                    ? null
-                    : () {
-                        if (widget.onPrint != null) {
-                          widget.onPrint!();
-                        } else {
-                          context.read<PrintWorkflowCubit>().startPrintJob();
-                        }
-                      },
-                icon: submitting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.print),
-                label: Text(
-                  submitting
-                      ? 'Sending to Printer...'
-                      : 'Print Labels',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                Switch(
+                  value: widget.loadedState.printFromBottom,
+                  onChanged: (val) {
+                    if (widget.onTogglePrintFromBottom != null) {
+                      widget.onTogglePrintFromBottom!(val);
+                    } else {
+                      context.read<PrintWorkflowCubit>().togglePrintFromBottom(value: val);
+                    }
+                  },
                 ),
-              ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Reverse sheet order',
+                    style: textTheme.bodyMedium,
+                  ),
+                ),
+                Switch(
+                  value: widget.loadedState.reverseSheetOrder,
+                  onChanged: (val) {
+                    if (widget.onToggleReverseSheetOrder != null) {
+                      widget.onToggleReverseSheetOrder!(val);
+                    } else {
+                      context.read<PrintWorkflowCubit>().toggleReverseSheetOrder(value: val);
+                    }
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -354,7 +334,7 @@ class _ParametersPanelState extends State<ParametersPanel> {
   }
 }
 
-/// Header bar for Print Preview displaying title, summary badges, and primary Print button.
+/// Header bar for Print Preview displaying title, summary badges, warning reset button, and primary Print button.
 class PrintPreviewHeader extends StatelessWidget {
   /// Creates a [PrintPreviewHeader].
   const PrintPreviewHeader({
@@ -366,6 +346,7 @@ class PrintPreviewHeader extends StatelessWidget {
     required this.disabledSlotCount,
     this.onPrint,
     this.onBack,
+    this.onResetPartialSheet,
     this.backButtonLabel = 'Back',
     this.isSubmitting = false,
     super.key,
@@ -394,6 +375,9 @@ class PrintPreviewHeader extends StatelessWidget {
 
   /// Callback when Back button is clicked.
   final VoidCallback? onBack;
+
+  /// Callback when partial sheet warning reset button is clicked.
+  final VoidCallback? onResetPartialSheet;
 
   /// Custom label for Back button.
   final String backButtonLabel;
@@ -458,7 +442,7 @@ class PrintPreviewHeader extends StatelessWidget {
               children: [
                 // Summary Badge 1: Total Labels
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(20),
@@ -466,11 +450,11 @@ class PrintPreviewHeader extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.label_outlined, size: 16, color: colorScheme.onPrimaryContainer),
-                      const SizedBox(width: 6),
+                      Icon(Icons.label_outlined, size: 18, color: colorScheme.onPrimaryContainer),
+                      const SizedBox(width: 8),
                       Text(
                         '$totalQuantity Label${totalQuantity == 1 ? "" : "s"}',
-                        style: textTheme.labelLarge?.copyWith(
+                        style: textTheme.titleSmall?.copyWith(
                           color: colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.bold,
                         ),
@@ -480,7 +464,7 @@ class PrintPreviewHeader extends StatelessWidget {
                 ),
                 // Summary Badge 2: Total Sheets
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: colorScheme.secondaryContainer,
                     borderRadius: BorderRadius.circular(20),
@@ -488,11 +472,11 @@ class PrintPreviewHeader extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.layers_outlined, size: 16, color: colorScheme.onSecondaryContainer),
-                      const SizedBox(width: 6),
+                      Icon(Icons.layers_outlined, size: 18, color: colorScheme.onSecondaryContainer),
+                      const SizedBox(width: 8),
                       Text(
                         '$totalSheets Sheet${totalSheets == 1 ? "" : "s"}',
-                        style: textTheme.labelLarge?.copyWith(
+                        style: textTheme.titleSmall?.copyWith(
                           color: colorScheme.onSecondaryContainer,
                           fontWeight: FontWeight.bold,
                         ),
@@ -500,28 +484,53 @@ class PrintPreviewHeader extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Summary Badge 3: Resuming Partial Sheet Status
-                if (isResumingPartialSheet)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.shade100,
-                      border: Border.all(color: Colors.amber.shade700),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.history_toggle_off, size: 16, color: Colors.amber.shade900),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Resuming Partial Sheet ($disabledSlotCount pre-disabled)',
-                          style: textTheme.labelLarge?.copyWith(
-                            color: Colors.amber.shade900,
-                            fontWeight: FontWeight.bold,
+                // Resuming Partial Sheet Warning Badge & Reset Button
+                if (isResumingPartialSheet || disabledSlotCount > 0)
+                  Tooltip(
+                    message: 'Click to reset pre-disabled slots to a fresh full sheet',
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () {
+                          if (onResetPartialSheet != null) {
+                            onResetPartialSheet!();
+                          } else {
+                            context.read<PrintWorkflowCubit>().resetPartialSheet();
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade50,
+                            border: Border.all(color: Colors.amber.shade700, width: 1.5),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.warning_amber_rounded, size: 18, color: Colors.amber.shade900),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Resuming Partial Sheet ($disabledSlotCount pre-disabled)',
+                                style: textTheme.titleSmall?.copyWith(
+                                  color: Colors.amber.shade900,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.shade200,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.refresh, size: 14, color: Colors.amber.shade900),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 // Primary Print Button
@@ -713,89 +722,6 @@ class SheetsPreview extends StatelessWidget {
               );
             }
           },
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 8,
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Builder(
-              builder: (context) {
-                final allFirstSheetSelected = Iterable<int>.generate(slotsPerSheet)
-                    .every((slot) => !loadedState.disabledSlots.contains(slot));
-
-                return OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: () {
-                    final select = !allFirstSheetSelected;
-                    if (onToggleAllFirstSheet != null) {
-                      onToggleAllFirstSheet!(select);
-                    } else {
-                      final cubit = context.read<PrintWorkflowCubit>();
-                      if (allFirstSheetSelected) {
-                        cubit.deselectAllFirstSheet();
-                      } else {
-                        cubit.selectAllFirstSheet();
-                      }
-                    }
-                  },
-                  icon: Icon(
-                    allFirstSheetSelected ? Icons.deselect : Icons.select_all,
-                    size: 16,
-                  ),
-                  label: Text(
-                    allFirstSheetSelected ? 'Deselect All First Sheet' : 'Select All First Sheet',
-                  ),
-                );
-              },
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Print from bottom',
-                  style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 8),
-                Switch(
-                  value: loadedState.printFromBottom,
-                  onChanged: (val) {
-                    if (onTogglePrintFromBottom != null) {
-                      onTogglePrintFromBottom!(val);
-                    } else {
-                      context.read<PrintWorkflowCubit>().togglePrintFromBottom(value: val);
-                    }
-                  },
-                ),
-              ],
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Reverse sheet order',
-                  style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 8),
-                Switch(
-                  value: loadedState.reverseSheetOrder,
-                  onChanged: (val) {
-                    if (onToggleReverseSheetOrder != null) {
-                      onToggleReverseSheetOrder!(val);
-                    } else {
-                      context.read<PrintWorkflowCubit>().toggleReverseSheetOrder(value: val);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ],
         ),
         const SizedBox(height: 16),
 

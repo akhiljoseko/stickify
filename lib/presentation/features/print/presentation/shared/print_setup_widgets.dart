@@ -620,33 +620,24 @@ class SheetsPreview extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 onTap: () => context.read<PrintWorkflowCubit>().resetPartialSheet(),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.amber.shade50,
-                    border: Border.all(color: Colors.amber.shade700),
+                    color: colorScheme.surfaceContainerHigh,
+                    border: Border.all(color: colorScheme.outlineVariant),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.warning_amber_rounded, size: 15, color: Colors.amber.shade900),
-                      const SizedBox(width: 6),
                       Text(
-                        'Resuming Partial Sheet ($disabledCount pre-disabled)',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: Colors.amber.shade900,
-                          fontWeight: FontWeight.bold,
+                        'Resuming Partial Sheet ($disabledCount)',
+                        style: textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade200,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.refresh, size: 12, color: Colors.amber.shade900),
-                      ),
+                      Icon(Icons.refresh, size: 14, color: colorScheme.onSurfaceVariant),
                     ],
                   ),
                 ),
@@ -658,55 +649,17 @@ class SheetsPreview extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final legendRow = Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    border: Border.all(color: colorScheme.primary),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text('Active', style: textTheme.bodySmall),
-                const SizedBox(width: 16),
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLow,
-                    border: Border.all(color: colorScheme.outlineVariant),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                  child: const Icon(Icons.close, size: 8, color: Colors.grey),
-                ),
-                const SizedBox(width: 4),
-                Text('Used/Skipped', style: textTheme.bodySmall),
-              ],
-            );
-
-            return Wrap(
-              spacing: 16,
-              runSpacing: 12,
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  'Sheet Layout Preview',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (isResuming) partialSheetBadge!,
-                legendRow,
-              ],
-            );
-          },
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Sheet Layout Preview',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (isResuming) partialSheetBadge!,
+          ],
         ),
         const SizedBox(height: 16),
 
@@ -930,10 +883,25 @@ class SheetsPreview extends StatelessWidget {
                                                     4,
                                                   ),
                                                 ),
-                                                child: const Center(
-                                                  child: Icon(
-                                                    Icons.close,
-                                                    color: Colors.grey,
+                                                child: Center(
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.block,
+                                                        size: 14,
+                                                        color: colorScheme.outline,
+                                                      ),
+                                                      const SizedBox(height: 2),
+                                                      Text(
+                                                        'Skipped',
+                                                        style: textTheme.labelSmall?.copyWith(
+                                                          color: colorScheme.outline,
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ),

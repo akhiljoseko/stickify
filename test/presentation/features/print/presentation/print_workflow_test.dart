@@ -231,7 +231,16 @@ void main() {
         () => localDatabase.get<bool>(any(), any()),
       ).thenAnswer((_) async => false);
       when(
+        () => localDatabase.get<List<dynamic>>(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
         () => localDatabase.save<bool>(any(), any(), any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => localDatabase.save<List<int>>(any(), any(), any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => localDatabase.delete(any(), any()),
       ).thenAnswer((_) async {});
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(
@@ -534,7 +543,16 @@ void main() {
         () => localDatabase.get<bool>(any(), any()),
       ).thenAnswer((_) async => false);
       when(
+        () => localDatabase.get<List<dynamic>>(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
         () => localDatabase.save<bool>(any(), any(), any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => localDatabase.save<List<int>>(any(), any(), any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => localDatabase.delete(any(), any()),
       ).thenAnswer((_) async {});
 
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
@@ -659,8 +677,8 @@ void main() {
         expect(find.text('Quantity to Print'), findsOneWidget);
         expect(find.text('Printer Selection'), findsOneWidget);
 
-        expect(find.text('Sheets Required'), findsOneWidget);
-        expect(find.text('2'), findsOneWidget);
+        expect(find.text('20 Labels'), findsOneWidget);
+        expect(find.text('2 Sheets'), findsOneWidget);
       },
     );
 
@@ -683,7 +701,7 @@ void main() {
         await tester.tap(firstSlotInkWell);
         await tester.pumpAndSettle();
 
-        expect(find.text('3'), findsOneWidget);
+        expect(find.text('3 Sheets'), findsOneWidget);
       },
     );
 
@@ -739,7 +757,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Disabling 2 slots on sheet 0 pushes the remaining printed labels to a 3rd sheet.
-      expect(find.text('3'), findsOneWidget);
+      expect(find.text('3 Sheets'), findsOneWidget);
     });
 
     testWidgets('pressing Ctrl + P triggers printing', (tester) async {

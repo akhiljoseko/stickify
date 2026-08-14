@@ -266,8 +266,6 @@ class _StepPrintPreviewContentState extends State<_StepPrintPreviewContent> {
           subtitle: 'Batch printing ${loadedState.printableItems.length} variant(s) on "${template.name}".',
           totalQuantity: totalQuantity,
           totalSheets: totalSheets,
-          isResumingPartialSheet: loadedState.isResumingPartialSheet,
-          disabledSlotCount: loadedState.disabledSlots.length,
           backButtonLabel: 'Back to Variants & Qty',
           onBack: () => context.read<OrderLabelPrintCubit>().goToPreviousStep(),
           onPrint: cubit.startPrintJob,

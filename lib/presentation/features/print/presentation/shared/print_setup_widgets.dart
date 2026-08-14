@@ -334,7 +334,7 @@ class _ParametersPanelState extends State<ParametersPanel> {
   }
 }
 
-/// Header bar for Print Preview displaying title, summary badges, warning reset button, and primary Print button.
+/// Header bar for Print Preview displaying title, summary badges, and primary Print button.
 class PrintPreviewHeader extends StatelessWidget {
   /// Creates a [PrintPreviewHeader].
   const PrintPreviewHeader({
@@ -342,11 +342,8 @@ class PrintPreviewHeader extends StatelessWidget {
     required this.subtitle,
     required this.totalQuantity,
     required this.totalSheets,
-    required this.isResumingPartialSheet,
-    required this.disabledSlotCount,
     this.onPrint,
     this.onBack,
-    this.onResetPartialSheet,
     this.backButtonLabel = 'Back',
     this.isSubmitting = false,
     super.key,
@@ -364,20 +361,11 @@ class PrintPreviewHeader extends StatelessWidget {
   /// Total physical sheets required.
   final int totalSheets;
 
-  /// Whether partial sheet memory is active.
-  final bool isResumingPartialSheet;
-
-  /// Number of pre-disabled slots.
-  final int disabledSlotCount;
-
   /// Callback when primary Print button is clicked.
   final VoidCallback? onPrint;
 
   /// Callback when Back button is clicked.
   final VoidCallback? onBack;
-
-  /// Callback when partial sheet warning reset button is clicked.
-  final VoidCallback? onResetPartialSheet;
 
   /// Custom label for Back button.
   final String backButtonLabel;
@@ -395,68 +383,77 @@ class PrintPreviewHeader extends StatelessWidget {
       color: colorScheme.surfaceContainerLowest,
       margin: const EdgeInsets.only(bottom: 24),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         child: Wrap(
           spacing: 16,
-          runSpacing: 16,
+          runSpacing: 12,
           alignment: WrapAlignment.spaceBetween,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
+                if (onBack != null) ...[
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: onBack,
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 14),
+                    label: Text(
+                      backButtonLabel,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                ],
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (onBack != null) ...[
-                      OutlinedButton.icon(
-                        onPressed: onBack,
-                        icon: const Icon(Icons.arrow_back, size: 16),
-                        label: Text(backButtonLabel),
-                      ),
-                      const SizedBox(width: 12),
-                    ],
                     Text(
                       title,
-                      style: textTheme.headlineSmall?.copyWith(
+                      style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
                 ),
               ],
             ),
             Wrap(
               spacing: 12,
-              runSpacing: 12,
+              runSpacing: 10,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 // Summary Badge 1: Total Labels
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(20),
+                    color: colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.label_outlined, size: 18, color: colorScheme.onPrimaryContainer),
+                      Icon(Icons.label_outlined, size: 16, color: colorScheme.onSurfaceVariant),
                       const SizedBox(width: 8),
                       Text(
                         '$totalQuantity Label${totalQuantity == 1 ? "" : "s"}',
                         style: textTheme.titleSmall?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -464,94 +461,48 @@ class PrintPreviewHeader extends StatelessWidget {
                 ),
                 // Summary Badge 2: Total Sheets
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(20),
+                    color: colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.layers_outlined, size: 18, color: colorScheme.onSecondaryContainer),
+                      Icon(Icons.layers_outlined, size: 16, color: colorScheme.onSurfaceVariant),
                       const SizedBox(width: 8),
                       Text(
                         '$totalSheets Sheet${totalSheets == 1 ? "" : "s"}',
                         style: textTheme.titleSmall?.copyWith(
-                          color: colorScheme.onSecondaryContainer,
-                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
                 ),
-                // Resuming Partial Sheet Warning Badge & Reset Button
-                if (isResumingPartialSheet || disabledSlotCount > 0)
-                  Tooltip(
-                    message: 'Click to reset pre-disabled slots to a fresh full sheet',
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () {
-                          if (onResetPartialSheet != null) {
-                            onResetPartialSheet!();
-                          } else {
-                            context.read<PrintWorkflowCubit>().resetPartialSheet();
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.shade50,
-                            border: Border.all(color: Colors.amber.shade700, width: 1.5),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.warning_amber_rounded, size: 18, color: Colors.amber.shade900),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Resuming Partial Sheet ($disabledSlotCount pre-disabled)',
-                                style: textTheme.titleSmall?.copyWith(
-                                  color: Colors.amber.shade900,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.amber.shade200,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.refresh, size: 14, color: Colors.amber.shade900),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 // Primary Print Button
                 if (onPrint != null)
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     onPressed: isSubmitting ? null : onPrint,
                     icon: isSubmitting
                         ? const SizedBox(
-                            width: 18,
-                            height: 18,
+                            width: 16,
+                            height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Icon(Icons.print),
+                        : const Icon(Icons.print, size: 18),
                     label: Text(
                       isSubmitting ? 'Sending...' : 'Print Labels',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                   ),
               ],
@@ -657,12 +608,58 @@ class SheetsPreview extends StatelessWidget {
       }
     }
 
+    final isResuming = loadedState.isResumingPartialSheet || loadedState.disabledSlots.isNotEmpty;
+    final disabledCount = loadedState.disabledSlots.length;
+
+    final partialSheetBadge = isResuming
+        ? Tooltip(
+            message: 'Click to reset pre-disabled slots to a fresh full sheet',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => context.read<PrintWorkflowCubit>().resetPartialSheet(),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    border: Border.all(color: Colors.amber.shade700),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.warning_amber_rounded, size: 15, color: Colors.amber.shade900),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Resuming Partial Sheet ($disabledCount pre-disabled)',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.amber.shade900,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade200,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.refresh, size: 12, color: Colors.amber.shade900),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          )
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LayoutBuilder(
           builder: (context, constraints) {
-            final useVerticalHeader = constraints.maxWidth < 600;
             final legendRow = Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -693,34 +690,22 @@ class SheetsPreview extends StatelessWidget {
               ],
             );
 
-            if (useVerticalHeader) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Sheet Layout Preview',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+            return Wrap(
+              spacing: 16,
+              runSpacing: 12,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  'Sheet Layout Preview',
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 8),
-                  legendRow,
-                ],
-              );
-            } else {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Sheet Layout Preview',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  legendRow,
-                ],
-              );
-            }
+                ),
+                if (isResuming) partialSheetBadge!,
+                legendRow,
+              ],
+            );
           },
         ),
         const SizedBox(height: 16),

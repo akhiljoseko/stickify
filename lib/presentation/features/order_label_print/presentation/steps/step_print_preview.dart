@@ -125,10 +125,6 @@ class _StepPrintPreviewContentState extends State<_StepPrintPreviewContent> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
     return BlocConsumer<PrintWorkflowCubit, PrintWorkflowState>(
       listener: (context, state) {
         if (state is PrintWorkflowSubmitting) {
@@ -265,39 +261,25 @@ class _StepPrintPreviewContentState extends State<_StepPrintPreviewContent> {
           onToggleReverseSheetOrder: (val) => cubit.toggleReverseSheetOrder(value: val),
         );
 
+        final previewHeader = PrintPreviewHeader(
+          title: 'Step 3: Print Preview & Dispatch',
+          subtitle: 'Batch printing ${loadedState.printableItems.length} variant(s) on "${template.name}".',
+          totalQuantity: totalQuantity,
+          totalSheets: totalSheets,
+          isResumingPartialSheet: loadedState.isResumingPartialSheet,
+          disabledSlotCount: loadedState.disabledSlots.length,
+          backButtonLabel: 'Back to Variants & Qty',
+          onBack: () => context.read<OrderLabelPrintCubit>().goToPreviousStep(),
+          onPrint: cubit.startPrintJob,
+          isSubmitting: state is PrintWorkflowSubmitting,
+        );
+
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Step 3: Print Preview & Dispatch',
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Batch printing ${loadedState.printableItems.length} variant(s) across $totalQuantity total labels on "${template.name}".',
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => context.read<OrderLabelPrintCubit>().goToPreviousStep(),
-                    icon: const Icon(Icons.arrow_back),
-                    label: const Text('Back to Variants & Qty'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+              previewHeader,
               LayoutBuilder(
                 builder: (context, constraints) {
                   if (constraints.maxWidth > 900) {

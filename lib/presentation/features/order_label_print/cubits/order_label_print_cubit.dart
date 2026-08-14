@@ -206,32 +206,18 @@ class OrderLabelPrintCubit extends Cubit<OrderLabelPrintState> {
     emit(state.copyWith(searchQuery: query, filteredProducts: products));
   }
 
-  /// Adds a variant to running batch or accumulates quantity if already added.
+  /// Adds a variant to running batch as a new row entry.
   void addOrUpdateItem(Product product, ProductVariant variant, int quantity) {
     if (quantity <= 0) return;
 
-    final existingIndex = state.items.indexWhere(
-      (item) =>
-          item.product.id == product.id && item.variant.sku == variant.sku,
-    );
-
-    final updatedItems = List<PrintableItem>.from(state.items);
-    if (existingIndex >= 0) {
-      final currentQty = updatedItems[existingIndex].quantity;
-      updatedItems[existingIndex] = PrintableItem(
-        product: product,
-        variant: variant,
-        quantity: currentQty + quantity,
-      );
-    } else {
-      updatedItems.add(
+    final updatedItems = List<PrintableItem>.from(state.items)
+      ..add(
         PrintableItem(
           product: product,
           variant: variant,
           quantity: quantity,
         ),
       );
-    }
 
     emit(
       state.copyWith(

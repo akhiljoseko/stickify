@@ -144,10 +144,6 @@ class _PrintSetupViewState extends State<_PrintSetupView> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
     return BlocConsumer<PrintWorkflowCubit, PrintWorkflowState>(
       listener: (context, state) {
         if (state is PrintWorkflowSubmitting) {
@@ -287,65 +283,29 @@ class _PrintSetupViewState extends State<_PrintSetupView> {
             ),
             body: AdaptiveScrollWrapper(
               builder: (context, controller) {
+                final title = product?.name ?? 'Single Label Print';
+                final subtitle = variant != null
+                    ? 'Variant: ${variant.name} | SKU: ${variant.sku} | Template: ${template.name}'
+                    : 'Template: ${template.name}';
+
                 return SingleChildScrollView(
                   controller: controller,
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Card
-                      Card(
-                        color: colorScheme.surfaceContainerLowest,
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      product?.name ?? 'Batch Order Print',
-                                      style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      variant != null
-                                          ? 'Variant: ${variant.name} | SKU: ${variant.sku} | Template: ${template.name}'
-                                          : 'Batch Items: ${loadedState.printableItems.length} variant(s) | Template: ${template.name}',
-                                      style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.primaryContainer,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.description, size: 16, color: colorScheme.primary),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Template Loaded',
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.primary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      PrintPreviewHeader(
+                        title: title,
+                        subtitle: subtitle,
+                        totalQuantity: loadedState.totalQuantity,
+                        totalSheets: totalSheets,
+                        isResumingPartialSheet: loadedState.isResumingPartialSheet,
+                        disabledSlotCount: loadedState.disabledSlots.length,
+                        backButtonLabel: 'Back',
+                        onBack: () => context.pop(),
+                        onPrint: () => context.read<PrintWorkflowCubit>().startPrintJob(),
+                        isSubmitting: state is PrintWorkflowSubmitting,
                       ),
-                      const SizedBox(height: 24),
-                      // Adaptive Layout Switcher using AppEnvironment
                       _AdaptivePrintSetupLayout(
                         parametersPanel: parametersPanel,
                         sheetsPreview: sheetsPreview,

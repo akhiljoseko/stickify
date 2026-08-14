@@ -237,6 +237,23 @@ class _ParametersPanelState extends State<ParametersPanel> {
                 ),
               ],
             ),
+            if (widget.loadedState.isResumingPartialSheet || widget.loadedState.disabledSlots.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: colorScheme.error,
+                  side: BorderSide(color: colorScheme.error.withValues(alpha: 0.5)),
+                  minimumSize: const Size(double.infinity, 44),
+                ),
+                onPressed: () {
+                  context.read<PrintWorkflowCubit>().resetPartialSheet();
+                },
+                icon: const Icon(Icons.restart_alt, size: 18),
+                label: const Text('Reset to Fresh Sheet'),
+              ),
+            ],
             const SizedBox(height: 24),
             // Summary Card
             Container(
@@ -260,7 +277,7 @@ class _ParametersPanelState extends State<ParametersPanel> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        widget.loadedState.quantity.toString(),
+                        widget.loadedState.totalQuantity.toString(),
                         style: textTheme.headlineMedium?.copyWith(
                           color: colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.bold,
@@ -325,10 +342,210 @@ class _ParametersPanelState extends State<ParametersPanel> {
                 label: Text(
                   submitting
                       ? 'Sending to Printer...'
-                      : 'Print',
+                      : 'Print Labels',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Header bar for Print Preview displaying title, summary badges, and primary Print button.
+class PrintPreviewHeader extends StatelessWidget {
+  /// Creates a [PrintPreviewHeader].
+  const PrintPreviewHeader({
+    required this.title,
+    required this.subtitle,
+    required this.totalQuantity,
+    required this.totalSheets,
+    required this.isResumingPartialSheet,
+    required this.disabledSlotCount,
+    this.onPrint,
+    this.onBack,
+    this.backButtonLabel = 'Back',
+    this.isSubmitting = false,
+    super.key,
+  });
+
+  /// Primary screen title.
+  final String title;
+
+  /// Subtitle detailing template or job info.
+  final String subtitle;
+
+  /// Total count of labels to print.
+  final int totalQuantity;
+
+  /// Total physical sheets required.
+  final int totalSheets;
+
+  /// Whether partial sheet memory is active.
+  final bool isResumingPartialSheet;
+
+  /// Number of pre-disabled slots.
+  final int disabledSlotCount;
+
+  /// Callback when primary Print button is clicked.
+  final VoidCallback? onPrint;
+
+  /// Callback when Back button is clicked.
+  final VoidCallback? onBack;
+
+  /// Custom label for Back button.
+  final String backButtonLabel;
+
+  /// Whether print job is submitting.
+  final bool isSubmitting;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return Card(
+      color: colorScheme.surfaceContainerLowest,
+      margin: const EdgeInsets.only(bottom: 24),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Wrap(
+          spacing: 16,
+          runSpacing: 16,
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onBack != null) ...[
+                      OutlinedButton.icon(
+                        onPressed: onBack,
+                        icon: const Icon(Icons.arrow_back, size: 16),
+                        label: Text(backButtonLabel),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Text(
+                      title,
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                // Summary Badge 1: Total Labels
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.label_outlined, size: 16, color: colorScheme.onPrimaryContainer),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$totalQuantity Label${totalQuantity == 1 ? "" : "s"}',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Summary Badge 2: Total Sheets
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.layers_outlined, size: 16, color: colorScheme.onSecondaryContainer),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$totalSheets Sheet${totalSheets == 1 ? "" : "s"}',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: colorScheme.onSecondaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Summary Badge 3: Resuming Partial Sheet Status
+                if (isResumingPartialSheet)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade100,
+                      border: Border.all(color: Colors.amber.shade700),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.history_toggle_off, size: 16, color: Colors.amber.shade900),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Resuming Partial Sheet ($disabledSlotCount pre-disabled)',
+                          style: textTheme.labelLarge?.copyWith(
+                            color: Colors.amber.shade900,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                // Primary Print Button
+                if (onPrint != null)
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    ),
+                    onPressed: isSubmitting ? null : onPrint,
+                    icon: isSubmitting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Icon(Icons.print),
+                    label: Text(
+                      isSubmitting ? 'Sending...' : 'Print Labels',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),

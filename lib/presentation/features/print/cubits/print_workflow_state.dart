@@ -38,6 +38,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     this.printFromBottom = false,
     this.reverseSheetOrder = false,
     this.isQuantityManuallyEdited = false,
+    this.isResumingPartialSheet = false,
     this.selectedPrinterProfile,
     this.selectedTrayProfile,
     this.compatibilityResult,
@@ -79,6 +80,9 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
 
   /// Whether the user has manually edited the quantity field.
   final bool isQuantityManuallyEdited;
+
+  /// Whether the initial disabledSlots were restored from a partially used sheet memory.
+  final bool isResumingPartialSheet;
 
   /// Selected printer profile (matched from database).
   final PrinterProfile? selectedPrinterProfile;
@@ -123,6 +127,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     bool? printFromBottom,
     bool? reverseSheetOrder,
     bool? isQuantityManuallyEdited,
+    bool? isResumingPartialSheet,
     PrinterProfile? Function()? selectedPrinterProfile,
     PrinterTrayProfile? Function()? selectedTrayProfile,
     CompatibilityAnalysisResult? Function()? compatibilityResult,
@@ -141,6 +146,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
       printFromBottom: printFromBottom ?? this.printFromBottom,
       reverseSheetOrder: reverseSheetOrder ?? this.reverseSheetOrder,
       isQuantityManuallyEdited: isQuantityManuallyEdited ?? this.isQuantityManuallyEdited,
+      isResumingPartialSheet: isResumingPartialSheet ?? this.isResumingPartialSheet,
       selectedPrinterProfile: selectedPrinterProfile != null ? selectedPrinterProfile() : this.selectedPrinterProfile,
       selectedTrayProfile: selectedTrayProfile != null ? selectedTrayProfile() : this.selectedTrayProfile,
       compatibilityResult: compatibilityResult != null ? compatibilityResult() : this.compatibilityResult,
@@ -162,6 +168,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
         printFromBottom,
         reverseSheetOrder,
         isQuantityManuallyEdited,
+        isResumingPartialSheet,
         selectedPrinterProfile,
         selectedTrayProfile,
         compatibilityResult,

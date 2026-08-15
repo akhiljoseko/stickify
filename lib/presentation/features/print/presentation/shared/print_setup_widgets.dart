@@ -430,7 +430,6 @@ class PrintPreviewHeader extends StatelessWidget {
                 : const SizedBox.shrink();
 
             final titleColumn = Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
@@ -574,7 +573,6 @@ class PrintPreviewHeader extends StatelessWidget {
             }
 
             return Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // 1 -> Back button (uses only required space)
                 backButton,

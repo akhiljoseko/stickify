@@ -27,7 +27,8 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
     Future<ProcessResult> Function(
       String executable,
       List<String> arguments,
-    )? processRunner,
+    )?
+    processRunner,
   }) : _layoutEngine = layoutEngine,
        _paperValidator = paperValidator,
        _devModeManager = devModeManager,
@@ -46,7 +47,8 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
   final Future<ProcessResult> Function(
     String executable,
     List<String> arguments,
-  ) _processRunner;
+  )
+  _processRunner;
 
   @override
   Future<List<PrinterDevice>> getAvailablePrinters() async {
@@ -82,7 +84,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
       ]);
 
       if (result.exitCode != 0) {
-        return _fallbackToPrintingPackage();
+        return await _fallbackToPrintingPackage();
       }
 
       final decoded = jsonDecode(result.stdout.toString());

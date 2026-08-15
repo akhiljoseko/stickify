@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stickify/domain/entities/batch_print_summary.dart';
+import 'package:stickify/presentation/widgets/app_image.dart';
 
 /// Screen / View displaying the comprehensive summary of a completed batch print job.
 class BatchPrintSummaryView extends StatelessWidget {
@@ -34,46 +35,46 @@ class BatchPrintSummaryView extends StatelessWidget {
               // Header Card
               Card(
                 color: colorScheme.surfaceContainerLowest,
-                elevation: 1,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                   side: BorderSide(
-                    color: Colors.green.shade200,
+                    color: colorScheme.outlineVariant,
+                    width: 0.5,
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        width: 56,
+                        height: 56,
                         decoration: BoxDecoration(
-                          color: Colors.green.shade50,
+                          color: colorScheme.primaryContainer,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.check_circle_rounded,
-                          size: 48,
-                          color: Colors.green.shade700,
+                          size: 36,
+                          color: colorScheme.primary,
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         summary.batchTitle,
-                        textAlign: TextAlign.center,
-                        style: textTheme.headlineMedium?.copyWith(
+                        style: textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
                         ),
+                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
                         'Batch Print Job Dispatched Successfully!',
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodyLarge?.copyWith(
-                          color: Colors.green.shade800,
+                        style: textTheme.titleMedium?.copyWith(
+                          color: colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
                       // Metadata Chips
@@ -110,39 +111,6 @@ class BatchPrintSummaryView extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Stat Metrics Cards
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildMetricCard(
-                      context,
-                      title: 'Total Labels',
-                      value: summary.totalQuantity.toString(),
-                      icon: Icons.label_rounded,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildMetricCard(
-                      context,
-                      title: 'Sheets Printed',
-                      value: summary.totalSheets.toString(),
-                      icon: Icons.layers_rounded,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildMetricCard(
-                      context,
-                      title: 'Product Variants',
-                      value: summary.items.length.toString(),
-                      icon: Icons.inventory_2_rounded,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-
               // Items Section Header
               Text(
                 'Printed Product Variants (${summary.items.length})',
@@ -166,29 +134,13 @@ class BatchPrintSummaryView extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: Row(
                         children: [
-                          Container(
+                          AppImage(
+                            imageUrl: item.imageUrl,
+                            placeholderIcon: Icons.inventory_2_outlined,
                             width: 44,
                             height: 44,
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.network(
-                                      item.imageUrl!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) => Icon(
-                                        Icons.qr_code_2_rounded,
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  )
-                                : Icon(
-                                    Icons.qr_code_2_rounded,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                            borderRadius: 8,
+                            iconSize: 22,
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -288,43 +240,6 @@ class BatchPrintSummaryView extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMetricCard(
-    BuildContext context, {
-    required String title,
-    required String value,
-    required IconData icon,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Card(
-      color: colorScheme.surfaceContainerLowest,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Column(
-          children: [
-            Icon(icon, color: colorScheme.primary, size: 24),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              title,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

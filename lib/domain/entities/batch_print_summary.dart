@@ -131,7 +131,7 @@ class BatchPrintSummary extends Equatable {
       totalQuantity: (json['totalQuantity'] as num).toInt(),
       totalSheets: (json['totalSheets'] as num).toInt(),
       items: (json['items'] as List<dynamic>)
-          .map((i) => BatchPrintSummaryItem.fromJson(i as Map<String, dynamic>))
+          .map((i) => BatchPrintSummaryItem.fromJson(Map<String, dynamic>.from(i as Map)))
           .toList(),
     );
   }

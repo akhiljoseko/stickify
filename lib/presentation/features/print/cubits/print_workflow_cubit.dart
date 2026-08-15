@@ -25,7 +25,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     required PrinterCalibrationCoordinateResolver calibrationResolver,
     required TemplatePrinterCompatibilityAnalyzer compatibilityAnalyzer,
     required PrintPipelineOrchestrator printPipelineOrchestrator,
-    BatchPrintSummaryRepository? batchPrintSummaryRepository,
+    required BatchPrintSummaryRepository batchPrintSummaryRepository,
   })  : _productRepository = productRepository,
         _templateRepository = templateRepository,
         _printJobRepository = printJobRepository,
@@ -53,7 +53,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   final PrinterCalibrationCoordinateResolver _calibrationResolver;
   final TemplatePrinterCompatibilityAnalyzer _compatibilityAnalyzer;
   final PrintPipelineOrchestrator _printPipelineOrchestrator;
-  final BatchPrintSummaryRepository? _batchPrintSummaryRepository;
+  final BatchPrintSummaryRepository _batchPrintSummaryRepository;
 
   /// Loads initial metadata needed to configure a single product print job.
   Future<void> loadWorkflow(String productId, String variantSku, [String? templateId, int? initialQuantity]) async {
@@ -630,10 +630,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
             items: summaryItemsMap.values.toList(),
           );
 
-          final repo = _batchPrintSummaryRepository;
-          if (repo != null) {
-            await repo.saveSummary(batchSummary);
-          }
+          await _batchPrintSummaryRepository.saveSummary(batchSummary);
 
           emit(
             PrintWorkflowSuccess(

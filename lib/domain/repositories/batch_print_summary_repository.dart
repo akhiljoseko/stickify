@@ -12,4 +12,8 @@ abstract class BatchPrintSummaryRepository {
 
   /// Deletes batch print summaries older than [duration] (e.g. 7 days).
   Future<Result<void, AppError>> deleteSummariesOlderThan(Duration duration);
+
+  /// Stream that emits an updated list of batch print summaries whenever
+  /// a summary is saved or deleted.
+  Stream<List<BatchPrintSummary>> get onSummariesChanged;
 }

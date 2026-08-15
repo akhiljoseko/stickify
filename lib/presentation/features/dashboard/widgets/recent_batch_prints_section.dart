@@ -4,26 +4,9 @@ import 'package:stickify/presentation/features/dashboard/cubits/recent_batch_sum
 import 'package:stickify/presentation/features/dashboard/widgets/batch_print_summary_card.dart';
 
 /// Section widget rendered on Dashboard displaying a horizontal list of recent batch print job summary cards.
-class RecentBatchPrintsSection extends StatefulWidget {
+class RecentBatchPrintsSection extends StatelessWidget {
   /// Creates a [RecentBatchPrintsSection].
   const RecentBatchPrintsSection({super.key});
-
-  @override
-  State<RecentBatchPrintsSection> createState() => _RecentBatchPrintsSectionState();
-}
-
-class _RecentBatchPrintsSectionState extends State<RecentBatchPrintsSection> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        try {
-          context.read<RecentBatchSummariesCubit?>()?.loadSummaries();
-        } catch (_) {}
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {

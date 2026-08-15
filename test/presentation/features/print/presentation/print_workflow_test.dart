@@ -247,6 +247,9 @@ void main() {
       when(
         () => batchPrintSummaryRepository.saveSummary(any()),
       ).thenAnswer((_) async => const Result.success(null));
+      when(
+        () => batchPrintSummaryRepository.onSummariesChanged,
+      ).thenAnswer((_) => const Stream.empty());
 
       when(
         () => localDatabase.get<bool>(any(), any()),
@@ -359,6 +362,7 @@ void main() {
         calibrationResolver: calibrationResolver,
         compatibilityAnalyzer: compatibilityAnalyzer,
         printPipelineOrchestrator: printPipelineOrchestrator,
+        batchPrintSummaryRepository: batchPrintSummaryRepository,
       );
 
       expect(cubit.state, const PrintWorkflowInitial());
@@ -388,6 +392,7 @@ void main() {
         calibrationResolver: calibrationResolver,
         compatibilityAnalyzer: compatibilityAnalyzer,
         printPipelineOrchestrator: printPipelineOrchestrator,
+        batchPrintSummaryRepository: batchPrintSummaryRepository,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -433,6 +438,7 @@ void main() {
           calibrationResolver: calibrationResolver,
           compatibilityAnalyzer: compatibilityAnalyzer,
           printPipelineOrchestrator: printPipelineOrchestrator,
+          batchPrintSummaryRepository: batchPrintSummaryRepository,
         );
 
         await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -478,6 +484,7 @@ void main() {
         calibrationResolver: calibrationResolver,
         compatibilityAnalyzer: compatibilityAnalyzer,
         printPipelineOrchestrator: printPipelineOrchestrator,
+        batchPrintSummaryRepository: batchPrintSummaryRepository,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -514,6 +521,7 @@ void main() {
           calibrationResolver: calibrationResolver,
           compatibilityAnalyzer: compatibilityAnalyzer,
           printPipelineOrchestrator: printPipelineOrchestrator,
+          batchPrintSummaryRepository: batchPrintSummaryRepository,
         );
 
         await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -589,6 +597,9 @@ void main() {
       when(() => printJobRepository.onPrintJobCreated).thenAnswer(
         (_) => const Stream.empty(),
       );
+      when(() => batchPrintSummaryRepository.onSummariesChanged).thenAnswer(
+        (_) => const Stream.empty(),
+      );
       when(
         () => printJobRepository.savePrintJob(any()),
       ).thenAnswer((_) async => const Result.success(null));
@@ -658,6 +669,9 @@ void main() {
       when(
         () => serviceLocator.printPipelineOrchestrator,
       ).thenReturn(printPipelineOrchestrator);
+      when(
+        () => serviceLocator.batchPrintSummaryRepository,
+      ).thenReturn(batchPrintSummaryRepository);
     });
 
     Widget buildTestableWidget({int? quantity}) {

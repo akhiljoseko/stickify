@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
@@ -55,9 +57,14 @@ class RecentBatchSummariesCubit extends Cubit<RecentBatchSummariesState> {
   RecentBatchSummariesCubit({
     required BatchPrintSummaryRepository batchPrintSummaryRepository,
   })  : _repository = batchPrintSummaryRepository,
-        super(const RecentBatchSummariesInitial());
+        super(const RecentBatchSummariesInitial()) {
+    _subscription = _repository.onSummariesChanged.listen((summaries) {
+      emit(RecentBatchSummariesLoaded(summaries));
+    });
+  }
 
   final BatchPrintSummaryRepository _repository;
+  StreamSubscription<List<BatchPrintSummary>>? _subscription;
 
   /// Loads recent batch print summaries stored in the 7-day retention window.
   Future<void> loadSummaries() async {
@@ -70,5 +77,11 @@ class RecentBatchSummariesCubit extends Cubit<RecentBatchSummariesState> {
       case Success(value: final summaries):
         emit(RecentBatchSummariesLoaded(summaries));
     }
+  }
+
+  @override
+  Future<void> close() {
+    _subscription?.cancel();
+    return super.close();
   }
 }

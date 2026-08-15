@@ -11,6 +11,7 @@ import 'package:stickify/presentation/features/dashboard/cubits/sync_cubit.dart'
 import 'package:stickify/presentation/features/dashboard/cubits/sync_state.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/frequent_product_row.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/quick_action_card.dart';
+import 'package:stickify/presentation/features/dashboard/widgets/recent_batch_prints_section.dart';
 import 'package:stickify/presentation/features/dashboard/widgets/recent_print_row.dart';
 import 'package:stickify/presentation/features/print/widgets/product_variant_selection_dialog.dart';
 import 'package:stickify/presentation/widgets/adaptive_scroll_wrapper.dart';
@@ -53,6 +54,8 @@ class DesktopDashboardScreen extends StatelessWidget {
                         _HeroHeader(),
                         SizedBox(height: 32),
                         _QuickActionsGrid(),
+                        SizedBox(height: 32),
+                        RecentBatchPrintsSection(),
                         SizedBox(height: 32),
                         _RecentPrintsSection(),
                         SizedBox(height: 32),

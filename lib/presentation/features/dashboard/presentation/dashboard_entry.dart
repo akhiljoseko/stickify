@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/frequent_products_cubit.dart';
+import 'package:stickify/presentation/features/dashboard/cubits/recent_batch_summaries_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/recent_print_jobs_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/cubits/sync_cubit.dart';
 import 'package:stickify/presentation/features/dashboard/presentation/desktop/desktop_dashboard_screen.dart';
@@ -38,6 +39,16 @@ class DashboardPage extends StatelessWidget {
                   .read<VariantPrintStatsRepository>(),
             );
             unawaited(cubit.loadFrequentVariants());
+            return cubit;
+          },
+        ),
+        BlocProvider<RecentBatchSummariesCubit>(
+          create: (blocContext) {
+            final cubit = RecentBatchSummariesCubit(
+              batchPrintSummaryRepository:
+                  blocContext.read<BatchPrintSummaryRepository>(),
+            );
+            unawaited(cubit.loadSummaries());
             return cubit;
           },
         ),

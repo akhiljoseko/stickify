@@ -63,6 +63,9 @@ class _AppState extends State<App> {
         RepositoryProvider<VariantPrintStatsRepository>.value(
           value: locator.variantPrintStatsRepository,
         ),
+        RepositoryProvider<BatchPrintSummaryRepository>.value(
+          value: locator.batchPrintSummaryRepository,
+        ),
         RepositoryProvider<SearchRepository>.value(
           value: locator.searchRepository,
         ),

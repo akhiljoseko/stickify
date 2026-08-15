@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/entities/batch_print_summary.dart';
 import 'package:stickify/domain/repositories/batch_print_summary_repository.dart';
@@ -6,13 +8,19 @@ import 'package:stickify/domain/services/local_database.dart';
 /// Implementation of [BatchPrintSummaryRepository] using [LocalDatabase].
 class LocalBatchPrintSummaryRepository implements BatchPrintSummaryRepository {
   /// Creates a [LocalBatchPrintSummaryRepository].
-  const LocalBatchPrintSummaryRepository({
+  LocalBatchPrintSummaryRepository({
     required LocalDatabase database,
   }) : _database = database;
 
   final LocalDatabase _database;
+  final StreamController<List<BatchPrintSummary>> _summariesController =
+      StreamController<List<BatchPrintSummary>>.broadcast();
 
   static const _collectionName = 'batch_print_summaries';
+
+  @override
+  Stream<List<BatchPrintSummary>> get onSummariesChanged =>
+      _summariesController.stream;
 
   @override
   Future<Result<void, AppError>> saveSummary(BatchPrintSummary summary) async {
@@ -22,6 +30,10 @@ class LocalBatchPrintSummaryRepository implements BatchPrintSummaryRepository {
         summary.id,
         summary.toJson(),
       );
+      final recent = await fetchRecentSummaries();
+      if (recent is Success<List<BatchPrintSummary>, AppError>) {
+        _summariesController.add(recent.value);
+      }
       return const Result.success(null);
     } catch (e) {
       return Result.failure(
@@ -67,6 +79,11 @@ class LocalBatchPrintSummaryRepository implements BatchPrintSummaryRepository {
             await _database.delete(_collectionName, summary.id);
           }
         }
+      }
+
+      final recent = await fetchRecentSummaries();
+      if (recent is Success<List<BatchPrintSummary>, AppError>) {
+        _summariesController.add(recent.value);
       }
 
       return const Result.success(null);

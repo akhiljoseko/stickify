@@ -283,6 +283,7 @@ void main() {
           ),
         ).called(1);
         verify(() => mockPrintJobRepo.savePrintJob(any())).called(1);
+        verify(() => mockBatchSummaryRepo.saveSummary(any())).called(1);
       },
     );
   });

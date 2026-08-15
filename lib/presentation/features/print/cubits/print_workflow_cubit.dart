@@ -585,39 +585,42 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
           );
           await _savePartialSheetSlots(template.id, lastSheetUsed);
 
-          // Aggregate items by variantSku to combine quantities for identical variants
-          final summaryItemsMap = <String, BatchPrintSummaryItem>{};
-          for (final item in itemsToPrint) {
-            final sku = item.variant.sku;
-            if (summaryItemsMap.containsKey(sku)) {
-              final existing = summaryItemsMap[sku]!;
-              summaryItemsMap[sku] = existing.copyWith(
-                quantity: existing.quantity + item.quantity,
-              );
-            } else {
-              summaryItemsMap[sku] = BatchPrintSummaryItem(
-                productId: item.product.id,
-                productName: item.product.name,
-                variantSku: item.variant.sku,
-                variantName: item.variant.name,
-                quantity: item.quantity,
-                imageUrl: item.product.imageUrl,
-              );
+          BatchPrintSummary? batchSummary;
+          if (s.items.isNotEmpty) {
+            // Aggregate items by variantSku to combine quantities for identical variants
+            final summaryItemsMap = <String, BatchPrintSummaryItem>{};
+            for (final item in itemsToPrint) {
+              final sku = item.variant.sku;
+              if (summaryItemsMap.containsKey(sku)) {
+                final existing = summaryItemsMap[sku]!;
+                summaryItemsMap[sku] = existing.copyWith(
+                  quantity: existing.quantity + item.quantity,
+                );
+              } else {
+                summaryItemsMap[sku] = BatchPrintSummaryItem(
+                  productId: item.product.id,
+                  productName: item.product.name,
+                  variantSku: item.variant.sku,
+                  variantName: item.variant.name,
+                  quantity: item.quantity,
+                  imageUrl: item.product.imageUrl,
+                );
+              }
             }
+
+            batchSummary = BatchPrintSummary(
+              id: _printJobIdGenerator.generateId(),
+              printedAt: now,
+              templateId: template.id,
+              templateName: template.name,
+              printerName: printer.name,
+              totalQuantity: s.totalQuantity,
+              totalSheets: s.totalSheets,
+              items: summaryItemsMap.values.toList(),
+            );
+
+            await _batchPrintSummaryRepository.saveSummary(batchSummary);
           }
-
-          final batchSummary = BatchPrintSummary(
-            id: _printJobIdGenerator.generateId(),
-            printedAt: now,
-            templateId: template.id,
-            templateName: template.name,
-            printerName: printer.name,
-            totalQuantity: s.totalQuantity,
-            totalSheets: s.totalSheets,
-            items: summaryItemsMap.values.toList(),
-          );
-
-          await _batchPrintSummaryRepository.saveSummary(batchSummary);
 
           emit(
             PrintWorkflowSuccess(

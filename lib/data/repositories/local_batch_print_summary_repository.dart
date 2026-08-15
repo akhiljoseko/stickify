@@ -9,8 +9,8 @@ import 'package:stickify/domain/services/local_database.dart';
 class LocalBatchPrintSummaryRepository implements BatchPrintSummaryRepository {
   /// Creates a [LocalBatchPrintSummaryRepository].
   LocalBatchPrintSummaryRepository({
-    required LocalDatabase database,
-  }) : _database = database;
+    required this._database,
+  });
 
   final LocalDatabase _database;
   final StreamController<List<BatchPrintSummary>> _summariesController =

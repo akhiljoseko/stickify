@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 
 /// Shimmering skeleton loader card representation used during list fetching transitions.
@@ -22,7 +21,7 @@ class _TemplateCardSkeletonState extends State<TemplateCardSkeleton>
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
-    unawaited(_controller.repeat(reverse: true));
+    _controller.repeat(reverse: true);
     _opacityAnimation = Tween<double>(begin: 0.4, end: 0.8).animate(_controller);
   }
 

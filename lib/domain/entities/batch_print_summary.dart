@@ -12,6 +12,18 @@ class BatchPrintSummaryItem extends Equatable {
     this.imageUrl,
   });
 
+  /// Constructs a [BatchPrintSummaryItem] from a JSON map.
+  factory BatchPrintSummaryItem.fromJson(Map<String, dynamic> json) {
+    return BatchPrintSummaryItem(
+      productId: json['productId'] as String,
+      productName: json['productName'] as String,
+      variantSku: json['variantSku'] as String,
+      variantName: json['variantName'] as String,
+      quantity: (json['quantity'] as num).toInt(),
+      imageUrl: json['imageUrl'] as String?,
+    );
+  }
+
   /// Unique identifier of the product.
   final String productId;
 
@@ -29,18 +41,6 @@ class BatchPrintSummaryItem extends Equatable {
 
   /// Optional thumbnail image URL for the product.
   final String? imageUrl;
-
-  /// Constructs a [BatchPrintSummaryItem] from a JSON map.
-  factory BatchPrintSummaryItem.fromJson(Map<String, dynamic> json) {
-    return BatchPrintSummaryItem(
-      productId: json['productId'] as String,
-      productName: json['productName'] as String,
-      variantSku: json['variantSku'] as String,
-      variantName: json['variantName'] as String,
-      quantity: (json['quantity'] as num).toInt(),
-      imageUrl: json['imageUrl'] as String?,
-    );
-  }
 
   /// Creates a copy of this [BatchPrintSummaryItem] with updated properties.
   BatchPrintSummaryItem copyWith({
@@ -96,6 +96,22 @@ class BatchPrintSummary extends Equatable {
     required this.items,
   });
 
+  /// Constructs a [BatchPrintSummary] from a JSON map.
+  factory BatchPrintSummary.fromJson(Map<String, dynamic> json) {
+    return BatchPrintSummary(
+      id: json['id'] as String,
+      printedAt: DateTime.parse(json['printedAt'] as String),
+      templateId: json['templateId'] as String,
+      templateName: json['templateName'] as String,
+      printerName: json['printerName'] as String,
+      totalQuantity: (json['totalQuantity'] as num).toInt(),
+      totalSheets: (json['totalSheets'] as num).toInt(),
+      items: (json['items'] as List<dynamic>)
+          .map((i) => BatchPrintSummaryItem.fromJson(Map<String, dynamic>.from(i as Map)))
+          .toList(),
+    );
+  }
+
   /// Unique identifier for this batch summary record.
   final String id;
 
@@ -119,22 +135,6 @@ class BatchPrintSummary extends Equatable {
 
   /// List of combined variant summary items printed in this batch.
   final List<BatchPrintSummaryItem> items;
-
-  /// Constructs a [BatchPrintSummary] from a JSON map.
-  factory BatchPrintSummary.fromJson(Map<String, dynamic> json) {
-    return BatchPrintSummary(
-      id: json['id'] as String,
-      printedAt: DateTime.parse(json['printedAt'] as String),
-      templateId: json['templateId'] as String,
-      templateName: json['templateName'] as String,
-      printerName: json['printerName'] as String,
-      totalQuantity: (json['totalQuantity'] as num).toInt(),
-      totalSheets: (json['totalSheets'] as num).toInt(),
-      items: (json['items'] as List<dynamic>)
-          .map((i) => BatchPrintSummaryItem.fromJson(Map<String, dynamic>.from(i as Map)))
-          .toList(),
-    );
-  }
 
   /// Human-readable primary batch title formatted from date & time of print.
   String get batchTitle {

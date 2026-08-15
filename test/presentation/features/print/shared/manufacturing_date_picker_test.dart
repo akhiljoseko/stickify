@@ -36,7 +36,7 @@ void main() {
     });
 
     testWidgets('renders custom selected date and reset icon button', (tester) async {
-      final customDate = DateTime(2025, 1, 1);
+      final customDate = DateTime(2025);
 
       await tester.pumpWidget(
         buildTestWidget(

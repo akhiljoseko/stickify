@@ -56,13 +56,13 @@ class RecentBatchPrintsSection extends StatelessWidget {
           builder: (context, state) {
             if (state is RecentBatchSummariesLoading || state is RecentBatchSummariesInitial) {
               return SizedBox(
-                height: 140,
+                height: 160,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: 3,
                   separatorBuilder: (context, index) => const SizedBox(width: 16),
                   itemBuilder: (context, index) => Container(
-                    width: 270,
+                    width: 290,
                     decoration: BoxDecoration(
                       color: colorScheme.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(12),
@@ -101,7 +101,7 @@ class RecentBatchPrintsSection extends StatelessWidget {
               }
 
               return SizedBox(
-                height: 140,
+                height: 160,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: state.summaries.length,

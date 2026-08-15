@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stickify/core/core.dart';
@@ -24,45 +25,24 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     required this._calibrationResolver,
     required this._compatibilityAnalyzer,
     required this._printPipelineOrchestrator,
+    required this._batchPrintSummaryRepository,
   })  : super(const PrintWorkflowInitial());
 
-  /// Repository providing product catalog records.
   final ProductRepository _productRepository;
-
-  /// Repository providing label templates.
   final TemplateRepository _templateRepository;
-
-  /// Repository tracking and saving print logs.
   final PrintJobRepository _printJobRepository;
-
-  /// Repository for variant-level print counters.
   final VariantPrintStatsRepository _variantPrintStatsRepository;
-
-  /// Service dispatching compiled labels to physical printer hardware.
   final PrintService _printService;
-
-  /// Service discovering physical/system printers.
   final PrinterDiscoveryService _printerDiscoveryService;
-
-  /// Generator for print job IDs.
   final PrintJobIdGenerator _printJobIdGenerator;
-
-  /// Local database instance for settings caching.
   final LocalDatabase _localDatabase;
-
-  /// Repository providing printer profiles.
   final PrinterProfileRepository _printerProfileRepository;
-
-  /// Resolver for printer tray calibration rules.
   final PrinterCalibrationCoordinateResolver _calibrationResolver;
-
-  /// Analyzer for printer capabilities and template compatibility.
   final TemplatePrinterCompatibilityAnalyzer _compatibilityAnalyzer;
-
-  /// Orchestration service for composed calibration + optimization pipelines.
   final PrintPipelineOrchestrator _printPipelineOrchestrator;
+  final BatchPrintSummaryRepository _batchPrintSummaryRepository;
 
-  /// Loads the initial metadata needed to configure a single product print job.
+  /// Loads initial metadata needed to configure a single product print job.
   Future<void> loadWorkflow(String productId, String variantSku, [String? templateId, int? initialQuantity]) async {
     emit(const PrintWorkflowLoading());
     try {
@@ -155,6 +135,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 }
               }
 
+              final savedPartialSlots = selected != null ? await _getSavedPartialSheetSlots(selected.id) : const <int>{};
+              final isResuming = savedPartialSlots.isNotEmpty;
+
               final loaded = PrintWorkflowLoaded(
                 product: product,
                 variant: variant,
@@ -163,6 +146,8 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 availablePrinters: printers,
                 selectedPrinter: defaultPrinter,
                 quantity: defaultQty,
+                disabledSlots: savedPartialSlots,
+                isResumingPartialSheet: isResuming,
                 printFromBottom: cachedBottom,
                 reverseSheetOrder: matchedProfile?.capabilities.reverseSheetOrder ?? false,
                 isQuantityManuallyEdited: initialQuantity != null && initialQuantity > 0,
@@ -241,6 +226,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         }
       }
 
+      final savedPartialSlots = await _getSavedPartialSheetSlots(template.id);
+      final isResuming = savedPartialSlots.isNotEmpty;
+
       final loaded = PrintWorkflowLoaded(
         items: items,
         templates: templates.isNotEmpty ? templates : [template],
@@ -248,6 +236,8 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         availablePrinters: printers,
         selectedPrinter: targetPrinter,
         quantity: items.fold<int>(0, (sum, i) => sum + i.quantity),
+        disabledSlots: savedPartialSlots,
+        isResumingPartialSheet: isResuming,
         printFromBottom: cachedBottom,
         reverseSheetOrder: matchedProfile?.capabilities.reverseSheetOrder ?? false,
         selectedPrinterProfile: matchedProfile,
@@ -261,7 +251,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   }
 
   /// Updates the active label template layout.
-  void selectTemplate(LabelTemplate template) {
+  Future<void> selectTemplate(LabelTemplate template) async {
     final s = state;
     if (s is PrintWorkflowLoaded) {
       final int qty;
@@ -302,10 +292,15 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         }
       }
 
+      final savedPartialSlots = await _getSavedPartialSheetSlots(template.id);
+      final isResuming = savedPartialSlots.isNotEmpty;
+
       emit(
         s.copyWith(
           selectedTemplate: () => template,
           quantity: qty,
+          disabledSlots: savedPartialSlots,
+          isResumingPartialSheet: isResuming,
           selectedTrayProfile: () => matchedTray,
           compatibilityResult: () => compatibilityResult,
         ),
@@ -327,7 +322,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     }
   }
 
-  /// Updates active printer device and resolves capabilities and tray calibration context.
+  /// Updates active printer device.
   Future<void> updatePrinter(PrinterDevice printer) async {
     final s = state;
     if (s is PrintWorkflowLoaded) {
@@ -415,7 +410,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     }
   }
 
-  /// Updates the manufacturing date for token resolution.
+  /// Updates manufacturing date.
   void updateManufacturingDate(DateTime date) {
     final s = state;
     if (s is PrintWorkflowLoaded) {
@@ -478,6 +473,23 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         }
       }
       emit(s.copyWith(disabledSlots: updated));
+    }
+  }
+
+  /// Resets the partially used sheet state for the active template and clears pre-disabled slots.
+  Future<void> resetPartialSheet() async {
+    final s = state;
+    if (s is PrintWorkflowLoaded) {
+      final template = s.selectedTemplate;
+      if (template != null) {
+        await _savePartialSheetSlots(template.id, const {});
+      }
+      emit(
+        s.copyWith(
+          disabledSlots: const {},
+          isResumingPartialSheet: false,
+        ),
+      );
     }
   }
 
@@ -565,8 +577,195 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
             lastJob = job;
           }
 
-          emit(PrintWorkflowSuccess(printJob: lastJob!));
+          final lastSheetUsed = _calculateLastSheetUsedSlots(
+            totalQuantity: s.totalQuantity,
+            template: template,
+            disabledSlots: s.disabledSlots,
+            printFromBottom: s.printFromBottom,
+          );
+          await _savePartialSheetSlots(template.id, lastSheetUsed);
+
+          // Aggregate items by variantSku to combine quantities for identical variants
+          final summaryItemsMap = <String, BatchPrintSummaryItem>{};
+          for (final item in itemsToPrint) {
+            final sku = item.variant.sku;
+            if (summaryItemsMap.containsKey(sku)) {
+              final existing = summaryItemsMap[sku]!;
+              summaryItemsMap[sku] = existing.copyWith(
+                quantity: existing.quantity + item.quantity,
+              );
+            } else {
+              summaryItemsMap[sku] = BatchPrintSummaryItem(
+                productId: item.product.id,
+                productName: item.product.name,
+                variantSku: item.variant.sku,
+                variantName: item.variant.name,
+                quantity: item.quantity,
+                imageUrl: item.product.imageUrl,
+              );
+            }
+          }
+
+          final batchSummary = BatchPrintSummary(
+            id: _printJobIdGenerator.generateId(),
+            printedAt: now,
+            templateId: template.id,
+            templateName: template.name,
+            printerName: printer.name,
+            totalQuantity: s.totalQuantity,
+            totalSheets: s.totalSheets,
+            items: summaryItemsMap.values.toList(),
+          );
+
+          await _batchPrintSummaryRepository.saveSummary(batchSummary);
+
+          emit(
+            PrintWorkflowSuccess(
+              printJob: lastJob!,
+              summary: batchSummary,
+            ),
+          );
       }
     }
+  }
+
+  Future<Set<int>> _getSavedPartialSheetSlots(String templateId) async {
+    try {
+      final raw = await _localDatabase.get<List<dynamic>>('partial_sheets', templateId);
+      if (raw != null && raw.isNotEmpty) {
+        return Set<int>.from(raw.map((e) => (e as num).toInt()));
+      }
+    } catch (_) {}
+    return const {};
+  }
+
+  Future<void> _savePartialSheetSlots(String templateId, Set<int> usedSlots) async {
+    try {
+      if (usedSlots.isNotEmpty) {
+        await _localDatabase.save<List<int>>('partial_sheets', templateId, usedSlots.toList());
+      } else {
+        await _localDatabase.delete('partial_sheets', templateId);
+      }
+    } catch (_) {}
+  }
+
+  Set<int> _calculateLastSheetUsedSlots({
+    required int totalQuantity,
+    required LabelTemplate template,
+    required Set<int> disabledSlots,
+    required bool printFromBottom,
+  }) {
+    if (template.sheetConfig == null || totalQuantity <= 0) return {};
+    final sheetConfig = template.sheetConfig!;
+    final slotsPerSheet = sheetConfig.columns * sheetConfig.rows;
+
+    final activePositions = _calculateActivePositions(
+      qty: totalQuantity,
+      slotsPerSheet: slotsPerSheet,
+      disabledSlots: disabledSlots,
+      printFromBottom: printFromBottom,
+    );
+
+    if (activePositions.isEmpty) return {};
+
+    var maxSlotIndex = 0;
+    for (final s in activePositions) {
+      if (s > maxSlotIndex) maxSlotIndex = s;
+    }
+
+    final lastSheetIndex = maxSlotIndex ~/ slotsPerSheet;
+    final lastSheetStart = lastSheetIndex * slotsPerSheet;
+    final lastSheetEnd = (lastSheetIndex + 1) * slotsPerSheet;
+
+    final lastSheetActiveSlots = activePositions
+        .where((s) => s >= lastSheetStart && s < lastSheetEnd)
+        .toSet();
+
+    final totalActiveOnLastSheet = lastSheetActiveSlots.length;
+    final totalDisabledOnLastSheet = disabledSlots
+        .where((s) => s >= lastSheetStart && s < lastSheetEnd)
+        .length;
+
+    if (totalActiveOnLastSheet + totalDisabledOnLastSheet >= slotsPerSheet) {
+      return {};
+    }
+
+    final usedOnLastSheetRelative = <int>{};
+    for (final slot in lastSheetActiveSlots) {
+      usedOnLastSheetRelative.add(slot - lastSheetStart);
+    }
+    for (final slot in disabledSlots.where((s) => s >= lastSheetStart && s < lastSheetEnd)) {
+      usedOnLastSheetRelative.add(slot - lastSheetStart);
+    }
+
+    return usedOnLastSheetRelative;
+  }
+
+  Set<int> _calculateActivePositions({
+    required int qty,
+    required int slotsPerSheet,
+    required Set<int> disabledSlots,
+    required bool printFromBottom,
+  }) {
+    if (qty <= 0 || slotsPerSheet <= 0) return {};
+
+    var activePlaced = 0;
+    var currentSlot = 0;
+    while (activePlaced < qty) {
+      if (!disabledSlots.contains(currentSlot)) {
+        activePlaced++;
+      }
+      if (activePlaced < qty) {
+        currentSlot++;
+      }
+    }
+    final totalSheets = (currentSlot / slotsPerSheet).floor() + 1;
+
+    final active = <int>{};
+    var remainingQty = qty;
+
+    for (var sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
+      final sheetStart = sheetIndex * slotsPerSheet;
+      final sheetEnd = (sheetIndex + 1) * slotsPerSheet;
+
+      var availableOnSheet = 0;
+      for (var slot = sheetStart; slot < sheetEnd; slot++) {
+        if (!disabledSlots.contains(slot)) {
+          availableOnSheet++;
+        }
+      }
+
+      if (availableOnSheet == 0) {
+        continue;
+      }
+
+      final toPlace = min(remainingQty, availableOnSheet);
+      final isLastSheet = sheetIndex == totalSheets - 1;
+
+      if (isLastSheet && printFromBottom) {
+        var placed = 0;
+        for (var slot = sheetEnd - 1; slot >= sheetStart; slot--) {
+          if (!disabledSlots.contains(slot)) {
+            active.add(slot);
+            placed++;
+            if (placed == toPlace) break;
+          }
+        }
+      } else {
+        var placed = 0;
+        for (var slot = sheetStart; slot < sheetEnd; slot++) {
+          if (!disabledSlots.contains(slot)) {
+            active.add(slot);
+            placed++;
+            if (placed == toPlace) break;
+          }
+        }
+      }
+
+      remainingQty -= toPlace;
+      if (remainingQty <= 0) break;
+    }
+
+    return active;
   }
 }

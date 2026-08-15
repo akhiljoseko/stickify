@@ -323,21 +323,18 @@ class _ProductBrowserList extends StatelessWidget {
                   '${product.variants.length} variant(s) available',
                 ),
                 children: product.variants.map((variant) {
-                  final existingItem = state.items.firstWhere(
-                    (i) =>
-                        i.product.id == product.id &&
-                        i.variant.sku == variant.sku,
-                    orElse: () => PrintableItem(
-                      product: product,
-                      variant: variant,
-                      quantity: 0,
-                    ),
-                  );
+                  final totalVariantQuantity = state.items
+                      .where(
+                        (i) =>
+                            i.product.id == product.id &&
+                            i.variant.sku == variant.sku,
+                      )
+                      .fold<int>(0, (sum, i) => sum + i.quantity);
 
                   return VariantInlineQuantityTile(
                     product: product,
                     variant: variant,
-                    currentAddedQuantity: existingItem.quantity,
+                    currentAddedQuantity: totalVariantQuantity,
                     onAdd: (quantity) {
                       context.read<OrderLabelPrintCubit>().addOrUpdateItem(
                         product,

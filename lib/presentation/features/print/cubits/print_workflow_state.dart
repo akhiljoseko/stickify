@@ -38,6 +38,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     this.printFromBottom = false,
     this.reverseSheetOrder = false,
     this.isQuantityManuallyEdited = false,
+    this.isResumingPartialSheet = false,
     this.selectedPrinterProfile,
     this.selectedTrayProfile,
     this.compatibilityResult,
@@ -80,6 +81,9 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
   /// Whether the user has manually edited the quantity field.
   final bool isQuantityManuallyEdited;
 
+  /// Whether the initial disabledSlots were restored from a partially used sheet memory.
+  final bool isResumingPartialSheet;
+
   /// Selected printer profile (matched from database).
   final PrinterProfile? selectedPrinterProfile;
 
@@ -109,6 +113,17 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     return quantity;
   }
 
+  /// Calculates total physical sheets required based on selected template layout.
+  int get totalSheets {
+    final tpl = selectedTemplate;
+    if (tpl == null) return 1;
+    final cols = tpl.sheetConfig?.columns ?? 1;
+    final rows = tpl.sheetConfig?.rows ?? 1;
+    final slotsPerSheet = cols * rows;
+    if (slotsPerSheet <= 0) return 1;
+    return (totalQuantity / slotsPerSheet).ceil();
+  }
+
   /// Returns a copy of the state with modified fields.
   PrintWorkflowLoaded copyWith({
     Product? product,
@@ -123,6 +138,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     bool? printFromBottom,
     bool? reverseSheetOrder,
     bool? isQuantityManuallyEdited,
+    bool? isResumingPartialSheet,
     PrinterProfile? Function()? selectedPrinterProfile,
     PrinterTrayProfile? Function()? selectedTrayProfile,
     CompatibilityAnalysisResult? Function()? compatibilityResult,
@@ -141,6 +157,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
       printFromBottom: printFromBottom ?? this.printFromBottom,
       reverseSheetOrder: reverseSheetOrder ?? this.reverseSheetOrder,
       isQuantityManuallyEdited: isQuantityManuallyEdited ?? this.isQuantityManuallyEdited,
+      isResumingPartialSheet: isResumingPartialSheet ?? this.isResumingPartialSheet,
       selectedPrinterProfile: selectedPrinterProfile != null ? selectedPrinterProfile() : this.selectedPrinterProfile,
       selectedTrayProfile: selectedTrayProfile != null ? selectedTrayProfile() : this.selectedTrayProfile,
       compatibilityResult: compatibilityResult != null ? compatibilityResult() : this.compatibilityResult,
@@ -162,6 +179,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
         printFromBottom,
         reverseSheetOrder,
         isQuantityManuallyEdited,
+        isResumingPartialSheet,
         selectedPrinterProfile,
         selectedTrayProfile,
         compatibilityResult,
@@ -184,13 +202,19 @@ class PrintWorkflowSubmitting extends PrintWorkflowState {
 /// Success state indicating the print job finished compiling and was sent successfully.
 class PrintWorkflowSuccess extends PrintWorkflowState {
   /// Creates a [PrintWorkflowSuccess] state.
-  const PrintWorkflowSuccess({required this.printJob});
+  const PrintWorkflowSuccess({
+    required this.printJob,
+    this.summary,
+  });
 
   /// The compiled/sent [PrintJob] entity.
   final PrintJob printJob;
 
+  /// Optional batch print summary record (present for batch prints).
+  final BatchPrintSummary? summary;
+
   @override
-  List<Object?> get props => [printJob];
+  List<Object?> get props => [printJob, summary];
 }
 
 /// Error state containing a descriptive message of what failed during the print pipeline.

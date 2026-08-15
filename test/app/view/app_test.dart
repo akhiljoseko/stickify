@@ -41,6 +41,9 @@ void main() {
     when(
       () => mockLocalDb.getAll<LabelTemplateHiveModel>(any()),
     ).thenAnswer((_) async => <LabelTemplateHiveModel>[]);
+    when(
+      () => mockLocalDb.getAll<dynamic>(any()),
+    ).thenAnswer((_) async => <dynamic>[]);
     when(() => mockAuth.authStateChanges).thenAnswer(
       (_) => (() async* {
         yield null;

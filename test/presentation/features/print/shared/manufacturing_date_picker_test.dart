@@ -36,7 +36,7 @@ void main() {
     });
 
     testWidgets('renders custom selected date and reset icon button', (tester) async {
-      final customDate = DateTime(2026, 8, 15);
+      final customDate = DateTime(2025);
 
       await tester.pumpWidget(
         buildTestWidget(
@@ -46,7 +46,7 @@ void main() {
       );
 
       expect(find.text('Manufacturing Date'), findsOneWidget);
-      expect(find.text('15-08-2026'), findsOneWidget);
+      expect(find.text('01-01-2025'), findsOneWidget);
       expect(find.text('Today'), findsNothing);
       expect(find.byIcon(Icons.restart_alt_rounded), findsOneWidget);
     });

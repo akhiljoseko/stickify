@@ -45,6 +45,9 @@ class MockTemplatePrinterCompatibilityAnalyzer extends Mock
 class MockPrintPipelineOrchestrator extends Mock
     implements PrintPipelineOrchestrator {}
 
+class MockBatchPrintSummaryRepository extends Mock
+    implements BatchPrintSummaryRepository {}
+
 class MockAppServiceLocator extends Mock implements AppServiceLocator {}
 
 class MockGoRouter extends Mock implements GoRouter {}
@@ -90,6 +93,18 @@ void main() {
       ),
     );
     registerFallbackValue(
+      BatchPrintSummary(
+        id: 'fallback-summary',
+        printedAt: DateTime.now(),
+        templateId: 'tpl-id',
+        templateName: 'Tpl Name',
+        printerName: 'Printer',
+        totalQuantity: 1,
+        totalSheets: 1,
+        items: const [],
+      ),
+    );
+    registerFallbackValue(
       const PrinterDevice(
         name: 'fallback-printer',
         url: 'fallback-url',
@@ -109,6 +124,7 @@ void main() {
   late PrinterCalibrationCoordinateResolver calibrationResolver;
   late TemplatePrinterCompatibilityAnalyzer compatibilityAnalyzer;
   late PrintPipelineOrchestrator printPipelineOrchestrator;
+  late BatchPrintSummaryRepository batchPrintSummaryRepository;
   late AppServiceLocator serviceLocator;
 
   const testProduct = Product(
@@ -225,13 +241,30 @@ void main() {
       calibrationResolver = MockPrinterCalibrationCoordinateResolver();
       compatibilityAnalyzer = MockTemplatePrinterCompatibilityAnalyzer();
       printPipelineOrchestrator = MockPrintPipelineOrchestrator();
+      batchPrintSummaryRepository = MockBatchPrintSummaryRepository();
       serviceLocator = MockAppServiceLocator();
+
+      when(
+        () => batchPrintSummaryRepository.saveSummary(any()),
+      ).thenAnswer((_) async => const Result.success(null));
+      when(
+        () => batchPrintSummaryRepository.onSummariesChanged,
+      ).thenAnswer((_) => const Stream.empty());
 
       when(
         () => localDatabase.get<bool>(any(), any()),
       ).thenAnswer((_) async => false);
       when(
+        () => localDatabase.get<List<dynamic>>(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
         () => localDatabase.save<bool>(any(), any(), any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => localDatabase.save<List<int>>(any(), any(), any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => localDatabase.delete(any(), any()),
       ).thenAnswer((_) async {});
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
       when(
@@ -310,6 +343,9 @@ void main() {
       when(
         () => serviceLocator.printPipelineOrchestrator,
       ).thenReturn(printPipelineOrchestrator);
+      when(
+        () => serviceLocator.batchPrintSummaryRepository,
+      ).thenReturn(batchPrintSummaryRepository);
     });
 
     test('loads workflow successfully and sets initial state', () async {
@@ -326,6 +362,7 @@ void main() {
         calibrationResolver: calibrationResolver,
         compatibilityAnalyzer: compatibilityAnalyzer,
         printPipelineOrchestrator: printPipelineOrchestrator,
+        batchPrintSummaryRepository: batchPrintSummaryRepository,
       );
 
       expect(cubit.state, const PrintWorkflowInitial());
@@ -355,6 +392,7 @@ void main() {
         calibrationResolver: calibrationResolver,
         compatibilityAnalyzer: compatibilityAnalyzer,
         printPipelineOrchestrator: printPipelineOrchestrator,
+        batchPrintSummaryRepository: batchPrintSummaryRepository,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -400,6 +438,7 @@ void main() {
           calibrationResolver: calibrationResolver,
           compatibilityAnalyzer: compatibilityAnalyzer,
           printPipelineOrchestrator: printPipelineOrchestrator,
+          batchPrintSummaryRepository: batchPrintSummaryRepository,
         );
 
         await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -445,6 +484,7 @@ void main() {
         calibrationResolver: calibrationResolver,
         compatibilityAnalyzer: compatibilityAnalyzer,
         printPipelineOrchestrator: printPipelineOrchestrator,
+        batchPrintSummaryRepository: batchPrintSummaryRepository,
       );
 
       await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -481,6 +521,7 @@ void main() {
           calibrationResolver: calibrationResolver,
           compatibilityAnalyzer: compatibilityAnalyzer,
           printPipelineOrchestrator: printPipelineOrchestrator,
+          batchPrintSummaryRepository: batchPrintSummaryRepository,
         );
 
         await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
@@ -534,7 +575,16 @@ void main() {
         () => localDatabase.get<bool>(any(), any()),
       ).thenAnswer((_) async => false);
       when(
+        () => localDatabase.get<List<dynamic>>(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
         () => localDatabase.save<bool>(any(), any(), any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => localDatabase.save<List<int>>(any(), any(), any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => localDatabase.delete(any(), any()),
       ).thenAnswer((_) async {});
 
       when(() => printJobIdGenerator.generateId()).thenReturn('job-12345');
@@ -545,6 +595,9 @@ void main() {
         () => templateRepository.fetchTemplates(),
       ).thenAnswer((_) async => const Result.success([testTemplate]));
       when(() => printJobRepository.onPrintJobCreated).thenAnswer(
+        (_) => const Stream.empty(),
+      );
+      when(() => batchPrintSummaryRepository.onSummariesChanged).thenAnswer(
         (_) => const Stream.empty(),
       );
       when(
@@ -616,6 +669,9 @@ void main() {
       when(
         () => serviceLocator.printPipelineOrchestrator,
       ).thenReturn(printPipelineOrchestrator);
+      when(
+        () => serviceLocator.batchPrintSummaryRepository,
+      ).thenReturn(batchPrintSummaryRepository);
     });
 
     Widget buildTestableWidget({int? quantity}) {
@@ -659,8 +715,8 @@ void main() {
         expect(find.text('Quantity to Print'), findsOneWidget);
         expect(find.text('Printer Selection'), findsOneWidget);
 
-        expect(find.text('Sheets Required'), findsOneWidget);
-        expect(find.text('2'), findsOneWidget);
+        expect(find.text('20 Labels'), findsOneWidget);
+        expect(find.text('2 Sheets'), findsOneWidget);
       },
     );
 
@@ -683,7 +739,7 @@ void main() {
         await tester.tap(firstSlotInkWell);
         await tester.pumpAndSettle();
 
-        expect(find.text('3'), findsOneWidget);
+        expect(find.text('3 Sheets'), findsOneWidget);
       },
     );
 
@@ -739,7 +795,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Disabling 2 slots on sheet 0 pushes the remaining printed labels to a 3rd sheet.
-      expect(find.text('3'), findsOneWidget);
+      expect(find.text('3 Sheets'), findsOneWidget);
     });
 
     testWidgets('pressing Ctrl + P triggers printing', (tester) async {

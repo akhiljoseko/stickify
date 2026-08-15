@@ -23,6 +23,7 @@ import 'package:stickify/data/repositories/database_variant_print_stats_reposito
 import 'package:stickify/data/repositories/firestore_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/firestore_product_repository.dart';
 import 'package:stickify/data/repositories/firestore_template_repository.dart';
+import 'package:stickify/data/repositories/local_batch_print_summary_repository.dart';
 import 'package:stickify/data/repositories/syncing_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/syncing_product_repository.dart';
 import 'package:stickify/data/repositories/syncing_template_repository.dart';
@@ -47,6 +48,7 @@ class AppServiceLocator {
     required this.printerProfileRepository,
     required this.printJobRepository,
     required this.variantPrintStatsRepository,
+    required this.batchPrintSummaryRepository,
     required this.searchRepository,
     required this.printService,
     required this.printerDiscoveryService,
@@ -95,6 +97,9 @@ class AppServiceLocator {
       database: database,
     );
     final variantPrintStatsRepository = DatabaseVariantPrintStatsRepository(
+      database: database,
+    );
+    final batchPrintSummaryRepository = LocalBatchPrintSummaryRepository(
       database: database,
     );
 
@@ -186,6 +191,7 @@ class AppServiceLocator {
       printerProfileRepository: printerProfileRepository,
       printJobRepository: printJobRepository,
       variantPrintStatsRepository: variantPrintStatsRepository,
+      batchPrintSummaryRepository: batchPrintSummaryRepository,
       searchRepository: searchRepository,
       printService: printService,
       printerDiscoveryService: printerDiscoveryService,
@@ -221,6 +227,9 @@ class AppServiceLocator {
 
   /// The variant-level print stats repository.
   final VariantPrintStatsRepository variantPrintStatsRepository;
+
+  /// The batch print summary repository.
+  final BatchPrintSummaryRepository batchPrintSummaryRepository;
 
   /// The database search repository.
   final SearchRepository searchRepository;

@@ -18,8 +18,10 @@ class MockPrinterProfileRepository extends Mock implements PrinterProfileReposit
 class MockPrinterCalibrationCoordinateResolver extends Mock implements PrinterCalibrationCoordinateResolver {}
 class MockTemplatePrinterCompatibilityAnalyzer extends Mock implements TemplatePrinterCompatibilityAnalyzer {}
 class MockPrintPipelineOrchestrator extends Mock implements PrintPipelineOrchestrator {}
+class MockBatchPrintSummaryRepository extends Mock implements BatchPrintSummaryRepository {}
 
 class FakeCalibrationRequest extends Fake implements CalibrationRequest {}
+class FakeBatchPrintSummary extends Fake implements BatchPrintSummary {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +38,12 @@ void main() {
   late MockPrinterCalibrationCoordinateResolver mockCalibrationResolver;
   late MockTemplatePrinterCompatibilityAnalyzer mockCompatibilityAnalyzer;
   late MockPrintPipelineOrchestrator mockOrchestrator;
+  late MockBatchPrintSummaryRepository mockBatchSummaryRepo;
   late PrintWorkflowCubit cubit;
+
+  setUpAll(() {
+    registerFallbackValue(FakeBatchPrintSummary());
+  });
 
   const testProduct = Product(
     id: 'prod-1',
@@ -189,6 +196,10 @@ void main() {
       ),
     ).thenAnswer((_) async => const Success(null));
 
+    mockBatchSummaryRepo = MockBatchPrintSummaryRepository();
+    when(() => mockBatchSummaryRepo.saveSummary(any())).thenAnswer((_) async => const Success(null));
+    when(() => mockBatchSummaryRepo.onSummariesChanged).thenAnswer((_) => const Stream.empty());
+
     cubit = PrintWorkflowCubit(
       productRepository: mockProductRepo,
       templateRepository: mockTemplateRepo,
@@ -202,6 +213,7 @@ void main() {
       calibrationResolver: mockCalibrationResolver,
       compatibilityAnalyzer: mockCompatibilityAnalyzer,
       printPipelineOrchestrator: mockOrchestrator,
+      batchPrintSummaryRepository: mockBatchSummaryRepo,
     );
   });
 

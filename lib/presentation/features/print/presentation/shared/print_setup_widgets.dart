@@ -22,6 +22,9 @@ class ParametersPanel extends StatefulWidget {
     this.onPrinterChanged,
     this.onManufacturingDateChanged,
     this.onTemplateChanged,
+    this.onToggleAllFirstSheet,
+    this.onTogglePrintFromBottom,
+    this.onToggleReverseSheetOrder,
     this.onPrint,
     this.showQuantityField = true,
     this.showTemplateSelector = true,
@@ -56,6 +59,15 @@ class ParametersPanel extends StatefulWidget {
   /// Callback when label template is changed.
   final ValueChanged<LabelTemplate>? onTemplateChanged;
 
+  /// Callback when select/deselect all first sheet action is triggered.
+  final ValueChanged<bool>? onToggleAllFirstSheet;
+
+  /// Callback when print from bottom toggle changes.
+  final ValueChanged<bool>? onTogglePrintFromBottom;
+
+  /// Callback when reverse sheet order toggle changes.
+  final ValueChanged<bool>? onToggleReverseSheetOrder;
+
   /// Callback when print action is triggered.
   final VoidCallback? onPrint;
 
@@ -79,7 +91,9 @@ class _ParametersPanelState extends State<ParametersPanel> {
   @override
   void initState() {
     super.initState();
-    _qtyController = TextEditingController(text: widget.loadedState.quantity.toString());
+    _qtyController = TextEditingController(
+      text: widget.loadedState.quantity.toString(),
+    );
     _focusNode = FocusNode();
 
     _focusNode.addListener(() {
@@ -101,7 +115,8 @@ class _ParametersPanelState extends State<ParametersPanel> {
   @override
   void didUpdateWidget(ParametersPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.loadedState.quantity.toString() != _qtyController.text && !_focusNode.hasFocus) {
+    if (widget.loadedState.quantity.toString() != _qtyController.text &&
+        !_focusNode.hasFocus) {
       _qtyController.text = widget.loadedState.quantity.toString();
     }
   }
@@ -119,7 +134,10 @@ class _ParametersPanelState extends State<ParametersPanel> {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    final submitting = widget.isSubmitting || widget.state is PrintWorkflowSubmitting;
+    final slotsPerSheet = widget.sheetConfig.columns * widget.sheetConfig.rows;
+    final allFirstSheetSelected = Iterable<int>.generate(
+      slotsPerSheet,
+    ).every((slot) => !widget.loadedState.disabledSlots.contains(slot));
 
     return Card(
       child: Padding(
@@ -129,7 +147,10 @@ class _ParametersPanelState extends State<ParametersPanel> {
           children: [
             Text(
               'Print Parameters',
-              style: textTheme.titleSmall?.copyWith(color: colorScheme.primary),
+              style: textTheme.titleSmall?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 20),
             // Quantity (conditional)
@@ -187,7 +208,9 @@ class _ParametersPanelState extends State<ParametersPanel> {
                 if (widget.onManufacturingDateChanged != null) {
                   widget.onManufacturingDateChanged!(date);
                 } else {
-                  context.read<PrintWorkflowCubit>().updateManufacturingDate(date);
+                  context.read<PrintWorkflowCubit>().updateManufacturingDate(
+                    date,
+                  );
                 }
               },
             ),
@@ -204,11 +227,14 @@ class _ParametersPanelState extends State<ParametersPanel> {
                     ? (_) {}
                     : (val) {
                         if (val != null) {
-                          final template = widget.loadedState.templates.firstWhere((t) => t.id == val);
+                          final template = widget.loadedState.templates
+                              .firstWhere((t) => t.id == val);
                           if (widget.onTemplateChanged != null) {
                             widget.onTemplateChanged!(template);
                           } else {
-                            context.read<PrintWorkflowCubit>().selectTemplate(template);
+                            context.read<PrintWorkflowCubit>().selectTemplate(
+                              template,
+                            );
                           }
                         }
                       },
@@ -237,100 +263,330 @@ class _ParametersPanelState extends State<ParametersPanel> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            // Summary Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(8),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 12),
+            Text(
+              'Sheet Controls',
+              style: textTheme.titleSmall?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
               ),
-              child: Column(
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 42),
+              ),
+              onPressed: () {
+                final select = !allFirstSheetSelected;
+                if (widget.onToggleAllFirstSheet != null) {
+                  widget.onToggleAllFirstSheet!(select);
+                } else {
+                  final cubit = context.read<PrintWorkflowCubit>();
+                  if (allFirstSheetSelected) {
+                    cubit.deselectAllFirstSheet();
+                  } else {
+                    cubit.selectAllFirstSheet();
+                  }
+                }
+              },
+              icon: Icon(
+                allFirstSheetSelected ? Icons.deselect : Icons.select_all,
+                size: 18,
+              ),
+              label: Text(
+                allFirstSheetSelected
+                    ? 'Deselect All First Sheet'
+                    : 'Select All First Sheet',
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Print from bottom',
+                    style: textTheme.bodyMedium,
+                  ),
+                ),
+                Switch(
+                  value: widget.loadedState.printFromBottom,
+                  onChanged: (val) {
+                    if (widget.onTogglePrintFromBottom != null) {
+                      widget.onTogglePrintFromBottom!(val);
+                    } else {
+                      context.read<PrintWorkflowCubit>().togglePrintFromBottom(
+                        value: val,
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Reverse sheet order',
+                    style: textTheme.bodyMedium,
+                  ),
+                ),
+                Switch(
+                  value: widget.loadedState.reverseSheetOrder,
+                  onChanged: (val) {
+                    if (widget.onToggleReverseSheetOrder != null) {
+                      widget.onToggleReverseSheetOrder!(val);
+                    } else {
+                      context
+                          .read<PrintWorkflowCubit>()
+                          .toggleReverseSheetOrder(value: val);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Header bar for Print Preview displaying title, summary badges, and primary Print button.
+class PrintPreviewHeader extends StatelessWidget {
+  /// Creates a [PrintPreviewHeader].
+  const PrintPreviewHeader({
+    required this.title,
+    required this.subtitle,
+    required this.totalQuantity,
+    required this.totalSheets,
+    this.onPrint,
+    this.onBack,
+    this.backButtonLabel = 'Back',
+    this.isSubmitting = false,
+    super.key,
+  });
+
+  /// Primary screen title.
+  final String title;
+
+  /// Subtitle detailing template or job info.
+  final String subtitle;
+
+  /// Total count of labels to print.
+  final int totalQuantity;
+
+  /// Total physical sheets required.
+  final int totalSheets;
+
+  /// Callback when primary Print button is clicked.
+  final VoidCallback? onPrint;
+
+  /// Callback when Back button is clicked.
+  final VoidCallback? onBack;
+
+  /// Custom label for Back button.
+  final String backButtonLabel;
+
+  /// Whether print job is submitting.
+  final bool isSubmitting;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return Card(
+      color: colorScheme.surfaceContainerLowest,
+      margin: const EdgeInsets.only(bottom: 24),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxWidth < 750;
+
+            final backButton = onBack != null
+                ? OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: onBack,
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 14),
+                    label: Text(
+                      backButtonLabel,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  )
+                : const SizedBox.shrink();
+
+            final titleColumn = Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            );
+
+            final rightActionColumn = Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Child 1: Row containing total stickers and sheet counts
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.label_outlined,
+                            size: 15,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$totalQuantity Label${totalQuantity == 1 ? "" : "s"}',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.layers_outlined,
+                            size: 15,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$totalSheets Sheet${totalSheets == 1 ? "" : "s"}',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // Child 2: Comparatively bigger Print button
+                if (onPrint != null)
+                  SizedBox(
+                    height: 46,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(horizontal: 28),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 2,
+                      ),
+                      onPressed: isSubmitting ? null : onPrint,
+                      icon: isSubmitting
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.print, size: 20),
+                      label: Text(
+                        isSubmitting ? 'Sending to Printer...' : 'Print Labels',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+
+            if (isCompact) {
+              return Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Text(
-                          'Total Labels',
-                          style: textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.loadedState.quantity.toString(),
-                        style: textTheme.headlineMedium?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      backButton,
+                      rightActionColumn,
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Sheets Required',
-                          style: textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.totalSheets.toString(),
-                        style: textTheme.headlineMedium?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                  const SizedBox(height: 16),
+                  titleColumn,
                 ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Print button
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
+              );
+            }
+
+            return Row(
+              children: [
+                // 1 -> Back button (uses only required space)
+                backButton,
+                const SizedBox(width: 16),
+                // 2 -> Product/Batch details (takes remaining full space and center aligned)
+                Expanded(
+                  child: titleColumn,
                 ),
-                onPressed: submitting
-                    ? null
-                    : () {
-                        if (widget.onPrint != null) {
-                          widget.onPrint!();
-                        } else {
-                          context.read<PrintWorkflowCubit>().startPrintJob();
-                        }
-                      },
-                icon: submitting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.print),
-                label: Text(
-                  submitting
-                      ? 'Sending to Printer...'
-                      : 'Print',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ],
+                const SizedBox(width: 16),
+                // 3 -> Flex column with summary row and bigger print button
+                rightActionColumn,
+              ],
+            );
+          },
         ),
       ),
     );
@@ -393,7 +649,8 @@ class SheetsPreview extends StatelessWidget {
   final ValueChanged<int>? onToggleSlot;
 
   /// Callback when a row checkbox toggle action is triggered.
-  final void Function(int sheetIndex, int rowIndex, bool select)? onToggleRowSlots;
+  final void Function(int sheetIndex, int rowIndex, bool select)?
+  onToggleRowSlots;
 
   /// Callback when select/deselect all first sheet action is triggered.
   final ValueChanged<bool>? onToggleAllFirstSheet;
@@ -431,153 +688,67 @@ class SheetsPreview extends StatelessWidget {
       }
     }
 
+    final isResuming =
+        loadedState.isResumingPartialSheet ||
+        loadedState.disabledSlots.isNotEmpty;
+    final disabledCount = loadedState.disabledSlots.length;
+
+    final partialSheetBadge = isResuming
+        ? Tooltip(
+            message: 'Click to reset pre-disabled slots to a fresh full sheet',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () =>
+                    context.read<PrintWorkflowCubit>().resetPartialSheet(),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHigh,
+                    border: Border.all(color: colorScheme.primary),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Resuming Partial Sheet ($disabledCount)',
+                        style: textTheme.labelMedium?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.refresh,
+                        size: 14,
+                        color: colorScheme.primary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          )
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final useVerticalHeader = constraints.maxWidth < 600;
-            final legendRow = Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    border: Border.all(color: colorScheme.primary),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text('Active', style: textTheme.bodySmall),
-                const SizedBox(width: 16),
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLow,
-                    border: Border.all(color: colorScheme.outlineVariant),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                  child: const Icon(Icons.close, size: 8, color: Colors.grey),
-                ),
-                const SizedBox(width: 4),
-                Text('Used/Skipped', style: textTheme.bodySmall),
-              ],
-            );
-
-            if (useVerticalHeader) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Sheet Layout Preview',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  legendRow,
-                ],
-              );
-            } else {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Sheet Layout Preview',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  legendRow,
-                ],
-              );
-            }
-          },
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 8,
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Builder(
-              builder: (context) {
-                final allFirstSheetSelected = Iterable<int>.generate(slotsPerSheet)
-                    .every((slot) => !loadedState.disabledSlots.contains(slot));
-
-                return OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: () {
-                    final select = !allFirstSheetSelected;
-                    if (onToggleAllFirstSheet != null) {
-                      onToggleAllFirstSheet!(select);
-                    } else {
-                      final cubit = context.read<PrintWorkflowCubit>();
-                      if (allFirstSheetSelected) {
-                        cubit.deselectAllFirstSheet();
-                      } else {
-                        cubit.selectAllFirstSheet();
-                      }
-                    }
-                  },
-                  icon: Icon(
-                    allFirstSheetSelected ? Icons.deselect : Icons.select_all,
-                    size: 16,
-                  ),
-                  label: Text(
-                    allFirstSheetSelected ? 'Deselect All First Sheet' : 'Select All First Sheet',
-                  ),
-                );
-              },
+            Text(
+              'Sheet Layout Preview',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Print from bottom',
-                  style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 8),
-                Switch(
-                  value: loadedState.printFromBottom,
-                  onChanged: (val) {
-                    if (onTogglePrintFromBottom != null) {
-                      onTogglePrintFromBottom!(val);
-                    } else {
-                      context.read<PrintWorkflowCubit>().togglePrintFromBottom(value: val);
-                    }
-                  },
-                ),
-              ],
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Reverse sheet order',
-                  style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 8),
-                Switch(
-                  value: loadedState.reverseSheetOrder,
-                  onChanged: (val) {
-                    if (onToggleReverseSheetOrder != null) {
-                      onToggleReverseSheetOrder!(val);
-                    } else {
-                      context.read<PrintWorkflowCubit>().toggleReverseSheetOrder(value: val);
-                    }
-                  },
-                ),
-              ],
-            ),
+            if (isResuming) partialSheetBadge!,
           ],
         ),
         const SizedBox(height: 16),
@@ -705,59 +876,84 @@ class SheetsPreview extends StatelessWidget {
                                   paddingBottom,
                                 ),
                                 child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     SizedBox(
                                       width: 24,
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: List.generate(sheetConfig.rows, (rowIndex) {
-                                          final rowSlots = List.generate(
-                                            sheetConfig.columns,
-                                            (c) => sheetIndex * slotsPerSheet + rowIndex * sheetConfig.columns + c,
-                                          );
-                                          final allEnabled = rowSlots.every(
-                                            (slot) => !loadedState.disabledSlots.contains(slot),
-                                          );
-                                          final allDisabled = rowSlots.every(
-                                            loadedState.disabledSlots.contains,
-                                          );
-                                          final checkboxValue = allEnabled
-                                              ? true
-                                              : (allDisabled ? false : null);
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: List.generate(
+                                          sheetConfig.rows,
+                                          (rowIndex) {
+                                            final rowSlots = List.generate(
+                                              sheetConfig.columns,
+                                              (c) =>
+                                                  sheetIndex * slotsPerSheet +
+                                                  rowIndex *
+                                                      sheetConfig.columns +
+                                                  c,
+                                            );
+                                            final allEnabled = rowSlots.every(
+                                              (slot) => !loadedState
+                                                  .disabledSlots
+                                                  .contains(slot),
+                                            );
+                                            final allDisabled = rowSlots.every(
+                                              loadedState
+                                                  .disabledSlots
+                                                  .contains,
+                                            );
+                                            final checkboxValue = allEnabled
+                                                ? true
+                                                : (allDisabled ? false : null);
 
-                                          return Expanded(
-                                            child: Center(
-                                              child: Checkbox(
-                                                tristate: true,
-                                                value: checkboxValue,
-                                                activeColor: colorScheme.primary,
-                                                onChanged: (val) {
-                                                  final select = val == true;
-                                                  if (onToggleRowSlots != null) {
-                                                    onToggleRowSlots!(sheetIndex, rowIndex, select);
-                                                  } else {
-                                                    context.read<PrintWorkflowCubit>().toggleRowSlots(
-                                                      sheetIndex,
-                                                      rowIndex,
-                                                      select: select,
-                                                    );
-                                                  }
-                                                },
+                                            return Expanded(
+                                              child: Center(
+                                                child: Checkbox(
+                                                  tristate: true,
+                                                  value: checkboxValue,
+                                                  activeColor:
+                                                      colorScheme.primary,
+                                                  onChanged: (val) {
+                                                    final select = val == true;
+                                                    if (onToggleRowSlots !=
+                                                        null) {
+                                                      onToggleRowSlots!(
+                                                        sheetIndex,
+                                                        rowIndex,
+                                                        select,
+                                                      );
+                                                    } else {
+                                                      context
+                                                          .read<
+                                                            PrintWorkflowCubit
+                                                          >()
+                                                          .toggleRowSlots(
+                                                            sheetIndex,
+                                                            rowIndex,
+                                                            select: select,
+                                                          );
+                                                    }
+                                                  },
+                                                ),
                                               ),
-                                            ),
-                                          );
-                                        }),
+                                            );
+                                          },
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: GridView.builder(
                                         shrinkWrap: true,
-                                        physics: const NeverScrollableScrollPhysics(),
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
                                         gridDelegate:
                                             SliverGridDelegateWithFixedCrossAxisCount(
-                                              crossAxisCount: sheetConfig.columns,
+                                              crossAxisCount:
+                                                  sheetConfig.columns,
                                               crossAxisSpacing:
                                                   (sheetConfig.columnGap /
                                                       sheetConfig.pageWidth) *
@@ -767,19 +963,22 @@ class SheetsPreview extends StatelessWidget {
                                                       sheetConfig.pageHeight) *
                                                   constraints.maxHeight,
                                               childAspectRatio:
-                                                  sticker.widthMm / sticker.heightMm,
+                                                  sticker.widthMm /
+                                                  sticker.heightMm,
                                             ),
                                         itemCount: slotsPerSheet,
                                         itemBuilder: (context, slotGridIndex) {
                                           final absIndex =
                                               sheetIndex * slotsPerSheet +
                                               slotGridIndex;
-                                          final isDisabled = loadedState.disabledSlots
+                                          final isDisabled = loadedState
+                                              .disabledSlots
                                               .contains(absIndex);
-                                          final isActive = activePositions.contains(
-                                            absIndex,
-                                          );
-      
+                                          final isActive = activePositions
+                                              .contains(
+                                                absIndex,
+                                              );
+
                                           if (isDisabled) {
                                             return InkWell(
                                               onTap: () {
@@ -787,36 +986,68 @@ class SheetsPreview extends StatelessWidget {
                                                   onToggleSlot!(absIndex);
                                                 } else {
                                                   context
-                                                      .read<PrintWorkflowCubit>()
+                                                      .read<
+                                                        PrintWorkflowCubit
+                                                      >()
                                                       .toggleSlot(absIndex);
                                                 }
                                               },
                                               child: Container(
                                                 decoration: BoxDecoration(
-                                                  color:
-                                                      colorScheme.surfaceContainerLow,
+                                                  color: colorScheme
+                                                      .surfaceContainerLow,
                                                   border: Border.all(
-                                                    color: colorScheme.outlineVariant,
+                                                    color: colorScheme
+                                                        .outlineVariant,
                                                   ),
-                                                  borderRadius: BorderRadius.circular(
-                                                    4,
-                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        4,
+                                                      ),
                                                 ),
-                                                child: const Center(
-                                                  child: Icon(
-                                                    Icons.close,
-                                                    color: Colors.grey,
+                                                child: Center(
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.block,
+                                                        size: 14,
+                                                        color:
+                                                            colorScheme.outline,
+                                                      ),
+                                                      const SizedBox(height: 2),
+                                                      Text(
+                                                        'Skipped',
+                                                        style: textTheme
+                                                            .labelSmall
+                                                            ?.copyWith(
+                                                              color: colorScheme
+                                                                  .outline,
+                                                              fontSize: 10,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ),
                                             );
                                           }
-      
+
                                           if (isActive) {
-                                            final activeItem = slotItemMap[absIndex] ??
-                                                (items.isNotEmpty ? items.first : null);
-                                            final activeProduct = activeItem?.product ?? product!;
-                                            final activeVariant = activeItem?.variant ?? variant!;
+                                            final activeItem =
+                                                slotItemMap[absIndex] ??
+                                                (items.isNotEmpty
+                                                    ? items.first
+                                                    : null);
+                                            final activeProduct =
+                                                activeItem?.product ?? product!;
+                                            final activeVariant =
+                                                activeItem?.variant ?? variant!;
 
                                             return InkWell(
                                               onTap: () {
@@ -824,7 +1055,9 @@ class SheetsPreview extends StatelessWidget {
                                                   onToggleSlot!(absIndex);
                                                 } else {
                                                   context
-                                                      .read<PrintWorkflowCubit>()
+                                                      .read<
+                                                        PrintWorkflowCubit
+                                                      >()
                                                       .toggleSlot(absIndex);
                                                 }
                                               },
@@ -834,18 +1067,22 @@ class SheetsPreview extends StatelessWidget {
                                                     color: colorScheme.primary,
                                                     width: 1.5,
                                                   ),
-                                                  borderRadius: BorderRadius.circular(
-                                                    4,
-                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        4,
+                                                      ),
                                                 ),
                                                 child: ClipRRect(
-                                                  borderRadius: BorderRadius.circular(
-                                                    3,
-                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        3,
+                                                      ),
                                                   child: FittedBox(
                                                     child: SizedBox(
-                                                      width: sticker.widthMm * 4,
-                                                      height: sticker.heightMm * 4,
+                                                      width:
+                                                          sticker.widthMm * 4,
+                                                      height:
+                                                          sticker.heightMm * 4,
                                                       child: Stack(
                                                         children: template.elements.map((
                                                           bp,
@@ -854,19 +1091,25 @@ class SheetsPreview extends StatelessWidget {
                                                               bp.width * 4.0;
                                                           final height =
                                                               bp.height * 4.0;
-                                                          final left = bp.x * 4.0;
-                                                          final top = bp.y * 4.0;
+                                                          final left =
+                                                              bp.x * 4.0;
+                                                          final top =
+                                                              bp.y * 4.0;
                                                           final renderedChild =
                                                               ElementRendererRegistry.forBlueprint(
                                                                 bp,
                                                               ).render(
                                                                 context,
                                                                 bp,
-                                                                product: activeProduct,
-                                                                variant: activeVariant,
-                                                                manufacturingDate: loadedState.manufacturingDate,
+                                                                product:
+                                                                    activeProduct,
+                                                                variant:
+                                                                    activeVariant,
+                                                                manufacturingDate:
+                                                                    loadedState
+                                                                        .manufacturingDate,
                                                               );
-      
+
                                                           return Positioned(
                                                             left: left,
                                                             top: top,
@@ -879,7 +1122,8 @@ class SheetsPreview extends StatelessWidget {
                                                               child: SizedBox(
                                                                 width: width,
                                                                 height: height,
-                                                                child: renderedChild,
+                                                                child:
+                                                                    renderedChild,
                                                               ),
                                                             ),
                                                           );
@@ -891,14 +1135,16 @@ class SheetsPreview extends StatelessWidget {
                                               ),
                                             );
                                           }
-      
+
                                           // Unused/Empty slot at the end
                                           return Container(
                                             decoration: BoxDecoration(
                                               border: Border.all(
-                                                color: colorScheme.outlineVariant,
+                                                color:
+                                                    colorScheme.outlineVariant,
                                               ),
-                                              borderRadius: BorderRadius.circular(4),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
                                             ),
                                             child: const Center(
                                               child: Icon(
@@ -932,7 +1178,11 @@ class SheetsPreview extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: colorScheme.primary, size: 18),
+                  Icon(
+                    Icons.info_outline,
+                    color: colorScheme.primary,
+                    size: 18,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(

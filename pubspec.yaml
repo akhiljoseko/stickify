@@ -1,6 +1,6 @@
 name: stickify
 description: A Very Good Project created by Very Good CLI.
-version: 3.5.0+15
+version: 4.0.0+15
 publish_to: none
 
 environment:

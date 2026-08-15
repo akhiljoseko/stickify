@@ -60,7 +60,7 @@ class BatchPrintSummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: () => _showSummaryDialog(context),
         child: Container(
-          width: 270,
+          width: 290,
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -140,13 +140,12 @@ class BatchPrintSummary extends Equatable {
   String get batchTitle {
     final day = printedAt.day.toString().padLeft(2, '0');
     final month = _monthAbbr(printedAt.month);
-    final year = printedAt.year;
     final hourNum = printedAt.hour == 0 ? 12 : (printedAt.hour > 12 ? printedAt.hour - 12 : printedAt.hour);
     final hour = hourNum.toString().padLeft(2, '0');
     final minute = printedAt.minute.toString().padLeft(2, '0');
     final period = printedAt.hour >= 12 ? 'PM' : 'AM';
 
-    return '$day $month $year, $hour:$minute $period';
+    return '$day $month, $hour:$minute $period';
   }
 
   static String _monthAbbr(int month) {

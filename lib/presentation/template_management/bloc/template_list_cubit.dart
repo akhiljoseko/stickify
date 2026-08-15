@@ -120,4 +120,53 @@ class TemplateListCubit extends Cubit<TemplateListState> {
         emit(TemplateListError(err.message));
     }
   }
+
+  /// Copies an existing [sourceTemplate] with a new [newName] and saves it locally and remotely.
+  Future<LabelTemplate?> copyTemplate(LabelTemplate sourceTemplate, String newName) async {
+    emit(const TemplateListLoading());
+    final createResult = await _templateRepository.createTemplate(newName);
+    switch (createResult) {
+      case Success(value: final newShell):
+        var copiedTemplate = newShell.copyWith(
+          sheetConfig: sourceTemplate.sheetConfig,
+          stickerConfig: sourceTemplate.stickerConfig,
+          elements: sourceTemplate.elements,
+          isFinalized: sourceTemplate.isFinalized,
+          updatedAt: DateTime.now(),
+        );
+
+        if (sourceTemplate.imageUrl != null && sourceTemplate.imageUrl!.isNotEmpty) {
+          final imageUrl = sourceTemplate.imageUrl!;
+          if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+            final file = File(imageUrl);
+            if (file.existsSync()) {
+              final uploadResult = await _fileStorageService.uploadTemplateImage(file);
+              switch (uploadResult) {
+                case Success(value: final savedPath):
+                  copiedTemplate = copiedTemplate.copyWith(imageUrl: savedPath);
+                case Failure():
+                  copiedTemplate = copiedTemplate.copyWith(imageUrl: imageUrl);
+              }
+            } else {
+              copiedTemplate = copiedTemplate.copyWith(imageUrl: imageUrl);
+            }
+          } else {
+            copiedTemplate = copiedTemplate.copyWith(imageUrl: imageUrl);
+          }
+        }
+
+        final saveResult = await _templateRepository.saveTemplate(copiedTemplate);
+        switch (saveResult) {
+          case Success():
+            await loadTemplates();
+            return copiedTemplate;
+          case Failure(error: final err):
+            emit(TemplateListError(err.message));
+            return null;
+        }
+      case Failure(error: final err):
+        emit(TemplateListError(err.message));
+        return null;
+    }
+  }
 }

@@ -307,6 +307,50 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
     ));
   }
 
+  void _showCopyTemplateDialog(BuildContext context, LabelTemplate template) {
+    final cubit = context.read<TemplateListCubit>();
+    final textController = TextEditingController(text: '${template.name} (Copy)');
+
+    unawaited(showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Copy Template'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: textController,
+                decoration: const InputDecoration(
+                  hintText: 'Enter template name',
+                  labelText: 'Template Name',
+                ),
+                autofocus: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newName = textController.text.trim();
+                if (newName.isNotEmpty) {
+                  Navigator.pop(dialogContext);
+                  await cubit.copyTemplate(template, newName);
+                }
+              },
+              child: const Text('Copy'),
+            ),
+          ],
+        );
+      },
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -408,6 +452,9 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                                       onEditDetails: () {
                                         _showEditTemplateDetailsDialog(context, template);
                                       },
+                                      onCopy: () {
+                                        _showCopyTemplateDialog(context, template);
+                                      },
                                       onDelete: () {
                                         unawaited(context.read<TemplateListCubit>().deleteTemplate(template.id));
                                       },
@@ -439,6 +486,9 @@ class _TemplateManagementViewState extends State<_TemplateManagementView> {
                                     },
                                     onEditDetails: () {
                                       _showEditTemplateDetailsDialog(context, template);
+                                    },
+                                    onCopy: () {
+                                      _showCopyTemplateDialog(context, template);
                                     },
                                     onDelete: () {
                                       // Delete template
@@ -558,12 +608,14 @@ class _CompactTemplateListTile extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onEditDetails,
+    required this.onCopy,
   });
 
   final LabelTemplate template;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onEditDetails;
+  final VoidCallback onCopy;
 
   @override
   Widget build(BuildContext context) {
@@ -640,6 +692,8 @@ class _CompactTemplateListTile extends StatelessWidget {
                 onEdit();
               } else if (val == 'edit_details') {
                 onEditDetails();
+              } else if (val == 'copy') {
+                onCopy();
               } else if (val == 'delete') {
                 onDelete();
               }
@@ -662,6 +716,16 @@ class _CompactTemplateListTile extends StatelessWidget {
                     Icon(Icons.info_outline, size: 20),
                     SizedBox(width: 8),
                     Text('Edit Details'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'copy',
+                child: Row(
+                  children: [
+                    Icon(Icons.content_copy_outlined, size: 20),
+                    SizedBox(width: 8),
+                    Text('Copy Template'),
                   ],
                 ),
               ),

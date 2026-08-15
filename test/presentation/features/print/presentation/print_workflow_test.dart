@@ -548,6 +548,7 @@ void main() {
             printFromBottom: any(named: 'printFromBottom'),
           ),
         ).called(1);
+        verifyNever(() => batchPrintSummaryRepository.saveSummary(any()));
       },
     );
   });

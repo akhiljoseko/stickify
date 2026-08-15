@@ -11,6 +11,7 @@ class TemplateCard extends StatefulWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onEditDetails,
+    required this.onCopy,
     super.key,
   });
 
@@ -25,6 +26,9 @@ class TemplateCard extends StatefulWidget {
 
   /// Callback to edit the template details.
   final VoidCallback onEditDetails;
+
+  /// Callback to copy the template.
+  final VoidCallback onCopy;
 
   @override
   State<TemplateCard> createState() => _TemplateCardState();
@@ -176,6 +180,8 @@ class _TemplateCardState extends State<TemplateCard> {
                               widget.onEdit();
                             } else if (val == 'edit_details') {
                               widget.onEditDetails();
+                            } else if (val == 'copy') {
+                              widget.onCopy();
                             } else if (val == 'delete') {
                               widget.onDelete();
                             }
@@ -198,6 +204,16 @@ class _TemplateCardState extends State<TemplateCard> {
                                   Icon(Icons.info_outline, size: 20),
                                   SizedBox(width: 8),
                                   Text('Edit Details'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'copy',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.content_copy_outlined, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Copy Template'),
                                 ],
                               ),
                             ),

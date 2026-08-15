@@ -13,19 +13,33 @@ import 'package:stickify/presentation/features/print/cubits/print_workflow_state
 class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   /// Creates a [PrintWorkflowCubit] with the necessary repositories and services.
   PrintWorkflowCubit({
-    required this._productRepository,
-    required this._templateRepository,
-    required this._printJobRepository,
-    required this._variantPrintStatsRepository,
-    required this._printService,
-    required this._printerDiscoveryService,
-    required this._printJobIdGenerator,
-    required this._localDatabase,
-    required this._printerProfileRepository,
-    required this._calibrationResolver,
-    required this._compatibilityAnalyzer,
-    required this._printPipelineOrchestrator,
-  })  : super(const PrintWorkflowInitial());
+    required ProductRepository productRepository,
+    required TemplateRepository templateRepository,
+    required PrintJobRepository printJobRepository,
+    required VariantPrintStatsRepository variantPrintStatsRepository,
+    required PrintService printService,
+    required PrinterDiscoveryService printerDiscoveryService,
+    required PrintJobIdGenerator printJobIdGenerator,
+    required LocalDatabase localDatabase,
+    required PrinterProfileRepository printerProfileRepository,
+    required PrinterCalibrationCoordinateResolver calibrationResolver,
+    required TemplatePrinterCompatibilityAnalyzer compatibilityAnalyzer,
+    required PrintPipelineOrchestrator printPipelineOrchestrator,
+    BatchPrintSummaryRepository? batchPrintSummaryRepository,
+  })  : _productRepository = productRepository,
+        _templateRepository = templateRepository,
+        _printJobRepository = printJobRepository,
+        _variantPrintStatsRepository = variantPrintStatsRepository,
+        _printService = printService,
+        _printerDiscoveryService = printerDiscoveryService,
+        _printJobIdGenerator = printJobIdGenerator,
+        _localDatabase = localDatabase,
+        _printerProfileRepository = printerProfileRepository,
+        _calibrationResolver = calibrationResolver,
+        _compatibilityAnalyzer = compatibilityAnalyzer,
+        _printPipelineOrchestrator = printPipelineOrchestrator,
+        _batchPrintSummaryRepository = batchPrintSummaryRepository,
+        super(const PrintWorkflowInitial());
 
   final ProductRepository _productRepository;
   final TemplateRepository _templateRepository;
@@ -39,6 +53,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   final PrinterCalibrationCoordinateResolver _calibrationResolver;
   final TemplatePrinterCompatibilityAnalyzer _compatibilityAnalyzer;
   final PrintPipelineOrchestrator _printPipelineOrchestrator;
+  final BatchPrintSummaryRepository? _batchPrintSummaryRepository;
 
   /// Loads initial metadata needed to configure a single product print job.
   Future<void> loadWorkflow(String productId, String variantSku, [String? templateId, int? initialQuantity]) async {
@@ -583,7 +598,49 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
           );
           await _savePartialSheetSlots(template.id, lastSheetUsed);
 
-          emit(PrintWorkflowSuccess(printJob: lastJob!));
+          // Aggregate items by variantSku to combine quantities for identical variants
+          final summaryItemsMap = <String, BatchPrintSummaryItem>{};
+          for (final item in itemsToPrint) {
+            final sku = item.variant.sku;
+            if (summaryItemsMap.containsKey(sku)) {
+              final existing = summaryItemsMap[sku]!;
+              summaryItemsMap[sku] = existing.copyWith(
+                quantity: existing.quantity + item.quantity,
+              );
+            } else {
+              summaryItemsMap[sku] = BatchPrintSummaryItem(
+                productId: item.product.id,
+                productName: item.product.name,
+                variantSku: item.variant.sku,
+                variantName: item.variant.name,
+                quantity: item.quantity,
+                imageUrl: item.product.imageUrl,
+              );
+            }
+          }
+
+          final batchSummary = BatchPrintSummary(
+            id: _printJobIdGenerator.generateId(),
+            printedAt: now,
+            templateId: template.id,
+            templateName: template.name,
+            printerName: printer.name,
+            totalQuantity: s.totalQuantity,
+            totalSheets: s.totalSheets,
+            items: summaryItemsMap.values.toList(),
+          );
+
+          final repo = _batchPrintSummaryRepository;
+          if (repo != null) {
+            await repo.saveSummary(batchSummary);
+          }
+
+          emit(
+            PrintWorkflowSuccess(
+              printJob: lastJob!,
+              summary: batchSummary,
+            ),
+          );
       }
     }
   }

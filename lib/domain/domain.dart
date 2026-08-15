@@ -7,6 +7,7 @@
 /// ```
 library;
 
+export 'entities/batch_print_summary.dart';
 export 'entities/calibration_generation_request.dart';
 export 'entities/calibration_generation_result.dart';
 export 'entities/calibration_measurement.dart';
@@ -53,6 +54,7 @@ export 'entities/sheet_config.dart';
 export 'entities/sticker_config.dart';
 export 'entities/sync_operation.dart';
 export 'entities/variant_print_stats.dart';
+export 'repositories/batch_print_summary_repository.dart';
 export 'repositories/print_job_repository.dart';
 export 'repositories/printer_profile_repository.dart';
 export 'repositories/product_repository.dart';

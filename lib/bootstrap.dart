@@ -106,6 +106,13 @@ Future<void> bootstrap(
   Log.info('Creating AppServiceLocator...', tag: 'Bootstrap');
   final locator = await AppServiceLocator.create();
 
+  // Fire-and-forget cleanup of batch print summaries older than 7 days
+  unawaited(
+    locator.batchPrintSummaryRepository.deleteSummariesOlderThan(
+      const Duration(days: 7),
+    ),
+  );
+
   Log.info('Bootstrap completed. Starting application...', tag: 'Bootstrap');
   runApp(await builder(locator));
 }

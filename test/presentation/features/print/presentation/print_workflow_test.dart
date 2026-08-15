@@ -45,6 +45,9 @@ class MockTemplatePrinterCompatibilityAnalyzer extends Mock
 class MockPrintPipelineOrchestrator extends Mock
     implements PrintPipelineOrchestrator {}
 
+class MockBatchPrintSummaryRepository extends Mock
+    implements BatchPrintSummaryRepository {}
+
 class MockAppServiceLocator extends Mock implements AppServiceLocator {}
 
 class MockGoRouter extends Mock implements GoRouter {}
@@ -90,6 +93,18 @@ void main() {
       ),
     );
     registerFallbackValue(
+      BatchPrintSummary(
+        id: 'fallback-summary',
+        printedAt: DateTime.now(),
+        templateId: 'tpl-id',
+        templateName: 'Tpl Name',
+        printerName: 'Printer',
+        totalQuantity: 1,
+        totalSheets: 1,
+        items: const [],
+      ),
+    );
+    registerFallbackValue(
       const PrinterDevice(
         name: 'fallback-printer',
         url: 'fallback-url',
@@ -109,6 +124,7 @@ void main() {
   late PrinterCalibrationCoordinateResolver calibrationResolver;
   late TemplatePrinterCompatibilityAnalyzer compatibilityAnalyzer;
   late PrintPipelineOrchestrator printPipelineOrchestrator;
+  late BatchPrintSummaryRepository batchPrintSummaryRepository;
   late AppServiceLocator serviceLocator;
 
   const testProduct = Product(
@@ -225,7 +241,12 @@ void main() {
       calibrationResolver = MockPrinterCalibrationCoordinateResolver();
       compatibilityAnalyzer = MockTemplatePrinterCompatibilityAnalyzer();
       printPipelineOrchestrator = MockPrintPipelineOrchestrator();
+      batchPrintSummaryRepository = MockBatchPrintSummaryRepository();
       serviceLocator = MockAppServiceLocator();
+
+      when(
+        () => batchPrintSummaryRepository.saveSummary(any()),
+      ).thenAnswer((_) async => const Result.success(null));
 
       when(
         () => localDatabase.get<bool>(any(), any()),
@@ -319,6 +340,9 @@ void main() {
       when(
         () => serviceLocator.printPipelineOrchestrator,
       ).thenReturn(printPipelineOrchestrator);
+      when(
+        () => serviceLocator.batchPrintSummaryRepository,
+      ).thenReturn(batchPrintSummaryRepository);
     });
 
     test('loads workflow successfully and sets initial state', () async {

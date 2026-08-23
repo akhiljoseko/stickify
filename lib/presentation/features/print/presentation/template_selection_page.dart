@@ -43,6 +43,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
     try {
       final productRepo = context.read<ProductRepository>();
       final templateRepo = context.read<TemplateRepository>();
+      final settingsRepo = context.read<SettingsRepository>();
 
       final productResult = await productRepo.getProductById(widget.productId);
       switch (productResult) {
@@ -79,8 +80,12 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
               finalized = templates.where((t) => t.isFinalized).toList();
           }
 
-          if (variant.defaultTemplateId != null &&
-              finalized.any((t) => t.id == variant.defaultTemplateId)) {
+          final settings = await settingsRepo.getSettings();
+
+          final hasDefaultTemplate = variant.defaultTemplateId != null &&
+              finalized.any((t) => t.id == variant.defaultTemplateId);
+
+          if (hasDefaultTemplate && settings.enableDefaultTemplateUsage) {
             if (!mounted) return;
             PrintSetupRoute(
               productId: widget.productId,
@@ -94,7 +99,9 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             _product = product;
             _variant = variant;
             _templates = finalized;
-            if (finalized.isNotEmpty) {
+            if (hasDefaultTemplate) {
+              _selectedTemplateId = variant.defaultTemplateId;
+            } else if (finalized.isNotEmpty) {
               _selectedTemplateId = finalized.first.id;
             }
             _isLoading = false;

@@ -18,6 +18,7 @@ import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
 import 'package:stickify/data/repositories/database_search_repository.dart';
+import 'package:stickify/data/repositories/database_settings_repository.dart';
 import 'package:stickify/data/repositories/database_template_repository.dart';
 import 'package:stickify/data/repositories/database_variant_print_stats_repository.dart';
 import 'package:stickify/data/repositories/firestore_printer_profile_repository.dart';
@@ -50,6 +51,7 @@ class AppServiceLocator {
     required this.variantPrintStatsRepository,
     required this.batchPrintSummaryRepository,
     required this.searchRepository,
+    required this.settingsRepository,
     required this.printService,
     required this.printerDiscoveryService,
     required this.filePickerService,
@@ -106,6 +108,9 @@ class AppServiceLocator {
     final searchRepository = DatabaseSearchRepository(
       productRepository: productRepository,
       templateRepository: templateRepository,
+    );
+    final settingsRepository = DatabaseSettingsRepository(
+      database: database,
     );
 
     const layoutEngine = LabelPdfLayoutEngine();
@@ -193,6 +198,7 @@ class AppServiceLocator {
       variantPrintStatsRepository: variantPrintStatsRepository,
       batchPrintSummaryRepository: batchPrintSummaryRepository,
       searchRepository: searchRepository,
+      settingsRepository: settingsRepository,
       printService: printService,
       printerDiscoveryService: printerDiscoveryService,
       filePickerService: filePickerService,
@@ -233,6 +239,9 @@ class AppServiceLocator {
 
   /// The database search repository.
   final SearchRepository searchRepository;
+
+  /// The application settings repository.
+  final SettingsRepository settingsRepository;
 
   /// The printing service.
   final PrintService printService;

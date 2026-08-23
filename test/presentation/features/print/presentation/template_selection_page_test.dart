@@ -10,10 +10,12 @@ import '../../../../helpers/pump_app.dart';
 
 class MockProductRepository extends Mock implements ProductRepository {}
 class MockTemplateRepository extends Mock implements TemplateRepository {}
+class MockSettingsRepository extends Mock implements SettingsRepository {}
 
 void main() {
   late ProductRepository productRepository;
   late TemplateRepository templateRepository;
+  late SettingsRepository settingsRepository;
 
   const testProduct = Product(
     id: 'prod-test',
@@ -58,11 +60,14 @@ void main() {
   setUp(() {
     productRepository = MockProductRepository();
     templateRepository = MockTemplateRepository();
+    settingsRepository = MockSettingsRepository();
 
     when(() => productRepository.getProductById('prod-test'))
         .thenAnswer((_) async => const Result.success(testProduct));
     when(() => templateRepository.fetchTemplates())
         .thenAnswer((_) async => const Result.success([testTemplate]));
+    when(() => settingsRepository.getSettings())
+        .thenAnswer((_) async => AppSettings.defaults);
   });
 
   Widget buildTestableWidget() {
@@ -70,6 +75,7 @@ void main() {
       providers: [
         RepositoryProvider.value(value: productRepository),
         RepositoryProvider.value(value: templateRepository),
+        RepositoryProvider.value(value: settingsRepository),
       ],
       child: const TemplateSelectionPage(
         productId: 'prod-test',
@@ -99,6 +105,37 @@ void main() {
       // Verify the template is displayed and selected by default if it's the only one
       expect(find.byIcon(Icons.check_circle), findsOneWidget);
       expect(find.text('Continue to Print Configuration'), findsOneWidget);
+    });
+
+    testWidgets('shows template selection screen with default template selected when enableDefaultTemplateUsage is false', (tester) async {
+      const productWithDefault = Product(
+        id: 'prod-test',
+        name: 'Dynamic Product',
+        sku: 'PROD-SKU',
+        variants: [
+          ProductVariant(
+            name: 'Pack of 10',
+            quantity: 10,
+            unit: 'pcs',
+            wholesale: 150,
+            mrp: 200,
+            sku: 'PROD-VAR-SKU',
+            defaultTemplateId: 'temp-test',
+          ),
+        ],
+      );
+
+      when(() => productRepository.getProductById('prod-test'))
+          .thenAnswer((_) async => const Result.success(productWithDefault));
+      when(() => settingsRepository.getSettings())
+          .thenAnswer((_) async => const AppSettings(enableDefaultTemplateUsage: false));
+
+      await tester.pumpApp(buildTestableWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TemplateSelectionPage), findsOneWidget);
+      expect(find.text('A4 Shipping Label'), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
     });
   });
 }

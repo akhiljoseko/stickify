@@ -58,6 +58,7 @@ class PrintSetupPage extends StatelessWidget {
         compatibilityAnalyzer: locator.templatePrinterCompatibilityAnalyzer,
         printPipelineOrchestrator: locator.printPipelineOrchestrator,
         batchPrintSummaryRepository: locator.batchPrintSummaryRepository,
+        settingsRepository: locator.settingsRepository,
       )..loadWorkflow(productId, variantSku, templateId, quantity),
       child: const _PrintSetupView(),
     );

@@ -48,6 +48,8 @@ class MockPrintPipelineOrchestrator extends Mock
 class MockBatchPrintSummaryRepository extends Mock
     implements BatchPrintSummaryRepository {}
 
+class MockSettingsRepository extends Mock implements SettingsRepository {}
+
 class MockAppServiceLocator extends Mock implements AppServiceLocator {}
 
 class MockGoRouter extends Mock implements GoRouter {}
@@ -125,6 +127,7 @@ void main() {
   late TemplatePrinterCompatibilityAnalyzer compatibilityAnalyzer;
   late PrintPipelineOrchestrator printPipelineOrchestrator;
   late BatchPrintSummaryRepository batchPrintSummaryRepository;
+  late SettingsRepository settingsRepository;
   late AppServiceLocator serviceLocator;
 
   const testProduct = Product(
@@ -242,7 +245,12 @@ void main() {
       compatibilityAnalyzer = MockTemplatePrinterCompatibilityAnalyzer();
       printPipelineOrchestrator = MockPrintPipelineOrchestrator();
       batchPrintSummaryRepository = MockBatchPrintSummaryRepository();
+      settingsRepository = MockSettingsRepository();
       serviceLocator = MockAppServiceLocator();
+
+      when(
+        () => settingsRepository.getSettings(),
+      ).thenAnswer((_) async => AppSettings.defaults);
 
       when(
         () => batchPrintSummaryRepository.saveSummary(any()),
@@ -346,6 +354,9 @@ void main() {
       when(
         () => serviceLocator.batchPrintSummaryRepository,
       ).thenReturn(batchPrintSummaryRepository);
+      when(
+        () => serviceLocator.settingsRepository,
+      ).thenReturn(settingsRepository);
     });
 
     test('loads workflow successfully and sets initial state', () async {
@@ -551,6 +562,177 @@ void main() {
         verifyNever(() => batchPrintSummaryRepository.saveSummary(any()));
       },
     );
+
+    test(
+      'ignores saved partial sheet slots when enableResumePartialSheet is false',
+      () async {
+        when(() => settingsRepository.getSettings()).thenAnswer(
+          (_) async => const AppSettings(enableResumePartialSheet: false),
+        );
+        when(() => localDatabase.get<List<dynamic>>('partial_sheets', 'temp-test'))
+            .thenAnswer((_) async => [0, 1, 2]);
+
+        final cubit = PrintWorkflowCubit(
+          productRepository: productRepository,
+          templateRepository: templateRepository,
+          printJobRepository: printJobRepository,
+          variantPrintStatsRepository: variantPrintStatsRepository,
+          printService: printService,
+          printerDiscoveryService: printerDiscoveryService,
+          printJobIdGenerator: printJobIdGenerator,
+          localDatabase: localDatabase,
+          printerProfileRepository: printerProfileRepository,
+          calibrationResolver: calibrationResolver,
+          compatibilityAnalyzer: compatibilityAnalyzer,
+          printPipelineOrchestrator: printPipelineOrchestrator,
+          batchPrintSummaryRepository: batchPrintSummaryRepository,
+          settingsRepository: settingsRepository,
+        );
+
+        await cubit.loadWorkflow('prod-test', 'PROD-VAR-SKU', 'temp-test');
+
+        final state = cubit.state as PrintWorkflowLoaded;
+        expect(state.disabledSlots, isEmpty);
+        expect(state.isResumingPartialSheet, isFalse);
+      },
+    );
+
+    test(
+      'initForBatch groups identical variant items when groupBatchVariants is true',
+      () async {
+        when(() => settingsRepository.getSettings()).thenAnswer(
+          (_) async => AppSettings.defaults,
+        );
+
+        final cubit = PrintWorkflowCubit(
+          productRepository: productRepository,
+          templateRepository: templateRepository,
+          printJobRepository: printJobRepository,
+          variantPrintStatsRepository: variantPrintStatsRepository,
+          printService: printService,
+          printerDiscoveryService: printerDiscoveryService,
+          printJobIdGenerator: printJobIdGenerator,
+          localDatabase: localDatabase,
+          printerProfileRepository: printerProfileRepository,
+          calibrationResolver: calibrationResolver,
+          compatibilityAnalyzer: compatibilityAnalyzer,
+          printPipelineOrchestrator: printPipelineOrchestrator,
+          batchPrintSummaryRepository: batchPrintSummaryRepository,
+          settingsRepository: settingsRepository,
+        );
+
+        const prodB = Product(
+          id: 'prod-b',
+          name: 'Product B',
+          sku: 'PROD-B-SKU',
+          variants: [
+            ProductVariant(
+              name: 'V1',
+              quantity: 5,
+              unit: 'pcs',
+              wholesale: 10,
+              mrp: 20,
+              sku: 'VAR-B1',
+            ),
+          ],
+        );
+
+        final rawItems = [
+          PrintableItem(
+            product: testProduct,
+            variant: testProduct.variants.first,
+            quantity: 5,
+          ),
+          PrintableItem(
+            product: prodB,
+            variant: prodB.variants.first,
+            quantity: 5,
+          ),
+          PrintableItem(
+            product: testProduct,
+            variant: testProduct.variants.first,
+            quantity: 3,
+          ),
+        ];
+
+        await cubit.initForBatch(items: rawItems, template: testTemplate);
+
+        final state = cubit.state as PrintWorkflowLoaded;
+        expect(state.items.length, 2);
+        expect(state.items[0].product.id, 'prod-test');
+        expect(state.items[0].quantity, 8);
+        expect(state.items[1].product.id, 'prod-b');
+        expect(state.items[1].quantity, 5);
+      },
+    );
+
+    test(
+      'initForBatch preserves raw item order when groupBatchVariants is false',
+      () async {
+        when(() => settingsRepository.getSettings()).thenAnswer(
+          (_) async => const AppSettings(groupBatchVariants: false),
+        );
+
+        final cubit = PrintWorkflowCubit(
+          productRepository: productRepository,
+          templateRepository: templateRepository,
+          printJobRepository: printJobRepository,
+          variantPrintStatsRepository: variantPrintStatsRepository,
+          printService: printService,
+          printerDiscoveryService: printerDiscoveryService,
+          printJobIdGenerator: printJobIdGenerator,
+          localDatabase: localDatabase,
+          printerProfileRepository: printerProfileRepository,
+          calibrationResolver: calibrationResolver,
+          compatibilityAnalyzer: compatibilityAnalyzer,
+          printPipelineOrchestrator: printPipelineOrchestrator,
+          batchPrintSummaryRepository: batchPrintSummaryRepository,
+          settingsRepository: settingsRepository,
+        );
+
+        const prodB = Product(
+          id: 'prod-b',
+          name: 'Product B',
+          sku: 'PROD-B-SKU',
+          variants: [
+            ProductVariant(
+              name: 'V1',
+              quantity: 5,
+              unit: 'pcs',
+              wholesale: 10,
+              mrp: 20,
+              sku: 'VAR-B1',
+            ),
+          ],
+        );
+
+        final rawItems = [
+          PrintableItem(
+            product: testProduct,
+            variant: testProduct.variants.first,
+            quantity: 5,
+          ),
+          PrintableItem(
+            product: prodB,
+            variant: prodB.variants.first,
+            quantity: 5,
+          ),
+          PrintableItem(
+            product: testProduct,
+            variant: testProduct.variants.first,
+            quantity: 3,
+          ),
+        ];
+
+        await cubit.initForBatch(items: rawItems, template: testTemplate);
+
+        final state = cubit.state as PrintWorkflowLoaded;
+        expect(state.items.length, 3);
+        expect(state.items[0].quantity, 5);
+        expect(state.items[1].quantity, 5);
+        expect(state.items[2].quantity, 3);
+      },
+    );
   });
 
   group('PrintSetupPage Widget Tests', () {
@@ -570,7 +752,16 @@ void main() {
       calibrationResolver = MockPrinterCalibrationCoordinateResolver();
       compatibilityAnalyzer = MockTemplatePrinterCompatibilityAnalyzer();
       printPipelineOrchestrator = MockPrintPipelineOrchestrator();
+      batchPrintSummaryRepository = MockBatchPrintSummaryRepository();
+      settingsRepository = MockSettingsRepository();
       serviceLocator = MockAppServiceLocator();
+
+      when(
+        () => settingsRepository.getSettings(),
+      ).thenAnswer((_) async => AppSettings.defaults);
+      when(
+        () => settingsRepository.watchSettings,
+      ).thenAnswer((_) => Stream.value(AppSettings.defaults));
 
       when(
         () => localDatabase.get<bool>(any(), any()),
@@ -673,6 +864,9 @@ void main() {
       when(
         () => serviceLocator.batchPrintSummaryRepository,
       ).thenReturn(batchPrintSummaryRepository);
+      when(
+        () => serviceLocator.settingsRepository,
+      ).thenReturn(settingsRepository);
     });
 
     Widget buildTestableWidget({int? quantity}) {

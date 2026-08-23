@@ -69,6 +69,9 @@ class _AppState extends State<App> {
         RepositoryProvider<SearchRepository>.value(
           value: locator.searchRepository,
         ),
+        RepositoryProvider<SettingsRepository>.value(
+          value: locator.settingsRepository,
+        ),
         RepositoryProvider<PrintService>.value(value: locator.printService),
         RepositoryProvider<PrinterDiscoveryService>.value(
           value: locator.printerDiscoveryService,

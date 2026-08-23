@@ -7,6 +7,7 @@
 /// ```
 library;
 
+export 'entities/app_settings.dart';
 export 'entities/batch_print_summary.dart';
 export 'entities/calibration_generation_request.dart';
 export 'entities/calibration_generation_result.dart';
@@ -59,6 +60,7 @@ export 'repositories/print_job_repository.dart';
 export 'repositories/printer_profile_repository.dart';
 export 'repositories/product_repository.dart';
 export 'repositories/search_repository.dart';
+export 'repositories/settings_repository.dart';
 export 'repositories/syncable_printer_profile_repository.dart';
 export 'repositories/syncable_product_repository.dart';
 export 'repositories/syncable_template_repository.dart';

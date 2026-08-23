@@ -1,3 +1,6 @@
+// Ignore prefer_initializing_formals to maintain private backing fields with public named constructor parameters.
+// ignore_for_file: prefer_initializing_formals
+
 import 'dart:async';
 import 'dart:math';
 import 'package:collection/collection.dart';
@@ -13,20 +16,35 @@ import 'package:stickify/presentation/features/print/cubits/print_workflow_state
 class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   /// Creates a [PrintWorkflowCubit] with the necessary repositories and services.
   PrintWorkflowCubit({
-    required this._productRepository,
-    required this._templateRepository,
-    required this._printJobRepository,
-    required this._variantPrintStatsRepository,
-    required this._printService,
-    required this._printerDiscoveryService,
-    required this._printJobIdGenerator,
-    required this._localDatabase,
-    required this._printerProfileRepository,
-    required this._calibrationResolver,
-    required this._compatibilityAnalyzer,
-    required this._printPipelineOrchestrator,
-    required this._batchPrintSummaryRepository,
-  })  : super(const PrintWorkflowInitial());
+    required ProductRepository productRepository,
+    required TemplateRepository templateRepository,
+    required PrintJobRepository printJobRepository,
+    required VariantPrintStatsRepository variantPrintStatsRepository,
+    required PrintService printService,
+    required PrinterDiscoveryService printerDiscoveryService,
+    required PrintJobIdGenerator printJobIdGenerator,
+    required LocalDatabase localDatabase,
+    required PrinterProfileRepository printerProfileRepository,
+    required PrinterCalibrationCoordinateResolver calibrationResolver,
+    required TemplatePrinterCompatibilityAnalyzer compatibilityAnalyzer,
+    required PrintPipelineOrchestrator printPipelineOrchestrator,
+    required BatchPrintSummaryRepository batchPrintSummaryRepository,
+    SettingsRepository? settingsRepository,
+  })  : _productRepository = productRepository,
+        _templateRepository = templateRepository,
+        _printJobRepository = printJobRepository,
+        _variantPrintStatsRepository = variantPrintStatsRepository,
+        _printService = printService,
+        _printerDiscoveryService = printerDiscoveryService,
+        _printJobIdGenerator = printJobIdGenerator,
+        _localDatabase = localDatabase,
+        _printerProfileRepository = printerProfileRepository,
+        _calibrationResolver = calibrationResolver,
+        _compatibilityAnalyzer = compatibilityAnalyzer,
+        _printPipelineOrchestrator = printPipelineOrchestrator,
+        _batchPrintSummaryRepository = batchPrintSummaryRepository,
+        _settingsRepository = settingsRepository,
+        super(const PrintWorkflowInitial());
 
   final ProductRepository _productRepository;
   final TemplateRepository _templateRepository;
@@ -41,6 +59,17 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
   final TemplatePrinterCompatibilityAnalyzer _compatibilityAnalyzer;
   final PrintPipelineOrchestrator _printPipelineOrchestrator;
   final BatchPrintSummaryRepository _batchPrintSummaryRepository;
+  final SettingsRepository? _settingsRepository;
+
+  Future<AppSettings> _getSettings() async {
+    if (_settingsRepository != null) {
+      return _settingsRepository.getSettings();
+    }
+    final cachedBottom =
+        await _localDatabase.get<bool>('settings', 'print_from_bottom') ??
+            false;
+    return AppSettings(printFromBottom: cachedBottom);
+  }
 
   /// Loads initial metadata needed to configure a single product print job.
   Future<void> loadWorkflow(String productId, String variantSku, [String? templateId, int? initialQuantity]) async {
@@ -84,7 +113,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 orElse: () => printers.isNotEmpty ? printers.first : const PrinterDevice(name: 'No Printer Found', url: ''),
               );
 
-              final cachedBottom = await _localDatabase.get<bool>('settings', 'print_from_bottom') ?? false;
+              final settings = await _getSettings();
 
               final int defaultQty;
               if (initialQuantity != null && initialQuantity > 0) {
@@ -135,7 +164,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 }
               }
 
-              final savedPartialSlots = selected != null ? await _getSavedPartialSheetSlots(selected.id) : const <int>{};
+              final savedPartialSlots = (selected != null && settings.enableResumePartialSheet)
+                  ? await _getSavedPartialSheetSlots(selected.id)
+                  : const <int>{};
               final isResuming = savedPartialSlots.isNotEmpty;
 
               final loaded = PrintWorkflowLoaded(
@@ -148,7 +179,7 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
                 quantity: defaultQty,
                 disabledSlots: savedPartialSlots,
                 isResumingPartialSheet: isResuming,
-                printFromBottom: cachedBottom,
+                printFromBottom: settings.printFromBottom,
                 reverseSheetOrder: matchedProfile?.capabilities.reverseSheetOrder ?? false,
                 isQuantityManuallyEdited: initialQuantity != null && initialQuantity > 0,
                 selectedPrinterProfile: matchedProfile,
@@ -184,7 +215,10 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
             orElse: () => printers.isNotEmpty ? printers.first : const PrinterDevice(name: 'No Printer Found', url: ''),
           );
 
-      final cachedBottom = await _localDatabase.get<bool>('settings', 'print_from_bottom') ?? false;
+      final settings = await _getSettings();
+      final processedItems = settings.groupBatchVariants
+          ? _groupPrintableItems(items)
+          : items;
 
       final profilesResult = await _printerProfileRepository.getAllProfiles();
       PrinterProfile? matchedProfile;
@@ -226,19 +260,21 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         }
       }
 
-      final savedPartialSlots = await _getSavedPartialSheetSlots(template.id);
+      final savedPartialSlots = settings.enableResumePartialSheet
+          ? await _getSavedPartialSheetSlots(template.id)
+          : const <int>{};
       final isResuming = savedPartialSlots.isNotEmpty;
 
       final loaded = PrintWorkflowLoaded(
-        items: items,
+        items: processedItems,
         templates: templates.isNotEmpty ? templates : [template],
         selectedTemplate: template,
         availablePrinters: printers,
         selectedPrinter: targetPrinter,
-        quantity: items.fold<int>(0, (sum, i) => sum + i.quantity),
+        quantity: processedItems.fold<int>(0, (sum, i) => sum + i.quantity),
         disabledSlots: savedPartialSlots,
         isResumingPartialSheet: isResuming,
-        printFromBottom: cachedBottom,
+        printFromBottom: settings.printFromBottom,
         reverseSheetOrder: matchedProfile?.capabilities.reverseSheetOrder ?? false,
         selectedPrinterProfile: matchedProfile,
         selectedTrayProfile: matchedTray,
@@ -292,7 +328,10 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
         }
       }
 
-      final savedPartialSlots = await _getSavedPartialSheetSlots(template.id);
+      final settings = await _getSettings();
+      final savedPartialSlots = settings.enableResumePartialSheet
+          ? await _getSavedPartialSheetSlots(template.id)
+          : const <int>{};
       final isResuming = savedPartialSlots.isNotEmpty;
 
       emit(
@@ -399,6 +438,12 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
     if (s is PrintWorkflowLoaded) {
       emit(s.copyWith(printFromBottom: value));
       await _localDatabase.save<bool>('settings', 'print_from_bottom', value);
+      if (_settingsRepository != null) {
+        final current = await _settingsRepository.getSettings();
+        await _settingsRepository.saveSettings(
+          current.copyWith(printFromBottom: value),
+        );
+      }
     }
   }
 
@@ -630,6 +675,26 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
           );
       }
     }
+  }
+
+  List<PrintableItem> _groupPrintableItems(List<PrintableItem> rawItems) {
+    final groupedMap = <String, PrintableItem>{};
+    final order = <String>[];
+
+    for (final item in rawItems) {
+      final key = '${item.product.id}_${item.variant.sku}';
+      if (groupedMap.containsKey(key)) {
+        final existing = groupedMap[key]!;
+        groupedMap[key] = existing.copyWith(
+          quantity: existing.quantity + item.quantity,
+        );
+      } else {
+        order.add(key);
+        groupedMap[key] = item;
+      }
+    }
+
+    return order.map((key) => groupedMap[key]!).toList();
   }
 
   Future<Set<int>> _getSavedPartialSheetSlots(String templateId) async {

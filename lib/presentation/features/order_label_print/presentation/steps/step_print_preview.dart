@@ -37,6 +37,7 @@ class StepPrintPreviewView extends StatelessWidget {
             compatibilityAnalyzer: locator.templatePrinterCompatibilityAnalyzer,
             printPipelineOrchestrator: locator.printPipelineOrchestrator,
             batchPrintSummaryRepository: locator.batchPrintSummaryRepository,
+            settingsRepository: locator.settingsRepository,
           )..initForBatch(
             items: orderState.items,
             template: orderState.selectedTemplate!,

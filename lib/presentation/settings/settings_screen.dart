@@ -2,19 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:stickify/auth/auth.dart';
+import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/settings/cubit/settings_cubit.dart';
+import 'package:stickify/presentation/settings/cubit/settings_state.dart';
 
-/// Settings screen — the designated place for the Logout action.
-///
-/// ## Architecture Note
-///
-/// The **Logout** button calls [AuthCubit.logout]. It does NOT call
-/// `context.go(...)`. The router's `redirect` callback detects the
-/// resulting [AuthUnauthenticated] state via [GoRouterRefreshStream] and
-/// automatically navigates to `/login`. This pattern enforces the rule:
-/// *business logic never navigates; the router does*.
+/// Settings screen — designated place for app preferences and Logout.
 class SettingsScreen extends StatelessWidget {
   /// Creates a [SettingsScreen] instance.
   const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => SettingsCubit(
+        settingsRepository: context.read<SettingsRepository>(),
+      )..loadSettings(),
+      child: const _SettingsView(),
+    );
+  }
+}
+
+class _SettingsView extends StatelessWidget {
+  const _SettingsView();
 
   @override
   Widget build(BuildContext context) {
@@ -38,47 +47,74 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // TODO(you): Re-enable Account, Appearance, and Notifications
-            //            settings sections once their screens are implemented.
-            // Card(
-            //   child: Column(
-            //     children: [
-            //       ListTile(
-            //         leading: Icon(Icons.person_outline),
-            //         title: Text('Account'),
-            //         subtitle: Text('Manage your profile and credentials'),
-            //         trailing: Icon(Icons.chevron_right),
-            //         onTap: () {
-            //           // TODO(you): Navigate to account details.
-            //         },
-            //       ),
-            //       Divider(height: 1, color: colorScheme.outlineVariant),
-            //       ListTile(
-            //         leading: Icon(Icons.palette_outlined),
-            //         title: Text('Appearance'),
-            //         subtitle: Text('Theme and display preferences'),
-            //         trailing: Icon(Icons.chevron_right),
-            //         onTap: () {
-            //           // TODO(you): Navigate to appearance settings.
-            //         },
-            //       ),
-            //       Divider(height: 1, color: colorScheme.outlineVariant),
-            //       ListTile(
-            //         leading: Icon(Icons.notifications_outlined),
-            //         title: Text('Notifications'),
-            //         subtitle: Text('Configure alerts and reminders'),
-            //         trailing: Icon(Icons.chevron_right),
-            //         onTap: () {
-            //           // TODO(you): Navigate to notification settings.
-            //         },
-            //       ),
-            //     ],
-            //   ),
-            // ),
+            // ── Print Pipeline Configuration ──────────────────────────────
+            Text(
+              'Print Pipeline Configuration',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            BlocBuilder<SettingsCubit, SettingsState>(
+              builder: (context, state) {
+                final settings = state.settings;
+                final cubit = context.read<SettingsCubit>();
+
+                return Card(
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        secondary: const Icon(Icons.auto_awesome),
+                        title: const Text('Default Template Auto-Skip'),
+                        subtitle: const Text(
+                          'Automatically skip template selection in single product print workflow when a default template is assigned to the variant',
+                        ),
+                        value: settings.enableDefaultTemplateUsage,
+                        onChanged: (val) =>
+                            cubit.setEnableDefaultTemplateUsage(value: val),
+                      ),
+                      Divider(height: 1, color: colorScheme.outlineVariant),
+                      SwitchListTile(
+                        secondary: const Icon(Icons.grid_on_outlined),
+                        title: const Text('Resume Partial Sheet Memory'),
+                        subtitle: const Text(
+                          'Automatically restore unused sticker slot positions from the last printed partial sheet when initializing print setup',
+                        ),
+                        value: settings.enableResumePartialSheet,
+                        onChanged: (val) =>
+                            cubit.setEnableResumePartialSheet(value: val),
+                      ),
+                      Divider(height: 1, color: colorScheme.outlineVariant),
+                      SwitchListTile(
+                        secondary: const Icon(Icons.vertical_align_bottom),
+                        title: const Text('Print Labels from Bottom'),
+                        subtitle: const Text(
+                          'Align sticker label placement starting from the bottom of physical paper sheets',
+                        ),
+                        value: settings.printFromBottom,
+                        onChanged: (val) =>
+                            cubit.setPrintFromBottom(value: val),
+                      ),
+                      Divider(height: 1, color: colorScheme.outlineVariant),
+                      SwitchListTile(
+                        secondary: const Icon(Icons.layers_outlined),
+                        title: const Text('Group Product Variants in Batch Print'),
+                        subtitle: const Text(
+                          'Group identical product variants together in order of first appearance so they print continuously on sticker sheets',
+                        ),
+                        value: settings.groupBatchVariants,
+                        onChanged: (val) =>
+                            cubit.setGroupBatchVariants(value: val),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: 32),
 
             // ── Logout Section ─────────────────────────────────────────────
-            // Separated at the bottom for clear visual hierarchy.
             Card(
               child: ListTile(
                 leading: Icon(Icons.logout, color: colorScheme.error),
@@ -95,10 +131,6 @@ class SettingsScreen extends StatelessWidget {
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-                // ── Logout Button ──────────────────────────────────────────
-                // Only calls AuthCubit.logout(). The router's redirect
-                // callback detects the AuthUnauthenticated state change and
-                // navigates to /login automatically.
                 onTap: () => context.read<AuthCubit>().logout(),
               ),
             ),

@@ -19,6 +19,7 @@ abstract interface class PrintService {
     bool reverseSheetOrder = false,
     PrintExecutionConfiguration? executionConfiguration,
     DateTime? manufacturingDate,
+    Set<int>? selectedSheets,
   });
 
   /// Prints raw PDF bytes directly to the target system printer with specified paper format size.

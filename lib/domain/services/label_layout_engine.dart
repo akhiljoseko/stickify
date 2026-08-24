@@ -19,5 +19,6 @@ abstract interface class LabelLayoutEngine {
     PdfPageFormat? physicalFormat,
     PrintCoordinateContext? coordinateContext,
     DateTime? manufacturingDate,
+    Set<int>? selectedSheets,
   });
 }

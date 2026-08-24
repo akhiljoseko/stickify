@@ -31,6 +31,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
     PdfPageFormat? physicalFormat,
     PrintCoordinateContext? coordinateContext,
     DateTime? manufacturingDate,
+    Set<int>? selectedSheets,
   }) async {
     // 1. Pre-cache all network/asset/file images on the main thread
     final imageCache = await _preCacheImages(template);
@@ -55,6 +56,7 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
       physicalFormat: physicalFormat,
       coordinateContext: coordinateContext ?? const PrintCoordinateContext.identity(),
       manufacturingDate: manufacturingDate,
+      selectedSheets: selectedSheets,
     );
 
     if (useIsolate) {
@@ -215,6 +217,11 @@ class LabelPdfLayoutEngine implements LabelLayoutEngine {
 
     // Build pages using absolute stacking coordinates
     for (var sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
+      final sheetNumber = sheetIndex + 1;
+      if (input.selectedSheets != null &&
+          !input.selectedSheets!.contains(sheetNumber)) {
+        continue;
+      }
       final pageSlots = <pw.Widget>[];
 
       for (var r = 0; r < sheetConfig.rows; r++) {
@@ -521,7 +528,11 @@ class _PdfJobInput {
     this.reverseSheetOrder = false,
     this.physicalFormat,
     this.manufacturingDate,
+    this.selectedSheets,
   });
+
+  /// Optional set of 1-indexed sheet numbers to render. If omitted, all sheets are rendered.
+  final Set<int>? selectedSheets;
 
   /// The list of items to print.
   final List<PrintableItem> items;

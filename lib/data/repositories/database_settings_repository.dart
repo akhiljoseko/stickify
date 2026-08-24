@@ -15,6 +15,7 @@ class DatabaseSettingsRepository implements SettingsRepository {
   static const String _keyResumePartialSheet = 'enable_resume_partial_sheet';
   static const String _keyPrintFromBottom = 'print_from_bottom';
   static const String _keyGroupBatchVariants = 'group_batch_variants';
+  static const String _keyPerSheetSpooling = 'enable_per_sheet_spooling';
 
   final StreamController<AppSettings> _settingsController =
       StreamController<AppSettings>.broadcast();
@@ -33,12 +34,15 @@ class DatabaseSettingsRepository implements SettingsRepository {
           await _db.get<bool>(_collection, _keyPrintFromBottom) ?? false;
       final groupBatchVariants =
           await _db.get<bool>(_collection, _keyGroupBatchVariants) ?? true;
+      final enablePerSheetSpooling =
+          await _db.get<bool>(_collection, _keyPerSheetSpooling) ?? false;
 
       return AppSettings(
         enableDefaultTemplateUsage: enableDefaultTemplate,
         enableResumePartialSheet: enableResumePartial,
         printFromBottom: printFromBottom,
         groupBatchVariants: groupBatchVariants,
+        enablePerSheetSpooling: enablePerSheetSpooling,
       );
     } catch (_) {
       return AppSettings.defaults;
@@ -67,6 +71,11 @@ class DatabaseSettingsRepository implements SettingsRepository {
         _collection,
         _keyGroupBatchVariants,
         settings.groupBatchVariants,
+      );
+      await _db.save<bool>(
+        _collection,
+        _keyPerSheetSpooling,
+        settings.enablePerSheetSpooling,
       );
       _settingsController.add(settings);
     } catch (_) {}

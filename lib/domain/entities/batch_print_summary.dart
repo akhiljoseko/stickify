@@ -94,6 +94,9 @@ class BatchPrintSummary extends Equatable {
     required this.totalQuantity,
     required this.totalSheets,
     required this.items,
+    this.disabledSlots = const [],
+    this.printFromBottom = false,
+    this.groupBatchVariants = true,
   });
 
   /// Constructs a [BatchPrintSummary] from a JSON map.
@@ -109,6 +112,12 @@ class BatchPrintSummary extends Equatable {
       items: (json['items'] as List<dynamic>)
           .map((i) => BatchPrintSummaryItem.fromJson(Map<String, dynamic>.from(i as Map)))
           .toList(),
+      disabledSlots: (json['disabledSlots'] as List<dynamic>?)
+              ?.map((s) => (s as num).toInt())
+              .toList() ??
+          const [],
+      printFromBottom: json['printFromBottom'] as bool? ?? false,
+      groupBatchVariants: json['groupBatchVariants'] as bool? ?? true,
     );
   }
 
@@ -135,6 +144,15 @@ class BatchPrintSummary extends Equatable {
 
   /// List of combined variant summary items printed in this batch.
   final List<BatchPrintSummaryItem> items;
+
+  /// The list of pre-disabled slot indices skipped during printing.
+  final List<int> disabledSlots;
+
+  /// Whether labels were aligned starting from the bottom of physical paper sheets.
+  final bool printFromBottom;
+
+  /// Whether identical variants were grouped continuously.
+  final bool groupBatchVariants;
 
   /// Human-readable primary batch title formatted from date & time of print.
   String get batchTitle {
@@ -177,6 +195,9 @@ class BatchPrintSummary extends Equatable {
         'totalQuantity': totalQuantity,
         'totalSheets': totalSheets,
         'items': items.map((i) => i.toJson()).toList(),
+        'disabledSlots': disabledSlots,
+        'printFromBottom': printFromBottom,
+        'groupBatchVariants': groupBatchVariants,
       };
 
   @override
@@ -189,5 +210,8 @@ class BatchPrintSummary extends Equatable {
         totalQuantity,
         totalSheets,
         items,
+        disabledSlots,
+        printFromBottom,
+        groupBatchVariants,
       ];
 }

@@ -24,6 +24,8 @@ void main() {
           .thenAnswer((_) async => null);
       when(() => localDatabase.get<bool>('settings', 'group_batch_variants'))
           .thenAnswer((_) async => null);
+      when(() => localDatabase.get<bool>('settings', 'enable_per_sheet_spooling'))
+          .thenAnswer((_) async => null);
 
       final settings = await repository.getSettings();
 
@@ -31,6 +33,7 @@ void main() {
       expect(settings.enableResumePartialSheet, isTrue);
       expect(settings.printFromBottom, isFalse);
       expect(settings.groupBatchVariants, isTrue);
+      expect(settings.enablePerSheetSpooling, isFalse);
     });
 
     test('getSettings returns stored settings when database returns values', () async {
@@ -42,6 +45,8 @@ void main() {
           .thenAnswer((_) async => true);
       when(() => localDatabase.get<bool>('settings', 'group_batch_variants'))
           .thenAnswer((_) async => false);
+      when(() => localDatabase.get<bool>('settings', 'enable_per_sheet_spooling'))
+          .thenAnswer((_) async => true);
 
       final settings = await repository.getSettings();
 
@@ -49,6 +54,7 @@ void main() {
       expect(settings.enableResumePartialSheet, isFalse);
       expect(settings.printFromBottom, isTrue);
       expect(settings.groupBatchVariants, isFalse);
+      expect(settings.enablePerSheetSpooling, isTrue);
     });
 
     test('saveSettings saves values into LocalDatabase and emits through watchSettings', () async {
@@ -60,6 +66,7 @@ void main() {
         enableResumePartialSheet: false,
         printFromBottom: true,
         groupBatchVariants: false,
+        enablePerSheetSpooling: true,
       );
 
       final expectation = expectLater(
@@ -74,6 +81,7 @@ void main() {
       verify(() => localDatabase.save<bool>('settings', 'enable_resume_partial_sheet', false)).called(1);
       verify(() => localDatabase.save<bool>('settings', 'print_from_bottom', true)).called(1);
       verify(() => localDatabase.save<bool>('settings', 'group_batch_variants', false)).called(1);
+      verify(() => localDatabase.save<bool>('settings', 'enable_per_sheet_spooling', true)).called(1);
     });
   });
 }

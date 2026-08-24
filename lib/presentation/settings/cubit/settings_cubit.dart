@@ -50,6 +50,12 @@ class SettingsCubit extends Cubit<SettingsState> {
     await _save(updated);
   }
 
+  /// Toggles the per-sheet print job spooling configuration.
+  Future<void> setEnablePerSheetSpooling({required bool value}) async {
+    final updated = state.settings.copyWith(enablePerSheetSpooling: value);
+    await _save(updated);
+  }
+
   Future<void> _save(AppSettings updated) async {
     emit(state.copyWith(settings: updated));
     await settingsRepository.saveSettings(updated);

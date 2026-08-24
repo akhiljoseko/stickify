@@ -107,6 +107,17 @@ class _SettingsView extends StatelessWidget {
                         onChanged: (val) =>
                             cubit.setGroupBatchVariants(value: val),
                       ),
+                      Divider(height: 1, color: colorScheme.outlineVariant),
+                      SwitchListTile(
+                        secondary: const Icon(Icons.description_outlined),
+                        title: const Text('Spool Batch Sheets Separately'),
+                        subtitle: const Text(
+                          'Send batch print jobs as separate 1-page print spool documents to the printer queue to isolate paper jams and print errors per sheet',
+                        ),
+                        value: settings.enablePerSheetSpooling,
+                        onChanged: (val) =>
+                            cubit.setEnablePerSheetSpooling(value: val),
+                      ),
                     ],
                   ),
                 );

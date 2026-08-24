@@ -552,7 +552,8 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
 
       emit(PrintWorkflowSubmitting(loadedState: s));
 
-      PrintExecutionConfiguration? executionConfiguration;
+      try {
+        PrintExecutionConfiguration? executionConfiguration;
       if (s.selectedPrinterProfile != null && s.selectedTrayProfile != null) {
         final orchestratorResult = _printPipelineOrchestrator.resolve(
           template: template,
@@ -575,17 +576,40 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
       }
 
       final itemsToPrint = s.printableItems;
+      final settings = await _getSettings();
 
-      final printResult = await _printService.printLabels(
-        items: itemsToPrint,
-        template: template,
-        disabledSlots: s.disabledSlots,
-        printer: printer,
-        printFromBottom: s.printFromBottom,
-        reverseSheetOrder: s.reverseSheetOrder,
-        executionConfiguration: executionConfiguration,
-        manufacturingDate: s.manufacturingDate,
-      );
+      Result<void, AppError> printResult;
+      if (settings.enablePerSheetSpooling && s.totalSheets > 1) {
+        printResult = const Result.success(null);
+        for (var sheetNum = 1; sheetNum <= s.totalSheets; sheetNum++) {
+          final res = await _printService.printLabels(
+            items: itemsToPrint,
+            template: template,
+            disabledSlots: s.disabledSlots,
+            printer: printer,
+            printFromBottom: s.printFromBottom,
+            reverseSheetOrder: s.reverseSheetOrder,
+            executionConfiguration: executionConfiguration,
+            manufacturingDate: s.manufacturingDate,
+            selectedSheets: {sheetNum},
+          );
+          if (res case Failure()) {
+            printResult = res;
+            break;
+          }
+        }
+      } else {
+        printResult = await _printService.printLabels(
+          items: itemsToPrint,
+          template: template,
+          disabledSlots: s.disabledSlots,
+          printer: printer,
+          printFromBottom: s.printFromBottom,
+          reverseSheetOrder: s.reverseSheetOrder,
+          executionConfiguration: executionConfiguration,
+          manufacturingDate: s.manufacturingDate,
+        );
+      }
 
       switch (printResult) {
         case Failure(error: final err):
@@ -662,6 +686,9 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
               totalQuantity: s.totalQuantity,
               totalSheets: s.totalSheets,
               items: summaryItemsMap.values.toList(),
+              disabledSlots: s.disabledSlots.toList(),
+              printFromBottom: s.printFromBottom,
+              groupBatchVariants: settings.groupBatchVariants,
             );
 
             await _batchPrintSummaryRepository.saveSummary(batchSummary);
@@ -673,7 +700,102 @@ class PrintWorkflowCubit extends Cubit<PrintWorkflowState> {
               summary: batchSummary,
             ),
           );
+        }
+      } on Object catch (e) {
+        emit(PrintWorkflowError(message: e.toString()));
       }
+    }
+  }
+
+  /// Reprints a specific subset of physical sheet numbers for a past batch print job.
+  Future<Result<void, AppError>> reprintBatchSheets({
+    required BatchPrintSummary summary,
+    required Set<int> selectedSheets,
+    required PrinterDevice printer,
+  }) async {
+    emit(const PrintWorkflowLoading());
+    try {
+      final templatesResult = await _templateRepository.fetchTemplates();
+      if (templatesResult case Failure(error: final err)) {
+        emit(PrintWorkflowError(message: err.message));
+        return Result.failure(err);
+      }
+      final templates =
+          (templatesResult as Success<List<LabelTemplate>, AppError>).value;
+      final template =
+          templates.firstWhereOrNull((t) => t.id == summary.templateId);
+      if (template == null) {
+        const err = ValidationError(
+          message: 'Template assigned to this batch was not found.',
+        );
+        emit(const PrintWorkflowError(message: 'Template assigned to this batch was not found.'));
+        return const Result.failure(err);
+      }
+
+      final reconstructedItems = summary.items.map((i) {
+        return PrintableItem(
+          product: Product(
+            id: i.productId,
+            name: i.productName,
+            sku: i.variantSku,
+            variants: [
+              ProductVariant(
+                name: i.variantName,
+                quantity: i.quantity.toDouble(),
+                unit: 'pcs',
+                wholesale: 0,
+                mrp: 0,
+                sku: i.variantSku,
+              ),
+            ],
+          ),
+          variant: ProductVariant(
+            name: i.variantName,
+            quantity: i.quantity.toDouble(),
+            unit: 'pcs',
+            wholesale: 0,
+            mrp: 0,
+            sku: i.variantSku,
+          ),
+          quantity: i.quantity,
+        );
+      }).toList();
+
+      final printResult = await _printService.printLabels(
+        items: reconstructedItems,
+        template: template,
+        disabledSlots: summary.disabledSlots.toSet(),
+        printer: printer,
+        printFromBottom: summary.printFromBottom,
+        selectedSheets: selectedSheets,
+      );
+
+      if (printResult case Failure(error: final err)) {
+        emit(PrintWorkflowError(message: err.message));
+        return printResult;
+      }
+
+      final now = DateTime.now();
+      final dummyJob = PrintJob(
+        id: _printJobIdGenerator.generateId(),
+        productId: reconstructedItems.first.product.id,
+        productName: reconstructedItems.first.product.name,
+        variantId: reconstructedItems.first.variant.sku,
+        variantName: reconstructedItems.first.variant.name,
+        variantSku: reconstructedItems.first.variant.sku,
+        templateId: template.id,
+        templateName: template.name,
+        printerStation: printer.name,
+        printedAt: now,
+        labelCount: summary.totalQuantity,
+      );
+
+      emit(PrintWorkflowSuccess(printJob: dummyJob, summary: summary));
+      return const Result.success(null);
+    } on Object catch (e) {
+      final err = UnexpectedError(message: e.toString());
+      emit(PrintWorkflowError(message: e.toString()));
+      return Result.failure(err);
     }
   }
 

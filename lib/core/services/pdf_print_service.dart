@@ -51,6 +51,7 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
     bool reverseSheetOrder = false,
     PrintExecutionConfiguration? executionConfiguration,
     DateTime? manufacturingDate,
+    Set<int>? selectedSheets,
   }) async {
     try {
       // 1. Pre-print validation (delegated to PrintPreFlightValidator per item)
@@ -86,6 +87,7 @@ class PdfPrintService implements PrintService, PrinterDiscoveryService {
         reverseSheetOrder: reverseSheetOrder,
         coordinateContext: coordinateContext,
         manufacturingDate: manufacturingDate,
+        selectedSheets: selectedSheets,
       );
 
       final targetFormat = PdfPageFormat(

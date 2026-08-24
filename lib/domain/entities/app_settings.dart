@@ -8,6 +8,7 @@ class AppSettings extends Equatable {
     this.enableResumePartialSheet = true,
     this.printFromBottom = false,
     this.groupBatchVariants = true,
+    this.enablePerSheetSpooling = false,
   });
 
   /// Deserializes a Map into an [AppSettings] instance.
@@ -19,6 +20,7 @@ class AppSettings extends Equatable {
           map['enableResumePartialSheet'] as bool? ?? true,
       printFromBottom: map['printFromBottom'] as bool? ?? false,
       groupBatchVariants: map['groupBatchVariants'] as bool? ?? true,
+      enablePerSheetSpooling: map['enablePerSheetSpooling'] as bool? ?? false,
     );
   }
 
@@ -40,12 +42,16 @@ class AppSettings extends Equatable {
   /// so that labels print continuously.
   final bool groupBatchVariants;
 
+  /// Whether to spool batch print jobs as separate 1-page print spool documents.
+  final bool enablePerSheetSpooling;
+
   @override
   List<Object?> get props => [
         enableDefaultTemplateUsage,
         enableResumePartialSheet,
         printFromBottom,
         groupBatchVariants,
+        enablePerSheetSpooling,
       ];
 
   /// Creates a copy of this [AppSettings] with given fields replaced.
@@ -54,6 +60,7 @@ class AppSettings extends Equatable {
     bool? enableResumePartialSheet,
     bool? printFromBottom,
     bool? groupBatchVariants,
+    bool? enablePerSheetSpooling,
   }) {
     return AppSettings(
       enableDefaultTemplateUsage:
@@ -62,6 +69,8 @@ class AppSettings extends Equatable {
           enableResumePartialSheet ?? this.enableResumePartialSheet,
       printFromBottom: printFromBottom ?? this.printFromBottom,
       groupBatchVariants: groupBatchVariants ?? this.groupBatchVariants,
+      enablePerSheetSpooling:
+          enablePerSheetSpooling ?? this.enablePerSheetSpooling,
     );
   }
 
@@ -72,6 +81,7 @@ class AppSettings extends Equatable {
       'enableResumePartialSheet': enableResumePartialSheet,
       'printFromBottom': printFromBottom,
       'groupBatchVariants': groupBatchVariants,
+      'enablePerSheetSpooling': enablePerSheetSpooling,
     };
   }
 }

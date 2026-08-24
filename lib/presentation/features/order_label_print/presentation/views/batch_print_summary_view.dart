@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:stickify/domain/entities/batch_print_summary.dart';
+import 'package:stickify/core/core.dart';
+import 'package:stickify/domain/domain.dart';
+import 'package:stickify/presentation/features/print/cubits/print_workflow_cubit.dart';
 import 'package:stickify/presentation/widgets/app_image.dart';
+import 'package:stickify/presentation/widgets/sheet_selector_widget.dart';
 
 /// Screen / View displaying the comprehensive summary of a completed batch print job.
 class BatchPrintSummaryView extends StatelessWidget {
@@ -186,28 +190,68 @@ class BatchPrintSummaryView extends StatelessWidget {
               ),
               const SizedBox(height: 32),
 
-              // Done / Go to Dashboard Button
-              SizedBox(
-                height: 50,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+              // Action Buttons Row
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () => _showReprintDialog(context),
+                        icon: const Icon(Icons.print_rounded),
+                        label: const Text(
+                          'Reprint Selected Sheets',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                      ),
                     ),
-                    elevation: 2,
                   ),
-                  onPressed: onClose ?? () => context.go('/dashboard'),
-                  icon: const Icon(Icons.dashboard_rounded),
-                  label: const Text(
-                    'Go to Dashboard',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          elevation: 2,
+                        ),
+                        onPressed: onClose ?? () => context.go('/dashboard'),
+                        icon: const Icon(Icons.dashboard_rounded),
+                        label: const Text(
+                          'Go to Dashboard',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showReprintDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: SizedBox(
+          width: 600,
+          child: _ReprintSheetSelectionDialog(summary: summary),
         ),
       ),
     );
@@ -238,6 +282,259 @@ class BatchPrintSummaryView extends StatelessWidget {
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReprintSheetSelectionDialog extends StatefulWidget {
+  const _ReprintSheetSelectionDialog({required this.summary});
+
+  final BatchPrintSummary summary;
+
+  @override
+  State<_ReprintSheetSelectionDialog> createState() =>
+      __ReprintSheetSelectionDialogState();
+}
+
+class __ReprintSheetSelectionDialogState
+    extends State<_ReprintSheetSelectionDialog> {
+  late Set<int> _selectedSheets;
+  List<PrinterDevice> _printers = [];
+  PrinterDevice? _selectedPrinter;
+  bool _isLoadingPrinters = true;
+  bool _isReprinting = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedSheets = Set<int>.from(
+      List.generate(widget.summary.totalSheets, (i) => i + 1),
+    );
+    _loadPrinters();
+  }
+
+  Future<void> _loadPrinters() async {
+    try {
+      final discoveryService = context.read<PrinterDiscoveryService>();
+      final printers = await discoveryService.getAvailablePrinters();
+      if (mounted) {
+        setState(() {
+          _printers = printers;
+          _selectedPrinter = printers.firstWhere(
+            (p) => p.name == widget.summary.printerName,
+            orElse: () => printers.firstWhere(
+              (p) => p.isDefault,
+              orElse: () => printers.isNotEmpty
+                  ? printers.first
+                  : PrinterDevice(name: widget.summary.printerName, url: ''),
+            ),
+          );
+          _isLoadingPrinters = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _selectedPrinter =
+              PrinterDevice(name: widget.summary.printerName, url: '');
+          _isLoadingPrinters = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _executeReprint() async {
+    if (_selectedSheets.isEmpty || _selectedPrinter == null) return;
+    setState(() {
+      _isReprinting = true;
+      _errorMessage = null;
+    });
+
+    final cubit = context.read<PrintWorkflowCubit>();
+    final result = await cubit.reprintBatchSheets(
+      summary: widget.summary,
+      selectedSheets: _selectedSheets,
+      printer: _selectedPrinter!,
+    );
+
+    if (mounted) {
+      if (result case Failure(error: final err)) {
+        setState(() {
+          _isReprinting = false;
+          _errorMessage = err.message;
+        });
+      } else {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Successfully dispatched reprinting of sheet(s) ${_selectedSheets.join(", ")} to ${_selectedPrinter!.name}',
+            ),
+            backgroundColor: Colors.green.shade700,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.print_rounded,
+                  color: colorScheme.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Reprint Batch Sheets',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Select specific sheets to reprint (e.g. to replace jammed or damaged pages)',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Standalone Sheet Selector Widget
+          SheetSelectorWidget(
+            totalSheets: widget.summary.totalSheets,
+            initialSelectedSheets: _selectedSheets,
+            onSelectionChanged: (updated) {
+              setState(() {
+                _selectedSheets = updated;
+              });
+            },
+          ),
+          const SizedBox(height: 20),
+
+          // Target Printer Dropdown
+          if (_isLoadingPrinters)
+            const Center(child: CircularProgressIndicator())
+          else if (_printers.isNotEmpty) ...[
+            Text(
+              'Target Printer',
+              style: textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            DropdownButtonFormField<PrinterDevice>(
+              initialValue: _selectedPrinter,
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              items: _printers.map((p) {
+                return DropdownMenuItem(
+                  value: p,
+                  child: Text(p.name),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() {
+                    _selectedPrinter = val;
+                  });
+                }
+              },
+            ),
+          ],
+
+          if (_errorMessage != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _errorMessage!,
+              style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
+            ),
+          ],
+          const SizedBox(height: 24),
+
+          // Submit Actions
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                ),
+                onPressed: _selectedSheets.isEmpty || _isReprinting
+                    ? null
+                    : _executeReprint,
+                icon: _isReprinting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.print_rounded, size: 18),
+                label: Text(
+                  _isReprinting
+                      ? 'Reprinting...'
+                      : 'Reprint ${_selectedSheets.length} Sheet${_selectedSheets.length == 1 ? "" : "s"}',
+                ),
+              ),
+            ],
           ),
         ],
       ),

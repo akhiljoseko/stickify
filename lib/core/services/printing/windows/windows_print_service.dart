@@ -174,6 +174,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
     bool reverseSheetOrder = false,
     PrintExecutionConfiguration? executionConfiguration,
     DateTime? manufacturingDate,
+    Set<int>? selectedSheets,
   }) async {
     String? backupToken;
     try {
@@ -250,6 +251,7 @@ class WindowsPrintService implements PrintService, PrinterDiscoveryService {
             physicalFormat: format,
             coordinateContext: coordinateContext,
             manufacturingDate: manufacturingDate,
+            selectedSheets: selectedSheets,
           );
         },
         format: PdfPageFormat(

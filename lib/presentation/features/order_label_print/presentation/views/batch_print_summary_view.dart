@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stickify/app/app_service_locator.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/presentation/features/print/cubits/print_workflow_cubit.dart';
@@ -354,30 +355,51 @@ class __ReprintSheetSelectionDialogState
       _errorMessage = null;
     });
 
-    final cubit = context.read<PrintWorkflowCubit>();
-    final result = await cubit.reprintBatchSheets(
-      summary: widget.summary,
-      selectedSheets: _selectedSheets,
-      printer: _selectedPrinter!,
+    final locator = context.read<AppServiceLocator>();
+    final cubit = PrintWorkflowCubit(
+      productRepository: locator.productRepository,
+      templateRepository: locator.templateRepository,
+      printJobRepository: locator.printJobRepository,
+      variantPrintStatsRepository: locator.variantPrintStatsRepository,
+      printService: locator.printService,
+      printerDiscoveryService: locator.printerDiscoveryService,
+      printJobIdGenerator: locator.printJobIdGenerator,
+      localDatabase: locator.database,
+      printerProfileRepository: locator.printerProfileRepository,
+      calibrationResolver: locator.printerCalibrationCoordinateResolver,
+      compatibilityAnalyzer: locator.templatePrinterCompatibilityAnalyzer,
+      printPipelineOrchestrator: locator.printPipelineOrchestrator,
+      batchPrintSummaryRepository: locator.batchPrintSummaryRepository,
+      settingsRepository: locator.settingsRepository,
     );
 
-    if (mounted) {
-      if (result case Failure(error: final err)) {
-        setState(() {
-          _isReprinting = false;
-          _errorMessage = err.message;
-        });
-      } else {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Successfully dispatched reprinting of sheet(s) ${_selectedSheets.join(", ")} to ${_selectedPrinter!.name}',
+    try {
+      final result = await cubit.reprintBatchSheets(
+        summary: widget.summary,
+        selectedSheets: _selectedSheets,
+        printer: _selectedPrinter!,
+      );
+
+      if (mounted) {
+        if (result case Failure(error: final err)) {
+          setState(() {
+            _isReprinting = false;
+            _errorMessage = err.message;
+          });
+        } else {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Successfully dispatched reprinting of sheet(s) ${_selectedSheets.join(", ")} to ${_selectedPrinter!.name}',
+              ),
+              backgroundColor: Colors.green.shade700,
             ),
-            backgroundColor: Colors.green.shade700,
-          ),
-        );
+          );
+        }
       }
+    } finally {
+      await cubit.close();
     }
   }
 

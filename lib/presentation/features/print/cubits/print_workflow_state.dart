@@ -113,7 +113,7 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     return quantity;
   }
 
-  /// Calculates total physical sheets required based on selected template layout.
+  /// Calculates total physical sheets required based on selected template layout and disabled slots.
   int get totalSheets {
     final tpl = selectedTemplate;
     if (tpl == null) return 1;
@@ -121,7 +121,19 @@ class PrintWorkflowLoaded extends PrintWorkflowState {
     final rows = tpl.sheetConfig?.rows ?? 1;
     final slotsPerSheet = cols * rows;
     if (slotsPerSheet <= 0) return 1;
-    return (totalQuantity / slotsPerSheet).ceil();
+    if (totalQuantity <= 0) return 0;
+
+    var activePlaced = 0;
+    var currentSlot = 0;
+    while (activePlaced < totalQuantity) {
+      if (!disabledSlots.contains(currentSlot)) {
+        activePlaced++;
+      }
+      if (activePlaced < totalQuantity) {
+        currentSlot++;
+      }
+    }
+    return (currentSlot / slotsPerSheet).floor() + 1;
   }
 
   /// Returns a copy of the state with modified fields.

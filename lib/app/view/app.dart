@@ -8,6 +8,7 @@ import 'package:stickify/app/theme.dart';
 import 'package:stickify/auth/auth.dart';
 import 'package:stickify/core/core.dart';
 import 'package:stickify/core/platform/file_picker_service.dart';
+import 'package:stickify/core/services/product_brochure_generator.dart';
 import 'package:stickify/domain/domain.dart';
 import 'package:stickify/l10n/l10n.dart';
 
@@ -90,6 +91,9 @@ class _AppState extends State<App> {
         ),
         RepositoryProvider<NotificationService>.value(
           value: locator.notificationService,
+        ),
+        RepositoryProvider<ProductBrochureGenerator>.value(
+          value: locator.productBrochureGenerator,
         ),
       ],
       child: BlocProvider(

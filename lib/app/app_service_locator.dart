@@ -14,6 +14,7 @@ import 'package:stickify/core/services/printing/print_calibration_context_resolv
 import 'package:stickify/core/services/printing/windows/windows_devmode_manager.dart';
 import 'package:stickify/core/services/printing/windows/windows_paper_validator.dart';
 import 'package:stickify/core/services/printing/windows/windows_print_service.dart';
+import 'package:stickify/core/services/product_brochure_generator.dart';
 import 'package:stickify/data/repositories/database_print_job_repository.dart';
 import 'package:stickify/data/repositories/database_printer_profile_repository.dart';
 import 'package:stickify/data/repositories/database_product_repository.dart';
@@ -291,6 +292,10 @@ class AppServiceLocator {
   /// The calibration sheet PDF generator.
   final CalibrationSheetPdfGenerator calibrationSheetPdfGenerator =
       const CalibrationSheetPdfGenerator();
+
+  /// Generator for the product catalogue brochure PDF.
+  final ProductBrochureGenerator productBrochureGenerator =
+      const ProductBrochureGenerator();
 
   /// Factory method to construct [PrinterConfigurationCubit].
   PrinterConfigurationCubit createPrinterConfigurationCubit() {
